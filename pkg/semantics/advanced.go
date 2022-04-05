@@ -3,10 +3,10 @@ package semantics
 import (
 	"context"
 	"fmt"
-	"os"
 
 	"github.com/open-policy-agent/opa/ast"
 	"github.com/open-policy-agent/opa/topdown"
+	"github.com/open-policy-agent/opa/topdown/builtins"
 
 	"github.com/snyk/upe/pkg/input"
 )
@@ -43,7 +43,28 @@ func (rule *AdvancedRule) Run(
 
 	overrides := map[string]topdown.BuiltinFunc{
 		"snyk.resources": func(bctx topdown.BuiltinContext, operands []*ast.Term, iter func(*ast.Term) error) error {
-			fmt.Fprintf(os.Stderr, "I have been called!\n")
+			if len(operands) != 2 {
+				return fmt.Errorf("Expected one argument to snyk.resources")
+			}
+			resourceType, err := builtins.StringOperand(operands[0].Value, 0)
+			if err != nil {
+				return err
+			}
+
+			resources, ok := input.Resources[string(resourceType)]
+			if !ok {
+				return nil
+			}
+
+			ret := map[string]interface{}{}
+			for k, resource := range resources {
+				ret[k] = resource.Value
+			}
+			val, err := ast.InterfaceToValue(ret)
+			if err != nil {
+				return err
+			}
+			iter(ast.NewTerm(val))
 			return nil
 		},
 	}

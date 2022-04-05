@@ -13,6 +13,9 @@ has_bucket_name {
 }
 
 policy[info] {
-	buckets[_]
-	info := {"message": "Buckets should not contain bucket, its implied duh"}
+	bucket := buckets[_]
+	info := {
+		"message": "Buckets should not contain bucket, its implied duh",
+		"resource": bucket,
+	}
 }

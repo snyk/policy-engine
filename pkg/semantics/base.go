@@ -63,7 +63,7 @@ func Builtins() map[string]*topdown.Builtin {
 			Decl: &ast.Builtin{
 				Name: "snyk.resources",
 				Decl: types.NewFunction(
-					types.Args(types.A),
+					types.Args(types.S),
 					types.A,
 				),
 			},
