@@ -39,7 +39,6 @@ func (rule *AdvancedRule) Run(
 	input *input.Input,
 ) (RuleReport, error) {
 	ruleResourceReports := []RuleResourceReport{}
-	policy := []interface{}{}
 
 	overrides := map[string]topdown.BuiltinFunc{
 		"snyk.resources": func(bctx topdown.BuiltinContext, operands []*ast.Term, iter func(*ast.Term) error) error {
@@ -69,9 +68,22 @@ func (rule *AdvancedRule) Run(
 		},
 	}
 
-	err := worker.Eval(ctx, overrides, struct{}{}, "data.rules."+rule.Name+".policy", &policy)
+	denies := []RegoDeny{}
+	err := worker.Eval(ctx, overrides, struct{}{}, "data.rules."+rule.Name+".deny", &denies)
 	if err != nil {
 		return nil, err
 	}
+
+	for _, deny := range denies {
+		ruleResourceReport := RuleResourceReport{
+			ResourceId:   deny.Resource.Id,
+			RuleName:     rule.Name,
+			RulePass:     false,
+			RuleMessages: []string{deny.Message},
+		}
+
+		ruleResourceReports = append(ruleResourceReports, ruleResourceReport)
+	}
+
 	return ruleResourceReports, nil
 }
