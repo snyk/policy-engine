@@ -5,7 +5,7 @@ import (
 	"fmt"
 
 	"github.com/open-policy-agent/opa/topdown"
-	"github.com/snyk/upe/pkg/input"
+	"github.com/snyk/unified-policy-engine/pkg/input"
 )
 
 // TODO: Consider sharing this structure.

@@ -1,7 +1,7 @@
 package main
 
 import (
-    "github.com/snyk/upe/cmd"
+    "github.com/snyk/unified-policy-engine/cmd"
 )
 
 func main() {

@@ -1,4 +1,4 @@
-module github.com/snyk/upe
+module github.com/snyk/unified-policy-engine
 
 go 1.16
 

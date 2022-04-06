@@ -8,7 +8,7 @@ import (
 	"github.com/open-policy-agent/opa/ast"
 	"github.com/open-policy-agent/opa/topdown"
 	"github.com/open-policy-agent/opa/types"
-	"github.com/snyk/upe/pkg/input"
+	"github.com/snyk/unified-policy-engine/pkg/input"
 )
 
 type Worker interface {

@@ -9,7 +9,7 @@ import (
 	"github.com/open-policy-agent/opa/topdown"
 	"github.com/open-policy-agent/opa/topdown/builtins"
 
-	"github.com/snyk/upe/pkg/input"
+	"github.com/snyk/unified-policy-engine/pkg/input"
 )
 
 type AdvancedRule struct {

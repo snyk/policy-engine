@@ -9,10 +9,9 @@ import (
 	"github.com/fugue/regula/v2/pkg/rego"
 	"github.com/spf13/cobra"
 
-	"github.com/snyk/upe/pkg/semantics"
-	"github.com/snyk/upe/pkg/upe"
-
-	"github.com/snyk/upe/pkg/input"
+	"github.com/snyk/unified-policy-engine/pkg/semantics"
+	"github.com/snyk/unified-policy-engine/pkg/upe"
+	"github.com/snyk/unified-policy-engine/pkg/input"
 )
 
 var cmdRegoPaths []string
