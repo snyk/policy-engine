@@ -44,37 +44,43 @@ func (rule *SimpleRule) Run(
 	worker Worker,
 	ctx context.Context,
 	input *input.Input,
-) (RuleReport, error) {
-	ruleResourceReports := []RuleResourceReport{}
+) (Report, error) {
+	report := Report{}
 
 	if resources, ok := input.Resources[rule.ResourceType]; ok {
 		for _, resource := range resources {
 			infos := []Info{}
 			err := worker.Eval(ctx, nil, resource.Value, "data.rules."+rule.Name+".deny", &infos)
 			if err != nil {
-				return nil, err
+				return report, err
 			}
 
-			ruleResourceReport := RuleResourceReport{
-				ResourceId:   resource.Id,
-				RuleName:     rule.Name,
-				RulePass:     true,
-				RuleMessages: []string{},
+			resources := map[string]*RuleResourceReport{}
+			resources[resource.Id] = &RuleResourceReport{
+				Id:   resource.Id,
+				Type: resource.Type,
+			}
+
+			ruleReport := RuleReport{
+				Name:      rule.Name,
+				Pass:      true,
+				Messages:  []string{},
+				Resources: resources,
 			}
 
 			for _, info := range infos {
-				ruleResourceReport.RulePass = false
+				ruleReport.Pass = false
 				if len(info.Message) > 0 {
-					ruleResourceReport.RuleMessages = append(
-						ruleResourceReport.RuleMessages,
+					ruleReport.Messages = append(
+						ruleReport.Messages,
 						info.Message,
 					)
 				}
 			}
 
-			ruleResourceReports = append(ruleResourceReports, ruleResourceReport)
+			report = append(report, &ruleReport)
 		}
 	}
 
-	return ruleResourceReports, nil
+	return report, nil
 }

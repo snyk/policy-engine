@@ -7,5 +7,5 @@ type RegoResource struct {
 
 type RegoDeny struct {
 	Message  string       `json:"message,omitempty"`
-	Resource RegoResource `json:"resource"`
+	Resource *RegoResource `json:"resource,omitempty"`
 }

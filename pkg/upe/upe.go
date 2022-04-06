@@ -138,7 +138,8 @@ func (upe *Upe) Eval(
 		}
 	}
 	if result == nil {
-		return fmt.Errorf("Eval1: expected one result but got none")
+		// Nothing gets written to result.
+		return nil
 	}
 
 	iface, err := ast.JSON(*result)

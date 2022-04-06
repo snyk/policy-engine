@@ -3,6 +3,7 @@ package semantics
 import (
 	"context"
 	"fmt"
+	"sort"
 
 	"github.com/open-policy-agent/opa/ast"
 	"github.com/open-policy-agent/opa/topdown"
@@ -37,9 +38,7 @@ func (rule *AdvancedRule) Run(
 	worker Worker,
 	ctx context.Context,
 	input *input.Input,
-) (RuleReport, error) {
-	ruleResourceReports := []RuleResourceReport{}
-
+) (Report, error) {
 	overrides := map[string]topdown.BuiltinFunc{
 		"snyk.resources": func(bctx topdown.BuiltinContext, operands []*ast.Term, iter func(*ast.Term) error) error {
 			if len(operands) != 2 {
@@ -74,16 +73,66 @@ func (rule *AdvancedRule) Run(
 		return nil, err
 	}
 
-	for _, deny := range denies {
-		ruleResourceReport := RuleResourceReport{
-			ResourceId:   deny.Resource.Id,
-			RuleName:     rule.Name,
-			RulePass:     false,
-			RuleMessages: []string{deny.Message},
-		}
-
-		ruleResourceReports = append(ruleResourceReports, ruleResourceReport)
+	locations := []RegoDeny{}
+	err = worker.Eval(ctx, overrides, struct{}{}, "data.rules."+rule.Name+".locations", &locations)
+	if err != nil {
+		return nil, err
 	}
 
-	return ruleResourceReports, nil
+	byCorrelation := map[string]*RuleReport{}
+
+	for _, deny := range denies {
+		correlation := deny.Resource.Id
+
+		if _, ok := byCorrelation[correlation]; !ok {
+			byCorrelation[correlation] = &RuleReport{
+				Name:      rule.Name,
+				Pass:      false,
+				Resources: map[string]*RuleResourceReport{},
+			}
+		}
+
+		byCorrelation[correlation].Messages = append(
+			byCorrelation[correlation].Messages,
+			deny.Message,
+		)
+
+		if deny.Resource != nil {
+			byCorrelation[correlation].Resources[deny.Resource.Id] = &RuleResourceReport{
+				Id:   deny.Resource.Id,
+				Type: deny.Resource.Type,
+			}
+		}
+	}
+
+	for _, location := range locations {
+		correlation := location.Resource.Id
+
+		if _, ok := byCorrelation[correlation]; !ok {
+			byCorrelation[correlation] = &RuleReport{
+				Name:      rule.Name,
+				Pass:      true,
+				Resources: map[string]*RuleResourceReport{},
+			}
+		}
+
+		if location.Resource != nil {
+			byCorrelation[correlation].Resources[location.Resource.Id] = &RuleResourceReport{
+				Id:   location.Resource.Id,
+				Type: location.Resource.Type,
+			}
+		}
+	}
+
+	// Sort for consistency
+	report := Report{}
+	correlationKeys := []string{}
+	for k := range byCorrelation {
+		correlationKeys = append(correlationKeys, k)
+	}
+	sort.Strings(correlationKeys)
+	for _, k := range correlationKeys {
+		report = append(report, byCorrelation[k])
+	}
+	return report, nil
 }

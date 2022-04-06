@@ -21,17 +21,22 @@ type Worker interface {
 	) error
 }
 
-type RuleReport = []RuleResourceReport
+type Report = []*RuleReport
+
+type RuleReport struct {
+	Name      string                         `json:"name"`
+	Pass      bool                           `json:"pass"`
+	Messages  []string                       `json:"messages"`
+	Resources map[string]*RuleResourceReport `json:"resources"`
+}
 
 type RuleResourceReport struct {
-	ResourceId   string   `json:"resource_id"`
-	RuleName     string   `json:"rule_name"`
-	RulePass     bool     `json:"rule_pass"`
-	RuleMessages []string `json:"rule_messages"`
+	Id   string `json:"id"`
+	Type string `json:"type"`
 }
 
 type Semantics interface {
-	Run(Worker, context.Context, *input.Input) (RuleReport, error)
+	Run(Worker, context.Context, *input.Input) (Report, error)
 }
 
 type SemanticsDetector = func(Worker, context.Context, string) (Semantics, error)
