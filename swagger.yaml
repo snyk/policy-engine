@@ -58,7 +58,7 @@ components:
           description: |
             This object is intended to hold any input type-specific or 
             environment-specific fields, e.g. account_id or filepath.
-          additionalProperties: true
+          additionalProperties: {}
         resources:
           type: object
           description: |
@@ -109,20 +109,15 @@ components:
           description: |
             This object is intended to hold any input type-specific or 
             environment-specific fields, e.g. provider, region, or source location.
-          additionalProperties: true
+          additionalProperties: {}
         attributes:
           type: object
-          description: A map of resource attributes
-          properties:
-            id:
-              type: string
-              description: |
-                The identifier of the object. This can be a natural ID. It is assumed that
-                this ID is unique within the namespace.
-            _type:
-              type: string
-              description: The type of the resource.
-          additionalProperties: true
+          description: |
+            A map of resource attributes. The only required entries are:
+              * id: An identifier for the resource. This can be a natural ID. It is
+                    assumed that this ID is unique within the namespace.
+              * _type: The type of the resource.
+          additionalProperties: {}
           required:
             - id
             - _type
@@ -234,7 +229,7 @@ components:
         context:
           type: object
           description: An arbitrary key-value map that a rule can return in its result.
-          additionalProperties: true
+          additionalProperties: {}
         resources:
           type: object
           description: |
