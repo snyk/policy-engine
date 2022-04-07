@@ -21,7 +21,7 @@ deny[info] {
 	}
 }
 
-locations[info] {
+location[info] {
 	bucket := buckets[_]
 	info := {"resource": bucket}
 }
