@@ -29,6 +29,8 @@ Fields:
 
  -  `message`: Message string detailing the issue.
  -  `resource`: Resource associated with the issue.
+ -  `correlation`: May be used to override the correlation the policy engine
+    uses to relate issues.  Defaults to `.resource.id`.
 
 ### snyk API
 
