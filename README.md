@@ -29,12 +29,20 @@ simple rules and gradually adding concepts.
 
 ### Info objects
 
-Fields:
+Info objects have different fields depending in which context they occur.
 
- -  `message`: Message string detailing the issue.
+`deny[info]` fields:
+
+ -  `message`: Message string detailing the issue.  **Required.**
  -  `resource`: Resource associated with the issue.
  -  `resource_type`: May be used to indicate the resource type in case of a
     missing resource.
+ -  `correlation`: May be used to override the correlation the policy engine
+    uses to relate issues.  Defaults to `.resource.id`.
+
+`location[info]` fields:
+
+ -  `resource`: Resource associated with the issue.  **Required.**
  -  `correlation`: May be used to override the correlation the policy engine
     uses to relate issues.  Defaults to `.resource.id`.
 
