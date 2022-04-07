@@ -1,4 +1,4 @@
-package rules.snyk_002
+package rules.snyk_002.tf
 
 resource_type = "MULTIPLE"
 

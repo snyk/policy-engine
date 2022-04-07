@@ -4,8 +4,11 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/open-policy-agent/opa/ast"
 	"github.com/open-policy-agent/opa/topdown"
+
 	"github.com/snyk/unified-policy-engine/pkg/input"
+	"github.com/snyk/unified-policy-engine/pkg/upe"
 )
 
 // TODO: Consider sharing this structure.
@@ -15,16 +18,23 @@ type Info struct {
 
 type SimpleRule struct {
 	Name         string
+	Ref          ast.Ref
 	ResourceType string
 }
 
 func DetectSimpleRule(
 	worker Worker,
 	ctx context.Context,
-	ruleName string,
+	rule upe.RuleInfo,
 ) (Semantics, error) {
 	resourceType := ""
-	err := worker.Eval(ctx, nil, struct{}{}, "data.rules."+ruleName+".resource_type", &resourceType)
+	err := worker.Eval(
+		ctx,
+		nil,
+		struct{}{},
+		rule.Module.Append(ast.StringTerm("resource_type")),
+		&resourceType,
+	)
 	if err != nil {
 		return nil, err
 	}
@@ -33,7 +43,11 @@ func DetectSimpleRule(
 		return nil, fmt.Errorf("resource_type set to MULTIPLE for simple rule")
 	}
 
-	return &SimpleRule{Name: ruleName, ResourceType: resourceType}, nil
+	return &SimpleRule{
+		Name:         rule.Name,
+		Ref:          rule.Module,
+		ResourceType: resourceType,
+	}, nil
 }
 
 func (rule *SimpleRule) Builtins(*input.Input) map[string]*topdown.Builtin {
@@ -50,7 +64,13 @@ func (rule *SimpleRule) Run(
 	if resources, ok := input.Resources[rule.ResourceType]; ok {
 		for _, resource := range resources {
 			infos := []Info{}
-			err := worker.Eval(ctx, nil, resource.Value, "data.rules."+rule.Name+".deny", &infos)
+			err := worker.Eval(
+				ctx,
+				nil,
+				resource.Value,
+				rule.Ref.Append(ast.StringTerm("deny")),
+				&infos,
+			)
 			if err != nil {
 				return report, err
 			}

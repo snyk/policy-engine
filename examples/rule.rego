@@ -1,4 +1,4 @@
-package rules.snyk_001
+package rules.snyk_001.tf
 
 resource_type = "aws_s3_bucket"
 

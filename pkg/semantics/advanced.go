@@ -10,19 +10,27 @@ import (
 	"github.com/open-policy-agent/opa/topdown/builtins"
 
 	"github.com/snyk/unified-policy-engine/pkg/input"
+	"github.com/snyk/unified-policy-engine/pkg/upe"
 )
 
 type AdvancedRule struct {
 	Name string
+	Ref  ast.Ref
 }
 
 func DetectAdvancedRule(
 	worker Worker,
 	ctx context.Context,
-	ruleName string,
+	rule upe.RuleInfo,
 ) (Semantics, error) {
 	resourceType := ""
-	err := worker.Eval(ctx, nil, struct{}{}, "data.rules."+ruleName+".resource_type", &resourceType)
+	err := worker.Eval(
+		ctx,
+		nil,
+		struct{}{},
+		rule.Module.Append(ast.StringTerm("resource_type")),
+		&resourceType,
+	)
 	if err != nil {
 		return nil, err
 	}
@@ -31,7 +39,7 @@ func DetectAdvancedRule(
 		return nil, fmt.Errorf("resource_type needs to be MULTIPLE for advanced rule")
 	}
 
-	return &AdvancedRule{Name: ruleName}, nil
+	return &AdvancedRule{Name: rule.Name, Ref: rule.Module}, nil
 }
 
 func (rule *AdvancedRule) Run(
@@ -68,13 +76,24 @@ func (rule *AdvancedRule) Run(
 	}
 
 	denies := []RegoDeny{}
-	err := worker.Eval(ctx, overrides, struct{}{}, "data.rules."+rule.Name+".deny", &denies)
+	err := worker.Eval(
+		ctx,
+		overrides,
+		struct{}{},
+		rule.Ref.Append(ast.StringTerm("deny")),
+		&denies,
+	)
 	if err != nil {
 		return nil, err
 	}
 
 	locations := []RegoDeny{}
-	err = worker.Eval(ctx, overrides, struct{}{}, "data.rules."+rule.Name+".locations", &locations)
+	err = worker.Eval(ctx,
+		overrides,
+		struct{}{},
+		rule.Ref.Append(ast.StringTerm("locations")),
+		&locations,
+	)
 	if err != nil {
 		return nil, err
 	}

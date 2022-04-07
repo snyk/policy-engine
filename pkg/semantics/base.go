@@ -8,7 +8,9 @@ import (
 	"github.com/open-policy-agent/opa/ast"
 	"github.com/open-policy-agent/opa/topdown"
 	"github.com/open-policy-agent/opa/types"
+
 	"github.com/snyk/unified-policy-engine/pkg/input"
+	"github.com/snyk/unified-policy-engine/pkg/upe"
 )
 
 type Worker interface {
@@ -16,7 +18,7 @@ type Worker interface {
 		ctx context.Context,
 		overrides map[string]topdown.BuiltinFunc,
 		input interface{},
-		ref string,
+		ref ast.Ref,
 		output interface{},
 	) error
 }
@@ -39,13 +41,13 @@ type Semantics interface {
 	Run(Worker, context.Context, *input.Input) (Report, error)
 }
 
-type SemanticsDetector = func(Worker, context.Context, string) (Semantics, error)
+type SemanticsDetector = func(Worker, context.Context, upe.RuleInfo) (Semantics, error)
 
 func ConcatSemanticsDetector(detectors []SemanticsDetector) SemanticsDetector {
-	return func(worker Worker, ctx context.Context, ruleName string) (Semantics, error) {
+	return func(worker Worker, ctx context.Context, rule upe.RuleInfo) (Semantics, error) {
 		errors := []string{}
 		for _, detector := range detectors {
-			semantics, err := detector(worker, ctx, ruleName)
+			semantics, err := detector(worker, ctx, rule)
 			if err == nil {
 				return semantics, nil
 			} else {

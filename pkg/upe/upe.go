@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
-	"strings"
 
 	"github.com/fugue/regula/v2/pkg/rego"
 	"github.com/open-policy-agent/opa/ast"
@@ -20,7 +19,7 @@ type UpeOptions struct {
 }
 
 type Upe struct {
-	packages []string
+	packages []ast.Ref
 	builtins map[string]*topdown.Builtin
 	compiler *ast.Compiler
 	store    storage.Store
@@ -28,7 +27,7 @@ type Upe struct {
 
 func LoadUpe(ctx context.Context, options UpeOptions) (*Upe, error) {
 	upe := Upe{
-		packages: []string{},
+		packages: []ast.Ref{},
 		builtins: options.Builtins,
 		compiler: ast.NewCompiler(),
 		store:    inmem.New(),
@@ -41,7 +40,7 @@ func LoadUpe(ctx context.Context, options UpeOptions) (*Upe, error) {
 			if err != nil {
 				return err
 			}
-			upe.packages = append(upe.packages, module.Package.Path.String())
+			upe.packages = append(upe.packages, module.Package.Path)
 			modules[r.Path()] = module
 			return nil
 		})
@@ -65,13 +64,29 @@ func LoadUpe(ctx context.Context, options UpeOptions) (*Upe, error) {
 	return &upe, nil
 }
 
+type RuleInfo struct {
+	Name      string
+	InputType string
+	Module    ast.Ref
+}
+
 // IterateRules goes through the loaded rule names.
-func (upe *Upe) IterateRules() []string {
-	rules := []string{}
-	for _, str := range upe.packages {
-		parts := strings.SplitN(str, ".", 4)
-		if len(parts) == 3 && parts[0] == "data" && parts[1] == "rules" {
-			rules = append(rules, parts[2])
+func (upe *Upe) IterateRules() []RuleInfo {
+	rules := []RuleInfo{}
+	for _, pkg := range upe.packages {
+		if len(pkg) == 4 &&
+			pkg[0].Equal(ast.DefaultRootDocument) &&
+			pkg[1].Equal(ast.StringTerm("rules")) {
+			if ruleName, ok := pkg[2].Value.(ast.String); ok {
+				if inputType, ok := pkg[3].Value.(ast.String); ok {
+					rule := RuleInfo{
+						Name:      string(ruleName),
+						InputType: string(inputType),
+						Module:    pkg,
+					}
+					rules = append(rules, rule)
+				}
+			}
 		}
 	}
 	return rules
@@ -81,14 +96,11 @@ func (upe *Upe) Eval(
 	ctx context.Context,
 	overrides map[string]topdown.BuiltinFunc,
 	input interface{},
-	ref string,
+	ref ast.Ref,
 	output interface{},
 ) error {
-	fmt.Fprintf(os.Stderr, "Evaluating %s\n", ref)
-	queryBody, err := ast.ParseBody(ref)
-	if err != nil {
-		return err
-	}
+	fmt.Fprintf(os.Stderr, "Evaluating %s\n", ref.String())
+	queryBody := ast.NewBody(&ast.Expr{Terms: ast.RefTerm(ref...)})
 
 	inputValue, err := ast.InterfaceToValue(input)
 	if err != nil {
