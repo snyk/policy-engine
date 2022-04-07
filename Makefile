@@ -1,8 +1,8 @@
 demo:
 	go build
 	./unified-policy-engine \
-		-d examples/rule.rego \
-		-d examples/advanced.rego \
-		-d examples/advanced2.rego \
-		-d examples/advanced3.rego \
+		-d examples/01-simple.rego \
+		-d examples/02-advanced.rego \
+		-d examples/03-advanced.rego \
+		-d examples/04-advanced.rego \
 		examples/main.tf

@@ -43,6 +43,10 @@ func DetectSimpleRule(
 		return nil, fmt.Errorf("resource_type set to MULTIPLE for simple rule")
 	}
 
+	if resourceType == "" {
+		return nil, fmt.Errorf("resource_type omitted for simple rule")
+	}
+
 	return &SimpleRule{
 		Name:         rule.Name,
 		Ref:          rule.Module,

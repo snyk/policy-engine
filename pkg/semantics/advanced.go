@@ -35,7 +35,7 @@ func DetectAdvancedRule(
 		return nil, err
 	}
 
-	if resourceType != "MULTIPLE" {
+	if resourceType != "MULTIPLE" && resourceType != "" {
 		return nil, fmt.Errorf("resource_type needs to be MULTIPLE for advanced rule")
 	}
 

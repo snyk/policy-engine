@@ -1,6 +1,10 @@
+# This rule is identical to the previous example, but extends it with
+# optional location metadata.
+#
+# By adding this metadata, the policy engine can derive which resources were
+# examined.  This way, we can infer which resources were compliant for this
+# rule, in addition to the noncompliant ones.
 package rules.snyk_003.tf
-
-resource_type = "MULTIPLE"
 
 buckets = snyk.resources("aws_s3_bucket")
 
@@ -21,6 +25,7 @@ deny[info] {
 	}
 }
 
+# If present, `location` must be a set of info objects.
 location[info] {
 	bucket := buckets[_]
 	info := {"resource": bucket}
