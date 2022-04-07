@@ -7,19 +7,19 @@ simple rules and gradually adding concepts.
 
 ### Simple rules
 
-<examples/01-simple.rego>
+[examples/01-simple.rego](examples/01-simple.rego)
 
 ### Advanced rules part 1
 
-<examples/02-advanced.rego>
+[examples/02-advanced.rego](examples/02-advanced.rego)
 
 ### Advanced rules part 2
 
-<examples/03-advanced.rego>
+[examples/03-advanced.rego](examples/03-advanced.rego)
 
 ### Advanced rules part 3
 
-<examples/03-advanced.rego>
+[examples/04-advanced.rego](examples/04-advanced.rego)
 
 ## Reference
 
@@ -32,6 +32,5 @@ Fields:
 
 ### snyk API
 
- -  `snyk.resources(resource_type)`
-
+ -  `snyk.resources(resource_type)`:
     Returns a object of resource IDs to resources of the requested type.
