@@ -40,7 +40,7 @@ Info objects have different fields depending in which context they occur.
  -  `correlation`: May be used to override the correlation the policy engine
     uses to relate issues.  Defaults to `.resource.id`.
 
-`location[info]` fields:
+`resources[info]` fields:
 
  -  `resource`: Resource associated with the issue.  **Required.**
  -  `correlation`: May be used to override the correlation the policy engine

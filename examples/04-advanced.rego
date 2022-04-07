@@ -5,7 +5,7 @@
 # noncompliant.
 #
 # We can do this by associating the auxiliary resource types using a
-# `correlation`.  You can see how this is used in `location` below.
+# `correlation`.  You can see how this is used in `resources` below.
 package rules.snyk_004.tf
 
 buckets := snyk.resources("aws_s3_bucket")
@@ -39,7 +39,7 @@ deny[info] {
 
 # Like in the previous example, we include resource information about the
 # buckets so we can get full compliance results.
-location[info] {
+resources[info] {
 	bucket := buckets[_]
 	info := {"resource": bucket}
 }
@@ -57,7 +57,7 @@ location[info] {
 # But in this case, we do want to explicitly set it to the bucket ID, to
 # associate the encryption config with it, and indicate that this is not a
 # separate issue.
-location[info] {
+resources[info] {
 	ec = encryption_configs[_]
 	correlation = ec.bucket
 	info := {

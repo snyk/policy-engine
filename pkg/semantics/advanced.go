@@ -87,12 +87,12 @@ func (rule *AdvancedRule) Run(
 		return nil, err
 	}
 
-	locations := []RegoDeny{}
+	resourceInfos := []RegoDeny{}
 	err = worker.Eval(ctx,
 		overrides,
 		struct{}{},
-		rule.Ref.Append(ast.StringTerm("location")),
-		&locations,
+		rule.Ref.Append(ast.StringTerm("resources")),
+		&resourceInfos,
 	)
 	if err != nil {
 		return nil, err
@@ -124,8 +124,8 @@ func (rule *AdvancedRule) Run(
 		}
 	}
 
-	for _, location := range locations {
-		correlation := location.GetCorrelation()
+	for _, resourceInfo := range resourceInfos {
+		correlation := resourceInfo.GetCorrelation()
 
 		if _, ok := byCorrelation[correlation]; !ok {
 			byCorrelation[correlation] = &RuleReport{
@@ -135,10 +135,10 @@ func (rule *AdvancedRule) Run(
 			}
 		}
 
-		if location.Resource != nil {
-			byCorrelation[correlation].Resources[location.Resource.Id] = &RuleResourceReport{
-				Id:   location.Resource.Id,
-				Type: location.Resource.Type,
+		if resourceInfo.Resource != nil {
+			byCorrelation[correlation].Resources[resourceInfo.Resource.Id] = &RuleResourceReport{
+				Id:   resourceInfo.Resource.Id,
+				Type: resourceInfo.Resource.Type,
 			}
 		}
 	}

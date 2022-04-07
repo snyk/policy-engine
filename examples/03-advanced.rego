@@ -1,5 +1,5 @@
 # This rule is identical to the previous example, but extends it with
-# optional location metadata.
+# optional resource metadata.
 #
 # By adding this metadata, the policy engine can derive which resources were
 # examined.  This way, we can infer which resources were compliant for this
@@ -25,8 +25,8 @@ deny[info] {
 	}
 }
 
-# If present, `location` must be a set of info objects.
-location[info] {
+# If present, `resources` must be a set of info objects.
+resources[info] {
 	bucket := buckets[_]
 	info := {"resource": bucket}
 }

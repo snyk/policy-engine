@@ -26,7 +26,7 @@ deny[info] {
 }
 
 # We include the valid trails so they can be marked compliant.
-location[info] {
+resources[info] {
 	cloudtrail := global_cloudtrails[_]
 	info := {"resource": cloudtrail}
 }
