@@ -21,6 +21,11 @@ simple rules and gradually adding concepts.
 
 [examples/04-advanced.rego](examples/04-advanced.rego)
 
+### Advanced rules part 4
+
+[examples/06-advanced.rego](examples/06-advanced.rego)
+
+
 ### Missing resources
 
 [examples/05-missing.rego](examples/05-missing.rego)
