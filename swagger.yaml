@@ -1,0 +1,285 @@
+---
+openapi: 3.0.0
+info:
+  version: 1.0.0
+  title: Unified Policy Engine I/O Formats
+  description: Documentation for the input and output formats used in Unified Policy Engine
+paths:
+  /dummy:
+    get:
+      responses:
+        '200':
+          description: This path makes this spec compatible with code generators
+components:
+  schemas:
+    State:
+      description: |
+        The state format contains the state of all resources from some input. This format
+        is intended to be used as both an input and output for the unified policy engine.
+        It is also intended to support the visualizer and other downstream artifacts.
+      type: object
+      required:
+        - format
+        - format_version
+        - input_type
+        - environment_provider
+        - resources
+      properties:
+        format:
+          type: string
+          enum: ["state"]
+        format_version:
+          type: string
+          enum: ["1.0.0"]
+        input_type:
+          type: string
+          description: |
+            The type of input that this state was generated from. This value factors into
+            which rules are run for this input.
+          enum:
+            - tf
+            - tf_plan
+            - tf_runtime
+            - cfn
+            - k8s
+            - arm
+        environment_provider:
+          type: string
+          description: |
+            The type of environment that this state was generated from. This value factors
+            into which rules are run for this input.
+          enum:
+            - aws
+            - azure
+            - google
+            - iac
+        meta:
+          type: object
+          description: |
+            This object is intended to hold any input type-specific or 
+            environment-specific fields, e.g. account_id or filepath.
+          additionalProperties: true
+        resources:
+          type: object
+          description: |
+            Resources is a map of a unique resource key to a resource object.
+          additionalProperties:
+            $ref: '#/components/schemas/ResourceState'
+    ResourceState:
+      description: The state of a single resource
+      type: object
+      required:
+        - id
+        - resource_type
+        - namespace
+        - attributes
+      properties:
+        id:
+          type: string
+          description: |
+            The identifier of the object. This can be a natural ID. It is assumed that
+            this ID is unique within the namespace.
+        resource_type:
+          type: string
+          description: The type of the resource.
+        partition:
+          type: string
+          description: |
+            This field is a component of uniquely identifying a resource. It will
+            resolve to different values depending on the input type and environment
+            provider. For example, in a runtime AWS environment, this will be the account
+            ID. In an IaC SCM environment, this could be a git branch. Since this
+            concept doesn't apply in all cases, this field is optional.
+        namespace:
+          type: string
+          description: |
+            This field is a component of uniquely identifying a resource. It will
+            resolve to different values depending on the input type and environment
+            provider. For example, in a runtime AWS environment, this will be the region.
+            For an IaC Terraform resource, this will be the module path.
+        tags:
+          type: object
+          description: |
+            Tags applied to the resource. Our goal is to extract tags into a uniform
+            key->value format.
+          additionalProperties:
+            type: string
+        meta:
+          type: object
+          description: |
+            This object is intended to hold any input type-specific or 
+            environment-specific fields, e.g. provider, region, or source location.
+          additionalProperties: true
+        attributes:
+          type: object
+          description: A map of resource attributes
+          properties:
+            id:
+              type: string
+              description: |
+                The identifier of the object. This can be a natural ID. It is assumed that
+                this ID is unique within the namespace.
+            _type:
+              type: string
+              description: The type of the resource.
+          additionalProperties: true
+          required:
+            - id
+            - _type
+    Results:
+      description: |
+        This is the top-level output from the Unified Policy Engine.
+      type: object
+      required:
+        - format
+        - format_version
+        - rule_results
+      properties:
+        format:
+          type: string
+          enum: ["results"]
+        format_version:
+          type: string
+          enum: ["1.0.0"]
+        inputs:
+          type: array
+          description: |
+            The inputs that produced these results. This field is optional.
+          items:
+            $ref: '#/components/schemas/State'
+        rule_results:
+          type: object
+          description: A map of rule package to a rule results object
+          additionalProperties:
+            $ref: '#/components/schemas/RuleResults'
+    RuleResults:
+      description: Container for all results associated with a single rule
+      type: object
+      required:
+        - results
+      properties:
+        id:
+          type: string
+          description: |
+            The Rule ID, e.g. SNYK_00503 or 608f97c3-a11a-4154-a88e-a2fcd18c75b0
+        title:
+          type: string
+          description: The rule title
+        description:
+          type: string
+          description: The rule description
+        references:
+          type: array
+          description: An array of links to additional information on the vulnerability.
+          items:
+            type: object
+            properties:
+              title:
+                type: string
+              description:
+                type: string
+              url:
+                type: string
+        compliance:
+          type: object
+          description: A map of compliance family ID to a list of control tags
+          additionalProperties:
+            type: array
+            items:
+              type: string
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/RuleResult'
+    RuleResult:
+      description: A single rule result
+      type: object
+      required:
+        - passed
+        - ignored
+      properties:
+        passed:
+          type: boolean
+          description: Whether or not this is a passing or failing result
+        ignored:
+          type: boolean
+          description: Whether or not this result is ignored
+        message:
+          type: string
+          description: An optional message that can be returned by a rule
+        resource_id:
+          type: string
+          description: The ID of the primary resource (if any) associated with this result
+        attribute_path:
+          type: array
+          description: |
+            The path to the primary resource attribute (if any) associated with this result
+          items:
+            type: string
+        remediation:
+          type: string
+          description: |
+            A Markdown-formatted set of remediation steps to resolve the issue identified
+            by the rule
+        severity:
+          type: string
+          description: The severity of this rule result
+          # TODO: Does Snyk have severity enums that are shared across products?
+          enum:
+            - Informational
+            - Low
+            - Medium
+            - High
+            - Critical
+        context:
+          type: object
+          description: An arbitrary key-value map that a rule can return in its result.
+          additionalProperties: true
+        resources:
+          type: object
+          description: |
+            A map of resource ID to a resource object associated with this result.
+          additionalProperties:
+            $ref: '#/components/schemas/RuleResultResource'
+    RuleResultResource:
+      type: object
+      description: |
+        Identifying information for a resource and attributes associated with a rule result
+      properties:
+        location:
+          description: The location of the resource in the source code.
+          $ref: '#/components/schemas/SourceLocationStack'
+        attributes:
+          description: Attributes of the resource that were associated with a rule result.
+          type: array
+          items:
+            $ref: '#/components/schemas/RuleResultResourceAttribute'
+    SourceLocationStack:
+      description: |
+        A stack of source locations. It's useful to represent locations this way for
+        IaC types that allow users to import modules or other groups of resources,
+        because we can point to where a resource definition is as well as how it was
+        imported into the top-level module.
+      type: array
+      items:
+        $ref: '#/components/schemas/SourceLocation'
+    SourceLocation:
+      description: Points to a row and column within a source file
+      type: object
+      properties:
+        filepath:
+          type: string
+        row:
+          type: integer
+        col:
+          type: integer
+    RuleResultResourceAttribute:
+      type: object
+      properties:
+        path:
+          description: The path to an attribute associated with this resource and rule result
+          type: array
+          items:
+            type: string
+        location:
+          $ref: '#/components/schemas/SourceLocation'
