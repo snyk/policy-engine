@@ -9,12 +9,15 @@ import (
 	"github.com/fugue/regula/v2/pkg/rego"
 	"github.com/spf13/cobra"
 
+	"github.com/snyk/unified-policy-engine/pkg/input"
 	"github.com/snyk/unified-policy-engine/pkg/semantics"
 	"github.com/snyk/unified-policy-engine/pkg/upe"
-	"github.com/snyk/unified-policy-engine/pkg/input"
 )
 
-var cmdRegoPaths []string
+var (
+	cmdRegoPaths []string
+	cmdRules     []string
+)
 
 func check(err error) {
 	if err != nil {
@@ -27,6 +30,11 @@ var rootCmd = &cobra.Command{
 	Use:   "upe",
 	Short: "Unified Policy Engine",
 	Run: func(cmd *cobra.Command, args []string) {
+		selectedRules := map[string]struct{}{}
+		for _, k := range cmdRules {
+			selectedRules[k] = struct{}{}
+		}
+
 		options := upe.UpeOptions{
 			Providers: []rego.RegoProvider{
 				rego.LocalProvider(cmdRegoPaths),
@@ -42,15 +50,17 @@ var rootCmd = &cobra.Command{
 		check(err)
 
 		for _, input := range inputs {
-			for _, ruleName := range upe.IterateRules() {
-				rule, err := semantics.DetectSemantics(upe, ctx, ruleName)
-				check(err)
-				report, err := rule.Run(upe, ctx, input)
-				check(err)
+			for _, ruleInfo := range upe.IterateRules() {
+				if _, ok := selectedRules[ruleInfo.Name]; ok || len(selectedRules) == 0 {
+					rule, err := semantics.DetectSemantics(upe, ctx, ruleInfo)
+					check(err)
+					report, err := rule.Run(upe, ctx, input)
+					check(err)
 
-				bytes, err := json.MarshalIndent(report, "  ", "  ")
-				check(err)
-				fmt.Fprintf(os.Stdout, "%s\n", string(bytes))
+					bytes, err := json.MarshalIndent(report, "  ", "  ")
+					check(err)
+					fmt.Fprintf(os.Stdout, "%s\n", string(bytes))
+				}
 			}
 		}
 	},
@@ -61,5 +71,6 @@ func Execute() error {
 }
 
 func init() {
-	rootCmd.PersistentFlags().StringSliceVarP(&cmdRegoPaths, "REGO_PATH", "d", cmdRegoPaths, "Rego paths to load")
+	rootCmd.PersistentFlags().StringSliceVarP(&cmdRegoPaths, "data", "d", cmdRegoPaths, "Rego paths to load")
+	rootCmd.PersistentFlags().StringSliceVarP(&cmdRules, "rule", "r", cmdRules, "Select specific rules")
 }
