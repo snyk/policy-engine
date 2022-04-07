@@ -101,10 +101,7 @@ func (rule *AdvancedRule) Run(
 	byCorrelation := map[string]*RuleReport{}
 
 	for _, deny := range denies {
-		correlation, err := deny.GetCorrelation()
-		if err != nil {
-			return nil, err // Or skip this one?
-		}
+		correlation := deny.GetCorrelation()
 
 		if _, ok := byCorrelation[correlation]; !ok {
 			byCorrelation[correlation] = &RuleReport{
@@ -128,10 +125,7 @@ func (rule *AdvancedRule) Run(
 	}
 
 	for _, location := range locations {
-		correlation, err := location.GetCorrelation()
-		if err != nil {
-			return nil, err
-		}
+		correlation := location.GetCorrelation()
 
 		if _, ok := byCorrelation[correlation]; !ok {
 			byCorrelation[correlation] = &RuleReport{

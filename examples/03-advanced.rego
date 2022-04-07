@@ -20,7 +20,7 @@ deny[info] {
 	bucket := buckets[_]
 	has_bucket_name(bucket)
 	info := {
-		"message": "Buckets should not contain bucket, its implied duh",
+		"message": "Buckets should not contain bucket, it is implied",
 		"resource": bucket,
 	}
 }

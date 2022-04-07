@@ -21,6 +21,10 @@ simple rules and gradually adding concepts.
 
 [examples/04-advanced.rego](examples/04-advanced.rego)
 
+### Missing resources
+
+[examples/05-missing.rego](examples/05-missing.rego)
+
 ## Reference
 
 ### Info objects
@@ -29,6 +33,8 @@ Fields:
 
  -  `message`: Message string detailing the issue.
  -  `resource`: Resource associated with the issue.
+ -  `resource_type`: May be used to indicate the resource type in case of a
+    missing resource.
  -  `correlation`: May be used to override the correlation the policy engine
     uses to relate issues.  Defaults to `.resource.id`.
 
