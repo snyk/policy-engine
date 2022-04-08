@@ -5,34 +5,33 @@
 We will walk through the rules in the examples directory, starting out with
 simple rules and gradually adding concepts.
 
-### Simple rules
+### Simple rules part 1
 
 [examples/01-simple.rego](examples/01-simple.rego)
 
-### Returning attributes
+### Simple rules part 2: Returning attributes
 
-[examples/02-simple-attributes.rego](examples/02-simple=attributes.rego)
+[examples/02-simple-attributes.rego](examples/02-simple-attributes.rego)
 
 ### Advanced rules part 1
 
-[examples/02-advanced.rego](examples/02-advanced.rego)
+[examples/02-advanced.rego](examples/03-advanced.rego)
 
-### Advanced rules part 2
+### Advanced rules part 2: Adding compliant resource info
 
-[examples/03-advanced.rego](examples/03-advanced.rego)
+[examples/03-advanced.rego](examples/04-advanced.rego)
 
-### Advanced rules part 3
+### Advanced rules part 3: Correlating resources
 
-[examples/04-advanced.rego](examples/04-advanced.rego)
+[examples/04-advanced.rego](examples/05-advanced.rego)
 
-### Advanced rules part 4
+### Advanced rules part 4: Returning attributes
 
 [examples/06-advanced.rego](examples/06-advanced.rego)
 
-
 ### Missing resources
 
-[examples/05-missing.rego](examples/05-missing.rego)
+[examples/07-missing.rego](examples/07-missing.rego)
 
 ## Reference
 
