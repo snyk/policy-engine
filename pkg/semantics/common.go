@@ -5,11 +5,14 @@ type RegoResource struct {
 	Type string `json:"_type"`
 }
 
+type AttributePath = []interface{} // Strings or ints
+
 type RegoDeny struct {
-	Correlation  string        `json:"correlation,omitempty"`
-	Message      string        `json:"message,omitempty"`
-	Resource     *RegoResource `json:"resource,omitempty"`
-	ResourceType string        `json:"resource_type,omitempty"`
+	Correlation  string          `json:"correlation,omitempty"`
+	Message      string          `json:"message,omitempty"`
+	Resource     *RegoResource   `json:"resource,omitempty"`
+	ResourceType string          `json:"resource_type,omitempty"`
+	Attributes   []AttributePath `json:"attributes,omitempty"`
 }
 
 func (d *RegoDeny) GetCorrelation() string {

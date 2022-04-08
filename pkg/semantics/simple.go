@@ -11,11 +11,6 @@ import (
 	"github.com/snyk/unified-policy-engine/pkg/upe"
 )
 
-// TODO: Consider sharing this structure.
-type Info struct {
-	Message string `json:"message,omitempty"`
-}
-
 type SimpleRule struct {
 	Name         string
 	Ref          ast.Ref
@@ -67,7 +62,7 @@ func (rule *SimpleRule) Run(
 
 	if resources, ok := input.Resources[rule.ResourceType]; ok {
 		for _, resource := range resources {
-			infos := []Info{}
+			infos := []RegoDeny{}
 			err := worker.Eval(
 				ctx,
 				nil,
@@ -98,6 +93,12 @@ func (rule *SimpleRule) Run(
 					ruleReport.Messages = append(
 						ruleReport.Messages,
 						info.Message,
+					)
+				}
+				if len(info.Attributes) > 0 {
+					resources[resource.Id].Attributes = append(
+						resources[resource.Id].Attributes,
+						info.Attributes...,
 					)
 				}
 			}

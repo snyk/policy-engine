@@ -33,8 +33,9 @@ type RuleReport struct {
 }
 
 type RuleResourceReport struct {
-	Id   string `json:"id"`
-	Type string `json:"type"`
+	Id         string          `json:"id"`
+	Type       string          `json:"type"`
+	Attributes []AttributePath `json:"attributes,omitempty"`
 }
 
 type Semantics interface {

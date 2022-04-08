@@ -9,6 +9,10 @@ simple rules and gradually adding concepts.
 
 [examples/01-simple.rego](examples/01-simple.rego)
 
+### Returning attributes
+
+[examples/02-simple-attributes.rego](examples/02-simple=attributes.rego)
+
 ### Advanced rules part 1
 
 [examples/02-advanced.rego](examples/02-advanced.rego)
