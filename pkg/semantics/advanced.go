@@ -14,8 +14,9 @@ import (
 )
 
 type AdvancedRule struct {
-	Name string
-	Ref  ast.Ref
+	Name     string
+	Ref      ast.Ref
+	Metadata *upe.RuleMetadata
 }
 
 func DetectAdvancedRule(
@@ -39,7 +40,11 @@ func DetectAdvancedRule(
 		return nil, fmt.Errorf("resource_type needs to be MULTIPLE for advanced rule")
 	}
 
-	return &AdvancedRule{Name: rule.Name, Ref: rule.Module}, nil
+	return &AdvancedRule{
+		Name:     rule.Name,
+		Ref:      rule.Module,
+		Metadata: &rule.Metadata,
+	}, nil
 }
 
 func (rule *AdvancedRule) Run(
@@ -109,6 +114,10 @@ func (rule *AdvancedRule) Run(
 				Pass:      false,
 				Resources: map[string]*RuleResourceReport{},
 			}
+
+			if rule.Metadata != nil {
+				byCorrelation[correlation].Description = rule.Metadata.Description
+			}
 		}
 
 		byCorrelation[correlation].Messages = append(
@@ -130,6 +139,7 @@ func (rule *AdvancedRule) Run(
 		}
 	}
 
+	// TODO: remove duplication with above.
 	for _, resourceInfo := range resourceInfos {
 		correlation := resourceInfo.GetCorrelation()
 
@@ -138,6 +148,10 @@ func (rule *AdvancedRule) Run(
 				Name:      rule.Name,
 				Pass:      true,
 				Resources: map[string]*RuleResourceReport{},
+			}
+
+			if rule.Metadata != nil {
+				byCorrelation[correlation].Description = rule.Metadata.Description
 			}
 		}
 

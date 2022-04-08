@@ -26,10 +26,11 @@ type Worker interface {
 type Report = []*RuleReport
 
 type RuleReport struct {
-	Name      string                         `json:"name"`
-	Pass      bool                           `json:"pass"`
-	Messages  []string                       `json:"messages"`
-	Resources map[string]*RuleResourceReport `json:"resources"`
+	Name        string                         `json:"name"`
+	Description string                         `json:"description,omitempty"`
+	Pass        bool                           `json:"pass"`
+	Messages    []string                       `json:"messages"`
+	Resources   map[string]*RuleResourceReport `json:"resources"`
 }
 
 type RuleResourceReport struct {

@@ -15,6 +15,7 @@ import (
 )
 
 var (
+	cmdMetaPaths []string
 	cmdRegoPaths []string
 	cmdRules     []string
 )
@@ -35,7 +36,15 @@ var rootCmd = &cobra.Command{
 			selectedRules[k] = struct{}{}
 		}
 
+		metadata := upe.EmptyMetadata()
+		for _, path := range cmdMetaPaths {
+			m, err := upe.LoadMetadataDirectory(path)
+			check(err)
+			metadata.Merge(m)
+		}
+
 		options := upe.UpeOptions{
+			Metadata: metadata,
 			Providers: []rego.RegoProvider{
 				rego.LocalProvider(cmdRegoPaths),
 			},
@@ -50,10 +59,11 @@ var rootCmd = &cobra.Command{
 		check(err)
 
 		for _, input := range inputs {
-			for _, ruleInfo := range upe.IterateRules() {
+			for _, ruleInfo := range upe.IterateRules(ctx) {
 				if _, ok := selectedRules[ruleInfo.Name]; ok || len(selectedRules) == 0 {
 					rule, err := semantics.DetectSemantics(upe, ctx, ruleInfo)
 					check(err)
+
 					report, err := rule.Run(upe, ctx, input)
 					check(err)
 
@@ -71,6 +81,7 @@ func Execute() error {
 }
 
 func init() {
+	rootCmd.PersistentFlags().StringSliceVarP(&cmdMetaPaths, "meta", "m", cmdMetaPaths, "Metadata dirs to load")
 	rootCmd.PersistentFlags().StringSliceVarP(&cmdRegoPaths, "data", "d", cmdRegoPaths, "Rego paths to load")
 	rootCmd.PersistentFlags().StringSliceVarP(&cmdRules, "rule", "r", cmdRules, "Select specific rules")
 }

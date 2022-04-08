@@ -15,6 +15,7 @@ import (
 
 type UpeOptions struct {
 	Providers []rego.RegoProvider
+	Metadata  *Metadata
 	Builtins  map[string]*topdown.Builtin
 }
 
@@ -26,11 +27,16 @@ type Upe struct {
 }
 
 func LoadUpe(ctx context.Context, options UpeOptions) (*Upe, error) {
+	documents := map[string]interface{}{}
+	if options.Metadata != nil {
+		documents = options.Metadata.documents
+	}
+
 	upe := Upe{
 		packages: []ast.Ref{},
 		builtins: options.Builtins,
 		compiler: ast.NewCompiler(),
-		store:    inmem.New(),
+		store:    inmem.NewFromObject(documents),
 	}
 
 	modules := map[string]*ast.Module{}
@@ -68,10 +74,15 @@ type RuleInfo struct {
 	Name      string
 	InputType string
 	Module    ast.Ref
+	Metadata  RuleMetadata
+}
+
+type RuleMetadata struct {
+	Description string `json:"description"`
 }
 
 // IterateRules goes through the loaded rule names.
-func (upe *Upe) IterateRules() []RuleInfo {
+func (upe *Upe) IterateRules(ctx context.Context) []RuleInfo {
 	rules := []RuleInfo{}
 	for _, pkg := range upe.packages {
 		if len(pkg) == 4 &&
@@ -83,7 +94,19 @@ func (upe *Upe) IterateRules() []RuleInfo {
 						Name:      string(ruleName),
 						InputType: string(inputType),
 						Module:    pkg,
+						Metadata:  RuleMetadata{},
 					}
+
+					// Load metadata, ignoring errors for now.
+					parent := pkg[0 : len(pkg)-1]
+					upe.Eval(
+						ctx,
+						nil,
+						struct{}{},
+						parent.Append(ast.StringTerm("metadata")),
+						&rule.Metadata,
+					)
+
 					rules = append(rules, rule)
 				}
 			}

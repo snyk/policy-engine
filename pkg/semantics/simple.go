@@ -15,6 +15,7 @@ type SimpleRule struct {
 	Name         string
 	Ref          ast.Ref
 	ResourceType string
+	Metadata     *upe.RuleMetadata
 }
 
 func DetectSimpleRule(
@@ -46,6 +47,7 @@ func DetectSimpleRule(
 		Name:         rule.Name,
 		Ref:          rule.Module,
 		ResourceType: resourceType,
+		Metadata:     &rule.Metadata,
 	}, nil
 }
 
@@ -85,6 +87,10 @@ func (rule *SimpleRule) Run(
 				Pass:      true,
 				Messages:  []string{},
 				Resources: resources,
+			}
+
+			if rule.Metadata != nil {
+				ruleReport.Description = rule.Metadata.Description
 			}
 
 			for _, info := range infos {
