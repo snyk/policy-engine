@@ -205,12 +205,6 @@ components:
         resource_id:
           type: string
           description: The ID of the primary resource (if any) associated with this result
-        attribute_path:
-          type: array
-          description: |
-            The path to the primary resource attribute (if any) associated with this result
-          items:
-            type: string
         remediation:
           type: string
           description: |
@@ -219,7 +213,6 @@ components:
         severity:
           type: string
           description: The severity of this rule result
-          # TODO: Does Snyk have severity enums that are shared across products?
           enum:
             - Informational
             - Low
@@ -275,6 +268,8 @@ components:
           description: The path to an attribute associated with this resource and rule result
           type: array
           items:
-            type: string
+            oneOf:
+              - type: string
+              - type: integer
         location:
           $ref: '#/components/schemas/SourceLocation'

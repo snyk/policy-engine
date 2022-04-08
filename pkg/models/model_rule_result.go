@@ -18,8 +18,6 @@ type RuleResult struct {
 	Message string `json:"message,omitempty"`
 	// The ID of the primary resource (if any) associated with this result
 	ResourceId string `json:"resource_id,omitempty"`
-	// The path to the primary resource attribute (if any) associated with this result
-	AttributePath []string `json:"attribute_path,omitempty"`
 	// A Markdown-formatted set of remediation steps to resolve the issue identified by the rule
 	Remediation string `json:"remediation,omitempty"`
 	// The severity of this rule result

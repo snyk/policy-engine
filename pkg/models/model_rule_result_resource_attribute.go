@@ -10,6 +10,6 @@ package models
 
 type RuleResultResourceAttribute struct {
 	// The path to an attribute associated with this resource and rule result
-	Path     []string        `json:"path,omitempty"`
+	Path     []interface{}   `json:"path,omitempty"`
 	Location *SourceLocation `json:"location,omitempty"`
 }
