@@ -117,10 +117,16 @@ func (rule *AdvancedRule) Run(
 		)
 
 		if deny.Resource != nil {
-			byCorrelation[correlation].Resources[deny.Resource.Id] = &RuleResourceReport{
+			rid := deny.Resource.Id
+			byCorrelation[correlation].Resources[rid] = &RuleResourceReport{
 				Id:   deny.Resource.Id,
 				Type: deny.Resource.Type,
 			}
+
+			byCorrelation[correlation].Resources[rid].Attributes = append(
+				byCorrelation[correlation].Resources[rid].Attributes,
+				deny.Attributes...,
+			)
 		}
 	}
 
@@ -136,10 +142,16 @@ func (rule *AdvancedRule) Run(
 		}
 
 		if resourceInfo.Resource != nil {
-			byCorrelation[correlation].Resources[resourceInfo.Resource.Id] = &RuleResourceReport{
+			rid := resourceInfo.Resource.Id
+			byCorrelation[correlation].Resources[rid] = &RuleResourceReport{
 				Id:   resourceInfo.Resource.Id,
 				Type: resourceInfo.Resource.Type,
 			}
+
+			byCorrelation[correlation].Resources[rid].Attributes = append(
+				byCorrelation[correlation].Resources[rid].Attributes,
+				resourceInfo.Attributes...,
+			)
 		}
 	}
 

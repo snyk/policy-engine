@@ -1,3 +1,4 @@
+# Advanced rules are rules that can inspect multiple resources at once.
 package rules.snyk_003.tf
 
 # `resource_type` can be omitted.  If it is present, it must be set to
