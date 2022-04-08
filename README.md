@@ -9,6 +9,10 @@ simple rules and gradually adding concepts.
 
 [examples/01-simple.rego](examples/01-simple.rego)
 
+### Returning attributes
+
+[examples/02-simple-attributes.rego](examples/02-simple=attributes.rego)
+
 ### Advanced rules part 1
 
 [examples/02-advanced.rego](examples/02-advanced.rego)
@@ -45,7 +49,7 @@ Info objects have different fields depending in which context they occur.
  -  `correlation`: May be used to override the correlation the policy engine
     uses to relate issues.  Defaults to `.resource.id`.
 
-`location[info]` fields:
+`resources[info]` fields:
 
  -  `resource`: Resource associated with the issue.  **Required.**
  -  `correlation`: May be used to override the correlation the policy engine

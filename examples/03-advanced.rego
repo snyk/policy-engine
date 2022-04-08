@@ -1,11 +1,13 @@
-# This rule is identical to the previous example, but extends it with
-# optional location metadata.
-#
-# By adding this metadata, the policy engine can derive which resources were
-# examined.  This way, we can infer which resources were compliant for this
-# rule, in addition to the noncompliant ones.
 package rules.snyk_003.tf
 
+# `resource_type` can be omitted.  If it is present, it must be set to
+# `MULTIPLE` for advanced rules.
+# resource_type = "MULTIPLE"
+
+# Advanced rules can list resources of a specific type using
+# `snyk.resources(resource_type)`.
+#
+# This function returns a map of resource IDs to resources.
 buckets = snyk.resources("aws_s3_bucket")
 
 has_bucket_name(bucket) {
@@ -16,17 +18,13 @@ has_bucket_name(bucket) {
 	contains(bucket.bucket_prefix, "bucket")
 }
 
+# Advanced rules must contain a `deny` set.  If the deny is associated with a
+# specific object, they should set the `resource` field in the info object.
 deny[info] {
 	bucket := buckets[_]
 	has_bucket_name(bucket)
 	info := {
-		"message": "Buckets should not contain bucket, it is implied",
+		"message": "Bucket names should not contain the word bucket, it's implied",
 		"resource": bucket,
 	}
-}
-
-# If present, `location` must be a set of info objects.
-location[info] {
-	bucket := buckets[_]
-	info := {"resource": bucket}
 }

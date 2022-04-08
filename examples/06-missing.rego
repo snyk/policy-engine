@@ -4,7 +4,7 @@
 #
 # In this example, we verify that at least one cloudtrail is present that has
 # `include_global_service_events` set to true.
-package rules.snyk_005.tf
+package rules.snyk_006.tf
 
 # Not all cloudtrails are relevant for this validation.  If a specific trail
 # doesn't have this set, it is not necessarily noncompliant: it could be
@@ -26,7 +26,7 @@ deny[info] {
 }
 
 # We include the valid trails so they can be marked compliant.
-location[info] {
+resources[info] {
 	cloudtrail := global_cloudtrails[_]
 	info := {"resource": cloudtrail}
 }
