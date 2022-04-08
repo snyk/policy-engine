@@ -43,6 +43,7 @@ Info objects have different fields depending in which context they occur.
 
  -  `message`: Message string detailing the issue.  **Required.**
  -  `resource`: Resource associated with the issue.
+ -  `attributes`: List of [attribute paths](#attribute-paths).
  -  `resource_type`: May be used to indicate the resource type in case of a
     missing resource.
  -  `correlation`: May be used to override the correlation the policy engine
@@ -51,8 +52,29 @@ Info objects have different fields depending in which context they occur.
 `resources[info]` fields:
 
  -  `resource`: Resource associated with the issue.  **Required.**
+ -  `attributes`: List of [attribute paths](#attribute-paths).
  -  `correlation`: May be used to override the correlation the policy engine
     uses to relate issues.  Defaults to `.resource.id`.
+
+#### Attribute paths
+
+Attribute paths are JSON arrays of strings and numbers.  They items in these
+arrays correspond to indices in objects and arrays respectively.
+
+Considering the following JSON attributes:
+
+```json
+{
+  "ingress": [
+    {
+      "from_port": 22,
+      "to_port": 22
+    }
+  ]
+}
+```
+
+Then the `from_port` path would be `["ingress", 0, "from_port"]`.
 
 ### snyk API
 
