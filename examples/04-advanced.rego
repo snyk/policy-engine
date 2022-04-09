@@ -6,6 +6,8 @@
 # rule, in addition to the noncompliant ones.
 package rules.snyk_004.tf
 
+import data.snyk
+
 buckets = snyk.resources("aws_s3_bucket")
 
 has_bucket_name(bucket) {

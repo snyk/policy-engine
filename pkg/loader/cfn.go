@@ -19,6 +19,7 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/snyk/unified-policy-engine/pkg/models"
 	"gopkg.in/yaml.v3"
 )
 
@@ -50,6 +51,15 @@ func (c *CfnDetector) DetectFile(i InputFile, opts DetectOptions) (IACConfigurat
 		return nil, fmt.Errorf("Input file is not a CloudFormation template: %v", i.Path())
 	}
 
+	resources := map[string]interface{}{}
+	if hasResources {
+		r, resourcesIsMap := template.Contents["Resources"].(map[string]interface{})
+		if !resourcesIsMap {
+			return nil, fmt.Errorf("Input file is not a CloudFormation template: %v", i.Path())
+		}
+		resources = r
+	}
+
 	path := i.Path()
 	source, err := LoadSourceInfoNode(contents)
 	if err != nil {
@@ -57,9 +67,10 @@ func (c *CfnDetector) DetectFile(i InputFile, opts DetectOptions) (IACConfigurat
 	}
 
 	return &cfnConfiguration{
-		path:     path,
-		template: *template,
-		source:   source,
+		path:      path,
+		template:  *template,
+		source:    source,
+		resources: resources,
 	}, nil
 }
 
@@ -68,9 +79,10 @@ func (c *CfnDetector) DetectDirectory(i InputDirectory, opts DetectOptions) (IAC
 }
 
 type cfnConfiguration struct {
-	path     string
-	template cfnTemplate
-	source   *SourceInfoNode
+	path      string
+	template  cfnTemplate
+	source    *SourceInfoNode
+	resources map[string]interface{}
 }
 
 func (l *cfnConfiguration) RegulaInput() RegulaInput {
@@ -78,6 +90,10 @@ func (l *cfnConfiguration) RegulaInput() RegulaInput {
 		"filepath": l.path,
 		"content":  l.template.Contents,
 	}
+}
+
+func (l *cfnConfiguration) ToState() models.State {
+	return toState("cfn", l.path, l.resources)
 }
 
 func (l *cfnConfiguration) Location(path []string) (LocationStack, error) {

@@ -18,6 +18,8 @@ package loader
 import (
 	"fmt"
 	"strings"
+
+	"github.com/snyk/unified-policy-engine/pkg/models"
 )
 
 //go:generate mockgen -destination=../mocks/mock_iacconfiguration.go -package=mocks github.com/snyk/unified-policy-engine/pkg/loader IACConfiguration
@@ -119,6 +121,7 @@ type LoadedConfigurations interface {
 	Location(path string, attributePath []string) (LocationStack, error)
 	// RegulaInput renders the RegulaInput from all of the contained configurations.
 	RegulaInput() []RegulaInput
+	ToStates() []models.State
 	// Count returns the number of loaded configurations.
 	Count() int
 }
@@ -132,6 +135,7 @@ type RegulaInput map[string]interface{}
 type IACConfiguration interface {
 	// RegulaInput returns a input for regula.
 	RegulaInput() RegulaInput
+	ToState() models.State
 	// LoadedFiles are all of the files contained within this configuration.
 	LoadedFiles() []string
 	// Location resolves an attribute path to to a file, line and column.

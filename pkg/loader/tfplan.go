@@ -18,6 +18,7 @@ package loader
 import (
 	"fmt"
 
+	"github.com/snyk/unified-policy-engine/pkg/models"
 	"gopkg.in/yaml.v3"
 )
 
@@ -69,4 +70,9 @@ func (l *tfPlanLoader) LoadedFiles() []string {
 
 func (l *tfPlanLoader) Location(attributePath []string) (LocationStack, error) {
 	return nil, nil
+}
+
+func (l *tfPlanLoader) ToState() models.State {
+	// TODO: This isn't implemented yet. Need to port resource view logic to Go.
+	return toState("tf_plan", l.path, map[string]interface{}{})
 }

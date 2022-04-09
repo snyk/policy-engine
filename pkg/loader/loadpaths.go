@@ -23,6 +23,7 @@ import (
 	"strings"
 
 	"github.com/sirupsen/logrus"
+	"github.com/snyk/unified-policy-engine/pkg/models"
 
 	"github.com/fugue/regula/v2/pkg/git"
 )
@@ -217,6 +218,19 @@ func (l *loadedConfigurations) RegulaInput() []RegulaInput {
 		input = append(input, l.configurations[k].RegulaInput())
 	}
 	return input
+}
+
+func (l *loadedConfigurations) ToStates() []models.State {
+	keys := []string{}
+	for k := range l.configurations {
+		keys = append(keys, k)
+	}
+	sort.Strings(keys)
+	states := []models.State{}
+	for _, k := range keys {
+		states = append(states, l.configurations[k].ToState())
+	}
+	return states
 }
 
 func (l *loadedConfigurations) locationFromCache(path string, joinedAttributePath string) (LocationStack, error, bool) {

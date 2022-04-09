@@ -18,6 +18,8 @@ package loader
 import (
 	"encoding/json"
 	"fmt"
+
+	"github.com/snyk/unified-policy-engine/pkg/models"
 )
 
 var validArmExts map[string]bool = map[string]bool{
@@ -45,11 +47,21 @@ func (c *ArmDetector) DetectFile(i InputFile, opts DetectOptions) (IACConfigurat
 	if !hasSchema && !hasResources {
 		return nil, fmt.Errorf("Input file is not an ARM template: %v", i.Path())
 	}
+	resources := map[string]interface{}{}
+	if hasResources {
+		r, resourcesIsMap := template.Contents["resources"].(map[string]interface{})
+		if !resourcesIsMap {
+			return nil, fmt.Errorf("Input file is not a ARM template: %v", i.Path())
+		}
+		resources = r
+	}
+
 	path := i.Path()
 
 	return &armConfiguration{
-		path:     path,
-		template: *template,
+		path:      path,
+		template:  *template,
+		resources: resources,
 	}, nil
 }
 
@@ -58,9 +70,10 @@ func (c *ArmDetector) DetectDirectory(i InputDirectory, opts DetectOptions) (IAC
 }
 
 type armConfiguration struct {
-	path     string
-	template armTemplate
-	source   *SourceInfoNode
+	path      string
+	template  armTemplate
+	source    *SourceInfoNode
+	resources map[string]interface{}
 }
 
 func (l *armConfiguration) RegulaInput() RegulaInput {
@@ -68,6 +81,10 @@ func (l *armConfiguration) RegulaInput() RegulaInput {
 		"filepath": l.path,
 		"content":  l.template.Contents,
 	}
+}
+
+func (l *armConfiguration) ToState() models.State {
+	return toState("arm", l.path, l.resources)
 }
 
 func (l *armConfiguration) Location(path []string) (LocationStack, error) {

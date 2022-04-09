@@ -8,9 +8,8 @@ import (
 
 	"github.com/spf13/cobra"
 
-	"github.com/snyk/unified-policy-engine/pkg/input"
-	"github.com/snyk/unified-policy-engine/pkg/rego"
-	"github.com/snyk/unified-policy-engine/pkg/semantics"
+	"github.com/snyk/unified-policy-engine/pkg/data"
+	"github.com/snyk/unified-policy-engine/pkg/loader"
 	"github.com/snyk/unified-policy-engine/pkg/upe"
 )
 
@@ -30,43 +29,42 @@ var rootCmd = &cobra.Command{
 	Use:   "upe",
 	Short: "Unified Policy Engine",
 	Run: func(cmd *cobra.Command, args []string) {
-		selectedRules := map[string]struct{}{}
+		selectedRules := map[string]bool{}
 		for _, k := range cmdRules {
-			selectedRules[k] = struct{}{}
+			selectedRules[k] = true
 		}
 
-		providers := []rego.Provider{}
+		providers := []data.Provider{}
 		for _, path := range cmdRegoPaths {
-			providers = append(providers, rego.LocalProvider(path))
+			providers = append(providers, data.LocalProvider(path))
 		}
 
-		options := upe.UpeOptions{
+		options := &upe.EngineOptions{
 			Providers: providers,
-			Builtins:  semantics.Builtins(),
+			RuleIDs:   selectedRules,
 		}
 
-		inputs, err := input.LoadRegulaInputs(args)
+		configLoader := loader.LocalConfigurationLoader(loader.LoadPathsOptions{
+			Paths:       args,
+			InputTypes:  []loader.InputType{loader.Auto},
+			NoGitIgnore: false,
+			IgnoreDirs:  false,
+		})
+		loadedConfigs, err := configLoader()
 		check(err)
 
+		states := loadedConfigs.ToStates()
 		ctx := context.Background()
-		upe, err := upe.LoadUpe(ctx, options)
+		engine, err := upe.NewEngine(ctx, options)
+		// upe, err := upe.LoadUpe(ctx, options)
 		check(err)
 
-		for _, input := range inputs {
-			for _, ruleInfo := range upe.IterateRules(ctx) {
-				if _, ok := selectedRules[ruleInfo.Name]; ok || len(selectedRules) == 0 {
-					rule, err := semantics.DetectSemantics(upe, ctx, ruleInfo)
-					check(err)
+		results, err := engine.Eval(ctx, states)
+		check(err)
 
-					report, err := rule.Run(upe, ctx, input)
-					check(err)
-
-					bytes, err := json.MarshalIndent(report, "  ", "  ")
-					check(err)
-					fmt.Fprintf(os.Stdout, "%s\n", string(bytes))
-				}
-			}
-		}
+		bytes, err := json.MarshalIndent(results, "  ", "  ")
+		check(err)
+		fmt.Fprintf(os.Stdout, "%s\n", string(bytes))
 	},
 }
 

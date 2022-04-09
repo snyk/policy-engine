@@ -8,9 +8,9 @@
  */
 package models
 
-// This is the top-level output from the Unified Policy Engine.
-type Results struct {
-	Format        string   `json:"format"`
-	FormatVersion string   `json:"format_version"`
-	Results       []Result `json:"results"`
+// An object that relates an input with its rule results
+type Result struct {
+	Input *State `json:"input"`
+	// A map of rule package to a rule results object
+	RuleResults map[string]RuleResults `json:"rule_results"`
 }

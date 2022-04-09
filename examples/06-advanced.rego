@@ -5,6 +5,8 @@
 # return multiple attributes, as multiple containers may be in violation.
 package rules.snyk_006.tf
 
+import data.snyk
+
 pods := snyk.resources("kubernetes_pod")
 
 is_privileged(container) {

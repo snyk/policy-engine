@@ -128,7 +128,7 @@ components:
       required:
         - format
         - format_version
-        - rule_results
+        - results
       properties:
         format:
           type: string
@@ -136,12 +136,21 @@ components:
         format_version:
           type: string
           enum: ["1.0.0"]
-        inputs:
-          type: array
-          description: |
-            The inputs that produced these results. This field is optional.
+        results:
           items:
-            $ref: '#/components/schemas/State'
+            $ref: '#/components/schemas/Result'
+    Result:
+      description: |
+        An object that relates an input with its rule results
+      type: object
+      required:
+        - input
+        - rule_results
+      properties:
+        input:
+          description: |
+            The input that produced these results. This field is optional.
+          $ref: '#/components/schemas/State'
         rule_results:
           type: object
           description: A map of rule package to a rule results object
@@ -205,6 +214,11 @@ components:
         resource_id:
           type: string
           description: The ID of the primary resource (if any) associated with this result
+        resource_type:
+          type: string
+          description: |
+            The type of resource (if any) associated with this result. This will typically
+            be used with "missing resource" rules.
         remediation:
           type: string
           description: |

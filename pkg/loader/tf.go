@@ -20,6 +20,7 @@ import (
 	"path/filepath"
 
 	"github.com/sirupsen/logrus"
+	"github.com/snyk/unified-policy-engine/pkg/models"
 	"github.com/spf13/afero"
 
 	"github.com/fugue/regula/v2/pkg/regulatf"
@@ -141,4 +142,8 @@ func (c *HclConfiguration) RegulaInput() RegulaInput {
 			"resources":                 c.evaluation.Resources(),
 		},
 	}
+}
+
+func (c *HclConfiguration) ToState() models.State {
+	return toState("tf", c.moduleTree.FilePath(), c.evaluation.Resources())
 }
