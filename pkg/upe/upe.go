@@ -98,12 +98,11 @@ func (upe *Upe) IterateRules(ctx context.Context) []RuleInfo {
 					}
 
 					// Load metadata, ignoring errors for now.
-					parent := pkg[0 : len(pkg)-1]
 					upe.Eval(
 						ctx,
 						nil,
 						struct{}{},
-						parent.Append(ast.StringTerm("metadata")),
+						pkg.Append(ast.StringTerm("metadata")),
 						&rule.Metadata,
 					)
 

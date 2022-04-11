@@ -5,6 +5,10 @@
 #
 package rules.snyk_001.tf
 
+# Rules can set metadata in the `metadata` assignment.  This is typically
+# imported from a JSON file, like here:
+metadata = data.rules.snyk_001.metadata
+
 # Simple rules must assign `resource_type`.  All resources of this type will
 # be subject to this rule.
 resource_type = "aws_s3_bucket"
