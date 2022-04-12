@@ -25,8 +25,8 @@ func LocalProvider(root string) Provider {
 					basePath = path
 				}
 
-				switch filepath.Ext(basePath) {
-				case ".rego":
+				ext := filepath.Ext(basePath)
+				if _, ok := ModuleExtensions[ext]; ok {
 					bytes, err := ioutil.ReadFile(path)
 					if err != nil {
 						return err
@@ -34,7 +34,7 @@ func LocalProvider(root string) Provider {
 					if err := consumer.Module(basePath, bytes); err != nil {
 						return err
 					}
-				case ".json", ".yaml", ".yml":
+				} else if _, ok := DataDocumentExtensions[ext]; ok {
 					bytes, err := ioutil.ReadFile(path)
 					if err != nil {
 						return err

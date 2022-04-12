@@ -1,12 +1,12 @@
 package rego
 
 import (
-	"encoding/json"
 	"fmt"
 	"path/filepath"
 	"regexp"
 
 	"github.com/open-policy-agent/opa/ast"
+	"gopkg.in/yaml.v3"
 )
 
 type Consumer interface {
@@ -38,10 +38,10 @@ func (c *BaseConsumer) Module(path string, bytes []byte) error {
 }
 
 func (c *BaseConsumer) DataDocument(path string, bytes []byte) error {
-	switch filepath.Ext(path) {
-	case ".json":
+	ext := filepath.Ext(path)
+	if _, ok := DataDocumentExtensions[ext]; ok {
 		document := map[string]interface{}{}
-		if err := json.Unmarshal(bytes, &document); err != nil {
+		if err := yaml.Unmarshal(bytes, &document); err != nil {
 			return err
 		}
 
@@ -53,10 +53,8 @@ func (c *BaseConsumer) DataDocument(path string, bytes []byte) error {
 		}
 		c.Documents = mergeObjects(c.Documents, document)
 		return nil
-	case ".yaml":
-		return fmt.Errorf("%s: TODO: implement yaml", path)
-	default:
-		return fmt.Errorf("%s: unknown extension for DataDocument", path)
+	} else {
+		return fmt.Errorf("%s: unknown extension for DataDocument", ext)
 	}
 }
 
