@@ -214,7 +214,6 @@ components:
           type: string
           description: The severity of this rule result
           enum:
-            - Informational
             - Low
             - Medium
             - High
