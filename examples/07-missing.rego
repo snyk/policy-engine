@@ -6,6 +6,8 @@
 # `include_global_service_events` set to true.
 package rules.snyk_007.tf
 
+metadata = data.rules.snyk_007.metadata
+
 # Not all cloudtrails are relevant for this validation.  If a specific trail
 # doesn't have this set, it is not necessarily noncompliant: it could be
 # unrelated.  This is why we just grab the relevant ones here.
