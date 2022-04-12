@@ -6,16 +6,15 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/fugue/regula/v2/pkg/rego"
 	"github.com/spf13/cobra"
 
 	"github.com/snyk/unified-policy-engine/pkg/input"
+	"github.com/snyk/unified-policy-engine/pkg/rego"
 	"github.com/snyk/unified-policy-engine/pkg/semantics"
 	"github.com/snyk/unified-policy-engine/pkg/upe"
 )
 
 var (
-	cmdMetaPaths []string
 	cmdRegoPaths []string
 	cmdRules     []string
 )
@@ -36,19 +35,14 @@ var rootCmd = &cobra.Command{
 			selectedRules[k] = struct{}{}
 		}
 
-		metadata := upe.EmptyMetadata()
-		for _, path := range cmdMetaPaths {
-			m, err := upe.LoadMetadataDirectory(path)
-			check(err)
-			metadata.Merge(m)
+		providers := []rego.Provider{}
+		for _, path := range cmdRegoPaths {
+			providers = append(providers, rego.LocalProvider(path))
 		}
 
 		options := upe.UpeOptions{
-			Metadata: metadata,
-			Providers: []rego.RegoProvider{
-				rego.LocalProvider(cmdRegoPaths),
-			},
-			Builtins: semantics.Builtins(),
+			Providers: providers,
+			Builtins:  semantics.Builtins(),
 		}
 
 		inputs, err := input.LoadRegulaInputs(args)
@@ -81,7 +75,6 @@ func Execute() error {
 }
 
 func init() {
-	rootCmd.PersistentFlags().StringSliceVarP(&cmdMetaPaths, "meta", "m", cmdMetaPaths, "Metadata dirs to load")
 	rootCmd.PersistentFlags().StringSliceVarP(&cmdRegoPaths, "data", "d", cmdRegoPaths, "Rego paths to load")
 	rootCmd.PersistentFlags().StringSliceVarP(&cmdRules, "rule", "r", cmdRules, "Select specific rules")
 }
