@@ -6,7 +6,7 @@ package input
 import (
     "fmt"
 
-	"github.com/fugue/regula/v2/pkg/loader"
+	"github.com/snyk/unified-policy-engine/pkg/loader"
 )
 
 func parseRegulaResource(r map[string]interface{}) (*Resource, error) {
@@ -61,7 +61,6 @@ func parseRegulaInput(r loader.RegulaInput) (*Input, error) {
 				}, nil
 			}
 		}
-
 	}
 
 	return nil, fmt.Errorf("Missing filepath/contents")
