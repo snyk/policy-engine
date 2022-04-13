@@ -44,7 +44,7 @@ func (c *CfnDetector) DetectFile(i InputFile, opts DetectOptions) (IACConfigurat
 		return nil, fmt.Errorf("Failed to parse file as YAML or JSON %v: %v", i.Path(), err)
 	}
 
-	if template.AWSTemplateFormatVersion == nil {
+	if template.AWSTemplateFormatVersion == nil && template.Resources == nil {
 		return nil, fmt.Errorf("Input file is not a CloudFormation template: %v", i.Path())
 	}
 
