@@ -63,7 +63,7 @@ func parseRegulaInput(r loader.RegulaInput) (*Input, error) {
 		}
 	}
 
-	return nil, fmt.Errorf("Missing filepath/contents")
+	return nil, fmt.Errorf("Missing filepath/content")
 }
 
 func LoadRegulaInputs(paths []string) ([]*Input, error) {
