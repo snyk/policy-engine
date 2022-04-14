@@ -3,7 +3,7 @@
     "hcl_resource_view_version": "0.0.1",
     "resources": {
       "data.aws_caller_identity.current": {
-        "_filepath": "tf_test/empty-resource/test.tf",
+        "_filepath": "golden_test/tf/empty-resource/test.tf",
         "_provider": "aws",
         "_tags": {},
         "_type": "data.aws_caller_identity",
@@ -11,5 +11,5 @@
       }
     }
   },
-  "filepath": "tf_test/empty-resource"
+  "filepath": "golden_test/tf/empty-resource"
 }

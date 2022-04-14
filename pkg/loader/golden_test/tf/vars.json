@@ -3,7 +3,7 @@
     "hcl_resource_view_version": "0.0.1",
     "resources": {
       "aws_s3_bucket.main": {
-        "_filepath": "tf_test/vars/main.tf",
+        "_filepath": "golden_test/tf/vars/main.tf",
         "_provider": "aws",
         "_tags": {
           "department": "engineering",
@@ -18,5 +18,5 @@
       }
     }
   },
-  "filepath": "tf_test/vars"
+  "filepath": "golden_test/tf/vars"
 }

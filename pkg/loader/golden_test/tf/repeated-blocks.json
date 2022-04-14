@@ -3,7 +3,7 @@
     "hcl_resource_view_version": "0.0.1",
     "resources": {
       "google_sql_database_instance.default": {
-        "_filepath": "tf_test/repeated-blocks/main.tf",
+        "_filepath": "golden_test/tf/repeated-blocks/main.tf",
         "_provider": "google",
         "_tags": {},
         "_type": "google_sql_database_instance",
@@ -54,5 +54,5 @@
       }
     }
   },
-  "filepath": "tf_test/repeated-blocks"
+  "filepath": "golden_test/tf/repeated-blocks"
 }

@@ -146,7 +146,7 @@ func TestCfnYAMLLocation(t *testing.T) {
 			path: []string{"Bucket1"},
 			expected: loader.LocationStack{loader.Location{
 				Path: "cfn.yaml",
-				Line: 17,
+				Line: 18,
 				Col:  3,
 			}},
 		},
@@ -154,7 +154,7 @@ func TestCfnYAMLLocation(t *testing.T) {
 			path: []string{"Bucket2"},
 			expected: loader.LocationStack{loader.Location{
 				Path: "cfn.yaml",
-				Line: 21,
+				Line: 22,
 				Col:  3,
 			}},
 		},
