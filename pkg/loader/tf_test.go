@@ -1,111 +1,15 @@
-// Copyright 2022 Snyk Ltd
-// Copyright 2021 Fugue, Inc.
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//     http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
-
 package loader
 
 import (
-	"encoding/json"
-	"io/ioutil"
-	"os"
 	"path/filepath"
 	"testing"
-
-	"github.com/fugue/regula/v2/pkg/git"
 
 	"github.com/stretchr/testify/assert"
 )
 
-// Utility for loading TF directories.
-func DefaultParseTfDirectory(dirPath string) (IACConfiguration, error) {
-	name := filepath.Base(dirPath)
-	repoFinder := git.NewRepoFinder([]string{})
-	directoryOpts := directoryOptions{
-		Path:          dirPath,
-		Name:          name,
-		NoGitIgnore:   false,
-		GitRepoFinder: repoFinder,
-	}
-	dir, err := newDirectory(directoryOpts)
-	if err != nil {
-		return nil, err
-	}
-
-	detectOpts := DetectOptions{
-		IgnoreExt:  false,
-		IgnoreDirs: false,
-	}
-	detector := TfDetector{}
-	return detector.DetectDirectory(dir, detectOpts)
-}
-
-func TestTf(t *testing.T) {
-	testDir := "tf_test"
-
-	c, err := ioutil.ReadDir(testDir)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	fixTests := false
-	for _, arg := range os.Args {
-		if arg == "tf-test-fix" {
-			fixTests = true
-		}
-	}
-
-	for _, entry := range c {
-		if entry.IsDir() {
-			path := filepath.Join(testDir, entry.Name())
-			t.Run(path, func(t *testing.T) {
-				outputPath := filepath.Join(testDir, entry.Name()+".json")
-				hcl, err := DefaultParseTfDirectory(path)
-				if err != nil {
-					t.Fatal(err)
-				}
-				if hcl == nil {
-					t.Fatalf("No configuration found in %s", path)
-				}
-
-				actualBytes, err := json.MarshalIndent(hcl.RegulaInput(), "", "  ")
-				if err != nil {
-					t.Fatal(err)
-				}
-
-				expectedBytes := []byte{}
-				if _, err := os.Stat(outputPath); err == nil {
-					expectedBytes, _ = ioutil.ReadFile(outputPath)
-					if err != nil {
-						t.Fatal(err)
-					}
-				}
-
-				actual := string(actualBytes)
-				expected := string(expectedBytes)
-				assert.Equal(t, expected, actual)
-
-				if fixTests {
-					ioutil.WriteFile(outputPath, actualBytes, 0644)
-				}
-			})
-		}
-	}
-}
-
 func TestTfResourceLocation(t *testing.T) {
-	dir := filepath.Join("tf_test", "example-terraform-modules")
-	hcl, err := DefaultParseTfDirectory(dir)
+	dir := filepath.Join("golden_test", "tf", "example-terraform-modules")
+	hcl, err := DefaultParseDirectory(dir)
 	if err != nil {
 		t.Fatal(err)
 	}

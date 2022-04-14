@@ -3,21 +3,15 @@
     "hcl_resource_view_version": "0.0.1",
     "resources": {
       "aws_s3_bucket.trail_bucket": {
-        "_filepath": "tf_test/file/main.tf",
+        "_filepath": "golden_test/tf/file/main.tf",
         "_provider": "aws",
-        "_tags": {
-          "file1": "Hello\n",
-          "file2": "Hello\n"
-        },
+        "_tags": {},
         "_type": "aws_s3_bucket",
         "force_destroy": true,
         "id": "aws_s3_bucket.trail_bucket",
-        "tags": {
-          "file1": "Hello\n",
-          "file2": "Hello\n"
-        }
+        "tags": null
       }
     }
   },
-  "filepath": "tf_test/file"
+  "filepath": "golden_test/tf/file"
 }

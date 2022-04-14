@@ -3,7 +3,7 @@
     "hcl_resource_view_version": "0.0.1",
     "resources": {
       "aws_s3_bucket.bar": {
-        "_filepath": "tf_test/ternary-mismatch/main.tf",
+        "_filepath": "golden_test/tf/ternary-mismatch/main.tf",
         "_provider": "aws",
         "_tags": {},
         "_type": "aws_s3_bucket",
@@ -11,7 +11,7 @@
         "id": "aws_s3_bucket.bar"
       },
       "aws_s3_bucket.foo": {
-        "_filepath": "tf_test/ternary-mismatch/main.tf",
+        "_filepath": "golden_test/tf/ternary-mismatch/main.tf",
         "_provider": "aws",
         "_tags": {},
         "_type": "aws_s3_bucket",
@@ -20,5 +20,5 @@
       }
     }
   },
-  "filepath": "tf_test/ternary-mismatch"
+  "filepath": "golden_test/tf/ternary-mismatch"
 }

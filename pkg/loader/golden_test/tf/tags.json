@@ -3,7 +3,7 @@
     "hcl_resource_view_version": "0.0.1",
     "resources": {
       "aws_autoscaling_group.example": {
-        "_filepath": "tf_test/tags/main.tf",
+        "_filepath": "golden_test/tf/tags/main.tf",
         "_provider": "aws",
         "_tags": {
           "Stage": "Dev"
@@ -32,7 +32,7 @@
         ]
       },
       "aws_launch_template.example": {
-        "_filepath": "tf_test/tags/main.tf",
+        "_filepath": "golden_test/tf/tags/main.tf",
         "_provider": "aws",
         "_tags": {},
         "_type": "aws_launch_template",
@@ -43,7 +43,7 @@
         "provider": null
       },
       "aws_s3_bucket.example": {
-        "_filepath": "tf_test/tags/main.tf",
+        "_filepath": "golden_test/tf/tags/main.tf",
         "_provider": "aws",
         "_tags": {
           "Stage": "Prod"
@@ -57,7 +57,7 @@
         }
       },
       "google_compute_instance.default": {
-        "_filepath": "tf_test/tags/main.tf",
+        "_filepath": "golden_test/tf/tags/main.tf",
         "_provider": "google",
         "_tags": {
           "bar": null,
@@ -96,7 +96,7 @@
         "zone": "us-central1-a"
       },
       "google_storage_bucket.example": {
-        "_filepath": "tf_test/tags/main.tf",
+        "_filepath": "golden_test/tf/tags/main.tf",
         "_provider": "google",
         "_tags": {
           "Stage": "Prod"
@@ -112,5 +112,5 @@
       }
     }
   },
-  "filepath": "tf_test/tags"
+  "filepath": "golden_test/tf/tags"
 }

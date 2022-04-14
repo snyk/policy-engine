@@ -3,7 +3,7 @@
     "hcl_resource_view_version": "0.0.1",
     "resources": {
       "data.google_iam_policy.all_authenticated_users": {
-        "_filepath": "tf_test/data-resources/main.tf",
+        "_filepath": "golden_test/tf/data-resources/main.tf",
         "_provider": "google",
         "_tags": {},
         "_type": "data.google_iam_policy",
@@ -24,7 +24,7 @@
         "id": "data.google_iam_policy.all_authenticated_users"
       },
       "data.google_iam_policy.all_users": {
-        "_filepath": "tf_test/data-resources/main.tf",
+        "_filepath": "golden_test/tf/data-resources/main.tf",
         "_provider": "google",
         "_tags": {},
         "_type": "data.google_iam_policy",
@@ -45,7 +45,7 @@
         "id": "data.google_iam_policy.all_users"
       },
       "google_storage_bucket.all_authenticated_users": {
-        "_filepath": "tf_test/data-resources/main.tf",
+        "_filepath": "golden_test/tf/data-resources/main.tf",
         "_provider": "google",
         "_tags": {},
         "_type": "google_storage_bucket",
@@ -54,7 +54,7 @@
         "name": "invalid-public-all-authenticated-iam"
       },
       "google_storage_bucket.all_users": {
-        "_filepath": "tf_test/data-resources/main.tf",
+        "_filepath": "golden_test/tf/data-resources/main.tf",
         "_provider": "google",
         "_tags": {},
         "_type": "google_storage_bucket",
@@ -63,7 +63,7 @@
         "name": "invalid-public-all-users-iam"
       },
       "google_storage_bucket_iam_policy.all_authenticated_users_policy": {
-        "_filepath": "tf_test/data-resources/main.tf",
+        "_filepath": "golden_test/tf/data-resources/main.tf",
         "_provider": "google",
         "_tags": {},
         "_type": "google_storage_bucket_iam_policy",
@@ -72,7 +72,7 @@
         "policy_data": "data.google_iam_policy.all_authenticated_users"
       },
       "google_storage_bucket_iam_policy.all_users_policy": {
-        "_filepath": "tf_test/data-resources/main.tf",
+        "_filepath": "golden_test/tf/data-resources/main.tf",
         "_provider": "google",
         "_tags": {},
         "_type": "google_storage_bucket_iam_policy",
@@ -82,5 +82,5 @@
       }
     }
   },
-  "filepath": "tf_test/data-resources"
+  "filepath": "golden_test/tf/data-resources"
 }

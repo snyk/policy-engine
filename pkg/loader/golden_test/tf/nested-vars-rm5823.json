@@ -3,7 +3,7 @@
     "hcl_resource_view_version": "0.0.1",
     "resources": {
       "aws_network_acl.main": {
-        "_filepath": "tf_test/nested-vars-rm5823/main.tf",
+        "_filepath": "golden_test/tf/nested-vars-rm5823/main.tf",
         "_provider": "aws",
         "_tags": {},
         "_type": "aws_network_acl",
@@ -29,7 +29,7 @@
         "vpc_id": "aws_vpc.main"
       },
       "aws_vpc.main": {
-        "_filepath": "tf_test/nested-vars-rm5823/main.tf",
+        "_filepath": "golden_test/tf/nested-vars-rm5823/main.tf",
         "_provider": "aws",
         "_tags": {},
         "_type": "aws_vpc",
@@ -38,5 +38,5 @@
       }
     }
   },
-  "filepath": "tf_test/nested-vars-rm5823"
+  "filepath": "golden_test/tf/nested-vars-rm5823"
 }
