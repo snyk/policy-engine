@@ -44,7 +44,7 @@ func (c *ArmDetector) DetectFile(i InputFile, opts DetectOptions) (IACConfigurat
 	_, hasSchema := template.Contents["$schema"]
 	_, hasResources := template.Contents["resources"]
 
-	if !hasSchema && !hasResources {
+	if !hasSchema || !hasResources {
 		return nil, fmt.Errorf("Input file is not an ARM template: %v", i.Path())
 	}
 	resources := map[string]interface{}{}

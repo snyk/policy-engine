@@ -52,17 +52,19 @@ const (
 	K8s
 	// Azure Resource Manager JSON
 	Arm
+	TfRuntime
 )
 
 // InputTypeIDs maps the InputType enums to string values that can be specified in
 // CLI options.
 var InputTypeIDs = map[InputType][]string{
-	Auto:   {"auto"},
-	TfPlan: {"tf-plan", "tf_plan"},
-	Cfn:    {"cfn"},
-	Tf:     {"tf"},
-	K8s:    {"k8s", "kubernetes"},
-	Arm:    {"arm"},
+	Auto:      {"auto"},
+	TfPlan:    {"tf-plan", "tf_plan"},
+	Cfn:       {"cfn"},
+	Tf:        {"tf"},
+	K8s:       {"k8s", "kubernetes"},
+	Arm:       {"arm"},
+	TfRuntime: {"tf_runtime"},
 }
 
 var DefaultInputTypes = InputTypeIDs[Auto]

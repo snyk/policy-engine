@@ -286,6 +286,7 @@ func detectorByInputType(inputType InputType) (ConfigurationDetector, error) {
 			&TfDetector{},
 			&KubernetesDetector{},
 			&ArmDetector{},
+			&TfRuntimeDetector{},
 		), nil
 	case Cfn:
 		return &CfnDetector{}, nil
@@ -293,6 +294,8 @@ func detectorByInputType(inputType InputType) (ConfigurationDetector, error) {
 		return &TfPlanDetector{}, nil
 	case Tf:
 		return &TfDetector{}, nil
+	case TfRuntime:
+		return &TfRuntimeDetector{}, nil
 	case K8s:
 		return &KubernetesDetector{}, nil
 	case Arm:

@@ -77,7 +77,7 @@ func (e *Engine) Eval(ctx context.Context, states []models.State) (*models.Resul
 		}
 		allRuleResults := map[string]models.RuleResults{}
 		for _, p := range policies {
-			if p.InputType() != state.InputType {
+			if !inputTypeMatches(p.InputType(), state.InputType) {
 				continue
 			}
 			// fmt.Printf("%s (%T)\n", p.Package(), p)
@@ -97,4 +97,13 @@ func (e *Engine) Eval(ctx context.Context, states []models.State) (*models.Resul
 		FormatVersion: "1.0.0",
 		Results:       results,
 	}, nil
+}
+
+func inputTypeMatches(t1, t2 string) bool {
+	switch t1 {
+	case "tf", "tf_runtime", "tf_plan":
+		return t2 == "tf" || t2 == "tf_runtime" || t2 == "tf_plan"
+	default:
+		return t1 == t2
+	}
 }
