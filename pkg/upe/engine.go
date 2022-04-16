@@ -77,6 +77,10 @@ func (e *Engine) Eval(ctx context.Context, states []models.State) (*models.Resul
 		}
 		allRuleResults := map[string]models.RuleResults{}
 		for _, p := range policies {
+			if p.InputType() != state.InputType {
+				continue
+			}
+			// fmt.Println(p.Package())
 			ruleResults, err := p.Eval(ctx, options)
 			if err != nil {
 				return nil, err
@@ -84,7 +88,7 @@ func (e *Engine) Eval(ctx context.Context, states []models.State) (*models.Resul
 			allRuleResults[p.Package()] = *ruleResults
 		}
 		results = append(results, models.Result{
-			Input:       &state,
+			Input:       state,
 			RuleResults: allRuleResults,
 		})
 	}

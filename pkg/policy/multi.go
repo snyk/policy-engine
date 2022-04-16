@@ -35,7 +35,8 @@ func (p *MultiResourcePolicy) Eval(
 		rego.Query(p.judgementRule.query()),
 		rego.Input(options.Input),
 	)
-	opts = append(opts, NewBuiltins(options.Input).Rego()...)
+	builtins := NewBuiltins(options.Input)
+	opts = append(opts, builtins.Rego()...)
 	query, err := rego.New(opts...).PrepareForEval(ctx)
 	if err != nil {
 		return nil, err
@@ -52,13 +53,13 @@ func (p *MultiResourcePolicy) Eval(
 	if err != nil {
 		return nil, err
 	}
-
 	return &models.RuleResults{
-		Id:          metadata.ID,
-		Title:       metadata.Title,
-		Description: metadata.Description,
-		Compliance:  metadata.Controls,
-		Results:     ruleResults,
+		Id:                   metadata.ID,
+		Title:                metadata.Title,
+		Description:          metadata.Description,
+		Controls:             metadata.Controls,
+		Results:              ruleResults,
+		MissingResourceTypes: builtins.MissingResourceTypes(),
 	}, nil
 }
 

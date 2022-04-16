@@ -51,12 +51,17 @@ func (p *SingleResourcePolicy) Eval(
 		}
 		ruleResults = append(ruleResults, ruleResult...)
 	}
+	var missingResourceTypes []string
+	if len(ruleResults) < 1 {
+		missingResourceTypes = append(missingResourceTypes, rt)
+	}
 	return &models.RuleResults{
-		Id:          metadata.ID,
-		Title:       metadata.Title,
-		Description: metadata.Description,
-		Compliance:  metadata.Controls,
-		Results:     ruleResults,
+		Id:                   metadata.ID,
+		Title:                metadata.Title,
+		Description:          metadata.Description,
+		Controls:             metadata.Controls,
+		Results:              ruleResults,
+		MissingResourceTypes: missingResourceTypes,
 	}, nil
 }
 

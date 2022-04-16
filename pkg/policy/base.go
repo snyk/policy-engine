@@ -40,6 +40,7 @@ type Policy interface {
 	Metadata(ctx context.Context, options []func(*rego.Rego)) (Metadata, error)
 	ID(ctx context.Context, options []func(*rego.Rego)) (string, error)
 	Eval(ctx context.Context, options EvalOptions) (*models.RuleResults, error)
+	InputType() string
 }
 
 type ruleInfo struct {
@@ -165,7 +166,7 @@ func (p *BasePolicy) Package() string {
 	return p.module.Package.Path.String()
 }
 
-func (p *BasePolicy) inputType() string {
+func (p *BasePolicy) InputType() string {
 	inputType := p.inputTypeRule.value
 	if inputType == "" {
 		return defaultInputType
