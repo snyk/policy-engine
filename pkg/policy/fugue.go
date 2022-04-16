@@ -13,7 +13,9 @@ func processFugueAllowBoolean(
 	metadata Metadata,
 ) ([]models.RuleResult, error) {
 	var allow bool
-	unmarshalResultSet(resultSet, &allow)
+	if err := unmarshalResultSet(resultSet, &allow); err != nil {
+		return nil, err
+	}
 	// TODO: propagate remediation from metadata
 	result := models.RuleResult{
 		Passed:     allow,
@@ -29,11 +31,61 @@ func processFugueDenyBoolean(
 	metadata Metadata,
 ) ([]models.RuleResult, error) {
 	var deny bool
-	unmarshalResultSet(resultSet, &deny)
+	if err := unmarshalResultSet(resultSet, &deny); err != nil {
+		return nil, err
+	}
 	result := models.RuleResult{
 		Passed:     !deny,
 		ResourceId: resource.Id,
 		Severity:   metadata.Severity,
+	}
+	return []models.RuleResult{result}, nil
+}
+
+func processFugueAllowString(
+	resultSet rego.ResultSet,
+	resource *models.ResourceState,
+	metadata Metadata,
+) ([]models.RuleResult, error) {
+	messages := []string{}
+	if err := unmarshalResultSet(resultSet, &messages); err != nil {
+		return nil, err
+	}
+	var allow bool
+	var message string
+	if len(messages) > 0 {
+		allow = true
+		message = messages[0]
+	}
+	result := models.RuleResult{
+		Passed:     allow,
+		ResourceId: resource.Id,
+		Severity:   metadata.Severity,
+		Message:    message,
+	}
+	return []models.RuleResult{result}, nil
+}
+
+func processFugueDenyString(
+	resultSet rego.ResultSet,
+	resource *models.ResourceState,
+	metadata Metadata,
+) ([]models.RuleResult, error) {
+	messages := []string{}
+	if err := unmarshalResultSet(resultSet, &messages); err != nil {
+		return nil, err
+	}
+	var deny bool
+	var message string
+	if len(messages) > 0 {
+		deny = true
+		message = messages[0]
+	}
+	result := models.RuleResult{
+		Passed:     !deny,
+		ResourceId: resource.Id,
+		Severity:   metadata.Severity,
+		Message:    message,
 	}
 	return []models.RuleResult{result}, nil
 }
@@ -69,7 +121,9 @@ func processFugueAllowPolicyResult(
 ) ([]models.RuleResult, error) {
 	policyResults := []policyResult{}
 	if err := unmarshalResultSet(resultSet, &policyResults); err != nil {
-		return nil, err
+		// It might be a fugue allow[msg] style rule in this case. Try that as a
+		// fallback.
+		return processFugueAllowString(resultSet, resource, metadata)
 	}
 	results := []models.RuleResult{}
 	for _, r := range policyResults {

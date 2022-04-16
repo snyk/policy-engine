@@ -30,8 +30,11 @@ func (p *SingleResourcePolicy) Eval(
 	if err != nil {
 		return nil, err
 	}
-	opts := append(options.RegoOptions, rego.Query(p.judgementRule.query()))
-	partial, err := rego.New(opts...).PartialResult(ctx)
+	opts := append(
+		options.RegoOptions,
+		rego.Query(p.judgementRule.query()),
+	)
+	query, err := rego.New(opts...).PrepareForEval(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -41,7 +44,7 @@ func (p *SingleResourcePolicy) Eval(
 		if resource.ResourceType != rt {
 			continue
 		}
-		resultSet, err := partial.Rego(rego.Input(resource.Attributes)).Eval(ctx)
+		resultSet, err := query.Eval(ctx, rego.EvalInput(resource.Attributes))
 		if err != nil {
 			return nil, err
 		}
@@ -73,7 +76,9 @@ func processSingleDenyPolicyResult(
 ) ([]models.RuleResult, error) {
 	policyResults := []policyResult{}
 	if err := unmarshalResultSet(resultSet, &policyResults); err != nil {
-		return nil, err
+		// It might be a fugue deny[msg] style rule in this case. Try that as a
+		// fallback.
+		return processFugueDenyString(resultSet, resource, metadata)
 	}
 	results := []models.RuleResult{}
 	for _, r := range policyResults {

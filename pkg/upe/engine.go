@@ -80,7 +80,7 @@ func (e *Engine) Eval(ctx context.Context, states []models.State) (*models.Resul
 			if p.InputType() != state.InputType {
 				continue
 			}
-			// fmt.Println(p.Package())
+			// fmt.Printf("%s (%T)\n", p.Package(), p)
 			ruleResults, err := p.Eval(ctx, options)
 			if err != nil {
 				return nil, err
