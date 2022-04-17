@@ -3,6 +3,7 @@ package upe
 import (
 	"context"
 	"fmt"
+	"sync"
 
 	"github.com/open-policy-agent/opa/ast"
 	"github.com/open-policy-agent/opa/rego"
@@ -50,6 +51,11 @@ func NewEngine(ctx context.Context, options *EngineOptions) (*Engine, error) {
 	}, nil
 }
 
+type policyResults struct {
+	pkg         string
+	ruleResults models.RuleResults
+}
+
 func (e *Engine) Eval(ctx context.Context, states []models.State) (*models.Results, error) {
 	regoOptions := []func(*rego.Rego){
 		rego.Compiler(e.compiler),
@@ -76,16 +82,56 @@ func (e *Engine) Eval(ctx context.Context, states []models.State) (*models.Resul
 			Input:       &state,
 		}
 		allRuleResults := map[string]models.RuleResults{}
-		for _, p := range policies {
-			if !inputTypeMatches(p.InputType(), state.InputType) {
-				continue
+		errors := []error{}
+		resultsChan := make(chan policyResults)
+		errorChan := make(chan error)
+		// waitChan := make(chan struct{})
+		var wg sync.WaitGroup
+		go func() {
+			for _, p := range policies {
+				if !inputTypeMatches(p.InputType(), state.InputType) {
+					continue
+				}
+				wg.Add(1)
+				go func(p policy.Policy) {
+					defer wg.Done()
+					ruleResults, err := p.Eval(ctx, options)
+					if err != nil {
+						errorChan <- err
+					} else {
+						resultsChan <- policyResults{
+							pkg:         p.Package(),
+							ruleResults: *ruleResults,
+						}
+					}
+				}(p)
 			}
-			// fmt.Printf("%s (%T)\n", p.Package(), p)
-			ruleResults, err := p.Eval(ctx, options)
-			if err != nil {
-				return nil, err
+			wg.Wait()
+			close(resultsChan)
+			close(errorChan)
+		}()
+		for {
+			select {
+			case policyResults, ok := <-resultsChan:
+				if ok {
+					allRuleResults[policyResults.pkg] = policyResults.ruleResults
+				} else {
+					resultsChan = nil
+				}
+			case err, ok := <-errorChan:
+				if ok {
+					errors = append(errors, err)
+				} else {
+					errorChan = nil
+				}
+
 			}
-			allRuleResults[p.Package()] = *ruleResults
+			if resultsChan == nil && errorChan == nil {
+				break
+			}
+		}
+		if len(errors) > 0 {
+			return nil, fmt.Errorf("Encountered %d errors", len(errors))
 		}
 		results = append(results, models.Result{
 			Input:       state,
