@@ -40,22 +40,20 @@ func (p *SingleResourcePolicy) Eval(
 	}
 	ruleResults := []models.RuleResult{}
 	rt := p.resourceType()
-	for _, resource := range options.Input.Resources {
-		if resource.ResourceType != rt {
-			continue
-		}
-		resultSet, err := query.Eval(ctx, rego.EvalInput(resource.Attributes))
-		if err != nil {
-			return nil, err
-		}
-		ruleResult, err := p.processResultSet(resultSet, &resource, metadata)
-		if err != nil {
-			return nil, err
-		}
-		ruleResults = append(ruleResults, ruleResult...)
-	}
 	var missingResourceTypes []string
-	if len(ruleResults) < 1 {
+	if resources, ok := options.Input.Resources[rt]; ok {
+		for _, resource := range resources {
+			resultSet, err := query.Eval(ctx, rego.EvalInput(resource.Attributes))
+			if err != nil {
+				return nil, err
+			}
+			ruleResult, err := p.processResultSet(resultSet, &resource, metadata)
+			if err != nil {
+				return nil, err
+			}
+			ruleResults = append(ruleResults, ruleResult...)
+		}
+	} else {
 		missingResourceTypes = append(missingResourceTypes, rt)
 	}
 	return &models.RuleResults{

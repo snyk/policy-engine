@@ -50,16 +50,22 @@ func (t *TfRuntimeDetector) DetectFile(i InputFile, opts DetectOptions) (IACConf
 	}
 
 	var environmentProvider string
-	resources := map[string]models.ResourceState{}
+	resourcesByType := map[string]map[string]models.ResourceState{}
 
 	for resourceKey, attributes := range j.Resources {
 		if environmentProvider == "" {
 			environmentProvider = strings.SplitN(resourceKey, "_", 2)[0]
 		}
+		resourceType := extractString(attributes, "_type")
+		resources, ok := resourcesByType[resourceType]
+		if !ok {
+			resources = map[string]models.ResourceState{}
+			resourcesByType[resourceType] = resources
+		}
 		resources[resourceKey] = models.ResourceState{
-			Id:           attributes["id"].(string),
-			ResourceType: attributes["_type"].(string),
-			Namespace:    attributes["_provider"].(string),
+			Id:           extractString(attributes, "id"),
+			ResourceType: resourceType,
+			Namespace:    extractString(attributes, "_provider"),
 			Attributes:   attributes,
 		}
 	}
@@ -67,7 +73,7 @@ func (t *TfRuntimeDetector) DetectFile(i InputFile, opts DetectOptions) (IACConf
 	return &tfRuntimeLoader{
 		path:                i.Path(),
 		environmentProvider: environmentProvider,
-		resources:           resources,
+		resourcesByType:     resourcesByType,
 	}, nil
 }
 
@@ -78,7 +84,7 @@ func (t *TfRuntimeDetector) DetectDirectory(i InputDirectory, opts DetectOptions
 type tfRuntimeLoader struct {
 	path                string
 	environmentProvider string
-	resources           map[string]models.ResourceState
+	resourcesByType     map[string]map[string]models.ResourceState
 }
 
 func (l *tfRuntimeLoader) RegulaInput() RegulaInput {
@@ -97,6 +103,18 @@ func (l *tfRuntimeLoader) ToState() models.State {
 	return models.State{
 		InputType:           "tf_runtime",
 		EnvironmentProvider: l.environmentProvider,
-		Resources:           l.resources,
+		Resources:           l.resourcesByType,
 	}
+}
+
+func extractString(m map[string]interface{}, key string) string {
+	v, ok := m[key]
+	if !ok {
+		return ""
+	}
+	s, ok := v.(string)
+	if !ok {
+		return ""
+	}
+	return s
 }
