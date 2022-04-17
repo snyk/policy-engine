@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"strings"
 
 	"github.com/open-policy-agent/opa/ast"
 	"github.com/open-policy-agent/opa/rego"
@@ -160,10 +161,9 @@ func NewBasePolicy(module *ast.Module) (*BasePolicy, error) {
 	}, nil
 }
 
-// Package returns the policy's package relative to the default root document (a.k.a.
-// 'data').
+// Package returns the policy's package
 func (p *BasePolicy) Package() string {
-	return p.module.Package.Path.String()
+	return strings.TrimPrefix(p.module.Package.Path.String(), "data.")
 }
 
 func (p *BasePolicy) InputType() string {

@@ -30,6 +30,7 @@ func (p *MultiResourcePolicy) Eval(
 	if err != nil {
 		return nil, err
 	}
+	// buff := topdown.NewBufferTracer()
 	opts := append(
 		options.RegoOptions,
 		rego.Query(p.judgementRule.query()),
@@ -41,6 +42,7 @@ func (p *MultiResourcePolicy) Eval(
 	if err != nil {
 		return nil, err
 	}
+	// resultSet, err := query.Eval(ctx, rego.EvalQueryTracer(buff))
 	resultSet, err := query.Eval(ctx)
 	if err != nil {
 		return nil, err
@@ -49,6 +51,9 @@ func (p *MultiResourcePolicy) Eval(
 	if err != nil {
 		return nil, err
 	}
+	// for _, event := range *buff {
+	// 	fmt.Printf("%d\t%s: %s\n", event.QueryID, event.Op, string(event.Location.Text))
+	// }
 	ruleResults, err := p.processResultSet(resultSet, metadata, resources)
 	if err != nil {
 		return nil, err

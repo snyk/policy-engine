@@ -73,9 +73,11 @@ func (r *resourcesByType) rego() func(*rego.Rego) {
 			return nil, err
 		}
 		rt := string(arg)
-		ret, ok := r.input.Resources[rt]
-		if !ok {
-			ret = map[string]models.ResourceState{}
+		ret := map[string]map[string]interface{}{}
+		if resources, ok := r.input.Resources[rt]; ok {
+			for resourceKey, resource := range resources {
+				ret[resourceKey] = resource.Attributes
+			}
 		}
 		val, err := ast.InterfaceToValue(ret)
 		if err != nil {
