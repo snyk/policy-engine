@@ -20,11 +20,16 @@ var RegoAPIProvider = data.FSProvider(regoApi, "regoapi")
 
 // Constants for builtin functions
 const resourcesByTypeName = "__resources_by_type"
+const currentInputTypeName = "__current_input_type"
 
 var builtinDeclarations = map[string]*types.Function{
 	resourcesByTypeName: types.NewFunction(
 		types.Args(types.S),
 		types.A,
+	),
+	currentInputTypeName: types.NewFunction(
+		types.Args(),
+		types.S,
 	),
 }
 
@@ -51,8 +56,8 @@ type resourcesByType struct {
 	input             *models.State
 }
 
-func newResourcesByType(input *models.State) *resourcesByType {
-	return &resourcesByType{
+func newResourcesByType(input *models.State) resourcesByType {
+	return resourcesByType{
 		calledWithMissing: map[string]bool{},
 		calledWith:        map[string]bool{},
 		input:             input,
@@ -91,19 +96,36 @@ func (r *resourcesByType) rego() func(*rego.Rego) {
 	})
 }
 
+type currentInputType struct {
+	input *models.State
+}
+
+func (c *currentInputType) rego() func(*rego.Rego) {
+	return rego.FunctionDyn(&rego.Function{
+		Name:    currentInputTypeName,
+		Decl:    builtinDeclarations[currentInputTypeName],
+		Memoize: true,
+	}, func(bctx rego.BuiltinContext, operands []*ast.Term) (*ast.Term, error) {
+		return ast.StringTerm(c.input.InputType), nil
+	})
+}
+
 type Builtins struct {
 	resourcesByType
+	currentInputType
 }
 
 func NewBuiltins(input *models.State) *Builtins {
 	return &Builtins{
-		resourcesByType: *newResourcesByType(input),
+		resourcesByType:  newResourcesByType(input),
+		currentInputType: currentInputType{input},
 	}
 }
 
 func (b *Builtins) Rego() []func(*rego.Rego) {
 	return []func(*rego.Rego){
 		b.resourcesByType.rego(),
+		b.currentInputType.rego(),
 	}
 }
 
