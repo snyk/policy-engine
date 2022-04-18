@@ -40,7 +40,6 @@ var cloudCommand = &cobra.Command{
 		states := loadedConfigs.ToStates()
 		ctx := context.Background()
 		engine, err := upe.NewEngine(ctx, options)
-		// upe, err := upe.LoadUpe(ctx, options)
 		check(err)
 
 		results, err := engine.Eval(ctx, states)
