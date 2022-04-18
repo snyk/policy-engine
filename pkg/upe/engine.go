@@ -85,7 +85,6 @@ func (e *Engine) Eval(ctx context.Context, states []models.State) (*models.Resul
 		errors := []error{}
 		resultsChan := make(chan policyResults)
 		errorChan := make(chan error)
-		// waitChan := make(chan struct{})
 		var wg sync.WaitGroup
 		go func() {
 			for _, p := range policies {
