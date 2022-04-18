@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/open-policy-agent/opa/rego"
+	"github.com/snyk/unified-policy-engine/pkg/logging"
 	"github.com/snyk/unified-policy-engine/pkg/models"
 )
 
@@ -26,8 +27,17 @@ func (p *MultiResourcePolicy) Eval(
 	ctx context.Context,
 	options EvalOptions,
 ) (*models.RuleResults, error) {
+	logger := options.Logger
+	if logger == nil {
+		logger = logging.DefaultLogger
+	}
+	logger = logger.WithField(logging.PACKAGE, p.Package()).
+		WithField(logging.POLICY_TYPE, "multi_resource").
+		WithField(logging.JUDGEMENT_NAME, p.judgementRule.name).
+		WithField(logging.JUDGEMENT_KEY, p.judgementRule.key)
 	metadata, err := p.Metadata(ctx, options.RegoOptions)
 	if err != nil {
+		logger.Error(ctx, "Failed to obtain metadata")
 		return nil, err
 	}
 	// buff := topdown.NewBufferTracer()
@@ -40,15 +50,18 @@ func (p *MultiResourcePolicy) Eval(
 	opts = append(opts, builtins.Rego()...)
 	query, err := rego.New(opts...).PrepareForEval(ctx)
 	if err != nil {
+		logger.Error(ctx, "Failed to prepare for eval")
 		return nil, err
 	}
 	// resultSet, err := query.Eval(ctx, rego.EvalQueryTracer(buff))
 	resultSet, err := query.Eval(ctx)
 	if err != nil {
+		logger.Error(ctx, "Failed to evaluate query")
 		return nil, err
 	}
 	resources, err := p.resources(ctx, opts)
 	if err != nil {
+		logger.Error(ctx, "Failed to query resources")
 		return nil, err
 	}
 	// for _, event := range *buff {
@@ -56,6 +69,7 @@ func (p *MultiResourcePolicy) Eval(
 	// }
 	ruleResults, err := p.processResultSet(resultSet, metadata, resources)
 	if err != nil {
+		logger.Error(ctx, "Failed to process result set")
 		return nil, err
 	}
 	return &models.RuleResults{

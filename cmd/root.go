@@ -6,8 +6,10 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/rs/zerolog"
 	"github.com/snyk/unified-policy-engine/pkg/data"
 	"github.com/snyk/unified-policy-engine/pkg/loader"
+	"github.com/snyk/unified-policy-engine/pkg/logging"
 	"github.com/snyk/unified-policy-engine/pkg/upe"
 	"github.com/spf13/cobra"
 )
@@ -29,6 +31,10 @@ var rootCmd = &cobra.Command{
 	Use:   "unified-policy-engine [-d <rules/metadata>...] [-r <rule ID>...] <input> [input...]",
 	Short: "Unified Policy Engine",
 	Run: func(cmd *cobra.Command, args []string) {
+		logger := logging.NewZeroLogger(zerolog.Logger{}.
+			Level(zerolog.GlobalLevel()).
+			Output(zerolog.ConsoleWriter{Out: os.Stderr}).
+			With().Timestamp().Logger())
 		selectedRules := map[string]bool{}
 		for _, k := range cmdRules {
 			selectedRules[k] = true
@@ -40,6 +46,7 @@ var rootCmd = &cobra.Command{
 		options := &upe.EngineOptions{
 			Providers: providers,
 			RuleIDs:   selectedRules,
+			Logger:    logger,
 		}
 		inputType := loader.Auto
 		if *cmdCloud {
@@ -59,7 +66,10 @@ var rootCmd = &cobra.Command{
 		engine, err := upe.NewEngine(ctx, options)
 		check(err)
 
-		results, err := engine.Eval(ctx, states)
+		results, err := engine.Eval(ctx, upe.EvalOptions{
+			Inputs: states,
+			Logger: logger,
+		})
 		check(err)
 
 		bytes, err := json.MarshalIndent(results, "  ", "  ")

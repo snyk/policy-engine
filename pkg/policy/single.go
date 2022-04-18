@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/open-policy-agent/opa/rego"
+	"github.com/snyk/unified-policy-engine/pkg/logging"
 	"github.com/snyk/unified-policy-engine/pkg/models"
 )
 
@@ -26,8 +27,19 @@ func (p *SingleResourcePolicy) Eval(
 	ctx context.Context,
 	options EvalOptions,
 ) (*models.RuleResults, error) {
+	logger := options.Logger
+	if logger == nil {
+		logger = logging.DefaultLogger
+	}
+	logger = logger.WithField(logging.PACKAGE, p.Package()).
+		WithField(logging.POLICY_TYPE, "single_resource").
+		WithField(logging.JUDGEMENT_NAME, p.judgementRule.name).
+		WithField(logging.JUDGEMENT_KEY, p.judgementRule.key).
+		WithField(logging.RESOURCE_TYPE, p.resourceType()).
+		WithField(logging.INPUT_TYPE, p.InputType())
 	metadata, err := p.Metadata(ctx, options.RegoOptions)
 	if err != nil {
+		logger.Error(ctx, "Failed to obtain metadata")
 		return nil, err
 	}
 	opts := append(
@@ -36,18 +48,22 @@ func (p *SingleResourcePolicy) Eval(
 	)
 	query, err := rego.New(opts...).PrepareForEval(ctx)
 	if err != nil {
+		logger.Error(ctx, "Failed to prepare for eval")
 		return nil, err
 	}
 	ruleResults := []models.RuleResult{}
 	rt := p.resourceType()
 	if resources, ok := options.Input.Resources[rt]; ok {
 		for _, resource := range resources {
+			logger := logger.WithField(logging.RESOURCE_ID, resource.Id)
 			resultSet, err := query.Eval(ctx, rego.EvalInput(resource.Attributes))
 			if err != nil {
+				logger.Error(ctx, "Failed to evaluate resource")
 				return nil, err
 			}
 			ruleResult, err := p.processResultSet(resultSet, &resource, metadata)
 			if err != nil {
+				logger.Error(ctx, "Failed to process result set")
 				return nil, err
 			}
 			ruleResults = append(ruleResults, ruleResult...)

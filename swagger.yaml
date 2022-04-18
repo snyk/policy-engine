@@ -198,6 +198,11 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/RuleResult'
+        errors:
+          description: Any errors that occurred while evaluating this rule.
+          type: array
+          items:
+            type: string
     RuleResult:
       description: A single rule result
       type: object

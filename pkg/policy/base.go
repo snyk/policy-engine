@@ -8,6 +8,7 @@ import (
 
 	"github.com/open-policy-agent/opa/ast"
 	"github.com/open-policy-agent/opa/rego"
+	"github.com/snyk/unified-policy-engine/pkg/logging"
 	"github.com/snyk/unified-policy-engine/pkg/models"
 )
 
@@ -32,6 +33,7 @@ const defaultInputType = "tf"
 type EvalOptions struct {
 	RegoOptions []func(*rego.Rego)
 	Input       *models.State
+	Logger      logging.Logger
 }
 
 // Policy is an interface that supports all of the ways we want to interact
