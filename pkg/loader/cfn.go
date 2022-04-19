@@ -17,6 +17,7 @@ package loader
 
 import (
 	"fmt"
+	"regexp"
 	"strings"
 
 	"github.com/snyk/unified-policy-engine/pkg/models"
@@ -325,16 +326,32 @@ func (*cfnReferenceResolver) walkArray(arr []interface{}) (interface{}, bool) {
 }
 
 func (resolver *cfnReferenceResolver) walkObject(obj map[string]interface{}) (interface{}, bool) {
+	// For consistency with the original Rego code, return a single reference
+	// if possible, an array otherwise.  This is something that we'll likely
+	// want to revisit.
+	refs := resolver.resolveObject(obj)
+	if len(refs) == 1 {
+		return refs[0], false
+	} else if len(refs) > 1 {
+		return refs, false
+	} else {
+		return obj, true
+	}
+}
+
+// Resolves references to other resources from the given value.  Returns nil
+// if not applicable.
+func (resolver *cfnReferenceResolver) resolveObject(obj map[string]interface{}) []interface{} {
 	if len(obj) == 1 {
 		// Replace references by the ID they reference, or a parameter value.
 		if ref, ok := obj["Ref"]; ok {
 			if str, ok := ref.(string); ok {
 				if paramValue, ok := resolver.parameters[str]; ok {
-					return paramValue, false
+					return []interface{}{paramValue}
+				} else {
+					return []interface{}{str}
 				}
 			}
-
-			return ref, false
 		}
 
 		// Replace {"Fn::GetAtt": [x, "Arn"]} calls by the ID of the resource
@@ -342,10 +359,68 @@ func (resolver *cfnReferenceResolver) walkObject(obj map[string]interface{}) (in
 		if argv, ok := obj["Fn::GetAtt"]; ok {
 			if args, ok := argv.([]interface{}); ok {
 				if len(args) == 2 && args[1] == "Arn" {
-					return args[0], false
+					return []interface{}{args[0]}
 				}
 			}
 		}
+
+		// Find references in template strings, like:
+		// * "...${LoggingBucket}..."
+		// * "...${LoggingBucket.Arn}..."
+		// * "...${AWS::Region}..."
+		if argv, ok := obj["Fn::Sub"]; ok {
+			if tmpl, ok := argv.(string); ok {
+				vars := resolver.resolveTemplateString(tmpl)
+				refs := make([]interface{}, len(vars))
+				for i := range vars {
+					refs[i] = vars[i]
+				}
+				return refs
+			}
+		}
+
+		// Find references in template strings where a variable map is
+		// provided by the user.
+		if argv, ok := obj["Fn::Sub"]; ok {
+			if args, ok := argv.([]interface{}); ok && len(args) == 2 {
+				if tmpl, ok := args[0].(string); ok {
+					if mapping, ok := args[1].(map[string]interface{}); ok {
+						vars := resolver.resolveTemplateString(tmpl)
+						refs := []interface{}{}
+						for _, k := range vars {
+							if val, ok := mapping[k]; ok {
+								refs = append(refs, val)
+							}
+						}
+						return refs
+					}
+				}
+			}
+		}
+
+		// Recursively collect references for joins as they are often nested.
+		if argv, ok := obj["Fn::Join"]; ok {
+			if args, ok := argv.([]interface{}); ok && len(args) > 1 {
+				refs := []interface{}{}
+				for _, arg := range args[1:] {
+					if argObj, ok := arg.(map[string]interface{}); ok {
+						refs = append(refs, resolver.resolveObject(argObj)...)
+					}
+				}
+				return refs
+			}
+		}
 	}
-	return obj, true
+
+	return nil
+}
+
+func (resolver *cfnReferenceResolver) resolveTemplateString(tmpl string) []string {
+	re := regexp.MustCompile(`\$\{([:\w]+)[.:\w]*\}`)
+	matches := re.FindAllStringSubmatch(tmpl, -1)
+	vars := make([]string, len(matches))
+	for _, match := range matches {
+		vars[0] = match[1]
+	}
+	return vars
 }

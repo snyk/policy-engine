@@ -8,9 +8,8 @@
               {
                 "Type": "AWS::S3::Object",
                 "Values": [
-                  {
-                    "Fn::Sub": "${LoggingBucket.Arn}/"
-                  }
+                  "LoggingBucket1",
+                  "LoggingBucket2"
                 ]
               }
             ],
@@ -23,7 +22,8 @@
         "_type": "AWS::CloudTrail::Trail",
         "id": "CloudTrailLogging"
       },
-      "LoggingBucket": {}
+      "LoggingBucket1": {},
+      "LoggingBucket2": {}
     }
   },
   "filepath": "golden_test/cfn/example-02/main.yaml"

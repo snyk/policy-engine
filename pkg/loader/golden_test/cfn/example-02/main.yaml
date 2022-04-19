@@ -11,6 +11,11 @@ Resources:
           DataResources:
             - Type: AWS::S3::Object
               Values:
-                - Fn::Sub: "${LoggingBucket.Arn}/"
-  LoggingBucket:
+                - Fn::Sub: "${LoggingBucket1.Arn}/"
+                - Fn::Sub:
+                    - "${Bucket}/"
+                    - Bucket: LoggingBucket2
+  LoggingBucket1:
+    Type: AWS::S3::Bucket
+  LoggingBucket2:
     Type: AWS::S3::Bucket

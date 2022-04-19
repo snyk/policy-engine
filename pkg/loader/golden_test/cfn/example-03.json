@@ -8,9 +8,10 @@
               {
                 "Type": "AWS::S3::Object",
                 "Values": [
-                  {
-                    "Fn::Sub": "${LoggingBucket.Arn}/"
-                  }
+                  [
+                    "AWS::Region",
+                    "AWS::AccountId"
+                  ]
                 ]
               }
             ],
@@ -22,8 +23,7 @@
         "TrailName": "cf-fuguetest-trail",
         "_type": "AWS::CloudTrail::Trail",
         "id": "CloudTrailLogging"
-      },
-      "LoggingBucket": {}
+      }
     }
   },
   "filepath": "golden_test/cfn/example-03/main.yaml"
