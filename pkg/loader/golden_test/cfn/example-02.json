@@ -18,9 +18,7 @@
           }
         ],
         "IsLogging": true,
-        "S3BucketName": {
-          "Ref": "LoggingBucket"
-        },
+        "S3BucketName": "LoggingBucket",
         "TrailName": "cf-fuguetest-trail",
         "_type": "AWS::CloudTrail::Trail",
         "id": "CloudTrailLogging"

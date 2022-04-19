@@ -97,7 +97,7 @@ func (tmpl *cfnTemplate) resources() map[string]interface{} {
 	for resourceId, resource := range tmpl.Resources {
 		object := map[string]interface{}{}
 		for k, attribute := range resource.Properties.Contents {
-			object[k] = attribute
+			object[k] = topDownWalkInterface(&cfnReferenceResolver{}, attribute)
 			object["id"] = resourceId
 			object["_type"] = resource.Type
 		}
@@ -292,4 +292,23 @@ func decodeNode(node *yaml.Node) (interface{}, error) {
 		}
 		return val, nil
 	}
+}
+
+// A topDownInterfaceWalker implementation that resolves references.  This is
+// ported from Regula but can probably be improved now that we are doing things
+// in Go.
+type cfnReferenceResolver struct {
+}
+
+func (*cfnReferenceResolver) walkArray(arr []interface{}) (interface{}, bool) {
+	return arr, true
+}
+
+func (*cfnReferenceResolver) walkObject(obj map[string]interface{}) (interface{}, bool) {
+	if len(obj) == 1 {
+		if ref, ok := obj["Ref"]; ok {
+			return ref, false
+		}
+	}
+	return obj, true
 }

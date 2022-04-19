@@ -2,12 +2,8 @@
   "content": {
     "resources": {
       "MyServer": {
-        "TheHost": {
-          "Ref": "Host"
-        },
-        "ThePort": {
-          "Ref": "Port"
-        },
+        "TheHost": "Host",
+        "ThePort": "Port",
         "_type": "Server",
         "id": "MyServer"
       }
