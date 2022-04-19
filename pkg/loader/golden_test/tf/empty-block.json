@@ -31,5 +31,5 @@
       }
     }
   },
-  "filepath": "golden_test/tf/empty-block"
+  "filepath": "golden_test/tf/empty-block/main.tf"
 }

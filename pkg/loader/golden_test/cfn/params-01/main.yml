@@ -1,0 +1,13 @@
+Parameters:
+  Port:
+    Default: 80
+  Host:
+    AllowedValues:
+    - '0.0.0.0'
+    - localhost
+Resources:
+  MyServer:
+    Type: Server
+    Properties:
+      ThePort: {Ref: Port}
+      TheHost: {Ref: Host}

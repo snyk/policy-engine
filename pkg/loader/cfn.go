@@ -44,20 +44,9 @@ func (c *CfnDetector) DetectFile(i InputFile, opts DetectOptions) (IACConfigurat
 	if err := yaml.Unmarshal(contents, &template); err != nil || template == nil {
 		return nil, fmt.Errorf("Failed to parse file as YAML or JSON %v: %v", i.Path(), err)
 	}
-	_, hasTemplateFormatVersion := template.Contents["AWSTemplateFormatVersion"]
-	_, hasResources := template.Contents["Resources"]
 
-	if !hasTemplateFormatVersion && !hasResources {
+	if template.AWSTemplateFormatVersion == nil && template.Resources == nil {
 		return nil, fmt.Errorf("Input file is not a CloudFormation template: %v", i.Path())
-	}
-
-	resources := map[string]interface{}{}
-	if hasResources {
-		r, resourcesIsMap := template.Contents["Resources"].(map[string]interface{})
-		if !resourcesIsMap {
-			return nil, fmt.Errorf("Input file is not a CloudFormation template: %v", i.Path())
-		}
-		resources = r
 	}
 
 	path := i.Path()
@@ -70,12 +59,52 @@ func (c *CfnDetector) DetectFile(i InputFile, opts DetectOptions) (IACConfigurat
 		path:      path,
 		template:  *template,
 		source:    source,
-		resources: resources,
+		resources: template.resources(),
 	}, nil
 }
 
 func (c *CfnDetector) DetectDirectory(i InputDirectory, opts DetectOptions) (IACConfiguration, error) {
 	return nil, nil
+}
+
+type cfnTemplate struct {
+	AWSTemplateFormatVersion interface{}            `yaml:"AWSTemplateFormatVersion"`
+	Resources                map[string]cfnResource `yaml:"Resources"`
+}
+
+type cfnResource struct {
+	Type       string `yaml:"Type"`
+	Properties cfnMap `yaml:"Properties"`
+}
+
+// This is a type that has a custom UnmarshalYAML that we use to do some
+// decoding.
+type cfnMap struct {
+	Contents map[string]interface{}
+}
+
+func (t *cfnMap) UnmarshalYAML(node *yaml.Node) error {
+	contents, err := decodeMap(node)
+	if err != nil {
+		return err
+	}
+	t.Contents = contents
+	return nil
+}
+
+func (tmpl *cfnTemplate) resources() map[string]interface{} {
+	resources := map[string]interface{}{}
+	for resourceId, resource := range tmpl.Resources {
+		object := map[string]interface{}{}
+		for k, attribute := range resource.Properties.Contents {
+			object[k] = attribute
+			object["id"] = resourceId
+			object["_type"] = resource.Type
+		}
+
+		resources[resourceId] = object
+	}
+	return resources
 }
 
 type cfnConfiguration struct {
@@ -88,7 +117,9 @@ type cfnConfiguration struct {
 func (l *cfnConfiguration) RegulaInput() RegulaInput {
 	return RegulaInput{
 		"filepath": l.path,
-		"content":  l.template.Contents,
+		"content": map[string]interface{}{
+			"resources": l.resources,
+		},
 	}
 }
 
@@ -130,19 +161,6 @@ func (l *cfnConfiguration) Location(path []string) (LocationStack, error) {
 
 func (l *cfnConfiguration) LoadedFiles() []string {
 	return []string{l.path}
-}
-
-type cfnTemplate struct {
-	Contents map[string]interface{}
-}
-
-func (t *cfnTemplate) UnmarshalYAML(node *yaml.Node) error {
-	contents, err := decodeMap(node)
-	if err != nil {
-		return err
-	}
-	t.Contents = contents
-	return nil
 }
 
 func decodeMap(node *yaml.Node) (map[string]interface{}, error) {

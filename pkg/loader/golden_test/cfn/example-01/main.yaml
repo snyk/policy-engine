@@ -1,0 +1,9 @@
+Resources:
+  MySecurityGroup:
+    Type: SecurityGroupId
+    Properties:
+      Vpc: {Fn::GetAtt: [MyVpc, Arn]}
+  MyVpc:
+    Type: Vpc
+    Properties:
+      Name: bar

@@ -1,0 +1,16 @@
+Resources:
+  CloudTrailLogging:
+    Type: AWS::CloudTrail::Trail
+    Properties:
+      IsLogging: true
+      S3BucketName:
+        Ref: LoggingBucket
+      TrailName: cf-fuguetest-trail
+      EventSelectors:
+        - ReadWriteType: All
+          DataResources:
+            - Type: AWS::S3::Object
+              Values:
+                - Fn::Sub: "${LoggingBucket.Arn}/"
+  LoggingBucket:
+    Type: AWS::S3::Bucket

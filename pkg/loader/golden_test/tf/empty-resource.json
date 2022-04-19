@@ -11,5 +11,5 @@
       }
     }
   },
-  "filepath": "golden_test/tf/empty-resource"
+  "filepath": "golden_test/tf/empty-resource/test.tf"
 }

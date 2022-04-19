@@ -1,0 +1,22 @@
+{
+  "content": {
+    "resources": {
+      "MySecurityGroup": {
+        "Vpc": {
+          "Fn::GetAtt": [
+            "MyVpc",
+            "Arn"
+          ]
+        },
+        "_type": "SecurityGroupId",
+        "id": "MySecurityGroup"
+      },
+      "MyVpc": {
+        "Name": "bar",
+        "_type": "Vpc",
+        "id": "MyVpc"
+      }
+    }
+  },
+  "filepath": "golden_test/cfn/example-01/main.yaml"
+}

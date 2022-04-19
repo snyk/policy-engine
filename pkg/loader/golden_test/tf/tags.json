@@ -112,5 +112,5 @@
       }
     }
   },
-  "filepath": "golden_test/tf/tags"
+  "filepath": "golden_test/tf/tags/main.tf"
 }

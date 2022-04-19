@@ -38,5 +38,5 @@
       }
     }
   },
-  "filepath": "golden_test/tf/nested-vars-rm5823"
+  "filepath": "golden_test/tf/nested-vars-rm5823/main.tf"
 }

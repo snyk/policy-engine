@@ -31,13 +31,19 @@ import (
 func DefaultParseDirectory(dirPath string) (IACConfiguration, error) {
 	name := filepath.Base(dirPath)
 	repoFinder := git.NewRepoFinder([]string{})
-	directoryOpts := directoryOptions{
+	dirOpts := directoryOptions{
 		Path:          dirPath,
 		Name:          name,
 		NoGitIgnore:   false,
 		GitRepoFinder: repoFinder,
 	}
-	dir, err := newDirectory(directoryOpts)
+
+	dir, err := newDirectory(dirOpts)
+	if err != nil {
+		return nil, err
+	}
+
+	detector, err := DetectorByInputTypes([]InputType{Auto})
 	if err != nil {
 		return nil, err
 	}
@@ -46,11 +52,13 @@ func DefaultParseDirectory(dirPath string) (IACConfiguration, error) {
 		IgnoreExt:  false,
 		IgnoreDirs: false,
 	}
-	detector, err := DetectorByInputTypes([]InputType{Auto})
-	if err != nil {
-		return nil, err
+	children := dir.Children()
+	if len(children) == 1 {
+		single := newFile(children[0].Path(), children[0].Name())
+		return detector.DetectFile(single, detectOpts)
+	} else {
+		return detector.DetectDirectory(dir, detectOpts)
 	}
-	return detector.DetectDirectory(dir, detectOpts)
 }
 
 type goldenTest struct {
