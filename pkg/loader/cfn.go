@@ -326,6 +326,7 @@ func (*cfnReferenceResolver) walkArray(arr []interface{}) (interface{}, bool) {
 
 func (resolver *cfnReferenceResolver) walkObject(obj map[string]interface{}) (interface{}, bool) {
 	if len(obj) == 1 {
+		// Replace references by the ID they reference, or a parameter value.
 		if ref, ok := obj["Ref"]; ok {
 			if str, ok := ref.(string); ok {
 				if paramValue, ok := resolver.parameters[str]; ok {
@@ -334,6 +335,16 @@ func (resolver *cfnReferenceResolver) walkObject(obj map[string]interface{}) (in
 			}
 
 			return ref, false
+		}
+
+		// Replace {"Fn::GetAtt": [x, "Arn"]} calls by the ID of the resource
+		// they reference.
+		if argv, ok := obj["Fn::GetAtt"]; ok {
+			if args, ok := argv.([]interface{}); ok {
+				if len(args) == 2 && args[1] == "Arn" {
+					return args[0], false
+				}
+			}
 		}
 	}
 	return obj, true

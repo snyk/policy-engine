@@ -2,12 +2,7 @@
   "content": {
     "resources": {
       "MySecurityGroup": {
-        "Vpc": {
-          "Fn::GetAtt": [
-            "MyVpc",
-            "Arn"
-          ]
-        },
+        "Vpc": "MyVpc",
         "_type": "SecurityGroupId",
         "id": "MySecurityGroup"
       },
