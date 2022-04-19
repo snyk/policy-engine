@@ -68,8 +68,14 @@ func (c *CfnDetector) DetectDirectory(i InputDirectory, opts DetectOptions) (IAC
 }
 
 type cfnTemplate struct {
-	AWSTemplateFormatVersion interface{}            `yaml:"AWSTemplateFormatVersion"`
-	Resources                map[string]cfnResource `yaml:"Resources"`
+	AWSTemplateFormatVersion interface{}             `yaml:"AWSTemplateFormatVersion"`
+	Parameters               map[string]cfnParameter `yaml:"Parameters"`
+	Resources                map[string]cfnResource  `yaml:"Resources"`
+}
+
+type cfnParameter struct {
+	Default       interface{}   `yaml:"Default"`
+	AllowedValues []interface{} `yaml:"AllowedValues"`
 }
 
 type cfnResource struct {
@@ -93,11 +99,24 @@ func (t *cfnMap) UnmarshalYAML(node *yaml.Node) error {
 }
 
 func (tmpl *cfnTemplate) resources() map[string]interface{} {
+	parameters := map[string]interface{}{}
+	for k, param := range tmpl.Parameters {
+		if param.Default != nil {
+			parameters[k] = param.Default
+		} else if len(param.AllowedValues) > 0 {
+			parameters[k] = param.AllowedValues[0]
+		}
+	}
+
+	resolver := cfnReferenceResolver{
+		parameters: parameters,
+	}
+
 	resources := map[string]interface{}{}
 	for resourceId, resource := range tmpl.Resources {
 		object := map[string]interface{}{}
 		for k, attribute := range resource.Properties.Contents {
-			object[k] = topDownWalkInterface(&cfnReferenceResolver{}, attribute)
+			object[k] = topDownWalkInterface(&resolver, attribute)
 			object["id"] = resourceId
 			object["_type"] = resource.Type
 		}
@@ -298,15 +317,22 @@ func decodeNode(node *yaml.Node) (interface{}, error) {
 // ported from Regula but can probably be improved now that we are doing things
 // in Go.
 type cfnReferenceResolver struct {
+	parameters map[string]interface{}
 }
 
 func (*cfnReferenceResolver) walkArray(arr []interface{}) (interface{}, bool) {
 	return arr, true
 }
 
-func (*cfnReferenceResolver) walkObject(obj map[string]interface{}) (interface{}, bool) {
+func (resolver *cfnReferenceResolver) walkObject(obj map[string]interface{}) (interface{}, bool) {
 	if len(obj) == 1 {
 		if ref, ok := obj["Ref"]; ok {
+			if str, ok := ref.(string); ok {
+				if paramValue, ok := resolver.parameters[str]; ok {
+					return paramValue, false
+				}
+			}
+
 			return ref, false
 		}
 	}
