@@ -189,11 +189,9 @@ components:
           description: A list of rule set IDs associated with this rule
           items:
             type: string
-        missing_resource_types:
+        resource_types:
           type: array
-          description: |
-            A list of resource types that the rule uses, but were not present in the
-            input.
+          description: A list of resource types that the rule uses.
           items:
             type: string
         results:

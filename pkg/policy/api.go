@@ -51,16 +51,14 @@ func Capabilities() *ast.Capabilities {
 }
 
 type resourcesByType struct {
-	calledWithMissing map[string]bool
-	calledWith        map[string]bool
-	input             *models.State
+	calledWith map[string]bool
+	input      *models.State
 }
 
 func newResourcesByType(input *models.State) resourcesByType {
 	return resourcesByType{
-		calledWithMissing: map[string]bool{},
-		calledWith:        map[string]bool{},
-		input:             input,
+		calledWith: map[string]bool{},
+		input:      input,
 	}
 }
 
@@ -89,9 +87,6 @@ func (r *resourcesByType) rego() func(*rego.Rego) {
 			return nil, err
 		}
 		r.calledWith[rt] = true
-		if len(ret) < 1 {
-			r.calledWithMissing[rt] = true
-		}
 		return ast.NewTerm(val), nil
 	})
 }
@@ -129,9 +124,9 @@ func (b *Builtins) Rego() []func(*rego.Rego) {
 	}
 }
 
-func (b *Builtins) MissingResourceTypes() []string {
-	rts := make([]string, 0, len(b.resourcesByType.calledWithMissing))
-	for rt := range b.resourcesByType.calledWithMissing {
+func (b *Builtins) ResourceTypes() []string {
+	rts := make([]string, 0, len(b.resourcesByType.calledWith))
+	for rt := range b.resourcesByType.calledWith {
 		rts = append(rts, rt)
 	}
 	return rts

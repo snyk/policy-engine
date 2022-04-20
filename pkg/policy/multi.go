@@ -59,12 +59,12 @@ func (p *MultiResourcePolicy) Eval(
 		return nil, err
 	}
 	return &models.RuleResults{
-		Id:                   metadata.ID,
-		Title:                metadata.Title,
-		Description:          metadata.Description,
-		Controls:             metadata.Controls,
-		Results:              ruleResults,
-		MissingResourceTypes: builtins.MissingResourceTypes(),
+		Id:            metadata.ID,
+		Title:         metadata.Title,
+		Description:   metadata.Description,
+		Controls:      metadata.Controls,
+		Results:       ruleResults,
+		ResourceTypes: builtins.ResourceTypes(),
 	}, nil
 }
 

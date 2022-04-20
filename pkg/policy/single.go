@@ -40,7 +40,6 @@ func (p *SingleResourcePolicy) Eval(
 	}
 	ruleResults := []models.RuleResult{}
 	rt := p.resourceType()
-	var missingResourceTypes []string
 	if resources, ok := options.Input.Resources[rt]; ok {
 		for _, resource := range resources {
 			resultSet, err := query.Eval(ctx, rego.EvalInput(resource.Attributes))
@@ -53,16 +52,14 @@ func (p *SingleResourcePolicy) Eval(
 			}
 			ruleResults = append(ruleResults, ruleResult...)
 		}
-	} else {
-		missingResourceTypes = append(missingResourceTypes, rt)
 	}
 	return &models.RuleResults{
-		Id:                   metadata.ID,
-		Title:                metadata.Title,
-		Description:          metadata.Description,
-		Controls:             metadata.Controls,
-		Results:              ruleResults,
-		MissingResourceTypes: missingResourceTypes,
+		Id:            metadata.ID,
+		Title:         metadata.Title,
+		Description:   metadata.Description,
+		Controls:      metadata.Controls,
+		Results:       ruleResults,
+		ResourceTypes: []string{rt},
 	}, nil
 }
 

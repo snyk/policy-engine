@@ -22,7 +22,7 @@ type RuleResults struct {
 	Controls map[string][]string `json:"controls,omitempty"`
 	// A list of rule set IDs associated with this rule
 	RuleSets []string `json:"rule_sets,omitempty"`
-	// A list of resource types that the rule uses, but were not present in the input.
-	MissingResourceTypes []string     `json:"missing_resource_types,omitempty"`
-	Results              []RuleResult `json:"results"`
+	// A list of resource types that the rule uses.
+	ResourceTypes []string     `json:"resource_types,omitempty"`
+	Results       []RuleResult `json:"results"`
 }
