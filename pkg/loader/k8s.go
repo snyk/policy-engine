@@ -20,6 +20,7 @@ import (
 	"fmt"
 	"io"
 
+	"github.com/snyk/unified-policy-engine/pkg/models"
 	"gopkg.in/yaml.v3"
 )
 
@@ -99,9 +100,10 @@ func (c *KubernetesDetector) DetectFile(i InputFile, opts DetectOptions) (IACCon
 	}
 
 	return &k8sConfiguration{
-		path:    i.Path(),
-		content: content,
-		sources: sources,
+		path:      i.Path(),
+		content:   content,
+		sources:   sources,
+		resources: resources,
 	}, nil
 }
 
@@ -110,9 +112,10 @@ func (c *KubernetesDetector) DetectDirectory(i InputDirectory, opts DetectOption
 }
 
 type k8sConfiguration struct {
-	path    string
-	content map[string]interface{}
-	sources map[string]SourceInfoNode
+	path      string
+	content   map[string]interface{}
+	sources   map[string]SourceInfoNode
+	resources map[string]interface{}
 }
 
 func (l *k8sConfiguration) RegulaInput() RegulaInput {
@@ -120,6 +123,10 @@ func (l *k8sConfiguration) RegulaInput() RegulaInput {
 		"filepath": l.path,
 		"content":  l.content,
 	}
+}
+
+func (l *k8sConfiguration) ToState() models.State {
+	return toState("k8s", l.path, l.resources)
 }
 
 func (l *k8sConfiguration) Location(path []string) (LocationStack, error) {

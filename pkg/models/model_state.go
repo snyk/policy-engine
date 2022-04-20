@@ -18,6 +18,6 @@ type State struct {
 	EnvironmentProvider string `json:"environment_provider"`
 	// This object is intended to hold any input type-specific or  environment-specific fields, e.g. account_id or filepath.
 	Meta map[string]interface{} `json:"meta,omitempty"`
-	// Resources is a map of a unique resource key to a resource object.
-	Resources map[string]ResourceState `json:"resources"`
+	// Resources is a map of resource type to a map of a unique resource key to a resource object.
+	Resources map[string]map[string]ResourceState `json:"resources"`
 }

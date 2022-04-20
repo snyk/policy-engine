@@ -18,6 +18,8 @@ type RuleResult struct {
 	Message string `json:"message,omitempty"`
 	// The ID of the primary resource (if any) associated with this result
 	ResourceId string `json:"resource_id,omitempty"`
+	// The type of resource (if any) associated with this result. This will typically be used with \"missing resource\" rules.
+	ResourceType string `json:"resource_type,omitempty"`
 	// A Markdown-formatted set of remediation steps to resolve the issue identified by the rule
 	Remediation string `json:"remediation,omitempty"`
 	// The severity of this rule result

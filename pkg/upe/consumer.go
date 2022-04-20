@@ -1,74 +1,69 @@
-package rego
+package upe
 
 import (
-	"fmt"
 	"path/filepath"
-	"regexp"
+	"strings"
 
 	"github.com/open-policy-agent/opa/ast"
-	"gopkg.in/yaml.v3"
+	"github.com/snyk/unified-policy-engine/pkg/policy"
 )
 
-type Consumer interface {
-	Module(path string, bytes []byte) error
-	DataDocument(path string, bytes []byte) error
+var rulesPrefix = ast.Ref{
+	ast.DefaultRootDocument,
+	ast.StringTerm("rules"),
 }
 
-// An implementation that stores parsed modules and documents in-memory.
-// It reads JSON and YAML files in addition to Rego files.
-type BaseConsumer struct {
+// PolicyConsumer is an implementation of the data.Consumer interface that stores
+// parsed modules, policies, and documents in-memory.
+type PolicyConsumer struct {
+	Policies  []policy.Policy
 	Modules   map[string]*ast.Module
 	Documents map[string]interface{}
 }
 
-func NewBaseConsumer() *BaseConsumer {
-	return &BaseConsumer{
+func NewPolicyConsumer() *PolicyConsumer {
+	return &PolicyConsumer{
 		Modules:   map[string]*ast.Module{},
 		Documents: map[string]interface{}{},
 	}
 }
 
-func (c *BaseConsumer) Module(path string, bytes []byte) error {
-	if module, err := ast.ParseModule(path, string(bytes)); err == nil {
-		c.Modules[path] = module
-		return nil
-	} else {
-		return err
+func (c *PolicyConsumer) Module(path string, module *ast.Module) error {
+	c.Modules[path] = module
+	if module.Package.Path.HasPrefix(rulesPrefix) {
+		p, err := policy.PolicyFactory(module)
+		if err != nil {
+			return err
+		} else {
+			c.Policies = append(c.Policies, p)
+		}
+
 	}
+	return nil
 }
 
-func (c *BaseConsumer) DataDocument(path string, bytes []byte) error {
-	ext := filepath.Ext(path)
-	if _, ok := DataDocumentExtensions[ext]; ok {
-		document := map[string]interface{}{}
-		if err := yaml.Unmarshal(bytes, &document); err != nil {
-			return err
+func (c *PolicyConsumer) DataDocument(path string, document map[string]interface{}) error {
+	prefix := dataDocumentPrefix(path)
+	for i := len(prefix) - 1; i >= 0; i-- {
+		document = map[string]interface{}{
+			prefix[i]: document,
 		}
-
-		prefix := dataDocumentPrefix(path)
-		for i := len(prefix) - 1; i >= 0; i-- {
-			document = map[string]interface{}{
-				prefix[i]: document,
-			}
-		}
-		c.Documents = mergeObjects(c.Documents, document)
-		return nil
-	} else {
-		return fmt.Errorf("%s: unknown extension for DataDocument", ext)
 	}
+	c.Documents = mergeObjects(c.Documents, document)
+	return nil
 }
 
 // Returns a prefix to nest the document under based on the filename.  This
 // matches the OPA behaviour.
 //
-//     rules/snyk_001/metadata.json
+//     metadata/rules/snyk_001/metadata.json
 //
 // Results in
 //
 //     ["rules", "snyk_001"]
 func dataDocumentPrefix(path string) []string {
 	prefix := []string{}
-	for _, part := range regexp.MustCompile(`[/\\]+`).Split(filepath.Dir(path), -1) {
+	for _, part := range strings.Split(filepath.ToSlash(filepath.Dir(path)), "/") {
 		if part != "" {
 			prefix = append(prefix, part)
 		}

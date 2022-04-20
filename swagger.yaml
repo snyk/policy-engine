@@ -62,9 +62,11 @@ components:
         resources:
           type: object
           description: |
-            Resources is a map of a unique resource key to a resource object.
+            Resources is a map of resource type to a map of a unique resource key to a resource object.
           additionalProperties:
-            $ref: '#/components/schemas/ResourceState'
+            type: object
+            additionalProperties:
+              $ref: '#/components/schemas/ResourceState'
     ResourceState:
       description: The state of a single resource
       type: object
@@ -128,7 +130,7 @@ components:
       required:
         - format
         - format_version
-        - rule_results
+        - results
       properties:
         format:
           type: string
@@ -136,12 +138,21 @@ components:
         format_version:
           type: string
           enum: ["1.0.0"]
-        inputs:
-          type: array
-          description: |
-            The inputs that produced these results. This field is optional.
+        results:
           items:
-            $ref: '#/components/schemas/State'
+            $ref: '#/components/schemas/Result'
+    Result:
+      description: |
+        An object that relates an input with its rule results
+      type: object
+      required:
+        - input
+        - rule_results
+      properties:
+        input:
+          description: |
+            The input that produced these results. This field is optional.
+          $ref: '#/components/schemas/State'
         rule_results:
           type: object
           description: A map of rule package to a rule results object
@@ -164,24 +175,25 @@ components:
           type: string
           description: The rule description
         references:
-          type: array
-          description: An array of links to additional information on the vulnerability.
-          items:
-            type: object
-            properties:
-              title:
-                type: string
-              description:
-                type: string
-              url:
-                type: string
-        compliance:
+          type: string
+          description: A markdown formatted string containing useful links
+        controls:
           type: object
-          description: A map of compliance family ID to a list of control tags
+          description: A map of rule set ID to a list of control tags
           additionalProperties:
             type: array
             items:
               type: string
+        rule_sets:
+          type: array
+          description: A list of rule set IDs associated with this rule
+          items:
+            type: string
+        resource_types:
+          type: array
+          description: A list of resource types that the rule uses.
+          items:
+            type: string
         results:
           type: array
           items:
@@ -205,6 +217,11 @@ components:
         resource_id:
           type: string
           description: The ID of the primary resource (if any) associated with this result
+        resource_type:
+          type: string
+          description: |
+            The type of resource (if any) associated with this result. This will typically
+            be used with "missing resource" rules.
         remediation:
           type: string
           description: |

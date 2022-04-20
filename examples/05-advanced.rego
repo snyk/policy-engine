@@ -8,6 +8,8 @@
 # `correlation`.  You can see how this is used in `resources` below.
 package rules.snyk_005.tf
 
+import data.snyk
+
 buckets := snyk.resources("aws_s3_bucket")
 
 encryption_configs := snyk.resources("aws_s3_bucket_server_side_encryption_configuration")

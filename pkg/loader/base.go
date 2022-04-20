@@ -18,6 +18,8 @@ package loader
 import (
 	"fmt"
 	"strings"
+
+	"github.com/snyk/unified-policy-engine/pkg/models"
 )
 
 //go:generate mockgen -destination=../mocks/mock_iacconfiguration.go -package=mocks github.com/snyk/unified-policy-engine/pkg/loader IACConfiguration
@@ -50,17 +52,19 @@ const (
 	K8s
 	// Azure Resource Manager JSON
 	Arm
+	TfRuntime
 )
 
 // InputTypeIDs maps the InputType enums to string values that can be specified in
 // CLI options.
 var InputTypeIDs = map[InputType][]string{
-	Auto:   {"auto"},
-	TfPlan: {"tf-plan", "tf_plan"},
-	Cfn:    {"cfn"},
-	Tf:     {"tf"},
-	K8s:    {"k8s", "kubernetes"},
-	Arm:    {"arm"},
+	Auto:      {"auto"},
+	TfPlan:    {"tf-plan", "tf_plan"},
+	Cfn:       {"cfn"},
+	Tf:        {"tf"},
+	K8s:       {"k8s", "kubernetes"},
+	Arm:       {"arm"},
+	TfRuntime: {"tf_runtime"},
 }
 
 var DefaultInputTypes = InputTypeIDs[Auto]
@@ -119,6 +123,7 @@ type LoadedConfigurations interface {
 	Location(path string, attributePath []string) (LocationStack, error)
 	// RegulaInput renders the RegulaInput from all of the contained configurations.
 	RegulaInput() []RegulaInput
+	ToStates() []models.State
 	// Count returns the number of loaded configurations.
 	Count() int
 }
@@ -132,6 +137,7 @@ type RegulaInput map[string]interface{}
 type IACConfiguration interface {
 	// RegulaInput returns a input for regula.
 	RegulaInput() RegulaInput
+	ToState() models.State
 	// LoadedFiles are all of the files contained within this configuration.
 	LoadedFiles() []string
 	// Location resolves an attribute path to to a file, line and column.
