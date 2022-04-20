@@ -82,5 +82,5 @@
       }
     }
   },
-  "filepath": "golden_test/tf/data-resources"
+  "filepath": "golden_test/tf/data-resources/main.tf"
 }

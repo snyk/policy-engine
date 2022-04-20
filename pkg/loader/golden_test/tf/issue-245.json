@@ -3,5 +3,5 @@
     "hcl_resource_view_version": "0.0.1",
     "resources": {}
   },
-  "filepath": "golden_test/tf/issue-245"
+  "filepath": "golden_test/tf/issue-245/test.tf"
 }

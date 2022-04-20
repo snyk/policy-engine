@@ -27,5 +27,5 @@
       }
     }
   },
-  "filepath": "golden_test/tf/count-ref"
+  "filepath": "golden_test/tf/count-ref/main.tf"
 }

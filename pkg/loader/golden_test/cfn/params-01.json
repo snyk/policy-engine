@@ -1,0 +1,13 @@
+{
+  "content": {
+    "resources": {
+      "MyServer": {
+        "TheHost": "0.0.0.0",
+        "ThePort": 80,
+        "_type": "Server",
+        "id": "MyServer"
+      }
+    }
+  },
+  "filepath": "golden_test/cfn/params-01/main.yml"
+}

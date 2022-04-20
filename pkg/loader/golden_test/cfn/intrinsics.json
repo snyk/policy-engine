@@ -1,0 +1,149 @@
+{
+  "content": {
+    "resources": {
+      "Function": {
+        "Code": {
+          "ZipFile": "exports.handler = (event, context) =\u003e {\n  console.log(JSON.stringify(event))\n}\n"
+        },
+        "Handler": "index.handler",
+        "Role": "FunctionRole",
+        "Runtime": "nodejs12.x",
+        "_type": "AWS::Lambda::Function",
+        "id": "Function"
+      },
+      "Function2": {
+        "Code": {
+          "ZipFile": "exports.handler = (event, context) =\u003e {\n  console.log(JSON.stringify(event))\n}\n"
+        },
+        "Handler": "index.handler",
+        "Role": "FunctionRole",
+        "Runtime": "nodejs12.x",
+        "_type": "AWS::Lambda::Function",
+        "id": "Function2"
+      },
+      "Function3": {
+        "Code": {
+          "ZipFile": "exports.handler = (event, context) =\u003e {\n  console.log(JSON.stringify(event))\n}\n"
+        },
+        "Handler": "index.handler",
+        "Role": "FunctionRole",
+        "Runtime": "nodejs12.x",
+        "_type": "AWS::Lambda::Function",
+        "id": "Function3"
+      },
+      "Function4": {
+        "Code": {
+          "ZipFile": "exports.handler = (event, context) =\u003e {\n  console.log(JSON.stringify(event))\n}\n"
+        },
+        "FunctionName": "function4",
+        "Handler": "index.handler",
+        "Role": "FunctionRole",
+        "Runtime": "nodejs12.x",
+        "_type": "AWS::Lambda::Function",
+        "id": "Function4"
+      },
+      "Function5": {
+        "Code": {
+          "ZipFile": "exports.handler = (event, context) =\u003e {\n  console.log(JSON.stringify(event))\n}\n"
+        },
+        "FunctionName": "function5",
+        "Handler": "index.handler",
+        "Role": "FunctionRole",
+        "Runtime": "nodejs12.x",
+        "_type": "AWS::Lambda::Function",
+        "id": "Function5"
+      },
+      "Function5Alias": {
+        "FunctionName": "Function5",
+        "FunctionVersion": "$LATEST",
+        "Name": "v1",
+        "_type": "AWS::Lambda::Alias",
+        "id": "Function5Alias"
+      },
+      "Function6": {
+        "Code": {
+          "ZipFile": "exports.handler = (event, context) =\u003e {\n  console.log(JSON.stringify(event))\n}\n"
+        },
+        "FunctionName": "AWS::Region",
+        "Handler": "index.handler",
+        "Role": "FunctionRole",
+        "Runtime": "nodejs12.x",
+        "_type": "AWS::Lambda::Function",
+        "id": "Function6"
+      },
+      "Function6Alias": {
+        "FunctionName": "Function5",
+        "FunctionVersion": "$LATEST",
+        "Name": "v1",
+        "_type": "AWS::Lambda::Alias",
+        "id": "Function6Alias"
+      },
+      "FunctionPermissionByArn": {
+        "Action": "lambda:InvokeFunction",
+        "FunctionName": "Function",
+        "Principal": "*",
+        "_type": "AWS::Lambda::Permission",
+        "id": "FunctionPermissionByArn"
+      },
+      "FunctionPermissionByHardcodedName": {
+        "Action": "lambda:InvokeFunction",
+        "FunctionName": "function4",
+        "Principal": "*",
+        "_type": "AWS::Lambda::Permission",
+        "id": "FunctionPermissionByHardcodedName"
+      },
+      "FunctionPermissionByHardcodedNameAndAlias": {
+        "Action": "lambda:InvokeFunction",
+        "FunctionName": "function5:v1",
+        "Principal": "*",
+        "_type": "AWS::Lambda::Permission",
+        "id": "FunctionPermissionByHardcodedNameAndAlias"
+      },
+      "FunctionPermissionByNameAndAliasUsingFunctions": {
+        "Action": "lambda:InvokeFunction",
+        "FunctionName": "AWS::Region",
+        "Principal": "*",
+        "_type": "AWS::Lambda::Permission",
+        "id": "FunctionPermissionByNameAndAliasUsingFunctions"
+      },
+      "FunctionPermissionByPartialArn": {
+        "Action": "lambda:InvokeFunction",
+        "FunctionName": [
+          "AWS::AccountId",
+          "Function3"
+        ],
+        "Principal": "*",
+        "_type": "AWS::Lambda::Permission",
+        "id": "FunctionPermissionByPartialArn"
+      },
+      "FunctionPermissionByRef": {
+        "Action": "lambda:InvokeFunction",
+        "FunctionName": "Function2",
+        "Principal": "*",
+        "_type": "AWS::Lambda::Permission",
+        "id": "FunctionPermissionByRef"
+      },
+      "FunctionRole": {
+        "AssumeRolePolicyDocument": {
+          "Statement": [
+            {
+              "Action": "sts:AssumeRole",
+              "Effect": "Allow",
+              "Principal": {
+                "Service": "lambda.amazonaws.com"
+              }
+            }
+          ],
+          "Version": "2012-10-17"
+        },
+        "ManagedPolicyArns": [
+          "arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
+        ],
+        "Path": "/",
+        "_type": "AWS::IAM::Role",
+        "id": "FunctionRole"
+      }
+    }
+  },
+  "filepath": "golden_test/cfn/intrinsics/main.yaml"
+}

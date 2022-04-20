@@ -109,27 +109,6 @@ func TestCfnDetectorNotYAML(t *testing.T) {
 	assert.Nil(t, cfn)
 }
 
-func TestCfnIntrinsics(t *testing.T) {
-	ctrl := gomock.NewController(t)
-	detector := &loader.CfnDetector{}
-	yamlFile := makeMockFile(ctrl, "cfn.yaml", ".yaml", inputs.Contents(t, "cfn_intrinsics.yaml"))
-	// This JSON file was produced with cfn-flip. The transformations performed by the
-	// loader should be identical to the output of cfn-flip.
-	jsonFile := makeMockFile(ctrl, "cfn.json", ".json", inputs.Contents(t, "cfn_intrinsics.json"))
-	cfnYaml, err := detector.DetectFile(yamlFile, loader.DetectOptions{})
-	assert.Nil(t, err)
-	assert.NotNil(t, cfnYaml)
-
-	cfnJson, err := detector.DetectFile(jsonFile, loader.DetectOptions{})
-	assert.Nil(t, err)
-	assert.NotNil(t, cfnJson)
-
-	yamlInput := coerceRegulaInput(t, cfnYaml.RegulaInput())
-	jsonInput := coerceRegulaInput(t, cfnJson.RegulaInput())
-
-	assert.Equal(t, jsonInput["content"], yamlInput["content"])
-}
-
 func TestCfnYAMLLocation(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	f := makeMockFile(ctrl, "cfn.yaml", ".yaml", inputs.Contents(t, "cfn.yaml"))

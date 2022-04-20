@@ -18,5 +18,5 @@
       }
     }
   },
-  "filepath": "golden_test/tf/vars"
+  "filepath": "golden_test/tf/vars/main.tf"
 }

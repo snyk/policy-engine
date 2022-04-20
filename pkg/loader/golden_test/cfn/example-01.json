@@ -1,0 +1,17 @@
+{
+  "content": {
+    "resources": {
+      "MySecurityGroup": {
+        "Vpc": "MyVpc",
+        "_type": "SecurityGroupId",
+        "id": "MySecurityGroup"
+      },
+      "MyVpc": {
+        "Name": "bar",
+        "_type": "Vpc",
+        "id": "MyVpc"
+      }
+    }
+  },
+  "filepath": "golden_test/cfn/example-01/main.yaml"
+}

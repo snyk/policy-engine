@@ -20,5 +20,5 @@
       }
     }
   },
-  "filepath": "golden_test/tf/ternary-mismatch"
+  "filepath": "golden_test/tf/ternary-mismatch/main.tf"
 }

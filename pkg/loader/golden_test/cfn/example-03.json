@@ -1,0 +1,30 @@
+{
+  "content": {
+    "resources": {
+      "CloudTrailLogging": {
+        "EventSelectors": [
+          {
+            "DataResources": [
+              {
+                "Type": "AWS::S3::Object",
+                "Values": [
+                  [
+                    "AWS::Region",
+                    "AWS::AccountId"
+                  ]
+                ]
+              }
+            ],
+            "ReadWriteType": "All"
+          }
+        ],
+        "IsLogging": true,
+        "S3BucketName": "LoggingBucket",
+        "TrailName": "cf-fuguetest-trail",
+        "_type": "AWS::CloudTrail::Trail",
+        "id": "CloudTrailLogging"
+      }
+    }
+  },
+  "filepath": "golden_test/cfn/example-03/main.yaml"
+}
