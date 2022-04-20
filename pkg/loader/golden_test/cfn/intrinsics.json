@@ -101,15 +101,7 @@
       },
       "FunctionPermissionByNameAndAliasUsingFunctions": {
         "Action": "lambda:InvokeFunction",
-        "FunctionName": {
-          "Fn::Join": [
-            ":",
-            [
-              "AWS::Region",
-              "v2"
-            ]
-          ]
-        },
+        "FunctionName": "AWS::Region",
         "Principal": "*",
         "_type": "AWS::Lambda::Permission",
         "id": "FunctionPermissionByNameAndAliasUsingFunctions"

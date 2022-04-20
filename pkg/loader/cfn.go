@@ -408,14 +408,16 @@ func (resolver *cfnReferenceResolver) resolveObject(obj map[string]interface{}) 
 
 		// Recursively collect references for joins as they are often nested.
 		if argv, ok := obj["Fn::Join"]; ok {
-			if args, ok := argv.([]interface{}); ok && len(args) > 1 {
-				refs := []interface{}{}
-				for _, arg := range args[1:] {
-					if argObj, ok := arg.(map[string]interface{}); ok {
-						refs = append(refs, resolver.resolveObject(argObj)...)
+			if args, ok := argv.([]interface{}); ok && len(args) == 2 {
+				if parts, ok := args[1].([]interface{}); ok {
+					refs := []interface{}{}
+					for _, arg := range parts {
+						if argObj, ok := arg.(map[string]interface{}); ok {
+							refs = append(refs, resolver.resolveObject(argObj)...)
+						}
 					}
+					return refs
 				}
-				return refs
 			}
 		}
 	}
