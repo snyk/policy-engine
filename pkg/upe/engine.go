@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"sync"
+	"time"
 
 	"github.com/open-policy-agent/opa/ast"
 	"github.com/open-policy-agent/opa/rego"
@@ -11,6 +12,7 @@ import (
 	"github.com/open-policy-agent/opa/storage/inmem"
 	"github.com/snyk/unified-policy-engine/pkg/data"
 	"github.com/snyk/unified-policy-engine/pkg/logging"
+	"github.com/snyk/unified-policy-engine/pkg/metrics"
 	"github.com/snyk/unified-policy-engine/pkg/models"
 	"github.com/snyk/unified-policy-engine/pkg/policy"
 )
@@ -27,6 +29,7 @@ type EngineOptions struct {
 	Providers []data.Provider
 	RuleIDs   map[string]bool
 	Logger    logging.Logger
+	Metrics   metrics.Metrics
 }
 
 func NewEngine(ctx context.Context, options *EngineOptions) (*Engine, error) {
@@ -34,30 +37,42 @@ func NewEngine(ctx context.Context, options *EngineOptions) (*Engine, error) {
 	if logger == nil {
 		logger = logging.DefaultLogger
 	}
+	m := options.Metrics
 	logger.Info(ctx, "Initializing engine")
 	consumer := NewPolicyConsumer()
 	if err := policy.RegoAPIProvider(ctx, consumer); err != nil {
 		logger.Error(ctx, "Failed to load rego API")
 		return nil, err
 	}
+	providersStart := time.Now()
 	for _, p := range options.Providers {
 		if err := p(ctx, consumer); err != nil {
 			logger.Error(ctx, "Failed to consume rule and data providers")
 			return nil, err
 		}
 	}
+	m.Timer(ctx, metrics.PROVIDERS_LOAD_TIME, "", metrics.Labels{}).
+		Record(time.Now().Sub(providersStart))
 	logger.WithField(logging.MODULES, len(consumer.Modules)).
 		WithField(logging.DATA_DOCUMENTS, len(consumer.Documents)).
 		Info(ctx, "Finished consuming providers")
 	compiler := ast.NewCompiler().WithCapabilities(policy.Capabilities())
+	compilationStart := time.Now()
 	compiler.Compile(consumer.Modules)
+	m.Timer(ctx, metrics.COMPILATION_TIME, "", metrics.Labels{}).
+		Record(time.Now().Sub(compilationStart))
 	if len(compiler.Errors) > 0 {
 		err := compiler.Errors.Error()
 		logger.Error(ctx, "Failed during compilation")
 		return nil, fmt.Errorf(err)
 	}
-	// TODO: add compilation time
 	logger.Info(ctx, "Finished initializing engine")
+	m.Counter(ctx, metrics.MODULES_LOADED, "", metrics.Labels{}).
+		Add(float64(len(consumer.Modules)))
+	m.Counter(ctx, metrics.DATA_DOCUMENTS_LOADED, "", metrics.Labels{}).
+		Add(float64(len(consumer.Documents)))
+	m.Counter(ctx, metrics.POLICIES_LOADED, "", metrics.Labels{}).
+		Add(float64(len(consumer.Policies)))
 	return &Engine{
 		compiler:    compiler,
 		policies:    consumer.Policies,
@@ -74,8 +89,9 @@ type policyResults struct {
 }
 
 type EvalOptions struct {
-	Inputs []models.State
-	Logger logging.Logger
+	Inputs  []models.State
+	Logger  logging.Logger
+	Metrics metrics.Metrics
 }
 
 func (e *Engine) Eval(ctx context.Context, options EvalOptions) (*models.Results, error) {
@@ -83,6 +99,7 @@ func (e *Engine) Eval(ctx context.Context, options EvalOptions) (*models.Results
 	if logger == nil {
 		logger = logging.DefaultLogger
 	}
+	m := options.Metrics
 	logger.Debug(ctx, "Beginning evaluation")
 	regoOptions := []func(*rego.Rego){
 		rego.Compiler(e.compiler),
@@ -90,7 +107,8 @@ func (e *Engine) Eval(ctx context.Context, options EvalOptions) (*models.Results
 	}
 	policies := e.policies
 	if !e.runAllRules {
-		policies := []policy.Policy{}
+		ruleSelectionStart := time.Now()
+		policies = []policy.Policy{}
 		for _, p := range e.policies {
 			id, err := p.ID(ctx, regoOptions)
 			if err != nil {
@@ -103,9 +121,11 @@ func (e *Engine) Eval(ctx context.Context, options EvalOptions) (*models.Results
 			}
 			policies = append(policies, p)
 		}
+		m.Timer(ctx, metrics.RULE_SELECTION_TIME, "", metrics.Labels{}).
+			Record(time.Now().Sub(ruleSelectionStart))
 	}
 	results := []models.Result{}
-	for _, state := range options.Inputs {
+	for idx, state := range options.Inputs {
 		options := policy.EvalOptions{
 			RegoOptions: regoOptions,
 			Input:       &state,
@@ -113,6 +133,10 @@ func (e *Engine) Eval(ctx context.Context, options EvalOptions) (*models.Results
 		allRuleResults := map[string]models.RuleResults{}
 		resultsChan := make(chan policyResults)
 		var wg sync.WaitGroup
+		ruleEvalCounter := m.Counter(ctx, metrics.RULES_EVALUATED, "", metrics.Labels{
+			metrics.INPUT_IDX: fmt.Sprint(idx),
+		})
+		totalEvalStart := time.Now()
 		go func() {
 			for _, p := range policies {
 				if !inputTypeMatches(p.InputType(), state.InputType) {
@@ -121,17 +145,30 @@ func (e *Engine) Eval(ctx context.Context, options EvalOptions) (*models.Results
 				wg.Add(1)
 				go func(p policy.Policy) {
 					defer wg.Done()
+					pkg := p.Package()
+					evalStart := time.Now()
 					ruleResults, err := p.Eval(ctx, options)
+					labels := metrics.Labels{
+						metrics.PACKAGE: pkg,
+						// TODO: Do we need a better way to identify inputs?
+						metrics.INPUT_IDX: fmt.Sprint(idx),
+					}
+					m.Timer(ctx, metrics.RULE_EVAL_TIME, "", labels).
+						Record(time.Now().Sub(evalStart))
+					m.Counter(ctx, metrics.RESULTS_PRODUCED, "", labels).
+						Add(float64(len(ruleResults.Results)))
 					resultsChan <- policyResults{
-						pkg:         p.Package(),
+						pkg:         pkg,
 						err:         err,
 						ruleResults: *ruleResults,
 					}
 				}(p)
+				ruleEvalCounter.Inc()
 			}
 			wg.Wait()
 			close(resultsChan)
 		}()
+		errCounter := m.Counter(ctx, metrics.POLICY_ERRORS, "", metrics.Labels{})
 		for {
 			select {
 			case policyResults, ok := <-resultsChan:
@@ -142,6 +179,7 @@ func (e *Engine) Eval(ctx context.Context, options EvalOptions) (*models.Results
 				if policyResults.err != nil {
 					logger.WithField("package", policyResults.pkg).
 						Error(ctx, "Failed to evaluate policy")
+					errCounter.Inc()
 				} else {
 					logger.WithField("package", policyResults.pkg).
 						Debug(ctx, "Completed policy evaluation")
@@ -152,6 +190,9 @@ func (e *Engine) Eval(ctx context.Context, options EvalOptions) (*models.Results
 				break
 			}
 		}
+		m.Timer(ctx, metrics.TOTAL_RULE_EVAL_TIME, "", metrics.Labels{
+			metrics.INPUT_IDX: fmt.Sprint(idx),
+		}).Record(time.Now().Sub(totalEvalStart))
 		results = append(results, models.Result{
 			Input:       state,
 			RuleResults: allRuleResults,
