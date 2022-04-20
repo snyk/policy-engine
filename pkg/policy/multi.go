@@ -35,12 +35,17 @@ func (p *MultiResourcePolicy) Eval(
 		WithField(logging.POLICY_TYPE, "multi_resource").
 		WithField(logging.JUDGEMENT_NAME, p.judgementRule.name).
 		WithField(logging.JUDGEMENT_KEY, p.judgementRule.key)
+	output := &models.RuleResults{}
 	metadata, err := p.Metadata(ctx, options.RegoOptions)
 	if err != nil {
 		logger.Error(ctx, "Failed to obtain metadata")
-		return nil, err
+		output.Errors = append(output.Errors, err.Error())
+		return output, err
 	}
-	// buff := topdown.NewBufferTracer()
+	output.Id = metadata.ID
+	output.Title = metadata.Title
+	output.Description = metadata.Description
+	output.Controls = metadata.Controls
 	opts := append(
 		options.RegoOptions,
 		rego.Query(p.judgementRule.query()),
@@ -51,35 +56,30 @@ func (p *MultiResourcePolicy) Eval(
 	query, err := rego.New(opts...).PrepareForEval(ctx)
 	if err != nil {
 		logger.Error(ctx, "Failed to prepare for eval")
-		return nil, err
+		output.Errors = append(output.Errors, err.Error())
+		return output, err
 	}
-	// resultSet, err := query.Eval(ctx, rego.EvalQueryTracer(buff))
 	resultSet, err := query.Eval(ctx)
 	if err != nil {
 		logger.Error(ctx, "Failed to evaluate query")
-		return nil, err
+		output.Errors = append(output.Errors, err.Error())
+		return output, err
 	}
 	resources, err := p.resources(ctx, opts)
 	if err != nil {
 		logger.Error(ctx, "Failed to query resources")
-		return nil, err
+		output.Errors = append(output.Errors, err.Error())
+		return output, err
 	}
-	// for _, event := range *buff {
-	// 	fmt.Printf("%d\t%s: %s\n", event.QueryID, event.Op, string(event.Location.Text))
-	// }
 	ruleResults, err := p.processResultSet(resultSet, metadata, resources)
 	if err != nil {
 		logger.Error(ctx, "Failed to process result set")
-		return nil, err
+		output.Errors = append(output.Errors, err.Error())
+		return output, err
 	}
-	return &models.RuleResults{
-		Id:            metadata.ID,
-		Title:         metadata.Title,
-		Description:   metadata.Description,
-		Controls:      metadata.Controls,
-		Results:       ruleResults,
-		ResourceTypes: builtins.ResourceTypes(),
-	}, nil
+	output.ResourceTypes = builtins.ResourceTypes()
+	output.Results = ruleResults
+	return output, nil
 }
 
 // This is a ProcessMultiResultSet func for the new deny[info] style rules

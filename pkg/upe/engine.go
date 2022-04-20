@@ -177,11 +177,13 @@ func (e *Engine) Eval(ctx context.Context, options EvalOptions) (*models.Results
 					break
 				}
 				if policyResults.err != nil {
-					logger.WithField("package", policyResults.pkg).
-						Error(ctx, "Failed to evaluate policy")
+					logger.WithField(logging.PACKAGE, policyResults.pkg).
+						WithError(policyResults.err).
+						Warn(ctx, "Failed to evaluate policy")
 					errCounter.Inc()
+					allRuleResults[policyResults.pkg] = policyResults.ruleResults
 				} else {
-					logger.WithField("package", policyResults.pkg).
+					logger.WithField(logging.PACKAGE, policyResults.pkg).
 						Debug(ctx, "Completed policy evaluation")
 					allRuleResults[policyResults.pkg] = policyResults.ruleResults
 				}
