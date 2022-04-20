@@ -274,7 +274,15 @@ func decodeIntrinsic(node *yaml.Node, name string) (map[string]interface{}, erro
 		// Special case for GetAtt
 		if name == "Fn::GetAtt" {
 			if valString, ok := val.(string); ok {
-				val = strings.Split(valString, ".")
+				parts := strings.Split(valString, ".")
+
+				// take care to cast this to an []interface{}, or our generic
+				// code will have issues.
+				arr := make([]interface{}, len(parts))
+				for i := range parts {
+					arr[i] = parts[i]
+				}
+				val = arr
 			}
 		}
 		intrinsic[name] = val
