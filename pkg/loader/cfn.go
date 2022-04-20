@@ -429,8 +429,8 @@ func (resolver *cfnReferenceResolver) resolveTemplateString(tmpl string) []strin
 	re := regexp.MustCompile(`\$\{([:\w]+)[.:\w]*\}`)
 	matches := re.FindAllStringSubmatch(tmpl, -1)
 	vars := make([]string, len(matches))
-	for _, match := range matches {
-		vars[0] = match[1]
+	for i, match := range matches {
+		vars[i] = match[1]
 	}
 	return vars
 }

@@ -109,8 +109,8 @@
       "FunctionPermissionByPartialArn": {
         "Action": "lambda:InvokeFunction",
         "FunctionName": [
-          "Function3",
-          ""
+          "AWS::AccountId",
+          "Function3"
         ],
         "Principal": "*",
         "_type": "AWS::Lambda::Permission",
