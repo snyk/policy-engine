@@ -3,7 +3,8 @@ package fugue
 input_type := __current_input_type()
 
 resources(resource_type) = ret {
-  ret = __resources_by_type(resource_type)
+  arr := __resources_by_type(resource_type)
+  ret := {resource.id: resource | resource := arr[_]}
 }
 
 allow_resource(resource) = ret {
