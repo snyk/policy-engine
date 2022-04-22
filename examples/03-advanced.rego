@@ -10,7 +10,7 @@ import data.snyk
 # Advanced rules can list resources of a specific type using
 # `snyk.resources(resource_type)`.
 #
-# This function returns a map of resource IDs to resources.
+# This function returns an array of resources of the requested type.
 buckets = snyk.resources("aws_s3_bucket")
 
 has_bucket_name(bucket) {
