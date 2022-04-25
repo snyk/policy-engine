@@ -30,7 +30,7 @@ func NewPolicyConsumer() *PolicyConsumer {
 
 func (c *PolicyConsumer) Module(path string, module *ast.Module) error {
 	c.Modules[path] = module
-	if module.Package.Path.HasPrefix(rulesPrefix) && !strings.HasSuffix(path, "_test.rego") {
+	if module.Package.Path.HasPrefix(rulesPrefix) {
 		p, err := policy.PolicyFactory(module)
 		if err != nil {
 			return err
