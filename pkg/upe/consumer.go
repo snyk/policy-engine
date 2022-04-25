@@ -33,7 +33,10 @@ func (c *PolicyConsumer) Module(path string, module *ast.Module) error {
 	if module.Package.Path.HasPrefix(rulesPrefix) {
 		p, err := policy.PolicyFactory(module)
 		if err != nil {
-			return err
+			// Silently ignore modules that are not rules (libraries, tests,
+			// fixtures...).
+			// TODO: Add a debug log statement once the logging PR is merged.
+			return nil
 		} else {
 			c.Policies = append(c.Policies, p)
 		}
