@@ -8,6 +8,7 @@ import (
 
 	"github.com/snyk/unified-policy-engine/pkg/data"
 	"github.com/snyk/unified-policy-engine/pkg/loader"
+	"github.com/snyk/unified-policy-engine/pkg/metrics"
 	"github.com/snyk/unified-policy-engine/pkg/upe"
 	"github.com/spf13/cobra"
 )
@@ -21,6 +22,8 @@ var runCmd = &cobra.Command{
 	Use:   "run [-d <rules/metadata>...] run [-r <rule ID>...] <input> [input...]",
 	Short: "Unified Policy Engine",
 	Run: func(cmd *cobra.Command, args []string) {
+		logger := cmdLogger()
+		m := metrics.NewLocalMetrics(logger)
 		selectedRules := map[string]bool{}
 		for _, k := range runCmdRules {
 			selectedRules[k] = true
@@ -32,6 +35,8 @@ var runCmd = &cobra.Command{
 		options := &upe.EngineOptions{
 			Providers: providers,
 			RuleIDs:   selectedRules,
+			Logger:    logger,
+			Metrics:   m,
 		}
 		inputType := loader.Auto
 		if *runCmdCloud {
@@ -51,7 +56,11 @@ var runCmd = &cobra.Command{
 		engine, err := upe.NewEngine(ctx, options)
 		check(err)
 
-		results, err := engine.Eval(ctx, states)
+		results, err := engine.Eval(ctx, upe.EvalOptions{
+			Inputs:  states,
+			Logger:  logger,
+			Metrics: m,
+		})
 		check(err)
 
 		bytes, err := json.MarshalIndent(results, "  ", "  ")

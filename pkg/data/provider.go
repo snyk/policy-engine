@@ -75,7 +75,7 @@ func LocalProvider(root string) Provider {
 // in production.
 func PureRegoProvider() Provider {
 	return func(ctx context.Context, consumer Consumer) error {
-		err := regoParser("snyk.rego", bytes.NewReader(embed.SnykRego), consumer)
+		err := regoParser(ctx, "snyk.rego", bytes.NewReader(embed.SnykRego), consumer)
 		if err != nil {
 			return nil
 		}

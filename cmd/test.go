@@ -15,6 +15,7 @@ var testCmd = &cobra.Command{
 	Use:   "test",
 	Short: "Run OPA tests",
 	RunE: func(cmd *cobra.Command, args []string) error {
+		logger := cmdLogger()
 		ctx := context.Background()
 
 		providers := []data.Provider{data.PureRegoProvider()}
@@ -22,7 +23,7 @@ var testCmd = &cobra.Command{
 			providers = append(providers, data.LocalProvider(path))
 		}
 
-		consumer := upe.NewPolicyConsumer()
+		consumer := upe.NewPolicyConsumer(logger)
 		for _, provider := range providers {
 			if err := provider(ctx, consumer); err != nil {
 				return err
