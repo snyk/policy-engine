@@ -25,4 +25,6 @@ type RuleResults struct {
 	// A list of resource types that the rule uses.
 	ResourceTypes []string     `json:"resource_types,omitempty"`
 	Results       []RuleResult `json:"results"`
+	// Any errors that occurred while evaluating this rule.
+	Errors []string `json:"errors,omitempty"`
 }

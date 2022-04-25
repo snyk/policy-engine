@@ -1,15 +1,21 @@
 package data
 
 import (
+	"context"
 	"io"
 
 	"github.com/open-policy-agent/opa/ast"
 	"gopkg.in/yaml.v3"
 )
 
-type parser func(path string, reader io.Reader, consumer Consumer) error
+type parser func(ctx context.Context, path string, reader io.Reader, consumer Consumer) error
 
-func regoParser(path string, reader io.Reader, consumer Consumer) error {
+func regoParser(
+	ctx context.Context,
+	path string,
+	reader io.Reader,
+	consumer Consumer,
+) error {
 	bytes, err := io.ReadAll(reader)
 	if err != nil {
 		return err
@@ -18,10 +24,15 @@ func regoParser(path string, reader io.Reader, consumer Consumer) error {
 	if err != nil {
 		return err
 	}
-	return consumer.Module(path, module)
+	return consumer.Module(ctx, path, module)
 }
 
-func documentParser(path string, reader io.Reader, consumer Consumer) error {
+func documentParser(
+	ctx context.Context,
+	path string,
+	reader io.Reader,
+	consumer Consumer,
+) error {
 	bytes, err := io.ReadAll(reader)
 	if err != nil {
 		return err
@@ -30,7 +41,7 @@ func documentParser(path string, reader io.Reader, consumer Consumer) error {
 	if err := yaml.Unmarshal(bytes, &document); err != nil {
 		return err
 	}
-	return consumer.DataDocument(path, document)
+	return consumer.DataDocument(ctx, path, document)
 }
 
 var parsersByExtension = map[string]parser{

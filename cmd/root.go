@@ -15,7 +15,7 @@ func check(err error) {
 }
 
 var (
-	rootCmdRegoPaths[]string
+	rootCmdRegoPaths []string
 )
 
 var rootCmd = &cobra.Command{
