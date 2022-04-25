@@ -6,6 +6,7 @@ require (
 	github.com/fugue/regula/v2 v2.6.1
 	github.com/golang/mock v1.6.0
 	github.com/open-policy-agent/opa v0.39.0
+	github.com/rs/zerolog v1.26.1
 	github.com/sirupsen/logrus v1.8.1
 	github.com/spf13/afero v1.6.0
 	github.com/spf13/cobra v1.4.0

@@ -6,8 +6,11 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/rs/zerolog"
 	"github.com/snyk/unified-policy-engine/pkg/data"
 	"github.com/snyk/unified-policy-engine/pkg/loader"
+	"github.com/snyk/unified-policy-engine/pkg/logging"
+	"github.com/snyk/unified-policy-engine/pkg/metrics"
 	"github.com/snyk/unified-policy-engine/pkg/upe"
 	"github.com/spf13/cobra"
 )
@@ -16,6 +19,7 @@ var (
 	cmdRegoPaths []string
 	cmdRules     []string
 	cmdCloud     *bool
+	cmdVerbose   *bool
 )
 
 func check(err error) {
@@ -29,6 +33,15 @@ var rootCmd = &cobra.Command{
 	Use:   "unified-policy-engine [-d <rules/metadata>...] [-r <rule ID>...] <input> [input...]",
 	Short: "Unified Policy Engine",
 	Run: func(cmd *cobra.Command, args []string) {
+		logLevel := zerolog.InfoLevel
+		if *cmdVerbose {
+			logLevel = zerolog.DebugLevel
+		}
+		logger := logging.NewZeroLogger(zerolog.Logger{}.
+			Level(logLevel).
+			Output(zerolog.ConsoleWriter{Out: os.Stderr}).
+			With().Timestamp().Logger())
+		m := metrics.NewLocalMetrics(logger)
 		selectedRules := map[string]bool{}
 		for _, k := range cmdRules {
 			selectedRules[k] = true
@@ -40,6 +53,8 @@ var rootCmd = &cobra.Command{
 		options := &upe.EngineOptions{
 			Providers: providers,
 			RuleIDs:   selectedRules,
+			Logger:    logger,
+			Metrics:   m,
 		}
 		inputType := loader.Auto
 		if *cmdCloud {
@@ -59,12 +74,17 @@ var rootCmd = &cobra.Command{
 		engine, err := upe.NewEngine(ctx, options)
 		check(err)
 
-		results, err := engine.Eval(ctx, states)
+		results, err := engine.Eval(ctx, upe.EvalOptions{
+			Inputs:  states,
+			Logger:  logger,
+			Metrics: m,
+		})
 		check(err)
 
 		bytes, err := json.MarshalIndent(results, "  ", "  ")
 		check(err)
 		fmt.Fprintf(os.Stdout, "%s\n", string(bytes))
+		m.Log(ctx)
 	},
 }
 
@@ -74,6 +94,7 @@ func Execute() error {
 
 func init() {
 	cmdCloud = rootCmd.PersistentFlags().Bool("cloud", false, "Causes inputs to be interpreted as runtime state from Snyk Cloud.")
+	cmdVerbose = rootCmd.PersistentFlags().BoolP("verbose", "v", false, "Sets log level to DEBUG")
 	rootCmd.PersistentFlags().StringSliceVarP(&cmdRegoPaths, "data", "d", cmdRegoPaths, "Rego paths to load")
 	rootCmd.PersistentFlags().StringSliceVarP(&cmdRules, "rule", "r", cmdRules, "Select specific rules")
 }
