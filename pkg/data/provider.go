@@ -2,11 +2,14 @@
 package data
 
 import (
+	"bytes"
 	"context"
 	"io/fs"
 	"os"
 	"path/filepath"
 	"strings"
+
+	embed "github.com/snyk/unified-policy-engine/rego"
 )
 
 func FSProvider(fsys fs.FS, basePath string) Provider {
@@ -65,5 +68,17 @@ func LocalProvider(root string) Provider {
 			}
 			return nil
 		})
+	}
+}
+
+// Provides the pure rego version of the API.  Don't use this to evaluate rules
+// in production.
+func PureRegoProvider() Provider {
+	return func(ctx context.Context, consumer Consumer) error {
+		err := regoParser(ctx, "snyk.rego", bytes.NewReader(embed.SnykRego), consumer)
+		if err != nil {
+			return nil
+		}
+		return nil
 	}
 }

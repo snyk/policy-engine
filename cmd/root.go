@@ -1,25 +1,12 @@
 package cmd
 
 import (
-	"context"
-	"encoding/json"
 	"fmt"
 	"os"
 
 	"github.com/rs/zerolog"
-	"github.com/snyk/unified-policy-engine/pkg/data"
-	"github.com/snyk/unified-policy-engine/pkg/loader"
 	"github.com/snyk/unified-policy-engine/pkg/logging"
-	"github.com/snyk/unified-policy-engine/pkg/metrics"
-	"github.com/snyk/unified-policy-engine/pkg/upe"
 	"github.com/spf13/cobra"
-)
-
-var (
-	cmdRegoPaths []string
-	cmdRules     []string
-	cmdCloud     *bool
-	cmdVerbose   *bool
 )
 
 func check(err error) {
@@ -29,72 +16,35 @@ func check(err error) {
 	}
 }
 
+var (
+	rootCmdRegoPaths []string
+	rootCmdVerbose   *bool
+)
+
 var rootCmd = &cobra.Command{
-	Use:   "unified-policy-engine [-d <rules/metadata>...] [-r <rule ID>...] <input> [input...]",
+	Use:   "upe",
 	Short: "Unified Policy Engine",
-	Run: func(cmd *cobra.Command, args []string) {
-		logLevel := zerolog.InfoLevel
-		if *cmdVerbose {
-			logLevel = zerolog.DebugLevel
-		}
-		logger := logging.NewZeroLogger(zerolog.Logger{}.
-			Level(logLevel).
-			Output(zerolog.ConsoleWriter{Out: os.Stderr}).
-			With().Timestamp().Logger())
-		m := metrics.NewLocalMetrics(logger)
-		selectedRules := map[string]bool{}
-		for _, k := range cmdRules {
-			selectedRules[k] = true
-		}
-		providers := []data.Provider{}
-		for _, path := range cmdRegoPaths {
-			providers = append(providers, data.LocalProvider(path))
-		}
-		options := &upe.EngineOptions{
-			Providers: providers,
-			RuleIDs:   selectedRules,
-			Logger:    logger,
-			Metrics:   m,
-		}
-		inputType := loader.Auto
-		if *cmdCloud {
-			inputType = loader.TfRuntime
-		}
-		configLoader := loader.LocalConfigurationLoader(loader.LoadPathsOptions{
-			Paths:       args,
-			InputTypes:  []loader.InputType{inputType},
-			NoGitIgnore: false,
-			IgnoreDirs:  false,
-		})
-		loadedConfigs, err := configLoader()
-		check(err)
-
-		states := loadedConfigs.ToStates()
-		ctx := context.Background()
-		engine, err := upe.NewEngine(ctx, options)
-		check(err)
-
-		results, err := engine.Eval(ctx, upe.EvalOptions{
-			Inputs:  states,
-			Logger:  logger,
-			Metrics: m,
-		})
-		check(err)
-
-		bytes, err := json.MarshalIndent(results, "  ", "  ")
-		check(err)
-		fmt.Fprintf(os.Stdout, "%s\n", string(bytes))
-		m.Log(ctx)
-	},
 }
 
 func Execute() error {
 	return rootCmd.Execute()
 }
 
+func cmdLogger() logging.Logger {
+	logLevel := zerolog.InfoLevel
+	if *rootCmdVerbose {
+		logLevel = zerolog.DebugLevel
+	}
+	return logging.NewZeroLogger(zerolog.Logger{}.
+		Level(logLevel).
+		Output(zerolog.ConsoleWriter{Out: os.Stderr}).
+		With().Timestamp().Logger())
+}
+
 func init() {
-	cmdCloud = rootCmd.PersistentFlags().Bool("cloud", false, "Causes inputs to be interpreted as runtime state from Snyk Cloud.")
-	cmdVerbose = rootCmd.PersistentFlags().BoolP("verbose", "v", false, "Sets log level to DEBUG")
-	rootCmd.PersistentFlags().StringSliceVarP(&cmdRegoPaths, "data", "d", cmdRegoPaths, "Rego paths to load")
-	rootCmd.PersistentFlags().StringSliceVarP(&cmdRules, "rule", "r", cmdRules, "Select specific rules")
+	rootCmdVerbose = rootCmd.PersistentFlags().BoolP("verbose", "v", false, "Sets log level to DEBUG")
+	rootCmd.PersistentFlags().StringSliceVarP(&rootCmdRegoPaths, "data", "d", rootCmdRegoPaths, "Rego paths to load")
+	rootCmd.AddCommand(runCmd)
+	rootCmd.AddCommand(testCmd)
+	rootCmd.AddCommand(fixtureCmd)
 }
