@@ -1,0 +1,71 @@
+{
+  "content": {
+    "aws_security_group.parent": {
+      "_type": "aws_security_group",
+      "description": "Managed by Terraform",
+      "id": "aws_security_group.parent",
+      "name_prefix": null,
+      "revoke_rules_on_delete": false,
+      "tags": null,
+      "timeouts": null,
+      "vpc_id": "module.child1.grandchild_vpc"
+    },
+    "aws_vpc.parent": {
+      "_type": "aws_vpc",
+      "assign_generated_ipv6_cidr_block": false,
+      "cidr_block": "10.0.0.0/16",
+      "enable_dns_support": true,
+      "id": "aws_vpc.parent",
+      "instance_tenancy": "default",
+      "tags": null
+    },
+    "module.child1.aws_vpc.child": {
+      "_type": "aws_vpc",
+      "assign_generated_ipv6_cidr_block": false,
+      "cidr_block": "10.0.0.0/16",
+      "enable_dns_support": true,
+      "id": "module.child1.aws_vpc.child",
+      "instance_tenancy": "default",
+      "tags": null
+    },
+    "module.child1.module.grandchild1.aws_security_group.grandchild": {
+      "_type": "aws_security_group",
+      "description": "Managed by Terraform",
+      "id": "module.child1.module.grandchild1.aws_security_group.grandchild",
+      "name_prefix": null,
+      "revoke_rules_on_delete": false,
+      "tags": null,
+      "timeouts": null,
+      "vpc_id": "aws_vpc.grandchild"
+    },
+    "module.child1.module.grandchild1.aws_vpc.grandchild": {
+      "_type": "aws_vpc",
+      "assign_generated_ipv6_cidr_block": false,
+      "cidr_block": "10.0.0.0/16",
+      "enable_dns_support": true,
+      "id": "module.child1.module.grandchild1.aws_vpc.grandchild",
+      "instance_tenancy": "default",
+      "tags": null
+    },
+    "module.child2.aws_security_group.child": {
+      "_type": "aws_security_group",
+      "description": "Managed by Terraform",
+      "id": "module.child2.aws_security_group.child",
+      "name_prefix": null,
+      "revoke_rules_on_delete": false,
+      "tags": null,
+      "timeouts": null,
+      "vpc_id": "var.child_vpc_id"
+    },
+    "module.child2.aws_vpc.child": {
+      "_type": "aws_vpc",
+      "assign_generated_ipv6_cidr_block": false,
+      "cidr_block": "10.0.0.0/16",
+      "enable_dns_support": true,
+      "id": "module.child2.aws_vpc.child",
+      "instance_tenancy": "default",
+      "tags": null
+    }
+  },
+  "filepath": "golden_test/tfplan/modules/plan.json"
+}

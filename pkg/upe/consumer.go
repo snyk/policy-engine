@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"github.com/open-policy-agent/opa/ast"
+	"github.com/snyk/unified-policy-engine/pkg/interfacetricks"
 	"github.com/snyk/unified-policy-engine/pkg/logging"
 	"github.com/snyk/unified-policy-engine/pkg/policy"
 )
@@ -65,7 +66,7 @@ func (c *PolicyConsumer) DataDocument(
 			prefix[i]: document,
 		}
 	}
-	c.Documents = mergeObjects(c.Documents, document)
+	c.Documents = interfacetricks.MergeObjects(c.Documents, document)
 	return nil
 }
 
@@ -85,48 +86,4 @@ func dataDocumentPrefix(path string) []string {
 		}
 	}
 	return prefix
-}
-
-func mergeObjects(left map[string]interface{}, right map[string]interface{}) map[string]interface{} {
-	for k, rv := range right {
-		if lv, ok := left[k]; ok {
-			mergeDocuments(lv, rv)
-		} else {
-			left[k] = rv
-		}
-	}
-	return left
-}
-
-func mergeDocuments(left interface{}, right interface{}) interface{} {
-	switch l := left.(type) {
-	case map[string]interface{}:
-		switch r := right.(type) {
-		case map[string]interface{}:
-			return mergeObjects(l, r)
-		}
-	case []interface{}:
-		switch r := right.(type) {
-		case []interface{}:
-			length := len(l)
-			if len(r) > length {
-				length = len(r)
-			}
-			arr := make([]interface{}, length)
-			for i := 0; i < length; i++ {
-				if i < len(l) && i < len(r) {
-					arr[i] = mergeDocuments(l[i], r[i])
-				} else if i < len(l) {
-					arr[i] = l[i]
-				} else if i < len(r) {
-					arr[i] = r[i]
-				} else {
-					arr[i] = nil
-				}
-			}
-			return arr
-		}
-	}
-
-	return left
 }
