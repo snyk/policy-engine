@@ -104,7 +104,7 @@ type Metadata struct {
 // BasePolicy implements functionality that is shared between different concrete
 // Policy implementations.
 type BasePolicy struct {
-	module           *ast.Module
+	pkg              string
 	judgementRule    ruleInfo
 	metadataRule     ruleInfo
 	resourcesRule    ruleInfo
@@ -115,35 +115,40 @@ type BasePolicy struct {
 
 // NewBasePolicy constructs a new BasePolicy. It will return an error if the Module
 // does not contain a recognized Judgement.
-func NewBasePolicy(module *ast.Module) (*BasePolicy, error) {
-	// ruleInfos := map[string]*RuleInfo{}
+func NewBasePolicy(modules []*ast.Module) (*BasePolicy, error) {
+	if len(modules) < 1 {
+		return nil, fmt.Errorf("Got empty modules")
+	}
+	pkg := strings.TrimPrefix(modules[0].Package.Path.String(), "data.")
 	judgement := ruleInfo{}
 	metadata := ruleInfo{}
 	resources := ruleInfo{}
 	inputType := ruleInfo{}
 	resourceType := ruleInfo{}
-	for _, r := range module.Rules {
-		name := r.Head.Name.String()
-		switch name {
-		case "allow", "deny", "policy":
-			if err := judgement.add(r); err != nil {
-				return nil, err
-			}
-		case "metadata", "__rego__metadoc__":
-			if err := metadata.add(r); err != nil {
-				return nil, err
-			}
-		case "resources":
-			if err := resources.add(r); err != nil {
-				return nil, err
-			}
-		case "input_type":
-			if err := inputType.add(r); err != nil {
-				return nil, err
-			}
-		case "resource_type":
-			if err := resourceType.add(r); err != nil {
-				return nil, err
+	for _, module := range modules {
+		for _, r := range module.Rules {
+			name := r.Head.Name.String()
+			switch name {
+			case "allow", "deny", "policy":
+				if err := judgement.add(r); err != nil {
+					return nil, err
+				}
+			case "metadata", "__rego__metadoc__":
+				if err := metadata.add(r); err != nil {
+					return nil, err
+				}
+			case "resources":
+				if err := resources.add(r); err != nil {
+					return nil, err
+				}
+			case "input_type":
+				if err := inputType.add(r); err != nil {
+					return nil, err
+				}
+			case "resource_type":
+				if err := resourceType.add(r); err != nil {
+					return nil, err
+				}
 			}
 		}
 	}
@@ -151,7 +156,7 @@ func NewBasePolicy(module *ast.Module) (*BasePolicy, error) {
 		return nil, nil
 	}
 	return &BasePolicy{
-		module:           module,
+		pkg:              pkg,
 		judgementRule:    judgement,
 		metadataRule:     metadata,
 		resourcesRule:    resources,
@@ -162,7 +167,7 @@ func NewBasePolicy(module *ast.Module) (*BasePolicy, error) {
 
 // Package returns the policy's package
 func (p *BasePolicy) Package() string {
-	return strings.TrimPrefix(p.module.Package.Path.String(), "data.")
+	return p.pkg
 }
 
 func (p *BasePolicy) InputType() string {

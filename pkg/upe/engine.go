@@ -69,6 +69,26 @@ func NewEngine(ctx context.Context, options *EngineOptions) (*Engine, error) {
 	logger.WithField(logging.MODULES, len(consumer.Modules)).
 		WithField(logging.DATA_DOCUMENTS, len(consumer.Documents)).
 		Info(ctx, "Finished consuming providers")
+	tree := ast.NewModuleTree(consumer.Modules)
+	policies := []policy.Policy{}
+	for _, modules := range modulesInPath(ast.Ref{
+		ast.DefaultRootDocument,
+		ast.StringTerm("rules"),
+	}, tree) {
+		if len(modules) < 1 {
+			continue
+		}
+		l := logger.WithField(logging.PATH, modules[0].Package.Location.File)
+		p, err := policy.PolicyFactory(modules)
+		if err != nil {
+			l.WithField(logging.ERROR, err.Error()).
+				Warn(ctx, "Error while parsing policy. It will still be loaded and accessible via data.")
+		} else if p == nil {
+			l.Debug(ctx, "Module did not contain a policy. It will still be loaded and accessible via data.")
+		} else {
+			policies = append(policies, p)
+		}
+	}
 	compiler := ast.NewCompiler().WithCapabilities(policy.Capabilities())
 	compilationStart := time.Now()
 	compiler.Compile(consumer.Modules)
@@ -85,12 +105,12 @@ func NewEngine(ctx context.Context, options *EngineOptions) (*Engine, error) {
 	m.Counter(ctx, metrics.DATA_DOCUMENTS_LOADED, "", metrics.Labels{}).
 		Add(float64(len(consumer.Documents)))
 	m.Counter(ctx, metrics.POLICIES_LOADED, "", metrics.Labels{}).
-		Add(float64(len(consumer.Policies)))
+		Add(float64(len(policies)))
 	return &Engine{
 		logger:      logger,
 		metrics:     m,
 		compiler:    compiler,
-		policies:    consumer.Policies,
+		policies:    policies,
 		store:       inmem.NewFromObject(consumer.Documents),
 		ruleIDs:     options.RuleIDs,
 		runAllRules: len(options.RuleIDs) < 1,
@@ -225,4 +245,20 @@ func inputTypeMatches(t1, t2 string) bool {
 	default:
 		return t1 == t2
 	}
+}
+
+func modulesInPath(ref ast.Ref, node *ast.ModuleTreeNode) [][]*ast.Module {
+	if len(ref) < 1 {
+		mods := [][]*ast.Module{node.Modules}
+		for _, child := range node.Children {
+			mods = append(mods, modulesInPath(ref, child)...)
+		}
+		return mods
+	} else {
+		head := ref[0].Value
+		if child, ok := node.Children[head]; ok {
+			return modulesInPath(ref[1:], child)
+		}
+	}
+	return [][]*ast.Module{}
 }

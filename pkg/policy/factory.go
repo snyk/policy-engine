@@ -6,8 +6,8 @@ import (
 	"github.com/open-policy-agent/opa/ast"
 )
 
-func PolicyFactory(module *ast.Module) (Policy, error) {
-	base, err := NewBasePolicy(module)
+func PolicyFactory(modules []*ast.Module) (Policy, error) {
+	base, err := NewBasePolicy(modules)
 	if err != nil {
 		return nil, err
 	}

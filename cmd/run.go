@@ -64,6 +64,7 @@ var runCmd = &cobra.Command{
 		bytes, err := json.MarshalIndent(results, "  ", "  ")
 		check(err)
 		fmt.Fprintf(os.Stdout, "%s\n", string(bytes))
+		m.Log(ctx)
 	},
 }
 
