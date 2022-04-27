@@ -21,7 +21,7 @@ parsing IaC configurations into the format expected by UPE's rule evaluation cod
 ##### `LocalConfigurationLoader`
 
 Currently, there is only one implementation of `ConfigurationLoader`, called
-`LocalConfigurationLoader`, and it is used to parse IaC configurations from disk:
+`LocalConfigurationLoader`, and it is used to parse IaC configurations from disk.
 
 #### `LoadedConfigurations`
 
