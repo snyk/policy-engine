@@ -8,8 +8,8 @@
 ## Use as a library
 
 This section describes each of the main components of the `unified-policy-engine`
-library. See the `cmd` package for an end-to-end example that uses the components
-together.
+library. See the [`run` command](cmd/run.go) for an end-to-end example that uses the 
+components together.
 
 ### Parsing IaC configurations
 
@@ -21,7 +21,7 @@ parsing IaC configurations into the format expected by UPE's rule evaluation cod
 ##### `LocalConfigurationLoader`
 
 Currently, there is only one implementation of `ConfigurationLoader`, called
-`LocalConfigurationLoader`, and it is used to parse IaC configurations from disk.
+`LocalConfigurationLoader`, and it is used to parse IaC configurations from disk:
 
 #### `LoadedConfigurations`
 
