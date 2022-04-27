@@ -56,10 +56,8 @@ var runCmd = &cobra.Command{
 		engine, err := upe.NewEngine(ctx, options)
 		check(err)
 
-		results, err := engine.Eval(ctx, upe.EvalOptions{
-			Inputs:  states,
-			Logger:  logger,
-			Metrics: m,
+		results, err := engine.Eval(ctx, &upe.EvalOptions{
+			Inputs: states,
 		})
 		check(err)
 
