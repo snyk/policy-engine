@@ -26,7 +26,7 @@ type MultiResourcePolicy struct {
 func (p *MultiResourcePolicy) Eval(
 	ctx context.Context,
 	options EvalOptions,
-) (*models.RuleResults, error) {
+) ([]models.RuleResults, error) {
 	logger := options.Logger
 	if logger == nil {
 		logger = logging.DefaultLogger
@@ -35,12 +35,12 @@ func (p *MultiResourcePolicy) Eval(
 		WithField(logging.POLICY_TYPE, "multi_resource").
 		WithField(logging.JUDGEMENT_NAME, p.judgementRule.name).
 		WithField(logging.JUDGEMENT_KEY, p.judgementRule.key)
-	output := &models.RuleResults{}
+	output := models.RuleResults{}
 	metadata, err := p.Metadata(ctx, options.RegoOptions)
 	if err != nil {
 		logger.Error(ctx, "Failed to obtain metadata")
 		output.Errors = append(output.Errors, err.Error())
-		return output, err
+		return []models.RuleResults{output}, err
 	}
 	output.Id = metadata.ID
 	output.Title = metadata.Title
@@ -57,29 +57,29 @@ func (p *MultiResourcePolicy) Eval(
 	if err != nil {
 		logger.Error(ctx, "Failed to prepare for eval")
 		output.Errors = append(output.Errors, err.Error())
-		return output, err
+		return []models.RuleResults{output}, err
 	}
 	resultSet, err := query.Eval(ctx)
 	if err != nil {
 		logger.Error(ctx, "Failed to evaluate query")
 		output.Errors = append(output.Errors, err.Error())
-		return output, err
+		return []models.RuleResults{output}, err
 	}
 	resources, err := p.resources(ctx, opts)
 	if err != nil {
 		logger.Error(ctx, "Failed to query resources")
 		output.Errors = append(output.Errors, err.Error())
-		return output, err
+		return []models.RuleResults{output}, err
 	}
 	ruleResults, err := p.processResultSet(resultSet, metadata, resources)
 	if err != nil {
 		logger.Error(ctx, "Failed to process result set")
 		output.Errors = append(output.Errors, err.Error())
-		return output, err
+		return []models.RuleResults{output}, err
 	}
 	output.ResourceTypes = builtins.ResourceTypes()
 	output.Results = ruleResults
-	return output, nil
+	return []models.RuleResults{output}, nil
 }
 
 // This is a ProcessMultiResultSet func for the new deny[info] style rules

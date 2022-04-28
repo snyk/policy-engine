@@ -26,7 +26,7 @@ type SingleResourcePolicy struct {
 func (p *SingleResourcePolicy) Eval(
 	ctx context.Context,
 	options EvalOptions,
-) (*models.RuleResults, error) {
+) ([]models.RuleResults, error) {
 	logger := options.Logger
 	if logger == nil {
 		logger = logging.DefaultLogger
@@ -37,12 +37,12 @@ func (p *SingleResourcePolicy) Eval(
 		WithField(logging.JUDGEMENT_KEY, p.judgementRule.key).
 		WithField(logging.RESOURCE_TYPE, p.resourceType()).
 		WithField(logging.INPUT_TYPE, p.InputType())
-	output := &models.RuleResults{}
+	output := models.RuleResults{}
 	metadata, err := p.Metadata(ctx, options.RegoOptions)
 	if err != nil {
 		logger.Error(ctx, "Failed to obtain metadata")
 		output.Errors = append(output.Errors, err.Error())
-		return output, err
+		return []models.RuleResults{output}, err
 	}
 	output.Id = metadata.ID
 	output.Title = metadata.Title
@@ -56,7 +56,7 @@ func (p *SingleResourcePolicy) Eval(
 	if err != nil {
 		logger.Error(ctx, "Failed to prepare for eval")
 		output.Errors = append(output.Errors, err.Error())
-		return output, err
+		return []models.RuleResults{output}, err
 	}
 	ruleResults := []models.RuleResult{}
 	rt := p.resourceType()
@@ -68,19 +68,19 @@ func (p *SingleResourcePolicy) Eval(
 			if err != nil {
 				logger.Error(ctx, "Failed to evaluate resource")
 				output.Errors = append(output.Errors, err.Error())
-				return output, err
+				return []models.RuleResults{output}, err
 			}
 			ruleResult, err := p.processResultSet(resultSet, &resource, metadata)
 			if err != nil {
 				logger.Error(ctx, "Failed to process result set")
 				output.Errors = append(output.Errors, err.Error())
-				return output, err
+				return []models.RuleResults{output}, err
 			}
 			ruleResults = append(ruleResults, ruleResult...)
 		}
 	}
 	output.Results = ruleResults
-	return output, nil
+	return []models.RuleResults{output}, nil
 }
 
 // This is a ProcessSingleResultSet func for the new deny[info] style rules

@@ -10,9 +10,11 @@ func PolicyFactory(modules []*ast.Module) (Policy, error) {
 	base, err := NewBasePolicy(modules)
 	if err != nil {
 		return nil, err
-	}
-	if base == nil {
+	} else if base == nil {
 		return nil, nil
+	}
+	if base.Package() == "rules" {
+		return &IaCCustomPolicy{BasePolicy: base}, nil
 	}
 	if base.resourceType() == multipleResourceType {
 		switch base.judgementRule.name {

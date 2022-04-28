@@ -120,7 +120,7 @@ func NewEngine(ctx context.Context, options *EngineOptions) (*Engine, error) {
 type policyResults struct {
 	pkg         string
 	err         error
-	ruleResults models.RuleResults
+	ruleResults []models.RuleResults
 }
 
 // EvalOptions contains options for Engine.Eval
@@ -161,7 +161,7 @@ func (e *Engine) Eval(ctx context.Context, options *EvalOptions) (*models.Result
 			RegoOptions: regoOptions,
 			Input:       &state,
 		}
-		allRuleResults := map[string]models.RuleResults{}
+		allRuleResults := []models.RuleResults{}
 		resultsChan := make(chan policyResults)
 		var wg sync.WaitGroup
 		ruleEvalCounter := e.metrics.Counter(ctx, metrics.RULES_EVALUATED, "", metrics.Labels{
@@ -186,12 +186,14 @@ func (e *Engine) Eval(ctx context.Context, options *EvalOptions) (*models.Result
 					}
 					e.metrics.Timer(ctx, metrics.RULE_EVAL_TIME, "", labels).
 						Record(time.Now().Sub(evalStart))
-					e.metrics.Counter(ctx, metrics.RESULTS_PRODUCED, "", labels).
-						Add(float64(len(ruleResults.Results)))
+					for _, r := range ruleResults {
+						e.metrics.Counter(ctx, metrics.RESULTS_PRODUCED, "", labels).
+							Add(float64(len(r.Results)))
+					}
 					resultsChan <- policyResults{
 						pkg:         pkg,
 						err:         err,
-						ruleResults: *ruleResults,
+						ruleResults: ruleResults,
 					}
 				}(p)
 				ruleEvalCounter.Inc()
@@ -212,11 +214,11 @@ func (e *Engine) Eval(ctx context.Context, options *EvalOptions) (*models.Result
 						WithError(policyResults.err).
 						Warn(ctx, "Failed to evaluate policy")
 					errCounter.Inc()
-					allRuleResults[policyResults.pkg] = policyResults.ruleResults
+					allRuleResults = append(allRuleResults, policyResults.ruleResults...)
 				} else {
 					e.logger.WithField(logging.PACKAGE, policyResults.pkg).
 						Debug(ctx, "Completed policy evaluation")
-					allRuleResults[policyResults.pkg] = policyResults.ruleResults
+					allRuleResults = append(allRuleResults, policyResults.ruleResults...)
 				}
 			}
 			if resultsChan == nil {

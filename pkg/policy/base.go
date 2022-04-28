@@ -42,7 +42,7 @@ type Policy interface {
 	Package() string
 	Metadata(ctx context.Context, options []func(*rego.Rego)) (Metadata, error)
 	ID(ctx context.Context, options []func(*rego.Rego)) (string, error)
-	Eval(ctx context.Context, options EvalOptions) (*models.RuleResults, error)
+	Eval(ctx context.Context, options EvalOptions) ([]models.RuleResults, error)
 	InputType() string
 }
 

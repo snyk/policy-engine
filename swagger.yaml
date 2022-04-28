@@ -154,9 +154,9 @@ components:
             The input that produced these results. This field is optional.
           $ref: '#/components/schemas/State'
         rule_results:
-          type: object
-          description: A map of rule package to a rule results object
-          additionalProperties:
+          type: array
+          description: An array of rule results objects
+          items:
             $ref: '#/components/schemas/RuleResults'
     RuleResults:
       description: Container for all results associated with a single rule
