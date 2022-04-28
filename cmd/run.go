@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"net/http"
 	"os"
 
 	"github.com/snyk/unified-policy-engine/pkg/data"
@@ -30,7 +31,13 @@ var runCmd = &cobra.Command{
 		}
 		providers := []data.Provider{}
 		for _, path := range rootCmdRegoPaths {
-			providers = append(providers, data.LocalProvider(path))
+			if isTgz(path) {
+				f, err := os.Open(path)
+				check(err)
+				providers = append(providers, data.TarGzProvider(f))
+			} else {
+				providers = append(providers, data.LocalProvider(path))
+			}
 		}
 		options := &upe.EngineOptions{
 			Providers: providers,
@@ -71,4 +78,20 @@ var runCmd = &cobra.Command{
 func init() {
 	runCmdCloud = runCmd.PersistentFlags().Bool("cloud", false, "Causes inputs to be interpreted as runtime state from Snyk Cloud.")
 	runCmd.PersistentFlags().StringSliceVarP(&runCmdRules, "rule", "r", runCmdRules, "Select specific rules")
+}
+
+func isTgz(path string) bool {
+	info, err := os.Stat(path)
+	check(err)
+	if info.IsDir() {
+		return false
+	}
+	buf := make([]byte, 512)
+	f, err := os.Open(path)
+	defer f.Close()
+	check(err)
+	_, err = f.Read(buf)
+	check(err)
+	contentType := http.DetectContentType(buf)
+	return contentType == "application/x-gzip" || contentType == "application/gzip"
 }

@@ -2,8 +2,11 @@
 package data
 
 import (
+	"archive/tar"
 	"bytes"
+	"compress/gzip"
 	"context"
+	"io"
 	"io/fs"
 	"os"
 	"path/filepath"
@@ -68,6 +71,41 @@ func LocalProvider(root string) Provider {
 			}
 			return nil
 		})
+	}
+}
+
+func TarGzProvider(reader io.Reader) Provider {
+	return func(ctx context.Context, consumer Consumer) error {
+		gzf, err := gzip.NewReader(reader)
+		if err != nil {
+			return err
+		}
+
+		tarReader := tar.NewReader(gzf)
+		for true {
+			header, err := tarReader.Next()
+			if err == io.EOF {
+				break
+			} else if err != nil {
+				return err
+			}
+
+			path := header.Name
+
+			switch header.Typeflag {
+			case tar.TypeReg:
+				ext := filepath.Ext(path)
+				if parser, ok := parsersByExtension[ext]; ok {
+					if err != nil {
+						return err
+					}
+					if err := parser(ctx, path, tarReader, consumer); err != nil {
+						return err
+					}
+				}
+			}
+		}
+		return nil
 	}
 }
 
