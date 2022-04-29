@@ -44,8 +44,12 @@ func (c *PolicyConsumer) Module(
 			c.logger.
 				WithField(logging.PATH, path).
 				WithField(logging.ERROR, err.Error()).
-				Debug(ctx, "Unable to parse as a policy")
+				Warn(ctx, "Error while parsing policy. It will still be loaded and accessible via data.")
 			return nil
+		} else if p == nil {
+			c.logger.
+				WithField(logging.PATH, path).
+				Debug(ctx, "Module did not contain a policy. It will still be loaded and accessible via data.")
 		} else {
 			c.Policies = append(c.Policies, p)
 		}
