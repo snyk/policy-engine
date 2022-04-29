@@ -6,7 +6,6 @@ import (
 	"strings"
 
 	"github.com/open-policy-agent/opa/ast"
-	"github.com/snyk/unified-policy-engine/pkg/logging"
 )
 
 var rulesPrefix = ast.Ref{
@@ -17,17 +16,14 @@ var rulesPrefix = ast.Ref{
 // PolicyConsumer is an implementation of the data.Consumer interface that stores
 // parsed modules, policies, and documents in-memory.
 type PolicyConsumer struct {
-	// Policies  []policy.Policy
 	Modules   map[string]*ast.Module
 	Documents map[string]interface{}
-	logger    logging.Logger
 }
 
-func NewPolicyConsumer(logger logging.Logger) *PolicyConsumer {
+func NewPolicyConsumer() *PolicyConsumer {
 	return &PolicyConsumer{
 		Modules:   map[string]*ast.Module{},
 		Documents: map[string]interface{}{},
-		logger:    logger,
 	}
 }
 

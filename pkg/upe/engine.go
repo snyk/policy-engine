@@ -52,7 +52,7 @@ func NewEngine(ctx context.Context, options *EngineOptions) (*Engine, error) {
 		m = metrics.NewLocalMetrics(logger)
 	}
 	logger.Info(ctx, "Initializing engine")
-	consumer := NewPolicyConsumer(logger)
+	consumer := NewPolicyConsumer()
 	if err := policy.RegoAPIProvider(ctx, consumer); err != nil {
 		logger.Error(ctx, "Failed to load rego API")
 		return nil, err

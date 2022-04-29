@@ -62,8 +62,8 @@ func (r iacResults) toRuleResults() []models.RuleResults {
 			ruleResults = models.RuleResults{
 				Id:          id,
 				Title:       ir.Title,
-				Description: ir.Issue,
-				References:  strings.Join(ir.References, "\n"), // TODO: What do these look like?
+				Description: ir.Issue,                          // TODO: Maybe this should be a combination of both impact and issue?
+				References:  strings.Join(ir.References, "\n"), // TODO: How do we want to transform these?
 			}
 		}
 		ruleResults.Results = append(ruleResults.Results, *ir.toRuleResult())

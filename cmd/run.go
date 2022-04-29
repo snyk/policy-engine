@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"io"
 	"net/http"
 	"os"
 
@@ -80,18 +81,28 @@ func init() {
 	runCmd.PersistentFlags().StringSliceVarP(&runCmdRules, "rule", "r", runCmdRules, "Select specific rules")
 }
 
+func peek(r io.ReadSeeker, n int) []byte {
+	buf := make([]byte, n)
+	_, err := r.Read(buf)
+	check(err)
+	r.Seek(0, io.SeekStart)
+	return buf
+}
+
+func mimeType(path string) string {
+	f, err := os.Open(path)
+	check(err)
+	defer f.Close()
+	buf := peek(f, 512)
+	return http.DetectContentType(buf)
+}
+
 func isTgz(path string) bool {
 	info, err := os.Stat(path)
 	check(err)
 	if info.IsDir() {
 		return false
 	}
-	buf := make([]byte, 512)
-	f, err := os.Open(path)
-	defer f.Close()
-	check(err)
-	_, err = f.Read(buf)
-	check(err)
-	contentType := http.DetectContentType(buf)
-	return contentType == "application/x-gzip" || contentType == "application/gzip"
+	m := mimeType(path)
+	return m == "application/x-gzip" || m == "application/gzip"
 }
