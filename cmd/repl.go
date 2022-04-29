@@ -23,7 +23,7 @@ var (
 )
 
 var replCmd = &cobra.Command{
-	Use:   "repl [-d <rules/metadata>...] <input>",
+	Use:   "repl [-d <rules/metadata>...] [input]",
 	Short: "Unified Policy Engine",
 	Run: func(cmd *cobra.Command, args []string) {
 		ctx := context.Background()
