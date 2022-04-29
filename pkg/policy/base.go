@@ -148,10 +148,7 @@ func NewBasePolicy(module *ast.Module) (*BasePolicy, error) {
 		}
 	}
 	if judgement.name == "" {
-		return nil, fmt.Errorf(
-			"Policy %s did not contain any judgement rules.",
-			module.Package.Path.String(),
-		)
+		return nil, nil
 	}
 	return &BasePolicy{
 		module:           module,
