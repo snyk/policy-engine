@@ -21,7 +21,7 @@ var (
 )
 
 var runCmd = &cobra.Command{
-	Use:   "run [-d <rules/metadata>...] run [-r <rule ID>...] <input> [input...]",
+	Use:   "run [-d <rules/metadata>...] [-r <rule ID>...] <input> [input...]",
 	Short: "Unified Policy Engine",
 	Run: func(cmd *cobra.Command, args []string) {
 		logger := cmdLogger()

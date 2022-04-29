@@ -62,78 +62,98 @@ func Capabilities() *ast.Capabilities {
 	}
 }
 
+type builtin interface {
+	decl() *rego.Function
+	impl(bctx rego.BuiltinContext, operands []*ast.Term) (*ast.Term, error)
+}
+
 type resourcesByType struct {
 	calledWith map[string]bool
 	input      *models.State
 }
 
-func newResourcesByType(input *models.State) resourcesByType {
-	return resourcesByType{
+func newResourcesByType(input *models.State) *resourcesByType {
+	return &resourcesByType{
 		calledWith: map[string]bool{},
 		input:      input,
 	}
 }
 
-func (r *resourcesByType) rego() func(*rego.Rego) {
-	return rego.FunctionDyn(&rego.Function{
+func (r *resourcesByType) decl() *rego.Function {
+	return &rego.Function{
 		Name:    resourcesByTypeName,
 		Decl:    builtinDeclarations[resourcesByTypeName],
 		Memoize: true,
-	}, func(bctx rego.BuiltinContext, operands []*ast.Term) (*ast.Term, error) {
-		if len(operands) != 2 {
-			return nil, fmt.Errorf("Expected one argument")
+	}
+}
+
+func (r *resourcesByType) impl(
+	bctx rego.BuiltinContext,
+	operands []*ast.Term,
+) (*ast.Term, error) {
+	if len(operands) != 2 {
+		return nil, fmt.Errorf("Expected one argument")
+	}
+	arg, err := builtins.StringOperand(operands[0].Value, 0)
+	if err != nil {
+		return nil, err
+	}
+	rt := string(arg)
+	ret := map[string]map[string]interface{}{}
+	if resources, ok := r.input.Resources[rt]; ok {
+		for resourceKey, resource := range resources {
+			ret[resourceKey] = resource.Attributes
 		}
-		arg, err := builtins.StringOperand(operands[0].Value, 0)
-		if err != nil {
-			return nil, err
-		}
-		rt := string(arg)
-		ret := map[string]map[string]interface{}{}
-		if resources, ok := r.input.Resources[rt]; ok {
-			for resourceKey, resource := range resources {
-				ret[resourceKey] = resource.Attributes
-			}
-		}
-		val, err := ast.InterfaceToValue(ret)
-		if err != nil {
-			return nil, err
-		}
-		r.calledWith[rt] = true
-		return ast.NewTerm(val), nil
-	})
+	}
+	val, err := ast.InterfaceToValue(ret)
+	if err != nil {
+		return nil, err
+	}
+	r.calledWith[rt] = true
+	return ast.NewTerm(val), nil
 }
 
 type currentInputType struct {
 	input *models.State
 }
 
-func (c *currentInputType) rego() func(*rego.Rego) {
-	return rego.FunctionDyn(&rego.Function{
+func (c *currentInputType) decl() *rego.Function {
+	return &rego.Function{
 		Name:    currentInputTypeName,
 		Decl:    builtinDeclarations[currentInputTypeName],
 		Memoize: true,
-	}, func(bctx rego.BuiltinContext, operands []*ast.Term) (*ast.Term, error) {
-		return ast.StringTerm(c.input.InputType), nil
-	})
+	}
+}
+
+func (c *currentInputType) impl(
+	bctx rego.BuiltinContext,
+	operands []*ast.Term,
+) (*ast.Term, error) {
+	return ast.StringTerm(c.input.InputType), nil
 }
 
 type Builtins struct {
-	resourcesByType
-	currentInputType
+	resourcesByType *resourcesByType // We want a separate ref to this to make it cleaner to get resource types back out
+	funcs           []builtin
 }
 
 func NewBuiltins(input *models.State) *Builtins {
+	r := newResourcesByType(input)
 	return &Builtins{
-		resourcesByType:  newResourcesByType(input),
-		currentInputType: currentInputType{input},
+		resourcesByType: r,
+		funcs: []builtin{
+			r,
+			&currentInputType{input},
+		},
 	}
 }
 
 func (b *Builtins) Rego() []func(*rego.Rego) {
-	return []func(*rego.Rego){
-		b.resourcesByType.rego(),
-		b.currentInputType.rego(),
+	r := make([]func(*rego.Rego), len(b.funcs))
+	for idx, f := range b.funcs {
+		r[idx] = rego.FunctionDyn(f.decl(), f.impl)
 	}
+	return r
 }
 
 func (b *Builtins) ResourceTypes() []string {
@@ -142,4 +162,10 @@ func (b *Builtins) ResourceTypes() []string {
 		rts = append(rts, rt)
 	}
 	return rts
+}
+
+func (b *Builtins) GlobalRegister() {
+	for _, f := range b.funcs {
+		rego.RegisterBuiltinDyn(f.decl(), f.impl)
+	}
 }
