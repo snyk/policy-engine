@@ -1,5 +1,14 @@
 {
   "content": {
+    "aws_iam_policy.example": {
+      "_type": "aws_iam_policy",
+      "description": null,
+      "id": "aws_iam_policy.example",
+      "name_prefix": null,
+      "path": "/",
+      "policy": "data.aws_iam_policy_document.example",
+      "tags": null
+    },
     "aws_s3_bucket.example": {
       "_type": "aws_s3_bucket",
       "acl": "private",
@@ -16,12 +25,6 @@
       "server_side_encryption_configuration": [],
       "tags": null,
       "website": []
-    },
-    "aws_s3_bucket_policy.example": {
-      "_type": "aws_s3_bucket_policy",
-      "bucket": "aws_s3_bucket.example",
-      "id": "aws_s3_bucket_policy.example",
-      "policy": "data.aws_iam_policy_document.example"
     },
     "data.aws_iam_policy_document.example": {
       "_type": "aws_iam_policy_document",
@@ -50,6 +53,7 @@
             }
           ],
           "resources": [
+            "arn:aws:s3:::some-example-bucket/*",
             "aws_s3_bucket.example"
           ],
           "sid": null
@@ -58,5 +62,5 @@
       "version": null
     }
   },
-  "filepath": "golden_test/tfplan/example-01/plan.json"
+  "filepath": "golden_test/tfplan/example-02/plan.json"
 }

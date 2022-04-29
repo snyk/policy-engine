@@ -75,7 +75,7 @@ func (l *tfPlan) Location(attributePath []string) (LocationStack, error) {
 
 func (l *tfPlan) ToState() models.State {
 	// TODO: This isn't implemented yet. Need to port resource view logic to Go.
-	return toState("tf_plan", l.path, map[string]interface{}{})
+	return toState("tf_plan", l.path, l.plan.resources())
 }
 
 // This (among with other types prefixed with tfplan_) matches the JSON
@@ -327,28 +327,64 @@ func (plan *tfplan_Plan) resources() map[string]interface{} {
 		refs := interfacetricks.Copy(rc.Change.AfterUnknown)
 		refs = interfacetricks.IntersectWith(refs, cr.references(),
 			func(left interface{}, r interface{}) interface{} {
-				switch l := left.(type) {
-				case bool:
-					if l && r != nil {
+				if l, ok := left.(bool); ok {
+					if l {
 						return r
-					}
-				case []interface{}:
-					if len(l) == 1 && l[0] == true {
-						return r
+					} else {
+						return nil
 					}
 				}
-				return nil
+
+				return interfacetricks.TopDownWalk(
+					&replaceBoolTopDownWalker{
+						replaceBool: func(b bool) interface{} {
+							if b {
+								return r
+							} else {
+								return nil
+							}
+						},
+					},
+					left,
+				)
 			},
 		)
 
 		// Merge in references
-		if r, ok := refs.(map[string]interface{}); ok {
-			obj = interfacetricks.MergeObjects(obj, r)
-		}
+		interfacetricks.MergeWith(obj, refs, func(left interface{}, right interface{}) interface{} {
+			if right == nil {
+				return left
+			} else {
+				return right
+			}
+		})
 
 		obj["_type"] = pvr.Type
 		obj["id"] = id
 		resources[id] = obj
 	})
 	return resources
+}
+
+// interfacetricks.TopDownWalker implementation that can replace a boolean.
+type replaceBoolTopDownWalker struct {
+	replaceBool func(bool) interface{}
+}
+
+func (w *replaceBoolTopDownWalker) WalkArray(arr []interface{}) (interface{}, bool) {
+	for i, v := range arr {
+		if b, ok := v.(bool); ok {
+			arr[i] = w.replaceBool(b)
+		}
+	}
+	return arr, true
+}
+
+func (w *replaceBoolTopDownWalker) WalkObject(obj map[string]interface{}) (interface{}, bool) {
+	for k, v := range obj {
+		if b, ok := v.(bool); ok {
+			obj[k] = w.replaceBool(b)
+		}
+	}
+	return obj, true
 }

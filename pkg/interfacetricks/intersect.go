@@ -20,14 +20,12 @@ func IntersectWith(
 	case []interface{}:
 		switch r := right.(type) {
 		case []interface{}:
-			length := len(l)
-			if len(r) < length {
-				length = len(r)
-			}
-			arr := make([]interface{}, length)
-			for i := 0; i < length; i++ {
-				if i < length {
+			arr := make([]interface{}, len(l))
+			for i := 0; i < len(l); i++ {
+				if i < len(r) {
 					arr[i] = IntersectWith(l[i], r[i], resolve)
+				} else {
+    				arr[i] = l[i]
 				}
 			}
 			return arr

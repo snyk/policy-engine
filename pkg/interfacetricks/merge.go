@@ -30,7 +30,7 @@ func MergeWith(
 		case map[string]interface{}:
 			for k, rv := range r {
 				if lv, ok := l[k]; ok {
-					MergeWith(lv, rv, conflict)
+					l[k] = MergeWith(lv, rv, conflict)
 				} else {
 					l[k] = rv
 				}
