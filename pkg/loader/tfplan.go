@@ -17,6 +17,7 @@ package loader
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/snyk/unified-policy-engine/pkg/interfacetricks"
 	"github.com/snyk/unified-policy-engine/pkg/models"
@@ -284,10 +285,11 @@ func (expr *tfplan_ConfigurationExpression) references() interface{} {
 	if expr.ConstantValue != nil {
 		return nil
 	} else if expr.References != nil {
-		if len(expr.References.References) == 1 {
+		refs := filterReferences(expr.References.References)
+		if len(refs) == 1 {
 			return expr.References.References[0]
 		} else {
-			return expr.References.References
+			return refs
 		}
 	} else if expr.Array != nil {
 		arr := make([]interface{}, len(expr.Array))
@@ -387,4 +389,30 @@ func (w *replaceBoolTopDownWalker) WalkObject(obj map[string]interface{}) (inter
 		}
 	}
 	return obj, true
+}
+
+// Terraform plan format 0.2 introduced a change where the references array
+// always includes both the property and its parent resource. We want to
+// remove one of them (determined in should_filter) in order to maintain
+// consistent behavior. The ordering is reliable - property followed by
+// resource.
+//
+// TODO: Maybe we should just do a version check and use that instead of
+// this logic.
+func filterReferences(refs []string) []string {
+	// Go in reverse to make use of the ordering.
+	parents := []string{}
+	for i := len(refs) - 1; i >= 0; i-- {
+		ref := refs[i]
+		foundParent := false
+		for _, parent := range parents {
+			if strings.HasPrefix(ref, parent) {
+				foundParent = true
+			}
+		}
+		if !foundParent {
+			parents = append(parents, ref)
+		}
+	}
+	return parents
 }
