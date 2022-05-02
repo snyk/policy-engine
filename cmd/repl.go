@@ -72,9 +72,9 @@ var replCmd = &cobra.Command{
 		check(err)
 		var historyPath string
 		if homeDir, err := os.UserHomeDir(); err == nil {
-			historyPath = filepath.Join(homeDir, ".regula-history")
+			historyPath = filepath.Join(homeDir, ".upe-history")
 		} else {
-			historyPath = filepath.Join(".", ".regula-history")
+			historyPath = filepath.Join(".", ".upe-history")
 		}
 		r := repl.New(
 			store,
