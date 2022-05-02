@@ -11,7 +11,7 @@ func PolicyFactory(moduleSet ModuleSet) (Policy, error) {
 	} else if base == nil {
 		return nil, nil
 	}
-	if base.Package() == "rules" {
+	if base.Package() == "data.rules" {
 		return &IaCCustomPolicy{BasePolicy: base}, nil
 	}
 	if base.resourceType() == multipleResourceType {
