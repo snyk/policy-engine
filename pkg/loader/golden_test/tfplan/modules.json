@@ -8,7 +8,7 @@
       "revoke_rules_on_delete": false,
       "tags": null,
       "timeouts": null,
-      "vpc_id": "module.child1.grandchild_vpc"
+      "vpc_id": "module.child1.module.grandchild1.aws_vpc.grandchild"
     },
     "aws_vpc.parent": {
       "_type": "aws_vpc",
@@ -36,7 +36,7 @@
       "revoke_rules_on_delete": false,
       "tags": null,
       "timeouts": null,
-      "vpc_id": "aws_vpc.grandchild"
+      "vpc_id": "module.child1.module.grandchild1.aws_vpc.grandchild"
     },
     "module.child1.module.grandchild1.aws_vpc.grandchild": {
       "_type": "aws_vpc",
@@ -55,7 +55,7 @@
       "revoke_rules_on_delete": false,
       "tags": null,
       "timeouts": null,
-      "vpc_id": "var.child_vpc_id"
+      "vpc_id": "module.child1.module.grandchild1.aws_vpc.grandchild"
     },
     "module.child2.aws_vpc.child": {
       "_type": "aws_vpc",

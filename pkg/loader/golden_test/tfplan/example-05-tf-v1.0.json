@@ -3,7 +3,7 @@
     "aws_cloudwatch_log_group.fargate-logs": {
       "_type": "aws_cloudwatch_log_group",
       "id": "aws_cloudwatch_log_group.fargate-logs",
-      "kms_key_id": "aws_kms_key.cloudwatch.key_id",
+      "kms_key_id": "aws_kms_key.cloudwatch",
       "name": "/ecs/fargate-task-definition",
       "name_prefix": null,
       "retention_in_days": 0,

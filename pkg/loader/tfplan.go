@@ -119,13 +119,19 @@ type tfplan_Configuration struct {
 }
 
 type tfplan_ConfigurationModule struct {
+	Outputs     map[string]tfplan_ConfigurationOutput      `yaml:"outputs"`
 	Resources   []*tfplan_ConfigurationResource            `yaml:"resources"`
 	ModuleCalls map[string]*tfplan_ConfigurationModuleCall `yaml:"module_calls"`
 }
 
+type tfplan_ConfigurationOutput struct {
+	Expression *tfplan_ConfigurationExpression `yaml:"expression"`
+}
+
 type tfplan_ConfigurationModuleCall struct {
-	Source string                      `yaml:"source"`
-	Module *tfplan_ConfigurationModule `yaml:"module"`
+	Source      string                                     `yaml:"source"`
+	Expressions map[string]*tfplan_ConfigurationExpression `yaml:"expressions"`
+	Module      *tfplan_ConfigurationModule                `yaml:"module"`
 }
 
 type tfplan_ConfigurationResource struct {
@@ -207,13 +213,13 @@ type tfplan_ConfigurationExpression_References struct {
 }
 
 func (plan *tfplan_Plan) visitModules(
-	visitPlannedValuesModule func(*tfplan_PlannedValuesModule),
+	visitPlannedValuesModule func(string, *tfplan_PlannedValuesModule),
 	visitConfigurationModule func(string, *tfplan_ConfigurationModule),
 ) {
 	var walkPlannedValuesModule func(*tfplan_PlannedValuesModule)
 	var walkConfigurationModule func(string, *tfplan_ConfigurationModule)
 	walkPlannedValuesModule = func(module *tfplan_PlannedValuesModule) {
-		visitPlannedValuesModule(module)
+		visitPlannedValuesModule(module.Address, module)
 		for _, child := range module.ChildModules {
 			walkPlannedValuesModule(child)
 		}
@@ -221,10 +227,7 @@ func (plan *tfplan_Plan) visitModules(
 	walkConfigurationModule = func(path string, module *tfplan_ConfigurationModule) {
 		visitConfigurationModule(path, module)
 		for k, call := range module.ModuleCalls {
-			childPath := "module." + k
-			if path != "" {
-				childPath = path + "." + childPath
-			}
+			childPath := joinDot(path, "module", k)
 			walkConfigurationModule(childPath, call.Module)
 		}
 	}
@@ -232,29 +235,82 @@ func (plan *tfplan_Plan) visitModules(
 	walkConfigurationModule("", plan.Configuration.RootModule)
 }
 
+// Generate a full map of outputs, assuming they reference a resource.
+// This ends up looking like e.g.:
+//
+//     module.child1.grandchild_vpc: module.child1.module.grandchild1.grandchild_vpc
+//     module.child1.module.grandchild1.grandchild_vpc: module.child1.module.grandchild1.aws_vpc.grandchild
+//     parent_vpc: aws_vpc.parent
+//     module.child2.var.child_vpc_id: module.child1.grandchild_vpc
+//
+// Then returns a function which can (recursively) resolve pointers in this
+// variable map.
+func (plan *tfplan_Plan) pointers() func(string) *string {
+	out := map[string]string{}
+	plan.visitModules(
+		func(path string, module *tfplan_PlannedValuesModule) {},
+		func(path string, module *tfplan_ConfigurationModule) {
+			for key, expr := range module.Outputs {
+				refs := expr.Expression.references(func(string) *string { return nil })
+				if ref, ok := refs.(string); ok {
+					out[joinDot(path, key)] = joinDot(path, ref)
+				}
+			}
+
+			for child, call := range module.ModuleCalls {
+				for key, expr := range call.Expressions {
+					refs := expr.references(func(string) *string { return nil })
+					if ref, ok := refs.(string); ok {
+						lhs := joinDot(path, "module", child, "var", key)
+						rhs := joinDot(path, ref)
+						out[lhs] = rhs
+					}
+				}
+			}
+		},
+	)
+
+	return func(key string) *string {
+		// Return a resolver that follows pointers, but also keep a set of
+		// nodes already visited to avoid cycles.
+		visited := map[string]struct{}{}
+		var result *string
+		for _, ok := out[key]; ok; _, ok = out[key] {
+			cpy := out[key]
+			result = &cpy
+			visited[key] = struct{}{}
+			if _, v := visited[out[key]]; v {
+				return result // Avoid cycles
+			}
+			key = out[key]
+		}
+		return result
+	}
+}
+
 func (plan *tfplan_Plan) visitResources(
 	visitResource func(
+		string,
 		string,
 		*tfplan_PlannedValuesResource,
 		*tfplan_ResourceChange,
 		*tfplan_ConfigurationResource,
 	),
 ) {
+	modulesByResource := map[string]string{}
 	plannedValueResources := map[string]*tfplan_PlannedValuesResource{}
 	resourceChanges := map[string]*tfplan_ResourceChange{}
 	configurationResources := map[string]*tfplan_ConfigurationResource{}
 	plan.visitModules(
-		func(module *tfplan_PlannedValuesModule) {
+		func(path string, module *tfplan_PlannedValuesModule) {
 			for _, resource := range module.Resources {
 				plannedValueResources[resource.Address] = resource
+				modulesByResource[resource.Address] = path
 			}
 		},
 		func(path string, module *tfplan_ConfigurationModule) {
 			for _, resource := range module.Resources {
-				id := resource.Address
-				if path != "" {
-					id = path + "." + id
-				}
+				id := joinDot(path, resource.Address)
 				configurationResources[id] = resource
 			}
 		},
@@ -263,7 +319,9 @@ func (plan *tfplan_Plan) visitResources(
 		resourceChanges[resourceChange.Address] = resourceChange
 	}
 	for k, pvResource := range plannedValueResources {
-		visitResource(k,
+		visitResource(
+			modulesByResource[k],
+			k,
 			pvResource,
 			resourceChanges[k],
 			configurationResources[k],
@@ -271,36 +329,48 @@ func (plan *tfplan_Plan) visitResources(
 	}
 }
 
-func (resource *tfplan_ConfigurationResource) references() interface{} {
+// Figure out which variables or resources are referenced.  A resolver function
+// can be passed in.
+func (resource *tfplan_ConfigurationResource) references(resolve func(string) *string) interface{} {
 	obj := make(map[string]interface{}, len(resource.Expressions))
 	for k, e := range resource.Expressions {
-		if ref := e.references(); ref != nil {
+		if ref := e.references(resolve); ref != nil {
 			obj[k] = ref
 		}
 	}
 	return obj
 }
 
-func (expr *tfplan_ConfigurationExpression) references() interface{} {
+// Figure out which variables or resources are referenced.  A resolver function
+// can be passed in.
+func (expr *tfplan_ConfigurationExpression) references(resolve func(string) *string) interface{} {
 	if expr.ConstantValue != nil {
 		return nil
 	} else if expr.References != nil {
 		refs := filterReferences(expr.References.References)
-		if len(refs) == 1 {
-			return expr.References.References[0]
+		resolved := make([]string, len(refs))
+		for i, ref := range refs {
+			if val := resolve(ref); val != nil {
+				resolved[i] = *val
+			} else {
+				resolved[i] = ref
+			}
+		}
+		if len(resolved) == 1 {
+			return resolved[0]
 		} else {
-			return refs
+			return resolved
 		}
 	} else if expr.Array != nil {
 		arr := make([]interface{}, len(expr.Array))
 		for i, e := range expr.Array {
-			arr[i] = e.references()
+			arr[i] = e.references(resolve)
 		}
 		return arr
 	} else if expr.Object != nil {
 		obj := make(map[string]interface{}, len(expr.Object))
 		for k, e := range expr.Object {
-			if ref := e.references(); ref != nil {
+			if ref := e.references(resolve); ref != nil {
 				obj[k] = ref
 			}
 		}
@@ -310,8 +380,12 @@ func (expr *tfplan_ConfigurationExpression) references() interface{} {
 }
 
 func (plan *tfplan_Plan) resources() map[string]interface{} {
+	// Calculate outputs
+	resolveGlobally := plan.pointers()
+
 	resources := map[string]interface{}{}
 	plan.visitResources(func(
+		module string,
 		path string,
 		pvr *tfplan_PlannedValuesResource,
 		rc *tfplan_ResourceChange,
@@ -327,7 +401,16 @@ func (plan *tfplan_Plan) resources() map[string]interface{} {
 
 		// Retain only references that are in AfterUnknown.
 		refs := interfacetricks.Copy(rc.Change.AfterUnknown)
-		refs = interfacetricks.IntersectWith(refs, cr.references(),
+		refs = interfacetricks.IntersectWith(
+			refs,
+			cr.references(func(variable string) *string {
+				qualified := joinDot(module, variable)
+				if result := resolveGlobally(qualified); result != nil {
+					return result
+				} else {
+					return &qualified
+				}
+			}),
 			func(left interface{}, r interface{}) interface{} {
 				if l, ok := left.(bool); ok {
 					if l {
@@ -365,6 +448,7 @@ func (plan *tfplan_Plan) resources() map[string]interface{} {
 		obj["id"] = id
 		resources[id] = obj
 	})
+
 	return resources
 }
 
@@ -415,4 +499,18 @@ func filterReferences(refs []string) []string {
 		}
 	}
 	return parents
+}
+
+func joinDot(parts ...string) string {
+	result := ""
+	for _, part := range parts {
+		if part != "" {
+			if result == "" {
+				result = part
+			} else {
+				result = result + "." + part
+			}
+		}
+	}
+	return result
 }
