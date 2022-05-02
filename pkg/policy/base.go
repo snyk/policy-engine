@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"strings"
 
 	"github.com/open-policy-agent/opa/ast"
 	"github.com/open-policy-agent/opa/rego"
@@ -119,7 +118,7 @@ func NewBasePolicy(modules []*ast.Module) (*BasePolicy, error) {
 	if len(modules) < 1 {
 		return nil, fmt.Errorf("Got empty modules")
 	}
-	pkg := strings.TrimPrefix(modules[0].Package.Path.String(), "data.")
+	pkg := modules[0].Package.Path.String()
 	judgement := ruleInfo{}
 	metadata := ruleInfo{}
 	resources := ruleInfo{}
