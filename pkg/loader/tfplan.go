@@ -17,6 +17,7 @@ package loader
 
 import (
 	"fmt"
+	"sort"
 	"strings"
 
 	"github.com/snyk/unified-policy-engine/pkg/interfacetricks"
@@ -485,20 +486,35 @@ func (w *replaceBoolTopDownWalker) WalkObject(obj map[string]interface{}) (inter
 // this logic.
 func filterReferences(refs []string) []string {
 	// Go in reverse to make use of the ordering.
-	parents := []string{}
-	for i := len(refs) - 1; i >= 0; i-- {
-		ref := refs[i]
-		foundParent := false
-		for _, parent := range parents {
-			if strings.HasPrefix(ref, parent) {
-				foundParent = true
+	prefixes := map[string]struct{}{}
+	for _, ref := range refs {
+		if parts := strings.Split(ref, "."); len(parts) > 0 {
+			switch parts[0] {
+			case "module":
+				if len(parts) >= 3 {
+					prefixes[strings.Join(parts[:3], ".")] = struct{}{}
+				}
+			case "data":
+				if len(parts) >= 3 {
+					prefixes[strings.Join(parts[:3], ".")] = struct{}{}
+				}
+			case "var":
+				prefixes[ref] = struct{}{}
+			default:
+				if len(parts) >= 2 {
+					prefixes[strings.Join(parts[:2], ".")] = struct{}{}
+				}
 			}
 		}
-		if !foundParent {
-			parents = append(parents, ref)
-		}
 	}
-	return parents
+
+	// Sort before returning
+	resources := []string{}
+	for k := range prefixes {
+		resources = append(resources, k)
+	}
+	sort.Strings(resources)
+	return resources
 }
 
 func joinDot(parts ...string) string {
