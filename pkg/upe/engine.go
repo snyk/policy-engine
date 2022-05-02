@@ -71,15 +71,12 @@ func NewEngine(ctx context.Context, options *EngineOptions) (*Engine, error) {
 		Info(ctx, "Finished consuming providers")
 	tree := ast.NewModuleTree(consumer.Modules)
 	policies := []policy.Policy{}
-	for _, modules := range modulesInPath(ast.Ref{
+	for _, moduleSet := range policy.ModuleSetsWithPrefix(ast.Ref{
 		ast.DefaultRootDocument,
 		ast.StringTerm("rules"),
 	}, tree) {
-		if len(modules) < 1 {
-			continue
-		}
-		l := logger.WithField(logging.PATH, modules[0].Package.Location.File)
-		p, err := policy.PolicyFactory(modules)
+		l := logger.WithField(logging.PACKAGE, moduleSet.Path.String())
+		p, err := policy.PolicyFactory(moduleSet)
 		if err != nil {
 			l.WithField(logging.ERROR, err.Error()).
 				Warn(ctx, "Error while parsing policy. It will still be loaded and accessible via data.")
@@ -247,20 +244,4 @@ func inputTypeMatches(t1, t2 string) bool {
 	default:
 		return t1 == t2
 	}
-}
-
-func modulesInPath(ref ast.Ref, node *ast.ModuleTreeNode) [][]*ast.Module {
-	if len(ref) < 1 {
-		mods := [][]*ast.Module{node.Modules}
-		for _, child := range node.Children {
-			mods = append(mods, modulesInPath(ref, child)...)
-		}
-		return mods
-	} else {
-		head := ref[0].Value
-		if child, ok := node.Children[head]; ok {
-			return modulesInPath(ref[1:], child)
-		}
-	}
-	return [][]*ast.Module{}
 }

@@ -2,12 +2,10 @@ package policy
 
 import (
 	"fmt"
-
-	"github.com/open-policy-agent/opa/ast"
 )
 
-func PolicyFactory(modules []*ast.Module) (Policy, error) {
-	base, err := NewBasePolicy(modules)
+func PolicyFactory(moduleSet ModuleSet) (Policy, error) {
+	base, err := NewBasePolicy(moduleSet)
 	if err != nil {
 		return nil, err
 	} else if base == nil {

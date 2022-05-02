@@ -112,19 +112,22 @@ type BasePolicy struct {
 	cachedMetadata   *Metadata
 }
 
+// ModuleSet is a set of Modules that all share the same package name
+type ModuleSet struct {
+	Path    ast.Ref
+	Modules []*ast.Module
+}
+
 // NewBasePolicy constructs a new BasePolicy. It will return an error if the Module
 // does not contain a recognized Judgement.
-func NewBasePolicy(modules []*ast.Module) (*BasePolicy, error) {
-	if len(modules) < 1 {
-		return nil, fmt.Errorf("Got empty modules")
-	}
-	pkg := modules[0].Package.Path.String()
+func NewBasePolicy(moduleSet ModuleSet) (*BasePolicy, error) {
+	pkg := moduleSet.Path.String()
 	judgement := ruleInfo{}
 	metadata := ruleInfo{}
 	resources := ruleInfo{}
 	inputType := ruleInfo{}
 	resourceType := ruleInfo{}
-	for _, module := range modules {
+	for _, module := range moduleSet.Modules {
 		for _, r := range module.Rules {
 			name := r.Head.Name.String()
 			switch name {
