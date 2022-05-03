@@ -28,13 +28,24 @@ import (
 	"github.com/fugue/regula/v2/pkg/git"
 )
 
+// LoadPathsOptions contains options for loading IaC configurations from the given
+// set of paths.
 type LoadPathsOptions struct {
-	Paths       []string
-	InputTypes  []InputType
+	// Paths sets which paths the loader will search in for IaC configurations
+	Paths []string
+	// InputTypes sets which input types the loader will try to parse
+	InputTypes []InputType
+	// NoGitIgnore disables the .gitignore functionality. When true, the loader will
+	// not filter the input paths based on the contents of relevant .gitignore files.
 	NoGitIgnore bool
-	IgnoreDirs  bool
+	// IgnoreDirs prevents the loader for treating a directory of IaC configurations
+	// as a single configuration (e.g. a Terraform module). Instead, each IaC file in
+	// the directory will be loaded as a separate configuration.
+	IgnoreDirs bool
 }
 
+// NoLoadableConfigsError indicates that the loader could not find any recognized
+// IaC configurations with the given parameters.
 type NoLoadableConfigsError struct {
 	paths []string
 }
@@ -43,6 +54,8 @@ func (e *NoLoadableConfigsError) Error() string {
 	return fmt.Sprintf("No loadable files in provided paths: %v", e.paths)
 }
 
+// LocalConfigurationLoader returns a ConfigurationLoader that loads IaC configurations
+// from local disk.
 func LocalConfigurationLoader(options LoadPathsOptions) ConfigurationLoader {
 	return func() (LoadedConfigurations, error) {
 		configurations := newLoadedConfigurations()

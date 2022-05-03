@@ -11,6 +11,6 @@ package models
 // An object that relates an input with its rule results
 type Result struct {
 	Input State `json:"input"`
-	// A map of rule package to a rule results object
-	RuleResults map[string]RuleResults `json:"rule_results"`
+	// An array of rule results objects
+	RuleResults []RuleResults `json:"rule_results"`
 }

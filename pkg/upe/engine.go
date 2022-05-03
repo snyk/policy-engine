@@ -17,7 +17,10 @@ import (
 	"github.com/snyk/unified-policy-engine/pkg/policy"
 )
 
+// Engine is responsible for evaluating some States with a given set of rules.
 type Engine struct {
+	logger      logging.Logger
+	metrics     metrics.Metrics
 	policies    []policy.Policy
 	compiler    *ast.Compiler
 	store       storage.Store
@@ -25,21 +28,31 @@ type Engine struct {
 	runAllRules bool
 }
 
+// EngineOptions contains options for initializing an Engine instance
 type EngineOptions struct {
+	// Providers contains functions that produce parsed OPA modules or data documents.
 	Providers []data.Provider
-	RuleIDs   map[string]bool
-	Logger    logging.Logger
-	Metrics   metrics.Metrics
+	// RuleIDs determines which rules are executed. When this option is empty or
+	// unspecified, all rules will be run.
+	RuleIDs map[string]bool
+	// Logger is an optional instance of the logger.Logger interface
+	Logger logging.Logger
+	// Metrics is an optional instance of the metrics.Metrics interface
+	Metrics metrics.Metrics
 }
 
+// NewEngine constructs a new Engine instance.
 func NewEngine(ctx context.Context, options *EngineOptions) (*Engine, error) {
 	logger := options.Logger
 	if logger == nil {
 		logger = logging.DefaultLogger
 	}
 	m := options.Metrics
+	if m == nil {
+		m = metrics.NewLocalMetrics(logger)
+	}
 	logger.Info(ctx, "Initializing engine")
-	consumer := NewPolicyConsumer(logger)
+	consumer := NewPolicyConsumer()
 	if err := policy.RegoAPIProvider(ctx, consumer); err != nil {
 		logger.Error(ctx, "Failed to load rego API")
 		return nil, err
@@ -56,6 +69,23 @@ func NewEngine(ctx context.Context, options *EngineOptions) (*Engine, error) {
 	logger.WithField(logging.MODULES, len(consumer.Modules)).
 		WithField(logging.DATA_DOCUMENTS, len(consumer.Documents)).
 		Info(ctx, "Finished consuming providers")
+	tree := ast.NewModuleTree(consumer.Modules)
+	policies := []policy.Policy{}
+	for _, moduleSet := range policy.ModuleSetsWithPrefix(ast.Ref{
+		ast.DefaultRootDocument,
+		ast.StringTerm("rules"),
+	}, tree) {
+		l := logger.WithField(logging.PACKAGE, moduleSet.Path.String())
+		p, err := policy.PolicyFactory(moduleSet)
+		if err != nil {
+			l.WithField(logging.ERROR, err.Error()).
+				Warn(ctx, "Error while parsing policy. It will still be loaded and accessible via data.")
+		} else if p == nil {
+			l.Debug(ctx, "Module did not contain a policy. It will still be loaded and accessible via data.")
+		} else {
+			policies = append(policies, p)
+		}
+	}
 	compiler := ast.NewCompiler().WithCapabilities(policy.Capabilities())
 	compilationStart := time.Now()
 	compiler.Compile(consumer.Modules)
@@ -72,10 +102,12 @@ func NewEngine(ctx context.Context, options *EngineOptions) (*Engine, error) {
 	m.Counter(ctx, metrics.DATA_DOCUMENTS_LOADED, "", metrics.Labels{}).
 		Add(float64(len(consumer.Documents)))
 	m.Counter(ctx, metrics.POLICIES_LOADED, "", metrics.Labels{}).
-		Add(float64(len(consumer.Policies)))
+		Add(float64(len(policies)))
 	return &Engine{
+		logger:      logger,
+		metrics:     m,
 		compiler:    compiler,
-		policies:    consumer.Policies,
+		policies:    policies,
 		store:       inmem.NewFromObject(consumer.Documents),
 		ruleIDs:     options.RuleIDs,
 		runAllRules: len(options.RuleIDs) < 1,
@@ -85,22 +117,18 @@ func NewEngine(ctx context.Context, options *EngineOptions) (*Engine, error) {
 type policyResults struct {
 	pkg         string
 	err         error
-	ruleResults models.RuleResults
+	ruleResults []models.RuleResults
 }
 
+// EvalOptions contains options for Engine.Eval
 type EvalOptions struct {
-	Inputs  []models.State
-	Logger  logging.Logger
-	Metrics metrics.Metrics
+	// Inputs are the State instances that the engine should evaluate.
+	Inputs []models.State
 }
 
-func (e *Engine) Eval(ctx context.Context, options EvalOptions) (*models.Results, error) {
-	logger := options.Logger
-	if logger == nil {
-		logger = logging.DefaultLogger
-	}
-	m := options.Metrics
-	logger.Debug(ctx, "Beginning evaluation")
+// Eval evaluates the given states using the rules that the engine was initialized with.
+func (e *Engine) Eval(ctx context.Context, options *EvalOptions) (*models.Results, error) {
+	e.logger.Debug(ctx, "Beginning evaluation")
 	regoOptions := []func(*rego.Rego){
 		rego.Compiler(e.compiler),
 		rego.Store(e.store),
@@ -112,7 +140,7 @@ func (e *Engine) Eval(ctx context.Context, options EvalOptions) (*models.Results
 		for _, p := range e.policies {
 			id, err := p.ID(ctx, regoOptions)
 			if err != nil {
-				logger.WithField("package", p.Package()).
+				e.logger.WithField("package", p.Package()).
 					Error(ctx, "Failed to extract ID from policy")
 				return nil, err
 			}
@@ -121,7 +149,7 @@ func (e *Engine) Eval(ctx context.Context, options EvalOptions) (*models.Results
 			}
 			policies = append(policies, p)
 		}
-		m.Timer(ctx, metrics.RULE_SELECTION_TIME, "", metrics.Labels{}).
+		e.metrics.Timer(ctx, metrics.RULE_SELECTION_TIME, "", metrics.Labels{}).
 			Record(time.Now().Sub(ruleSelectionStart))
 	}
 	results := []models.Result{}
@@ -130,10 +158,10 @@ func (e *Engine) Eval(ctx context.Context, options EvalOptions) (*models.Results
 			RegoOptions: regoOptions,
 			Input:       &state,
 		}
-		allRuleResults := map[string]models.RuleResults{}
+		allRuleResults := []models.RuleResults{}
 		resultsChan := make(chan policyResults)
 		var wg sync.WaitGroup
-		ruleEvalCounter := m.Counter(ctx, metrics.RULES_EVALUATED, "", metrics.Labels{
+		ruleEvalCounter := e.metrics.Counter(ctx, metrics.RULES_EVALUATED, "", metrics.Labels{
 			metrics.INPUT_IDX: fmt.Sprint(idx),
 		})
 		totalEvalStart := time.Now()
@@ -153,14 +181,16 @@ func (e *Engine) Eval(ctx context.Context, options EvalOptions) (*models.Results
 						// TODO: Do we need a better way to identify inputs?
 						metrics.INPUT_IDX: fmt.Sprint(idx),
 					}
-					m.Timer(ctx, metrics.RULE_EVAL_TIME, "", labels).
+					e.metrics.Timer(ctx, metrics.RULE_EVAL_TIME, "", labels).
 						Record(time.Now().Sub(evalStart))
-					m.Counter(ctx, metrics.RESULTS_PRODUCED, "", labels).
-						Add(float64(len(ruleResults.Results)))
+					for _, r := range ruleResults {
+						e.metrics.Counter(ctx, metrics.RESULTS_PRODUCED, "", labels).
+							Add(float64(len(r.Results)))
+					}
 					resultsChan <- policyResults{
 						pkg:         pkg,
 						err:         err,
-						ruleResults: *ruleResults,
+						ruleResults: ruleResults,
 					}
 				}(p)
 				ruleEvalCounter.Inc()
@@ -168,7 +198,7 @@ func (e *Engine) Eval(ctx context.Context, options EvalOptions) (*models.Results
 			wg.Wait()
 			close(resultsChan)
 		}()
-		errCounter := m.Counter(ctx, metrics.POLICY_ERRORS, "", metrics.Labels{})
+		errCounter := e.metrics.Counter(ctx, metrics.POLICY_ERRORS, "", metrics.Labels{})
 		for {
 			select {
 			case policyResults, ok := <-resultsChan:
@@ -177,22 +207,22 @@ func (e *Engine) Eval(ctx context.Context, options EvalOptions) (*models.Results
 					break
 				}
 				if policyResults.err != nil {
-					logger.WithField(logging.PACKAGE, policyResults.pkg).
+					e.logger.WithField(logging.PACKAGE, policyResults.pkg).
 						WithError(policyResults.err).
 						Warn(ctx, "Failed to evaluate policy")
 					errCounter.Inc()
-					allRuleResults[policyResults.pkg] = policyResults.ruleResults
+					allRuleResults = append(allRuleResults, policyResults.ruleResults...)
 				} else {
-					logger.WithField(logging.PACKAGE, policyResults.pkg).
+					e.logger.WithField(logging.PACKAGE, policyResults.pkg).
 						Debug(ctx, "Completed policy evaluation")
-					allRuleResults[policyResults.pkg] = policyResults.ruleResults
+					allRuleResults = append(allRuleResults, policyResults.ruleResults...)
 				}
 			}
 			if resultsChan == nil {
 				break
 			}
 		}
-		m.Timer(ctx, metrics.TOTAL_RULE_EVAL_TIME, "", metrics.Labels{
+		e.metrics.Timer(ctx, metrics.TOTAL_RULE_EVAL_TIME, "", metrics.Labels{
 			metrics.INPUT_IDX: fmt.Sprint(idx),
 		}).Record(time.Now().Sub(totalEvalStart))
 		results = append(results, models.Result{

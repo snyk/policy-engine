@@ -7,8 +7,6 @@ import (
 
 	"github.com/open-policy-agent/opa/ast"
 	"github.com/snyk/unified-policy-engine/pkg/interfacetricks"
-	"github.com/snyk/unified-policy-engine/pkg/logging"
-	"github.com/snyk/unified-policy-engine/pkg/policy"
 )
 
 var rulesPrefix = ast.Ref{
@@ -19,17 +17,14 @@ var rulesPrefix = ast.Ref{
 // PolicyConsumer is an implementation of the data.Consumer interface that stores
 // parsed modules, policies, and documents in-memory.
 type PolicyConsumer struct {
-	Policies  []policy.Policy
 	Modules   map[string]*ast.Module
 	Documents map[string]interface{}
-	logger    logging.Logger
 }
 
-func NewPolicyConsumer(logger logging.Logger) *PolicyConsumer {
+func NewPolicyConsumer() *PolicyConsumer {
 	return &PolicyConsumer{
 		Modules:   map[string]*ast.Module{},
 		Documents: map[string]interface{}{},
-		logger:    logger,
 	}
 }
 
@@ -39,19 +34,6 @@ func (c *PolicyConsumer) Module(
 	module *ast.Module,
 ) error {
 	c.Modules[path] = module
-	if module.Package.Path.HasPrefix(rulesPrefix) {
-		p, err := policy.PolicyFactory(module)
-		if err != nil {
-			c.logger.
-				WithField(logging.PATH, path).
-				WithField(logging.ERROR, err.Error()).
-				Debug(ctx, "Unable to parse as a policy")
-			return nil
-		} else {
-			c.Policies = append(c.Policies, p)
-		}
-
-	}
 	return nil
 }
 
