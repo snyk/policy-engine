@@ -84,21 +84,14 @@ components:
         resource_type:
           type: string
           description: The type of the resource.
-        partition:
-          type: string
-          description: |
-            This field is a component of uniquely identifying a resource. It will
-            resolve to different values depending on the input type and environment
-            provider. For example, in a runtime AWS environment, this will be the account
-            ID. In an IaC SCM environment, this could be a git branch. Since this
-            concept doesn't apply in all cases, this field is optional.
         namespace:
           type: string
           description: |
             This field is a component of uniquely identifying a resource. It will
             resolve to different values depending on the input type and environment
             provider. For example, in a runtime AWS environment, this will be the region.
-            For an IaC Terraform resource, this will be the module path.
+            For an IaC Terraform resource, this will be the module path. Customers of the
+            API can set this to something that makes sense for them and parse it back.
         tags:
           type: object
           description: |

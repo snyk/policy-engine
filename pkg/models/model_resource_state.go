@@ -14,9 +14,7 @@ type ResourceState struct {
 	Id string `json:"id"`
 	// The type of the resource.
 	ResourceType string `json:"resource_type"`
-	// This field is a component of uniquely identifying a resource. It will resolve to different values depending on the input type and environment provider. For example, in a runtime AWS environment, this will be the account ID. In an IaC SCM environment, this could be a git branch. Since this concept doesn't apply in all cases, this field is optional.
-	Partition string `json:"partition,omitempty"`
-	// This field is a component of uniquely identifying a resource. It will resolve to different values depending on the input type and environment provider. For example, in a runtime AWS environment, this will be the region. For an IaC Terraform resource, this will be the module path.
+	// This field is a component of uniquely identifying a resource. It will resolve to different values depending on the input type and environment provider. For example, in a runtime AWS environment, this will be the region. For an IaC Terraform resource, this will be the module path. Customers of the API can set this to something that makes sense for them and parse it back.
 	Namespace string `json:"namespace"`
 	// Tags applied to the resource. Our goal is to extract tags into a uniform key->value format.
 	Tags map[string]string `json:"tags,omitempty"`
