@@ -148,36 +148,29 @@ func (l *cfnConfiguration) ToState() models.State {
 	return toState("cfn", l.path, l.resources)
 }
 
-func (l *cfnConfiguration) Location(path []string) (LocationStack, error) {
-	if l.source == nil || len(path) < 1 {
+func (l *cfnConfiguration) Location(path []interface{}) (LocationStack, error) {
+	if l.source == nil || len(path) < 2 {
 		return nil, nil
 	}
 
-	resourcePath := []string{"Resources"}
-	resourcePath = append(resourcePath, path[0])
-	resource, err := l.source.GetPath(resourcePath)
-	if err != nil {
-		return nil, nil
-	}
-	resourceLine, resourceColumn := resource.Location()
-	resourceLocation := Location{
-		Path: l.path,
-		Line: resourceLine,
-		Col:  resourceColumn,
+	_, ok := path[0].(string)
+	if !ok {
+		return nil, fmt.Errorf("Expected string resource type in path")
 	}
 
-	properties, err := resource.GetKey("Properties")
-	if err != nil {
-		return []Location{resourceLocation}, nil
+	resourceId, ok := path[1].(string)
+	if !ok {
+		return nil, fmt.Errorf("Expected string resource ID in path")
 	}
 
-	attribute, err := properties.GetPath(path[1:])
-	if attribute != nil {
-		return []Location{resourceLocation}, nil
+	fullPath := []interface{}{"Resources", resourceId}
+	if len(path) > 2 {
+		fullPath = append(fullPath, "Properties")
+		fullPath = append(fullPath, path[2:]...)
 	}
-
-	line, column := attribute.Location()
-	return []Location{{Path: l.path, Line: line, Col: column}}, nil
+	node, err := l.source.GetPath(fullPath)
+	line, column := node.Location()
+	return []Location{{Path: l.path, Line: line, Col: column}}, err
 }
 
 func (l *cfnConfiguration) LoadedFiles() []string {

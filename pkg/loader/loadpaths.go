@@ -16,11 +16,11 @@
 package loader
 
 import (
+	"encoding/json"
 	"fmt"
 	"os"
 	"path/filepath"
 	"sort"
-	"strings"
 
 	"github.com/sirupsen/logrus"
 	"github.com/snyk/unified-policy-engine/pkg/models"
@@ -188,14 +188,14 @@ type loadedConfigurations struct {
 	// input path, "src/vpc".
 	loadedPaths map[string]string
 
-	locationCache map[string]map[string]cachedLocation
+	locationCache map[string]cachedLocation
 }
 
 func newLoadedConfigurations() *loadedConfigurations {
 	return &loadedConfigurations{
 		configurations: map[string]IACConfiguration{},
 		loadedPaths:    map[string]string{},
-		locationCache:  map[string]map[string]cachedLocation{},
+		locationCache:  map[string]cachedLocation{},
 	}
 }
 
@@ -246,44 +246,25 @@ func (l *loadedConfigurations) ToStates() []models.State {
 	return states
 }
 
-func (l *loadedConfigurations) locationFromCache(path string, joinedAttributePath string) (LocationStack, error, bool) {
-	pathCache, ok := l.locationCache[path]
-	if !ok {
-		return nil, nil, false
-	}
-	loc, ok := pathCache[joinedAttributePath]
-	if !ok {
-		return nil, nil, false
-	}
-	return loc.LocationStack, loc.Error, true
-}
-
-func (l *loadedConfigurations) cacheLocation(path string, joinedAttributePath string, loc LocationStack, err error) {
-	pathCache, ok := l.locationCache[path]
-	if !ok {
-		pathCache = map[string]cachedLocation{}
-		l.locationCache[path] = pathCache
-	}
-	pathCache[joinedAttributePath] = cachedLocation{
-		LocationStack: loc,
-		Error:         err,
-	}
-}
-
-func (l *loadedConfigurations) Location(path string, attributePath []string) (LocationStack, error) {
-	joinedAttributePath := strings.Join(attributePath, ":")
-	if loc, err, ok := l.locationFromCache(path, joinedAttributePath); ok {
-		return loc, err
-	}
-
+func (l *loadedConfigurations) Location(path string, attributePath []interface{}) (LocationStack, error) {
 	canonical, ok := l.loadedPaths[path]
 	if !ok {
 		return nil, fmt.Errorf("Unable to determine location for given path %v and attribute path %v", path, attributePath)
 	}
-	loader, _ := l.configurations[canonical]
-	loc, err := loader.Location(attributePath)
-	l.cacheLocation(path, joinedAttributePath, loc, err)
-	return loc, err
+
+	attribute, err := json.Marshal(attributePath)
+	if err != nil {
+		return l.configurations[canonical].Location(attributePath)
+	}
+
+	key := path + ":" + string(attribute)
+	if cached, ok := l.locationCache[key]; ok {
+		return cached.LocationStack, cached.Error
+	} else {
+		location, err := l.configurations[canonical].Location(attributePath)
+		l.locationCache[key] = cachedLocation{location, err}
+		return location, err
+	}
 }
 
 func (l *loadedConfigurations) Count() int {

@@ -277,9 +277,9 @@ components:
       properties:
         filepath:
           type: string
-        row:
+        line:
           type: integer
-        col:
+        column:
           type: integer
     RuleResultResourceAttribute:
       type: object

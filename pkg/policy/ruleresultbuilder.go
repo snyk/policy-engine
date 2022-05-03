@@ -77,9 +77,9 @@ func (builder *ruleResultBuilder) addResourceAttribute(
 }
 
 func (builder *ruleResultBuilder) toRuleResult() models.RuleResult {
-	resources := []models.RuleResultResource{}
+	resources := []*models.RuleResultResource{}
 	for _, resource := range builder.resources {
-		resources = append(resources, *resource)
+		resources = append(resources, resource)
 	}
 	return models.RuleResult{
 		Passed:            builder.passed,

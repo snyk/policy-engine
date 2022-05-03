@@ -11,6 +11,6 @@ package models
 // Points to a row and column within a source file
 type SourceLocation struct {
 	Filepath string `json:"filepath,omitempty"`
-	Row      int    `json:"row,omitempty"`
-	Col      int    `json:"col,omitempty"`
+	Line     int    `json:"line,omitempty"`
+	Column   int    `json:"column,omitempty"`
 }

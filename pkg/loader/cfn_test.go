@@ -118,11 +118,11 @@ func TestCfnYAMLLocation(t *testing.T) {
 		t.Fatal(err)
 	}
 	testInputs := []struct {
-		path     []string
+		path     []interface{}
 		expected loader.LocationStack
 	}{
 		{
-			path: []string{"Bucket1"},
+			path: []interface{}{"Bucket1"},
 			expected: loader.LocationStack{loader.Location{
 				Path: "cfn.yaml",
 				Line: 18,
@@ -130,7 +130,7 @@ func TestCfnYAMLLocation(t *testing.T) {
 			}},
 		},
 		{
-			path: []string{"Bucket2"},
+			path: []interface{}{"Bucket2"},
 			expected: loader.LocationStack{loader.Location{
 				Path: "cfn.yaml",
 				Line: 22,
@@ -156,11 +156,11 @@ func TestCfnJSONLocation(t *testing.T) {
 		t.Fatal(err)
 	}
 	testInputs := []struct {
-		path     []string
+		path     []interface{}
 		expected loader.LocationStack
 	}{
 		{
-			path: []string{"Bucket1"},
+			path: []interface{}{"Bucket1"},
 			expected: loader.LocationStack{loader.Location{
 				Path: "cfn.json",
 				Line: 5,
@@ -168,7 +168,7 @@ func TestCfnJSONLocation(t *testing.T) {
 			}},
 		},
 		{
-			path: []string{"Bucket2"},
+			path: []interface{}{"Bucket2"},
 			expected: loader.LocationStack{loader.Location{
 				Path: "cfn.json",
 				Line: 11,

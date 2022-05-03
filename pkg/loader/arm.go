@@ -87,7 +87,10 @@ func (l *armConfiguration) ToState() models.State {
 	return toState("arm", l.path, l.resources)
 }
 
-func (l *armConfiguration) Location(path []string) (LocationStack, error) {
+func (l *armConfiguration) Location(path []interface{}) (LocationStack, error) {
+	return nil, nil
+
+	/* TODO
 	if l.source == nil || len(path) < 1 {
 		return nil, nil
 	}
@@ -117,6 +120,7 @@ func (l *armConfiguration) Location(path []string) (LocationStack, error) {
 
 	line, column := attribute.Location()
 	return []Location{{Path: l.path, Line: line, Col: column}}, nil
+	*/
 }
 
 func (l *armConfiguration) LoadedFiles() []string {
