@@ -25,14 +25,17 @@ const currentInputTypeName = "__current_input_type"
 var builtinDeclarations = map[string]*types.Function{
 	resourcesByTypeName: types.NewFunction(
 		types.Args(types.S),
-		types.NewArray(
+		types.NewObject(
 			nil,
-			types.NewObject(
-				[]*types.StaticProperty{
-					types.NewStaticProperty("id", types.S),
-					types.NewStaticProperty("_type", types.S),
-				},
-				types.NewDynamicProperty(types.S, types.A),
+			types.NewDynamicProperty(
+				types.S,
+				types.NewObject(
+					[]*types.StaticProperty{
+						types.NewStaticProperty("id", types.S),
+						types.NewStaticProperty("_type", types.S),
+					},
+					types.NewDynamicProperty(types.S, types.A),
+				),
 			),
 		),
 	),
