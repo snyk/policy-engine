@@ -1,5 +1,6 @@
 package interfacetricks
 
+// Create a copy of a value, so we can modify it in place.
 func Copy(value interface{}) interface{} {
 	switch v := value.(type) {
 	case map[string]interface{}:

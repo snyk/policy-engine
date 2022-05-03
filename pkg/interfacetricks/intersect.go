@@ -1,9 +1,11 @@
 package interfacetricks
 
+// Create a new object or array containing only the parts that were in both
+// trees.  The values in the new tree are determined by the resolve argument.
 func IntersectWith(
 	left interface{},
 	right interface{},
-	resolve func(interface{}, interface{}) interface{},
+	resolve func(l interface{}, r interface{}) interface{},
 ) interface{} {
 	switch l := left.(type) {
 	case map[string]interface{}:

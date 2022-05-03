@@ -1,5 +1,14 @@
 package interfacetricks
 
+// Merges two value trees recursively.  If there is a conflict, the right value
+// is retained.
+func Merge(left interface{}, right interface{}) interface{} {
+	return MergeWith(left, right, func(l interface{}, r interface{}) interface{} {
+		return r
+	})
+}
+
+// Like `Merge` but has a more useful return type if you're merging objects.
 func MergeObjects(left map[string]interface{}, right map[string]interface{}) map[string]interface{} {
 	for k, rv := range right {
 		if lv, ok := left[k]; ok {
@@ -9,12 +18,6 @@ func MergeObjects(left map[string]interface{}, right map[string]interface{}) map
 		}
 	}
 	return left
-}
-
-func Merge(left interface{}, right interface{}) interface{} {
-	return MergeWith(left, right, func(l interface{}, r interface{}) interface{} {
-		return r
-	})
 }
 
 // MergeWith is like Merge but allows you to customize what happens on a

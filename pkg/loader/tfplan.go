@@ -147,6 +147,9 @@ type tfplan_ConfigurationExpression struct {
 	Array         []tfplan_ConfigurationExpression
 }
 
+// Override the UnmarshalYAML for tfplan_ConfigurationExpression.  This is a
+// union type that will only set exactly one of its fields.  We inspect the
+// JSON structure to understand which one.
 func (expr *tfplan_ConfigurationExpression) UnmarshalYAML(value *yaml.Node) error {
 	if value.Kind == yaml.MappingNode {
 		isConstantValue := false
@@ -213,6 +216,7 @@ type tfplan_ConfigurationExpression_References struct {
 	References []string `yaml:"references"`
 }
 
+// Helper to iterate through all modules.
 func (plan *tfplan_Plan) visitModules(
 	visitPlannedValuesModule func(string, *tfplan_PlannedValuesModule),
 	visitConfigurationModule func(string, *tfplan_ConfigurationModule),
@@ -289,13 +293,14 @@ func (plan *tfplan_Plan) pointers() func(string) *string {
 	}
 }
 
+// Helper to iterate through all resources
 func (plan *tfplan_Plan) visitResources(
 	visitResource func(
-		string,
-		string,
-		*tfplan_PlannedValuesResource,
-		*tfplan_ResourceChange,
-		*tfplan_ConfigurationResource,
+		module string,
+		id string,
+		pvr *tfplan_PlannedValuesResource,
+		rc *tfplan_ResourceChange,
+		cr *tfplan_ConfigurationResource,
 	),
 ) {
 	modulesByResource := map[string]string{}
@@ -380,6 +385,7 @@ func (expr *tfplan_ConfigurationExpression) references(resolve func(string) *str
 	return nil
 }
 
+// Main entry point to convert this to an input state.
 func (plan *tfplan_Plan) resources() map[string]interface{} {
 	// Calculate outputs
 	resolveGlobally := plan.pointers()
@@ -405,6 +411,7 @@ func (plan *tfplan_Plan) resources() map[string]interface{} {
 		refs = interfacetricks.IntersectWith(
 			refs,
 			cr.references(func(variable string) *string {
+				// When resolving references, take the module name into account.
 				qualified := joinDot(module, variable)
 				if result := resolveGlobally(qualified); result != nil {
 					return result
@@ -412,7 +419,12 @@ func (plan *tfplan_Plan) resources() map[string]interface{} {
 					return &qualified
 				}
 			}),
+			// Intersect using a function that replaces all the "true"s on the
+			// left hand side (in the AfterUnknown structure) with the
+			// references we found.
 			func(left interface{}, r interface{}) interface{} {
+				// There's a bool in the AfterUnknown so just return the
+				// references if true.
 				if l, ok := left.(bool); ok {
 					if l {
 						return r
@@ -421,6 +433,9 @@ func (plan *tfplan_Plan) resources() map[string]interface{} {
 					}
 				}
 
+				// There's an array/object of booleans, use interfacetricks
+				// to construct a tree of the same shape but containing
+				// the references rather than "true".
 				return interfacetricks.TopDownWalk(
 					&replaceBoolTopDownWalker{
 						replaceBool: func(b bool) interface{} {
