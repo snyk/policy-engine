@@ -98,21 +98,23 @@ func processSingleDenyPolicyResult(
 	results := []models.RuleResult{}
 	for _, r := range policyResults {
 		result := models.RuleResult{
-			Message:    r.Message,
-			ResourceId: resource.Id,
-			Severity:   metadata.Severity,
-		}
-		if len(r.Attribute) > 0 {
-			result.Resources = map[string]models.RuleResultResource{
-				resource.Id: {
+			Message:           r.Message,
+			ResourceId:        resource.Id,
+			ResourceNamespace: resource.Namespace,
+			Severity:          metadata.Severity,
+			Resources: newResourceResults().addRuleResultResource(
+				models.RuleResultResource{
+					Id:        resource.Id,
+					Namespace: resource.Namespace,
 					Attributes: []models.RuleResultResourceAttribute{
 						{
 							Path: r.Attribute,
 						},
 					},
 				},
-			}
+			).resources(),
 		}
+
 		results = append(results, result)
 	}
 	return results, nil

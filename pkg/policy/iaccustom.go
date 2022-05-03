@@ -26,6 +26,12 @@ func (p *IaCCustomPolicy) Eval(
 	}
 	logger = logger.WithField(logging.POLICY_TYPE, "iac_custom")
 	input := toIaCCustomInput(options.Input)
+	resourceNamespace := ""
+	if filepath, ok := options.Input.Meta["filepath"].(string); ok {
+		resourceNamespace = filepath
+	} else {
+		logger.Warn(ctx, "No filepath found in meta, using empty namespace")
+	}
 	opts := append(
 		options.RegoOptions,
 		rego.Query(p.judgementRule.query()),
@@ -48,12 +54,12 @@ func (p *IaCCustomPolicy) Eval(
 		logger.Error(ctx, "Failed to unmarshal result set")
 		return nil, err
 	}
-	return ir.toRuleResults(), nil
+	return ir.toRuleResults(resourceNamespace), nil
 }
 
 type iacResults []*iacResult
 
-func (r iacResults) toRuleResults() []models.RuleResults {
+func (r iacResults) toRuleResults(resourceNamespace string) []models.RuleResults {
 	resultsByRuleID := map[string]models.RuleResults{}
 	for _, ir := range r {
 		id := ir.PublicID
@@ -66,7 +72,7 @@ func (r iacResults) toRuleResults() []models.RuleResults {
 				References:  strings.Join(ir.References, "\n"), // TODO: How do we want to transform these?
 			}
 		}
-		ruleResults.Results = append(ruleResults.Results, *ir.toRuleResult())
+		ruleResults.Results = append(ruleResults.Results, *ir.toRuleResult(resourceNamespace))
 		resultsByRuleID[id] = ruleResults
 	}
 	output := make([]models.RuleResults, 0, len(resultsByRuleID))
@@ -87,8 +93,8 @@ type iacResult struct {
 	References  []string `json:"references"`
 }
 
-func (r *iacResult) toRuleResult() *models.RuleResult {
-	result := parseMsg(r.Msg)
+func (r *iacResult) toRuleResult(resourceNamespace string) *models.RuleResult {
+	result := parseMsg(r.Msg, resourceNamespace)
 	result.Passed = false
 	result.Remediation = r.Remediation
 	result.Severity = r.Severity
@@ -105,7 +111,7 @@ const (
 	inAttributePath
 )
 
-func parseMsg(msg string) *models.RuleResult {
+func parseMsg(msg string, resourceNamespace string) *models.RuleResult {
 	path := []interface{}{}
 	buf := []rune{}
 	var resourceID string
@@ -165,17 +171,21 @@ func parseMsg(msg string) *models.RuleResult {
 		ResourceType: resourceType,
 	}
 	if resourceID != "" {
-		resource := models.RuleResultResource{}
+		attrs := []models.RuleResultResourceAttribute{}
 		if len(path) > 0 {
-			resource.Attributes = []models.RuleResultResourceAttribute{
+			attrs = []models.RuleResultResourceAttribute{
 				{
 					Path: path,
 				},
 			}
 		}
-		result.Resources = map[string]models.RuleResultResource{
-			resourceID: resource,
-		}
+		result.Resources = newResourceResults().addRuleResultResource(
+			models.RuleResultResource{
+				Id:         resourceID,
+				Namespace:  resourceNamespace,
+				Attributes: attrs,
+			},
+		).resources()
 	}
 	return result
 }

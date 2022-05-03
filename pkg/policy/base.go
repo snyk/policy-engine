@@ -317,6 +317,7 @@ func unmarshalResultSet(resultSet rego.ResultSet, v interface{}) error {
 type policyResultResource struct {
 	ID           string `json:"id"`
 	ResourceType string `json:"_type"`
+	Namespace    string `json:"_namespace"`
 }
 
 // This struct represents the common return format for UPE policies.

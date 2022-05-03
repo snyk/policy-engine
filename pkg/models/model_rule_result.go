@@ -18,6 +18,8 @@ type RuleResult struct {
 	Message string `json:"message,omitempty"`
 	// The ID of the primary resource (if any) associated with this result
 	ResourceId string `json:"resource_id,omitempty"`
+	// The namespace of the primary resource (if any) associated with this result
+	ResourceNamespace string `json:"resource_namespace,omitempty"`
 	// The type of resource (if any) associated with this result. This will typically be used with \"missing resource\" rules.
 	ResourceType string `json:"resource_type,omitempty"`
 	// A Markdown-formatted set of remediation steps to resolve the issue identified by the rule
@@ -26,6 +28,6 @@ type RuleResult struct {
 	Severity string `json:"severity,omitempty"`
 	// An arbitrary key-value map that a rule can return in its result.
 	Context map[string]interface{} `json:"context,omitempty"`
-	// A map of resource ID to a resource object associated with this result.
-	Resources map[string]RuleResultResource `json:"resources,omitempty"`
+	// A resource objects associated with this result.
+	Resources []RuleResultResource `json:"resources,omitempty"`
 }

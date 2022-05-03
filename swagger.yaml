@@ -222,6 +222,9 @@ components:
         resource_id:
           type: string
           description: The ID of the primary resource (if any) associated with this result
+        resource_namespace:
+          type: string
+          description: The namespace of the primary resource (if any) associated with this result
         resource_type:
           type: string
           description: |
@@ -245,16 +248,22 @@ components:
           description: An arbitrary key-value map that a rule can return in its result.
           additionalProperties: {}
         resources:
-          type: object
+          type: array
           description: |
-            A map of resource ID to a resource object associated with this result.
-          additionalProperties:
+            A resource objects associated with this result.
+          items:
             $ref: '#/components/schemas/RuleResultResource'
     RuleResultResource:
       type: object
       description: |
         Identifying information for a resource and attributes associated with a rule result
       properties:
+        id:
+          description: The ID of this resource
+          type: string
+        namespace:
+          description: The namespace of this resource
+          type: string
         location:
           description: The location of the resource in the source code.
           $ref: '#/components/schemas/SourceLocationStack'

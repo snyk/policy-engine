@@ -26,7 +26,7 @@ swagger:
 		-o $(MODELS_DIR) \
 		--model-package models \
 		-D packageName=models
-	sed -i .bak \
+	sed -i.bak \
 		-e 's/Object/interface\{\}/g' \
 		-e 's/OneOfRuleResultResourceAttributePathItems/interface\{\}/g' \
 		-e 's/int32/int/g' \
