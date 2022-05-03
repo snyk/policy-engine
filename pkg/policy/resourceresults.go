@@ -8,20 +8,20 @@ import (
 // resources by namespace and ID and then merging the different pieces of
 // information we obtain.
 type resourceResults struct {
-	byNamespaceId map[[2]string]models.RuleResultResource
+	byNamespaceTypeId map[[3]string]models.RuleResultResource
 }
 
 func newResourceResults() *resourceResults {
 	return &resourceResults{
-		byNamespaceId: map[[2]string]models.RuleResultResource{},
+		byNamespaceTypeId: map[[3]string]models.RuleResultResource{},
 	}
 }
 
 func (results *resourceResults) addRuleResultResource(
 	result models.RuleResultResource,
 ) *resourceResults {
-	key := [2]string{result.Namespace, result.Id}
-	if existing, ok := results.byNamespaceId[key]; ok {
+	key := [3]string{result.Namespace, result.Type, result.Id}
+	if existing, ok := results.byNamespaceTypeId[key]; ok {
 		// TODO: Deduplicate using interfacetricks.Equal
 		for _, attr := range result.Attributes {
 			existing.Attributes = append(
@@ -32,14 +32,14 @@ func (results *resourceResults) addRuleResultResource(
 			)
 		}
 	} else {
-		results.byNamespaceId[key] = result
+		results.byNamespaceTypeId[key] = result
 	}
 	return results
 }
 
 func (results *resourceResults) resources() []models.RuleResultResource {
 	resources := []models.RuleResultResource{}
-	for _, resource := range results.byNamespaceId {
+	for _, resource := range results.byNamespaceTypeId {
 		resources = append(resources, resource)
 	}
 	return resources

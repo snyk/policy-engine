@@ -182,6 +182,7 @@ func parseMsg(msg string, resourceNamespace string) *models.RuleResult {
 		result.Resources = newResourceResults().addRuleResultResource(
 			models.RuleResultResource{
 				Id:         resourceID,
+				Type:       resourceType,
 				Namespace:  resourceNamespace,
 				Attributes: attrs,
 			},

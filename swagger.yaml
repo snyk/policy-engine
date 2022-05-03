@@ -261,6 +261,9 @@ components:
         id:
           description: The ID of this resource
           type: string
+        type:
+          description: The type of this resource
+          type: string
         namespace:
           description: The namespace of this resource
           type: string

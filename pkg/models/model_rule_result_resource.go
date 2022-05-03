@@ -12,6 +12,8 @@ package models
 type RuleResultResource struct {
 	// The ID of this resource
 	Id string `json:"id,omitempty"`
+	// The type of this resource
+	Type string `json:"type,omitempty"`
 	// The namespace of this resource
 	Namespace string            `json:"namespace,omitempty"`
 	Location  *[]SourceLocation `json:"location,omitempty"`

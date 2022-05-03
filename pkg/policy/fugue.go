@@ -93,7 +93,7 @@ func processFugueDenyString(
 func processFuguePolicyResultSet(
 	resultSet rego.ResultSet,
 	metadata Metadata,
-	_ map[string]map[string]models.RuleResultResource,
+	_ map[string]*resourceResults,
 ) ([]models.RuleResult, error) {
 	policyResults := []policyResult{}
 	if err := unmarshalResultSet(resultSet, &policyResults); err != nil {

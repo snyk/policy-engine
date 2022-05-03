@@ -13,7 +13,7 @@ import (
 type ProcessMultiResultSet func(
 	resultSet rego.ResultSet,
 	metadata Metadata,
-	resources map[string]map[string]models.RuleResultResource,
+	resources map[string]*resourceResults,
 ) ([]models.RuleResult, error)
 
 // MultiResourcePolicy represents a policy that takes multiple resources as input.
@@ -86,7 +86,7 @@ func (p *MultiResourcePolicy) Eval(
 func processMultiDenyPolicyResult(
 	resultSet rego.ResultSet,
 	metadata Metadata,
-	resources map[string]map[string]models.RuleResultResource,
+	resources map[string]*resourceResults,
 ) ([]models.RuleResult, error) {
 	policyResults := []policyResult{}
 	if err := unmarshalResultSet(resultSet, &policyResults); err != nil {
@@ -103,19 +103,27 @@ func processMultiDenyPolicyResult(
 		}
 		if result.Resource != nil {
 			ruleResult.ResourceId = result.Resource.ID
-			if ruleResultResources, ok := resources[ruleResult.ResourceId]; ok {
-				ruleResult.Resources = ruleResultResources
-			} else if len(result.Attribute) > 0 {
-				ruleResult.Resources = map[string]models.RuleResultResource{
-					result.Resource.ID: {
-						Attributes: []models.RuleResultResourceAttribute{
-							{
-								Path: result.Attribute,
-							},
-						},
-					},
-				}
+			ruleResult.ResourceNamespace = result.Resource.Namespace
+
+			resource := models.RuleResultResource{
+				Id:        result.Resource.ID,
+				Type:      result.Resource.ResourceType,
+				Namespace: result.Resource.Namespace,
 			}
+			for _, attr := range result.Attributes {
+				resource.Attributes = append(resource.Attributes, models.RuleResultResourceAttribute{
+					Path: attr,
+				})
+			}
+
+			var rr *resourceResults
+			rr, ok := resources[ruleResult.ResourceId]
+			if !ok {
+				rr = newResourceResults()
+			}
+			rr.addRuleResultResource(resource)
+
+			ruleResult.Resources = rr.resources()
 			deniedResourceIDs[result.Resource.ID] = true
 		}
 		results = append(results, ruleResult)
@@ -128,7 +136,7 @@ func processMultiDenyPolicyResult(
 			Passed:     true,
 			ResourceId: resourceID,
 			Severity:   metadata.Severity,
-			Resources:  relatedResources,
+			Resources:  relatedResources.resources(),
 		})
 	}
 	return results, nil

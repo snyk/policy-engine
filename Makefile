@@ -31,6 +31,7 @@ swagger:
 		-e 's/OneOfRuleResultResourceAttributePathItems/interface\{\}/g' \
 		-e 's/int32/int/g' \
 		-e 's/\*State /State /g' \
+		-e 's/Type_ /Type /g' \
 		$(MODELS_DIR)/*.go
 	rm -rf \
 		$(MODELS_DIR)/*.bak \

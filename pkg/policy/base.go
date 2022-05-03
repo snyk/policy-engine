@@ -253,8 +253,8 @@ func (p *BasePolicy) ID(
 func (p *BasePolicy) resources(
 	ctx context.Context,
 	options []func(*rego.Rego),
-) (map[string]map[string]models.RuleResultResource, error) {
-	r := map[string]map[string]models.RuleResultResource{}
+) (map[string]*resourceResults, error) {
+	r := map[string]*resourceResults{} // By correlation
 	if p.resourcesRule.name == "" {
 		return r, nil
 	}
@@ -289,11 +289,14 @@ func (p *BasePolicy) resources(
 			})
 		}
 		if _, ok := r[correlation]; !ok {
-			r[correlation] = map[string]models.RuleResultResource{}
+			r[correlation] = newResourceResults()
 		}
-		r[correlation][result.Resource.ID] = models.RuleResultResource{
+		r[correlation].addRuleResultResource(models.RuleResultResource{
+			Id:         result.Resource.ID,
+			Type:       result.Resource.ResourceType,
+			Namespace:  result.Resource.Namespace,
 			Attributes: attributes,
-		}
+		})
 	}
 	return r, nil
 }
@@ -327,7 +330,7 @@ type policyResult struct {
 	ResourceType string                `json:"resource_type"`
 	Remediation  string                `json:"remediation"`
 	Severity     string                `json:"severity"`
-	Attribute    []interface{}         `json:"attribute_path"`
+	Attributes   [][]interface{}       `json:"attributes"`
 
 	// Backwards compatibility
 	FugueValid        bool   `json:"valid"`

@@ -33,6 +33,7 @@ var builtinDeclarations = map[string]*types.Function{
 					[]*types.StaticProperty{
 						types.NewStaticProperty("id", types.S),
 						types.NewStaticProperty("_type", types.S),
+						types.NewStaticProperty("_namespace", types.S),
 					},
 					types.NewDynamicProperty(types.S, types.A),
 				),

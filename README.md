@@ -179,15 +179,15 @@ simple rules and gradually adding concepts.
 
 #### Advanced rules part 1
 
-[examples/02-advanced.rego](examples/03-advanced.rego)
+[examples/03-advanced.rego](examples/03-advanced.rego)
 
 #### Advanced rules part 2: Adding compliant resource info
 
-[examples/03-advanced.rego](examples/04-advanced.rego)
+[examples/04-advanced.rego](examples/04-advanced.rego)
 
 #### Advanced rules part 3: Correlating resources
 
-[examples/04-advanced.rego](examples/05-advanced.rego)
+[examples/05-advanced.rego](examples/05-advanced.rego)
 
 #### Advanced rules part 4: Returning attributes
 
@@ -247,7 +247,9 @@ Then the `from_port` path would be `["ingress", 0, "from_port"]`.
     that have at least the following fields:
      *  `id`: A string identifier for the object
      *  `_type`: The type of the object, which matches the `resource_type`
-        passed in to `snyk.resources`.
+        passed in to `snyk.resources`
+     *  `_namespace`: Together with the `id` and `_type`, this forms a unique
+        identifier for the resource
 
 ## Testing rules
 
