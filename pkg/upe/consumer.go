@@ -1,10 +1,12 @@
 package upe
 
 import (
+	"context"
 	"path/filepath"
 	"strings"
 
 	"github.com/open-policy-agent/opa/ast"
+	"github.com/snyk/unified-policy-engine/pkg/logging"
 	"github.com/snyk/unified-policy-engine/pkg/policy"
 )
 
@@ -19,21 +21,35 @@ type PolicyConsumer struct {
 	Policies  []policy.Policy
 	Modules   map[string]*ast.Module
 	Documents map[string]interface{}
+	logger    logging.Logger
 }
 
-func NewPolicyConsumer() *PolicyConsumer {
+func NewPolicyConsumer(logger logging.Logger) *PolicyConsumer {
 	return &PolicyConsumer{
 		Modules:   map[string]*ast.Module{},
 		Documents: map[string]interface{}{},
+		logger:    logger,
 	}
 }
 
-func (c *PolicyConsumer) Module(path string, module *ast.Module) error {
+func (c *PolicyConsumer) Module(
+	ctx context.Context,
+	path string,
+	module *ast.Module,
+) error {
 	c.Modules[path] = module
 	if module.Package.Path.HasPrefix(rulesPrefix) {
 		p, err := policy.PolicyFactory(module)
 		if err != nil {
-			return err
+			c.logger.
+				WithField(logging.PATH, path).
+				WithField(logging.ERROR, err.Error()).
+				Warn(ctx, "Error while parsing policy. It will still be loaded and accessible via data.")
+			return nil
+		} else if p == nil {
+			c.logger.
+				WithField(logging.PATH, path).
+				Debug(ctx, "Module did not contain a policy. It will still be loaded and accessible via data.")
 		} else {
 			c.Policies = append(c.Policies, p)
 		}
@@ -42,7 +58,11 @@ func (c *PolicyConsumer) Module(path string, module *ast.Module) error {
 	return nil
 }
 
-func (c *PolicyConsumer) DataDocument(path string, document map[string]interface{}) error {
+func (c *PolicyConsumer) DataDocument(
+	_ context.Context,
+	path string,
+	document map[string]interface{},
+) error {
 	prefix := dataDocumentPrefix(path)
 	for i := len(prefix) - 1; i >= 0; i-- {
 		document = map[string]interface{}{

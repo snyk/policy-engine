@@ -8,6 +8,7 @@ import (
 
 	"github.com/open-policy-agent/opa/ast"
 	"github.com/open-policy-agent/opa/rego"
+	"github.com/snyk/unified-policy-engine/pkg/logging"
 	"github.com/snyk/unified-policy-engine/pkg/models"
 )
 
@@ -32,6 +33,7 @@ const defaultInputType = "tf"
 type EvalOptions struct {
 	RegoOptions []func(*rego.Rego)
 	Input       *models.State
+	Logger      logging.Logger
 }
 
 // Policy is an interface that supports all of the ways we want to interact
@@ -146,10 +148,7 @@ func NewBasePolicy(module *ast.Module) (*BasePolicy, error) {
 		}
 	}
 	if judgement.name == "" {
-		return nil, fmt.Errorf(
-			"Policy %s did not contain any judgement rules.",
-			module.Package.Path.String(),
-		)
+		return nil, nil
 	}
 	return &BasePolicy{
 		module:           module,

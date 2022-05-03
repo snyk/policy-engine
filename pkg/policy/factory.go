@@ -11,6 +11,9 @@ func PolicyFactory(module *ast.Module) (Policy, error) {
 	if err != nil {
 		return nil, err
 	}
+	if base == nil {
+		return nil, nil
+	}
 	if base.resourceType() == multipleResourceType {
 		switch base.judgementRule.name {
 		case "deny":

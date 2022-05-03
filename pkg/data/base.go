@@ -7,8 +7,8 @@ import (
 )
 
 type Consumer interface {
-	Module(path string, module *ast.Module) error
-	DataDocument(path string, document map[string]interface{}) error
+	Module(ctx context.Context, path string, module *ast.Module) error
+	DataDocument(ctx context.Context, path string, document map[string]interface{}) error
 }
 
 type Provider func(context.Context, Consumer) error
