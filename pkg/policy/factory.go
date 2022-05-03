@@ -2,17 +2,17 @@ package policy
 
 import (
 	"fmt"
-
-	"github.com/open-policy-agent/opa/ast"
 )
 
-func PolicyFactory(module *ast.Module) (Policy, error) {
-	base, err := NewBasePolicy(module)
+func PolicyFactory(moduleSet ModuleSet) (Policy, error) {
+	base, err := NewBasePolicy(moduleSet)
 	if err != nil {
 		return nil, err
-	}
-	if base == nil {
+	} else if base == nil {
 		return nil, nil
+	}
+	if base.Package() == "data.rules" {
+		return &IaCCustomPolicy{BasePolicy: base}, nil
 	}
 	if base.resourceType() == multipleResourceType {
 		switch base.judgementRule.name {
