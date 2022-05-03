@@ -1,5 +1,6 @@
 package snyk
 
 resources(resource_type) = ret {
-  ret = __resources_by_type(resource_type)
+  obj := __resources_by_type(resource_type)
+  ret := [resource | resource := obj[_]]
 }

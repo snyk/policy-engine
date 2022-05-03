@@ -243,7 +243,11 @@ Then the `from_port` path would be `["ingress", 0, "from_port"]`.
 #### snyk API
 
  -  `snyk.resources(resource_type)`:
-    Returns a object of resource IDs to resources of the requested type.
+    Returns an array of resources of the requested type.  Resources are objects
+    that have at least the following fields:
+     *  `id`: A string identifier for the object
+     *  `_type`: The type of the object, which matches the `resource_type`
+        passed in to `snyk.resources`.
 
 ## Testing rules
 
