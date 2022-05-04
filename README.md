@@ -301,10 +301,9 @@ rules are evaluated:
   * This means, for example, that `snyk.resources(<resource type>)` will work as
     expected
 * The `input` document is set to the entire `State` object.
-  * You should primarily use the `snyk.resources()` function to access the
-    input in rules. But, we do set the `input` document this way when we're executing
-    multi-resource rules.
-
+  * This can be useful for inspecting the input from within the REPL, but rule code must
+    use functions from the snyk API like snyk.resources() to access the input, to ensure
+    compatibility with the production (non-repl) engine.
 
 ##### Examples
 
