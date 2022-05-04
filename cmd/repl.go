@@ -13,13 +13,8 @@ import (
 	"github.com/open-policy-agent/opa/storage/inmem"
 	"github.com/snyk/unified-policy-engine/pkg/data"
 	"github.com/snyk/unified-policy-engine/pkg/loader"
-	"github.com/snyk/unified-policy-engine/pkg/policy"
 	"github.com/snyk/unified-policy-engine/pkg/upe"
 	"github.com/spf13/cobra"
-)
-
-var (
-	replCmdCloud *bool
 )
 
 var replCmd = &cobra.Command{
@@ -31,26 +26,21 @@ var replCmd = &cobra.Command{
 		if len(args) > 1 {
 			check(fmt.Errorf("Expected at most 1 input"))
 		} else if len(args) == 1 {
-			inputType := loader.Auto
-			if *runCmdCloud {
-				inputType = loader.TfRuntime
-			}
 			configLoader := loader.LocalConfigurationLoader(loader.LoadPathsOptions{
-				Paths:       args,
-				InputTypes:  []loader.InputType{inputType},
+				Paths: args,
+				InputTypes: []loader.InputType{
+					loader.Auto,
+					loader.TfRuntime,
+				},
 				NoGitIgnore: false,
 				IgnoreDirs:  false,
 			})
 			loadedConfigs, err := configLoader()
 			check(err)
 			states := loadedConfigs.ToStates()
-			builtins := policy.NewBuiltins(&states[0])
-			builtins.GlobalRegister()
-			policy.RegoAPIProvider(ctx, consumer)
 			consumer.DataDocument(ctx, "repl/input/state.json", jsonMarshalUnmarshal(&states[0]))
-		} else {
-			data.PureRegoProvider()(ctx, consumer)
 		}
+		data.PureRegoProvider()(ctx, consumer)
 		for _, path := range rootCmdRegoPaths {
 			if isTgz(path) {
 				f, err := os.Open(path)
@@ -87,10 +77,6 @@ var replCmd = &cobra.Command{
 		r.OneShot(ctx, "strict-builtin-errors")
 		r.Loop(ctx)
 	},
-}
-
-func init() {
-	replCmdCloud = replCmd.PersistentFlags().Bool("cloud", false, "Causes inputs to be interpreted as runtime state from Snyk Cloud.")
 }
 
 func jsonMarshalUnmarshal(v interface{}) map[string]interface{} {
