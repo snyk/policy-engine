@@ -4,8 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"io"
-	"net/http"
 	"os"
 
 	"github.com/snyk/unified-policy-engine/pkg/data"
@@ -21,7 +19,7 @@ var (
 )
 
 var runCmd = &cobra.Command{
-	Use:   "run [-d <rules/metadata>...] run [-r <rule ID>...] <input> [input...]",
+	Use:   "run [-d <rules/metadata>...] [-r <rule ID>...] <input> [input...]",
 	Short: "Unified Policy Engine",
 	Run: func(cmd *cobra.Command, args []string) {
 		logger := cmdLogger()
@@ -79,30 +77,4 @@ var runCmd = &cobra.Command{
 func init() {
 	runCmdCloud = runCmd.PersistentFlags().Bool("cloud", false, "Causes inputs to be interpreted as runtime state from Snyk Cloud.")
 	runCmd.PersistentFlags().StringSliceVarP(&runCmdRules, "rule", "r", runCmdRules, "Select specific rules")
-}
-
-func peek(r io.ReadSeeker, n int) []byte {
-	buf := make([]byte, n)
-	_, err := r.Read(buf)
-	check(err)
-	r.Seek(0, io.SeekStart)
-	return buf
-}
-
-func mimeType(path string) string {
-	f, err := os.Open(path)
-	check(err)
-	defer f.Close()
-	buf := peek(f, 512)
-	return http.DetectContentType(buf)
-}
-
-func isTgz(path string) bool {
-	info, err := os.Stat(path)
-	check(err)
-	if info.IsDir() {
-		return false
-	}
-	m := mimeType(path)
-	return m == "application/x-gzip" || m == "application/gzip"
 }

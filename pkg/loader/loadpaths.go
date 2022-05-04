@@ -323,14 +323,16 @@ func DetectorByInputTypes(inputTypes []InputType) (ConfigurationDetector, error)
 	} else if len(inputTypes) == 1 {
 		return detectorByInputType(inputTypes[0])
 	}
-
+	inputTypesSet := map[InputType]bool{}
+	for _, i := range inputTypes {
+		inputTypesSet[i] = true
+	}
+	if inputTypesSet[Auto] && !inputTypesSet[TfRuntime] {
+		// Auto includes all other detector types besides TfRuntime
+		return detectorByInputType(Auto)
+	}
 	detectors := []ConfigurationDetector{}
 	for _, inputType := range inputTypes {
-		if inputType == Auto {
-			// Auto includes all other detector types
-			return detectorByInputType(inputType)
-		}
-
 		detector, err := detectorByInputType(inputType)
 		if err != nil {
 			return nil, err
