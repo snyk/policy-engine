@@ -1,6 +1,7 @@
 package policy
 
 import (
+	"github.com/snyk/unified-policy-engine/pkg/interfacetricks"
 	"github.com/snyk/unified-policy-engine/pkg/models"
 )
 
@@ -22,14 +23,23 @@ func (results *resourceResults) addRuleResultResource(
 ) *resourceResults {
 	key := [3]string{result.Namespace, result.Type, result.Id}
 	if existing, ok := results.byNamespaceTypeId[key]; ok {
-		// TODO: Deduplicate using interfacetricks.Equal
 		for _, attr := range result.Attributes {
-			existing.Attributes = append(
-				existing.Attributes,
-				models.RuleResultResourceAttribute{
-					Path: attr.Path,
-				},
-			)
+			// Check if this path is already present
+			present := false
+			for _, e := range existing.Attributes {
+				if interfacetricks.Equal(e.Path, attr.Path) {
+					present = true
+				}
+			}
+
+			if !present {
+				existing.Attributes = append(
+					existing.Attributes,
+					models.RuleResultResourceAttribute{
+						Path: attr.Path,
+					},
+				)
+			}
 		}
 	} else {
 		results.byNamespaceTypeId[key] = result
