@@ -1,0 +1,22 @@
+{
+  "content": {
+    "aws_s3_bucket.example": {
+      "_type": "aws_s3_bucket",
+      "acl": "private",
+      "bucket_prefix": "example",
+      "cors_rule": [],
+      "force_destroy": false,
+      "grant": [],
+      "id": "aws_s3_bucket.example",
+      "lifecycle_rule": [],
+      "logging": [],
+      "object_lock_configuration": [],
+      "policy": null,
+      "replication_configuration": [],
+      "server_side_encryption_configuration": [],
+      "tags": null,
+      "website": []
+    }
+  },
+  "filepath": "golden_test/tfplan/example-04/plan.json"
+}
