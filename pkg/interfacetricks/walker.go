@@ -1,26 +1,26 @@
-package loader
+package interfacetricks
 
 // This is a utility for recursively transforming JSON-like interface values in
 // go.
 //
 // At every step, the transformer returns the new value as well as an indication
 // of whether or not we should continue.
-type topDownInterfaceWalker interface {
-	walkObject(map[string]interface{}) (interface{}, bool)
-	walkArray([]interface{}) (interface{}, bool)
+type TopDownWalker interface {
+	WalkArray([]interface{}) (interface{}, bool)
+	WalkObject(map[string]interface{}) (interface{}, bool)
 }
 
-func topDownWalkInterface(w topDownInterfaceWalker, value interface{}) interface{} {
+func TopDownWalk(w TopDownWalker, value interface{}) interface{} {
 	switch v := value.(type) {
 	case map[string]interface{}:
-		updated, cont := w.walkObject(v)
+		updated, cont := w.WalkObject(v)
 		if cont {
 			return topDownWalkChildren(w, updated)
 		} else {
 			return updated
 		}
 	case []interface{}:
-		updated, cont := w.walkArray(v)
+		updated, cont := w.WalkArray(v)
 		if cont {
 			return topDownWalkChildren(w, updated)
 		} else {
@@ -31,16 +31,16 @@ func topDownWalkInterface(w topDownInterfaceWalker, value interface{}) interface
 	}
 }
 
-func topDownWalkChildren(w topDownInterfaceWalker, value interface{}) interface{} {
+func topDownWalkChildren(w TopDownWalker, value interface{}) interface{} {
 	switch v := value.(type) {
 	case map[string]interface{}:
 		for k, c := range v {
-			v[k] = topDownWalkInterface(w, c)
+			v[k] = TopDownWalk(w, c)
 		}
 		return v
 	case []interface{}:
 		for i, c := range v {
-			v[i] = topDownWalkInterface(w, c)
+			v[i] = TopDownWalk(w, c)
 		}
 		return v
 	default:

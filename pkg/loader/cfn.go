@@ -20,6 +20,7 @@ import (
 	"regexp"
 	"strings"
 
+	"github.com/snyk/unified-policy-engine/pkg/interfacetricks"
 	"github.com/snyk/unified-policy-engine/pkg/models"
 	"gopkg.in/yaml.v3"
 )
@@ -117,7 +118,7 @@ func (tmpl *cfnTemplate) resources() map[string]interface{} {
 	for resourceId, resource := range tmpl.Resources {
 		object := map[string]interface{}{}
 		for k, attribute := range resource.Properties.Contents {
-			object[k] = topDownWalkInterface(&resolver, attribute)
+			object[k] = interfacetricks.TopDownWalk(&resolver, attribute)
 			object["id"] = resourceId
 			object["_type"] = resource.Type
 		}
@@ -322,18 +323,18 @@ func decodeNode(node *yaml.Node) (interface{}, error) {
 	}
 }
 
-// A topDownInterfaceWalker implementation that resolves references.  This is
-// ported from Regula but can probably be improved now that we are doing things
-// in Go.
+// An interfacetricks.TopDownInterfaceWalker implementation that resolves
+// references.  This is ported from Regula but can probably be improved now that
+// we are doing things in Go.
 type cfnReferenceResolver struct {
 	parameters map[string]interface{}
 }
 
-func (*cfnReferenceResolver) walkArray(arr []interface{}) (interface{}, bool) {
+func (*cfnReferenceResolver) WalkArray(arr []interface{}) (interface{}, bool) {
 	return arr, true
 }
 
-func (resolver *cfnReferenceResolver) walkObject(obj map[string]interface{}) (interface{}, bool) {
+func (resolver *cfnReferenceResolver) WalkObject(obj map[string]interface{}) (interface{}, bool) {
 	// For consistency with the original Rego code, return a single reference
 	// if possible, an array otherwise.  This is something that we'll likely
 	// want to revisit.
