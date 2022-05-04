@@ -20,8 +20,11 @@ var fixtureCmd = &cobra.Command{
 	Short: "Generate test fixture",
 	RunE: func(cmd *cobra.Command, args []string) error {
 		configLoader := loader.LocalConfigurationLoader(loader.LoadPathsOptions{
-			Paths:       args,
-			InputTypes:  []loader.InputType{loader.Auto},
+			Paths: args,
+			InputTypes: []loader.InputType{
+				loader.Auto,
+				loader.TfRuntime,
+			},
 			NoGitIgnore: false,
 			IgnoreDirs:  false,
 		})
