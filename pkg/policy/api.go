@@ -163,9 +163,3 @@ func (b *Builtins) ResourceTypes() []string {
 	}
 	return rts
 }
-
-func (b *Builtins) GlobalRegister() {
-	for _, f := range b.funcs {
-		rego.RegisterBuiltinDyn(f.decl(), f.impl)
-	}
-}
