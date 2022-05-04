@@ -20,6 +20,6 @@ type ResourceState struct {
 	Tags map[string]string `json:"tags,omitempty"`
 	// This object is intended to hold any input type-specific or  environment-specific fields, e.g. provider, region, or source location.
 	Meta map[string]interface{} `json:"meta,omitempty"`
-	// A map of resource attributes. The only required entries are:   * id: An identifier for the resource. This can be a natural ID. It is         assumed that this ID is unique within the namespace.   * _type: The type of the resource.
+	// A map of resource attributes.
 	Attributes map[string]interface{} `json:"attributes"`
 }

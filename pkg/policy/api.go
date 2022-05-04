@@ -89,19 +89,36 @@ func (r *resourcesByType) rego() func(*rego.Rego) {
 			return nil, err
 		}
 		rt := string(arg)
-		ret := map[string]map[string]interface{}{}
+		ret := [][2]*ast.Term{}
 		if resources, ok := r.input.Resources[rt]; ok {
 			for resourceKey, resource := range resources {
-				ret[resourceKey] = resource.Attributes
+				state, err := ast.InterfaceToValue(resourceStateToRegoInput(resource))
+				if err != nil {
+					return nil, err
+				}
+				ret = append(
+					ret,
+					[2]*ast.Term{
+						ast.StringTerm(resourceKey),
+						ast.NewTerm(state),
+					},
+				)
 			}
 		}
-		val, err := ast.InterfaceToValue(ret)
-		if err != nil {
-			return nil, err
-		}
 		r.calledWith[rt] = true
-		return ast.NewTerm(val), nil
+		return ast.ObjectTerm(ret...), nil
 	})
+}
+
+func resourceStateToRegoInput(resource models.ResourceState) map[string]interface{} {
+	obj := map[string]interface{}{}
+	for k, attr := range resource.Attributes {
+		obj[k] = attr
+	}
+	obj["id"] = resource.Id
+	obj["_type"] = resource.ResourceType
+	obj["_namespace"] = resource.Namespace
+	return obj
 }
 
 type currentInputType struct {

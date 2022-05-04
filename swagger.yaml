@@ -108,14 +108,8 @@ components:
         attributes:
           type: object
           description: |
-            A map of resource attributes. The only required entries are:
-              * id: An identifier for the resource. This can be a natural ID. It is
-                    assumed that this ID is unique within the namespace.
-              * _type: The type of the resource.
+            A map of resource attributes.
           additionalProperties: {}
-          required:
-            - id
-            - _type
     Results:
       description: |
         This is the top-level output from the Unified Policy Engine.

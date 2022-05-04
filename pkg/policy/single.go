@@ -64,7 +64,8 @@ func (p *SingleResourcePolicy) Eval(
 	if resources, ok := options.Input.Resources[rt]; ok {
 		for _, resource := range resources {
 			logger := logger.WithField(logging.RESOURCE_ID, resource.Id)
-			resultSet, err := query.Eval(ctx, rego.EvalInput(resource.Attributes))
+			inputDoc := resourceStateToRegoInput(resource)
+			resultSet, err := query.Eval(ctx, rego.EvalInput(inputDoc))
 			if err != nil {
 				logger.Error(ctx, "Failed to evaluate resource")
 				output.Errors = append(output.Errors, err.Error())
