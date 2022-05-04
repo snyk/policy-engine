@@ -76,7 +76,6 @@ func (l *tfPlan) Location(attributePath []string) (LocationStack, error) {
 }
 
 func (l *tfPlan) ToState() models.State {
-	// TODO: This isn't implemented yet. Need to port resource view logic to Go.
 	return toState("tf_plan", l.path, l.plan.resources())
 }
 
