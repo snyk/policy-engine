@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"strings"
 
 	"github.com/open-policy-agent/opa/ast"
 	"github.com/open-policy-agent/opa/rego"
@@ -278,10 +279,7 @@ func (p *BasePolicy) resources(
 		if result.Resource == nil || result.Resource.ID == "" {
 			continue
 		}
-		correlation := result.Correlation
-		if correlation == "" {
-			correlation = result.Resource.ID
-		}
+		correlation := result.GetCorrelation()
 		var attributes []models.RuleResultResourceAttribute
 		for _, attr := range result.Attributes {
 			attributes = append(attributes, models.RuleResultResourceAttribute{
@@ -331,6 +329,7 @@ type policyResult struct {
 	Remediation  string                `json:"remediation"`
 	Severity     string                `json:"severity"`
 	Attributes   [][]interface{}       `json:"attributes"`
+	Correlation  string                `json:"correlation"`
 
 	// Backwards compatibility
 	FugueValid        bool   `json:"valid"`
@@ -339,7 +338,68 @@ type policyResult struct {
 }
 
 type resourcesResult struct {
-	Resource    *policyResultResource `json:"resource"`
-	Attributes  [][]interface{}       `json:"attributes"`
-	Correlation string                `json:"correlation"`
+	Resource        *policyResultResource `json:"resource"`
+	PrimaryResource *policyResultResource `json:"primary_resource"`
+	Attributes      [][]interface{}       `json:"attributes"`
+	Correlation     string                `json:"correlation"`
+}
+
+// Helper for unique resource identifiers, meant to be used as key in a `map`.
+type ResourceKey struct {
+	Namespace string
+	Type      string
+	ID        string
+}
+
+func RuleResultResourceKey(r models.RuleResultResource) ResourceKey {
+	return ResourceKey{
+		Namespace: r.Namespace,
+		Type:      r.Type,
+		ID:        r.Id,
+	}
+}
+
+func (result policyResult) GetCorrelation() string {
+	if result.Correlation != "" {
+		return result.Correlation
+	} else if result.Resource != nil {
+		return result.Resource.Correlation()
+	} else {
+		return ""
+	}
+}
+
+func (k ResourceKey) Correlation() string {
+	escape := func(s string) string {
+		return strings.ReplaceAll(s, "$", "$$")
+	}
+	return fmt.Sprintf("%s$%s$%s", escape(k.Namespace), escape(k.Type), escape(k.ID))
+}
+
+func (resource *policyResultResource) Key() ResourceKey {
+	// NOTE: Why is 'ResourceType' a seperate thing from 'policyResultResource'?
+	// The idea is that the latter represents all the data that can be
+	// returned from Rego rules (and this can be extended in the future),
+	// whereas the former is just a way to uniquely identify resources.
+	return ResourceKey{
+		Namespace: resource.Namespace,
+		Type:      resource.ResourceType,
+		ID:        resource.ID,
+	}
+}
+
+func (resource *policyResultResource) Correlation() string {
+	return resource.Key().Correlation()
+}
+
+func (result resourcesResult) GetCorrelation() string {
+	if result.Correlation != "" {
+		return result.Correlation
+	} else if result.PrimaryResource != nil {
+		return result.PrimaryResource.Correlation()
+	} else if result.Resource != nil {
+		return result.Resource.Correlation()
+	} else {
+		return ""
+	}
 }

@@ -9,20 +9,24 @@ import (
 // resources by namespace and ID and then merging the different pieces of
 // information we obtain.
 type resourceResults struct {
-	byNamespaceTypeId map[[3]string]models.RuleResultResource
+	byKey map[ResourceKey]models.RuleResultResource
 }
 
 func newResourceResults() *resourceResults {
 	return &resourceResults{
-		byNamespaceTypeId: map[[3]string]models.RuleResultResource{},
+		byKey: map[ResourceKey]models.RuleResultResource{},
 	}
 }
 
 func (results *resourceResults) addRuleResultResource(
 	result models.RuleResultResource,
 ) *resourceResults {
-	key := [3]string{result.Namespace, result.Type, result.Id}
-	if existing, ok := results.byNamespaceTypeId[key]; ok {
+	key := ResourceKey{
+		Namespace: result.Namespace,
+		Type:      result.Type,
+		ID:        result.Id,
+	}
+	if existing, ok := results.byKey[key]; ok {
 		for _, attr := range result.Attributes {
 			// Check if this path is already present
 			present := false
@@ -42,14 +46,14 @@ func (results *resourceResults) addRuleResultResource(
 			}
 		}
 	} else {
-		results.byNamespaceTypeId[key] = result
+		results.byKey[key] = result
 	}
 	return results
 }
 
 func (results *resourceResults) resources() []models.RuleResultResource {
 	resources := []models.RuleResultResource{}
-	for _, resource := range results.byNamespaceTypeId {
+	for _, resource := range results.byKey {
 		resources = append(resources, resource)
 	}
 	return resources

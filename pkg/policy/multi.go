@@ -93,7 +93,7 @@ func processMultiDenyPolicyResult(
 		return nil, err
 	}
 	results := []models.RuleResult{}
-	deniedResourceIDs := map[string]bool{}
+	deniedCorrelations := map[string]bool{}
 	for _, result := range policyResults {
 		ruleResult := models.RuleResult{
 			Passed:       false,
@@ -104,6 +104,7 @@ func processMultiDenyPolicyResult(
 		if result.Resource != nil {
 			ruleResult.ResourceId = result.Resource.ID
 			ruleResult.ResourceNamespace = result.Resource.Namespace
+			ruleResult.ResourceType = result.Resource.ResourceType
 
 			resource := models.RuleResultResource{
 				Id:        result.Resource.ID,
@@ -117,27 +118,36 @@ func processMultiDenyPolicyResult(
 			}
 
 			var rr *resourceResults
-			rr, ok := resources[ruleResult.ResourceId]
+			rr, ok := resources[result.GetCorrelation()]
 			if !ok {
 				rr = newResourceResults()
 			}
 			rr.addRuleResultResource(resource)
 
 			ruleResult.Resources = rr.resources()
-			deniedResourceIDs[result.Resource.ID] = true
+			deniedCorrelations[result.GetCorrelation()] = true
 		}
 		results = append(results, ruleResult)
 	}
-	for resourceID, relatedResources := range resources {
-		if deniedResourceIDs[resourceID] {
+	for correlation, relatedResources := range resources {
+		if deniedCorrelations[correlation] {
 			continue
 		}
-		results = append(results, models.RuleResult{
-			Passed:     true,
-			ResourceId: resourceID,
-			Severity:   metadata.Severity,
-			Resources:  relatedResources.resources(),
-		})
+		ruleResultResources := relatedResources.resources()
+		ruleResult := models.RuleResult{
+			Passed:    true,
+			Severity:  metadata.Severity,
+			Resources: ruleResultResources,
+		}
+		for _, resource := range ruleResultResources {
+			if RuleResultResourceKey(resource).Correlation() == correlation {
+				ruleResult.ResourceId = resource.Id
+				ruleResult.ResourceNamespace = resource.Namespace
+				ruleResult.ResourceType = resource.Type
+			}
+		}
+
+		results = append(results, ruleResult)
 	}
 	return results, nil
 }
