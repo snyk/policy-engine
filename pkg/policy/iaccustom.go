@@ -166,29 +166,20 @@ func parseMsg(msg string, resourceNamespace string) *models.RuleResult {
 		}
 	}
 	consumeBuf()
-	result := &models.RuleResult{
-		ResourceId:   resourceID,
-		ResourceType: resourceType,
+	builder := newRuleResultBuilder()
+	key := ResourceKey{
+		ID:        resourceID,
+		Type:      resourceType,
+		Namespace: resourceNamespace,
 	}
+	builder.setPrimaryResource(key)
 	if resourceID != "" {
-		attrs := []models.RuleResultResourceAttribute{}
 		if len(path) > 0 {
-			attrs = []models.RuleResultResourceAttribute{
-				{
-					Path: path,
-				},
-			}
+			builder.addResourceAttribute(key, path)
 		}
-		result.Resources = newResourceResults().addRuleResultResource(
-			models.RuleResultResource{
-				Id:         resourceID,
-				Type:       resourceType,
-				Namespace:  resourceNamespace,
-				Attributes: attrs,
-			},
-		).resources()
 	}
-	return result
+	result := builder.toRuleResult()
+	return &result
 }
 
 func toIaCCustomInput(state *models.State) map[string]map[string]map[string]interface{} {

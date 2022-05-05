@@ -13,7 +13,7 @@ import (
 type ProcessMultiResultSet func(
 	resultSet rego.ResultSet,
 	metadata Metadata,
-	resources map[string]*resourceResults,
+	resources map[string]*ruleResultBuilder,
 ) ([]models.RuleResult, error)
 
 // MultiResourcePolicy represents a policy that takes multiple resources as input.
@@ -86,68 +86,47 @@ func (p *MultiResourcePolicy) Eval(
 func processMultiDenyPolicyResult(
 	resultSet rego.ResultSet,
 	metadata Metadata,
-	resources map[string]*resourceResults,
+	resources map[string]*ruleResultBuilder,
 ) ([]models.RuleResult, error) {
 	policyResults := []policyResult{}
 	if err := unmarshalResultSet(resultSet, &policyResults); err != nil {
 		return nil, err
 	}
-	results := []models.RuleResult{}
-	deniedCorrelations := map[string]bool{}
-	for _, result := range policyResults {
-		ruleResult := models.RuleResult{
-			Passed:       false,
-			Message:      result.Message,
-			Severity:     metadata.Severity,
-			ResourceType: result.ResourceType,
-		}
-		if result.Resource != nil {
-			ruleResult.ResourceId = result.Resource.ID
-			ruleResult.ResourceNamespace = result.Resource.Namespace
-			ruleResult.ResourceType = result.Resource.ResourceType
 
-			resource := models.RuleResultResource{
-				Id:        result.Resource.ID,
-				Type:      result.Resource.ResourceType,
-				Namespace: result.Resource.Namespace,
-			}
-			for _, attr := range result.Attributes {
-				resource.Attributes = append(resource.Attributes, models.RuleResultResourceAttribute{
-					Path: attr,
-				})
-			}
-
-			var rr *resourceResults
-			rr, ok := resources[result.GetCorrelation()]
-			if !ok {
-				rr = newResourceResults()
-			}
-			rr.addRuleResultResource(resource)
-
-			ruleResult.Resources = rr.resources()
-			deniedCorrelations[result.GetCorrelation()] = true
-		}
-		results = append(results, ruleResult)
+	builders := map[string]*ruleResultBuilder{}
+	for correlation, builder := range resources {
+		builders[correlation] = builder
+		builder.passed = true
+		builder.severity = metadata.Severity
 	}
-	for correlation, relatedResources := range resources {
-		if deniedCorrelations[correlation] {
-			continue
-		}
-		ruleResultResources := relatedResources.resources()
-		ruleResult := models.RuleResult{
-			Passed:    true,
-			Severity:  metadata.Severity,
-			Resources: ruleResultResources,
-		}
-		for _, resource := range ruleResultResources {
-			if RuleResultResourceKey(resource).Correlation() == correlation {
-				ruleResult.ResourceId = resource.Id
-				ruleResult.ResourceNamespace = resource.Namespace
-				ruleResult.ResourceType = resource.Type
-			}
+
+	for _, result := range policyResults {
+		correlation := result.GetCorrelation()
+		var builder *ruleResultBuilder
+		if b, ok := builders[correlation]; ok {
+			builder = b
+		} else {
+			builder = newRuleResultBuilder()
+			builders[correlation] = builder
 		}
 
-		results = append(results, ruleResult)
+		builder.passed = false
+		builder.message = result.Message
+		if result.ResourceType != "" {
+			builder.resourceType = result.ResourceType
+		}
+
+		if result.Resource != nil {
+			builder.addResource(result.Resource.Key())
+			for _, attr := range result.Attributes {
+				builder.addResourceAttribute(result.Resource.Key(), attr)
+			}
+		}
+	}
+
+	results := []models.RuleResult{}
+	for _, builder := range builders {
+		results = append(results, builder.toRuleResult())
 	}
 	return results, nil
 }

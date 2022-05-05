@@ -254,8 +254,8 @@ func (p *BasePolicy) ID(
 func (p *BasePolicy) resources(
 	ctx context.Context,
 	options []func(*rego.Rego),
-) (map[string]*resourceResults, error) {
-	r := map[string]*resourceResults{} // By correlation
+) (map[string]*ruleResultBuilder, error) {
+	r := map[string]*ruleResultBuilder{} // By correlation
 	if p.resourcesRule.name == "" {
 		return r, nil
 	}
@@ -280,21 +280,16 @@ func (p *BasePolicy) resources(
 			continue
 		}
 		correlation := result.GetCorrelation()
-		var attributes []models.RuleResultResourceAttribute
-		for _, attr := range result.Attributes {
-			attributes = append(attributes, models.RuleResultResourceAttribute{
-				Path: attr,
-			})
-		}
 		if _, ok := r[correlation]; !ok {
-			r[correlation] = newResourceResults()
+			r[correlation] = newRuleResultBuilder()
 		}
-		r[correlation].addRuleResultResource(models.RuleResultResource{
-			Id:         result.Resource.ID,
-			Type:       result.Resource.ResourceType,
-			Namespace:  result.Resource.Namespace,
-			Attributes: attributes,
-		})
+		r[correlation].addResource(result.Resource.Key())
+		for _, attr := range result.Attributes {
+			r[correlation].addResourceAttribute(result.Resource.Key(), attr)
+		}
+		if result.PrimaryResource != nil {
+			r[correlation].setPrimaryResource(result.PrimaryResource.Key())
+		}
 	}
 	return r, nil
 }

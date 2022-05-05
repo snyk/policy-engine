@@ -97,27 +97,31 @@ func processSingleDenyPolicyResult(
 		return processFugueDenyString(resultSet, resource, metadata)
 	}
 	results := []models.RuleResult{}
-	for _, r := range policyResults {
-		resource := models.RuleResultResource{
-			Id:        resource.Id,
-			Type:      resource.ResourceType,
-			Namespace: resource.Namespace,
-		}
-		for _, attr := range r.Attributes {
-			resource.Attributes = append(resource.Attributes, models.RuleResultResourceAttribute{
-				Path: attr,
-			})
-		}
-
-		result := models.RuleResult{
-			Message:           r.Message,
-			ResourceId:        resource.Id,
-			ResourceNamespace: resource.Namespace,
-			Severity:          metadata.Severity,
-			Resources:         newResourceResults().addRuleResultResource(resource).resources(),
-		}
-
-		results = append(results, result)
+	resourceKey := ResourceKey{
+		ID:        resource.Id,
+		Type:      resource.ResourceType,
+		Namespace: resource.Namespace,
 	}
+	for _, r := range policyResults {
+		result := newRuleResultBuilder()
+		result.setPrimaryResource(resourceKey)
+		for _, attr := range r.Attributes {
+			result.addResourceAttribute(resourceKey, attr)
+		}
+
+		result.message = r.Message
+		result.severity = metadata.Severity
+		results = append(results, result.toRuleResult())
+	}
+
+	if len(results) == 0 {
+		// No denies: generate an allow
+		result := newRuleResultBuilder()
+		result.setPrimaryResource(resourceKey)
+		result.passed = true
+		result.severity = metadata.Severity
+		results = append(results, result.toRuleResult())
+	}
+
 	return results, nil
 }
