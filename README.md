@@ -4,11 +4,11 @@
 
     go build
     ./unified-policy-engine
-    
+
 ## Use as a library
 
 This section describes each of the main components of the `unified-policy-engine`
-library. See the [`run` command](cmd/run.go) for an end-to-end example that uses the 
+library. See the [`run` command](cmd/run.go) for an end-to-end example that uses the
 components together.
 
 ### Parsing IaC configurations
@@ -183,15 +183,15 @@ simple rules and gradually adding concepts.
 
 #### Advanced rules part 2: Adding compliant resource info
 
-[examples/04-advanced.rego](examples/04-advanced.rego)
+[examples/04-advanced-resources.rego](examples/04-advanced-resources.rego)
 
 #### Advanced rules part 3: Correlating resources
 
-[examples/05-advanced.rego](examples/05-advanced.rego)
+[examples/05-advanced-primary-resource.rego](examples/05-advanced-primary-resource.rego)
 
 #### Advanced rules part 4: Returning attributes
 
-[examples/06-advanced.rego](examples/06-advanced.rego)
+[examples/06-advanced-attributes.rego](examples/06-advanced-attributes.rego)
 
 #### Missing resources
 
