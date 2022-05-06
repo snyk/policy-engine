@@ -118,14 +118,17 @@ func (c *HclConfiguration) LoadedFiles() []string {
 }
 
 func (c *HclConfiguration) Location(path []interface{}) (LocationStack, error) {
-	return nil, nil
-	/* TODO: Location() is not yet supported for HCL.
-
-	if len(path) < 1 {
+	// Format is {resourceType, resourceId, attributePath...}
+	if len(path) < 2 {
 		return nil, nil
 	}
 
-	ranges := c.evaluation.Location(path[0])
+	resourceId, ok := path[1].(string)
+	if !ok {
+		return nil, fmt.Errorf("Expected string resource ID in path")
+	}
+
+	ranges := c.evaluation.Location(resourceId, path[2:])
 	locs := LocationStack{}
 	for _, r := range ranges {
 		locs = append(locs, Location{
@@ -135,7 +138,6 @@ func (c *HclConfiguration) Location(path []interface{}) (LocationStack, error) {
 		})
 	}
 	return locs, nil
-	*/
 }
 
 func (c *HclConfiguration) RegulaInput() RegulaInput {

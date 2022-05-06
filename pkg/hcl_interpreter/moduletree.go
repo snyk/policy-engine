@@ -30,6 +30,7 @@ type ResourceMeta struct {
 	Provider string
 	Count    bool
 	Location hcl.Range
+	Body     hcl.Body // For source code locations only.
 }
 
 // We load the entire tree of submodules in one pass.
@@ -267,6 +268,7 @@ func walkResource(v Visitor, moduleName ModuleName, resource *configs.Resource, 
 		Type:     resource.Type,
 		Location: resource.DeclRange,
 		Count:    haveCount,
+		Body:     resource.Config,
 	}
 	v.EnterResource(name, resourceMeta)
 

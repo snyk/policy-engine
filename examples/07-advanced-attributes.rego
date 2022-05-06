@@ -20,7 +20,7 @@ is_privileged(container) {
 privileged_paths(pod) = paths {
 	paths := [path |
 		is_privileged(pod.spec[0].container[i])
-		path := ["spec", "container", i, "security_context", 0, "privileged"]
+		path := ["spec", 0, "container", i, "security_context", 0, "privileged"]
 	]
 }
 
