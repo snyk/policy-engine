@@ -22,7 +22,9 @@ func Annotate(
 				if resource.Meta == nil {
 					resource.Meta = map[string]interface{}{}
 				}
-				resource.Meta["location"] = location
+				if len(location) > 0 {
+					resource.Meta["location"] = location
+				}
 				resources[rid] = resource
 			}
 		}
@@ -36,7 +38,7 @@ func Annotate(
 						resource.Id,
 						resource.Type,
 					)
-					resource.Location = &location
+					resource.Location = location
 
 					for i := range resource.Attributes {
 						attributePath := []interface{}{resource.Type, resource.Id}

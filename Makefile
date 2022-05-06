@@ -32,6 +32,7 @@ swagger:
 		-e 's/OneOfRuleResultResourceAttributePathItems/interface\{\}/g' \
 		-e 's/int32/int/g' \
 		-e 's/\*State /State /g' \
+		-e 's/\*\[]SourceLocation /[]SourceLocation /g' \
 		-e 's/\tResources \[]RuleResultResource /\tResources []*RuleResultResource /g' \
 		-e 's/Type_ /Type /g' \
 		$(MODELS_DIR)/*.go
