@@ -149,13 +149,9 @@ func (l *cfnConfiguration) ToState() models.State {
 }
 
 func (l *cfnConfiguration) Location(path []interface{}) (LocationStack, error) {
+	// Format is {resourceType, resourceId, attributePath...}
 	if l.source == nil || len(path) < 2 {
 		return nil, nil
-	}
-
-	_, ok := path[0].(string)
-	if !ok {
-		return nil, fmt.Errorf("Expected string resource type in path")
 	}
 
 	resourceId, ok := path[1].(string)
