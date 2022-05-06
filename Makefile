@@ -9,8 +9,9 @@ demo:
 		-d examples/03-advanced.rego \
 		-d examples/04-advanced-resources.rego \
 		-d examples/05-advanced-primary-resource.rego \
-		-d examples/06-advanced-attributes.rego \
-		-d examples/07-missing.rego \
+		-d examples/06-advanced-correlation.rego \
+		-d examples/07-advanced-attributes.rego \
+		-d examples/08-missing.rego \
 		examples/main.tf
 
 swagger:

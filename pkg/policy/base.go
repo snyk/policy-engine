@@ -276,19 +276,22 @@ func (p *BasePolicy) resources(
 		return r, err
 	}
 	for _, result := range results {
-		if result.Resource == nil || result.Resource.ID == "" {
+		if result.Resource == nil && result.PrimaryResource == nil {
 			continue
 		}
+
 		correlation := result.GetCorrelation()
 		if _, ok := r[correlation]; !ok {
 			r[correlation] = newRuleResultBuilder()
 		}
-		r[correlation].addResource(result.Resource.Key())
-		for _, attr := range result.Attributes {
-			r[correlation].addResourceAttribute(result.Resource.Key(), attr)
+		if result.Resource != nil {
+			r[correlation].addResource(result.Resource.Key())
 		}
 		if result.PrimaryResource != nil {
 			r[correlation].setPrimaryResource(result.PrimaryResource.Key())
+		}
+		for _, attr := range result.Attributes {
+			r[correlation].addResourceAttribute(result.Resource.Key(), attr)
 		}
 	}
 	return r, nil

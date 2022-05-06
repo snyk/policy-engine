@@ -189,13 +189,17 @@ simple rules and gradually adding concepts.
 
 [examples/05-advanced-primary-resource.rego](examples/05-advanced-primary-resource.rego)
 
-#### Advanced rules part 4: Returning attributes
+#### Advanced rules part 4: Correlating resources
 
-[examples/06-advanced-attributes.rego](examples/06-advanced-attributes.rego)
+[examples/06-advanced-correlation.rego](examples/06-advanced-correlation.rego)
+
+#### Advanced rules part 5: Returning attributes
+
+[examples/07-advanced-attributes.rego](examples/07-advanced-attributes.rego)
 
 #### Missing resources
 
-[examples/07-missing.rego](examples/07-missing.rego)
+[examples/08-missing.rego](examples/08-missing.rego)
 
 ### Reference
 
