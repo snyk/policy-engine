@@ -122,7 +122,7 @@ func TestCfnYAMLLocation(t *testing.T) {
 		expected loader.LocationStack
 	}{
 		{
-			path: []interface{}{"Bucket1"},
+			path: []interface{}{"AWS::S3::Bucket", "Bucket1"},
 			expected: loader.LocationStack{loader.Location{
 				Path: "cfn.yaml",
 				Line: 18,
@@ -130,7 +130,7 @@ func TestCfnYAMLLocation(t *testing.T) {
 			}},
 		},
 		{
-			path: []interface{}{"Bucket2"},
+			path: []interface{}{"AWS::S3::Bucket", "Bucket2"},
 			expected: loader.LocationStack{loader.Location{
 				Path: "cfn.yaml",
 				Line: 22,
@@ -160,7 +160,7 @@ func TestCfnJSONLocation(t *testing.T) {
 		expected loader.LocationStack
 	}{
 		{
-			path: []interface{}{"Bucket1"},
+			path: []interface{}{"AWS::S3::Bucket", "Bucket1"},
 			expected: loader.LocationStack{loader.Location{
 				Path: "cfn.json",
 				Line: 5,
@@ -168,7 +168,7 @@ func TestCfnJSONLocation(t *testing.T) {
 			}},
 		},
 		{
-			path: []interface{}{"Bucket2"},
+			path: []interface{}{"AWS::S3::Bucket", "Bucket2"},
 			expected: loader.LocationStack{loader.Location{
 				Path: "cfn.json",
 				Line: 11,
