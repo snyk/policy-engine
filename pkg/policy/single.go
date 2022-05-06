@@ -64,7 +64,8 @@ func (p *SingleResourcePolicy) Eval(
 	if resources, ok := options.Input.Resources[rt]; ok {
 		for _, resource := range resources {
 			logger := logger.WithField(logging.RESOURCE_ID, resource.Id)
-			resultSet, err := query.Eval(ctx, rego.EvalInput(resource.Attributes))
+			inputDoc := resourceStateToRegoInput(resource)
+			resultSet, err := query.Eval(ctx, rego.EvalInput(inputDoc))
 			if err != nil {
 				logger.Error(ctx, "Failed to evaluate resource")
 				output.Errors = append(output.Errors, err.Error())
@@ -96,24 +97,31 @@ func processSingleDenyPolicyResult(
 		return processFugueDenyString(resultSet, resource, metadata)
 	}
 	results := []models.RuleResult{}
-	for _, r := range policyResults {
-		result := models.RuleResult{
-			Message:    r.Message,
-			ResourceId: resource.Id,
-			Severity:   metadata.Severity,
-		}
-		if len(r.Attribute) > 0 {
-			result.Resources = map[string]models.RuleResultResource{
-				resource.Id: {
-					Attributes: []models.RuleResultResourceAttribute{
-						{
-							Path: r.Attribute,
-						},
-					},
-				},
-			}
-		}
-		results = append(results, result)
+	resourceKey := ResourceKey{
+		ID:        resource.Id,
+		Type:      resource.ResourceType,
+		Namespace: resource.Namespace,
 	}
+	for _, r := range policyResults {
+		result := newRuleResultBuilder()
+		result.setPrimaryResource(resourceKey)
+		for _, attr := range r.Attributes {
+			result.addResourceAttribute(resourceKey, attr)
+		}
+
+		result.message = r.Message
+		result.severity = metadata.Severity
+		results = append(results, result.toRuleResult())
+	}
+
+	if len(results) == 0 {
+		// No denies: generate an allow
+		result := newRuleResultBuilder()
+		result.setPrimaryResource(resourceKey)
+		result.passed = true
+		result.severity = metadata.Severity
+		results = append(results, result.toRuleResult())
+	}
+
 	return results, nil
 }

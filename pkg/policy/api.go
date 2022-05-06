@@ -33,6 +33,7 @@ var builtinDeclarations = map[string]*types.Function{
 					[]*types.StaticProperty{
 						types.NewStaticProperty("id", types.S),
 						types.NewStaticProperty("_type", types.S),
+						types.NewStaticProperty("_namespace", types.S),
 					},
 					types.NewDynamicProperty(types.S, types.A),
 				),
@@ -102,7 +103,7 @@ func (r *resourcesByType) impl(
 	ret := map[string]map[string]interface{}{}
 	if resources, ok := r.input.Resources[rt]; ok {
 		for resourceKey, resource := range resources {
-			ret[resourceKey] = resource.Attributes
+			ret[resourceKey] = resourceStateToRegoInput(resource)
 		}
 	}
 	val, err := ast.InterfaceToValue(ret)
@@ -111,6 +112,17 @@ func (r *resourcesByType) impl(
 	}
 	r.calledWith[rt] = true
 	return ast.NewTerm(val), nil
+}
+
+func resourceStateToRegoInput(resource models.ResourceState) map[string]interface{} {
+	obj := map[string]interface{}{}
+	for k, attr := range resource.Attributes {
+		obj[k] = attr
+	}
+	obj["id"] = resource.Id
+	obj["_type"] = resource.ResourceType
+	obj["_namespace"] = resource.Namespace
+	return obj
 }
 
 type currentInputType struct {

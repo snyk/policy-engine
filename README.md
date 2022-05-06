@@ -4,11 +4,11 @@
 
     go build
     ./unified-policy-engine
-    
+
 ## Use as a library
 
 This section describes each of the main components of the `unified-policy-engine`
-library. See the [`run` command](cmd/run.go) for an end-to-end example that uses the 
+library. See the [`run` command](cmd/run.go) for an end-to-end example that uses the
 components together.
 
 ### Parsing IaC configurations
@@ -179,23 +179,27 @@ simple rules and gradually adding concepts.
 
 #### Advanced rules part 1
 
-[examples/02-advanced.rego](examples/03-advanced.rego)
+[examples/03-advanced.rego](examples/03-advanced.rego)
 
 #### Advanced rules part 2: Adding compliant resource info
 
-[examples/03-advanced.rego](examples/04-advanced.rego)
+[examples/04-advanced-resources.rego](examples/04-advanced-resources.rego)
 
 #### Advanced rules part 3: Correlating resources
 
-[examples/04-advanced.rego](examples/05-advanced.rego)
+[examples/05-advanced-primary-resource.rego](examples/05-advanced-primary-resource.rego)
 
-#### Advanced rules part 4: Returning attributes
+#### Advanced rules part 4: Correlating resources
 
-[examples/06-advanced.rego](examples/06-advanced.rego)
+[examples/06-advanced-correlation.rego](examples/06-advanced-correlation.rego)
+
+#### Advanced rules part 5: Returning attributes
+
+[examples/07-advanced-attributes.rego](examples/07-advanced-attributes.rego)
 
 #### Missing resources
 
-[examples/07-missing.rego](examples/07-missing.rego)
+[examples/08-missing.rego](examples/08-missing.rego)
 
 ### Reference
 
@@ -247,7 +251,9 @@ Then the `from_port` path would be `["ingress", 0, "from_port"]`.
     that have at least the following fields:
      *  `id`: A string identifier for the object
      *  `_type`: The type of the object, which matches the `resource_type`
-        passed in to `snyk.resources`.
+        passed in to `snyk.resources`
+     *  `_namespace`: Together with the `id` and `_type`, this forms a unique
+        identifier for the resource
 
 ## Testing rules
 

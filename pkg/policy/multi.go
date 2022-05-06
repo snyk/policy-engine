@@ -13,7 +13,7 @@ import (
 type ProcessMultiResultSet func(
 	resultSet rego.ResultSet,
 	metadata Metadata,
-	resources map[string]map[string]models.RuleResultResource,
+	resources map[string]*ruleResultBuilder,
 ) ([]models.RuleResult, error)
 
 // MultiResourcePolicy represents a policy that takes multiple resources as input.
@@ -86,50 +86,47 @@ func (p *MultiResourcePolicy) Eval(
 func processMultiDenyPolicyResult(
 	resultSet rego.ResultSet,
 	metadata Metadata,
-	resources map[string]map[string]models.RuleResultResource,
+	resources map[string]*ruleResultBuilder,
 ) ([]models.RuleResult, error) {
 	policyResults := []policyResult{}
 	if err := unmarshalResultSet(resultSet, &policyResults); err != nil {
 		return nil, err
 	}
-	results := []models.RuleResult{}
-	deniedResourceIDs := map[string]bool{}
-	for _, result := range policyResults {
-		ruleResult := models.RuleResult{
-			Passed:       false,
-			Message:      result.Message,
-			Severity:     metadata.Severity,
-			ResourceType: result.ResourceType,
-		}
-		if result.Resource != nil {
-			ruleResult.ResourceId = result.Resource.ID
-			if ruleResultResources, ok := resources[ruleResult.ResourceId]; ok {
-				ruleResult.Resources = ruleResultResources
-			} else if len(result.Attribute) > 0 {
-				ruleResult.Resources = map[string]models.RuleResultResource{
-					result.Resource.ID: {
-						Attributes: []models.RuleResultResourceAttribute{
-							{
-								Path: result.Attribute,
-							},
-						},
-					},
-				}
-			}
-			deniedResourceIDs[result.Resource.ID] = true
-		}
-		results = append(results, ruleResult)
+
+	builders := map[string]*ruleResultBuilder{}
+	for correlation, builder := range resources {
+		builders[correlation] = builder
+		builder.passed = true
+		builder.severity = metadata.Severity
 	}
-	for resourceID, relatedResources := range resources {
-		if deniedResourceIDs[resourceID] {
-			continue
+
+	for _, result := range policyResults {
+		correlation := result.GetCorrelation()
+		var builder *ruleResultBuilder
+		if b, ok := builders[correlation]; ok {
+			builder = b
+		} else {
+			builder = newRuleResultBuilder()
+			builders[correlation] = builder
 		}
-		results = append(results, models.RuleResult{
-			Passed:     true,
-			ResourceId: resourceID,
-			Severity:   metadata.Severity,
-			Resources:  relatedResources,
-		})
+
+		builder.passed = false
+		builder.message = result.Message
+		if result.ResourceType != "" {
+			builder.resourceType = result.ResourceType
+		}
+
+		if result.Resource != nil {
+			builder.addResource(result.Resource.Key())
+			for _, attr := range result.Attributes {
+				builder.addResourceAttribute(result.Resource.Key(), attr)
+			}
+		}
+	}
+
+	results := []models.RuleResult{}
+	for _, builder := range builders {
+		results = append(results, builder.toRuleResult())
 	}
 	return results, nil
 }

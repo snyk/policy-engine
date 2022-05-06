@@ -4,7 +4,7 @@
 #
 # In this example, we verify that at least one cloudtrail is present that has
 # `include_global_service_events` set to true.
-package rules.snyk_007.tf
+package rules.snyk_008.tf
 
 import data.snyk
 

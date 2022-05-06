@@ -3,7 +3,7 @@
 #
 # This advanced rule checks for privileged mode in containers, and as such may
 # return multiple attributes, as multiple containers may be in violation.
-package rules.snyk_006.tf
+package rules.snyk_007.tf
 
 import data.snyk
 

@@ -5,7 +5,7 @@
 # noncompliant.
 #
 # We can do this by associating the auxiliary resource types using a
-# `correlation`.  You can see how this is used in `resources` below.
+# `primary_resource`.  You can see how this is used in `resources` below.
 package rules.snyk_005.tf
 
 import data.snyk
@@ -19,6 +19,12 @@ encryption_configs := snyk.resources("aws_s3_bucket_server_side_encryption_confi
 # This could be part of an S3 library and is really an implementation detail.
 to_bucket_id := ret {
 	ret := object.union({b.id: b.id | b := buckets[_]}, {b.bucket: b.id | b := buckets[_]})
+}
+
+# This allows us to look up a bucket by its ID.
+bucket_by_id[id] = bucket {
+	bucket := buckets[_]
+	id := bucket.id
 }
 
 is_encrypted(bucket) {
@@ -50,20 +56,12 @@ resources[info] {
 # corresponding buckets, so the policy engine knows these are not separate
 # issues.
 #
-# The policy engine tracks different issues using correlations.
-#
-# `correlation` is an opaque identifier that defaults to `.resource.id`.  This
-# is why did not have to set `correlation` before, it was simply using the ID
-# of the S3 bucket.
-#
-# But in this case, we do want to explicitly set it to the bucket ID, to
-# associate the encryption config with it, and indicate that this is not a
-# separate issue.
+# We can do this by indicating that this resource belongs to a
+# different `primary_resource`.
 resources[info] {
 	ec = encryption_configs[_]
-	correlation = ec.bucket
 	info := {
-		"correlation": to_bucket_id[ec.bucket],
+		"primary_resource": bucket_by_id[to_bucket_id[ec.bucket]],
 		"resource": ec,
 	}
 }

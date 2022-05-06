@@ -7,10 +7,11 @@ demo:
 		-d examples/01-simple.rego \
 		-d examples/02-simple-attributes.rego \
 		-d examples/03-advanced.rego \
-		-d examples/04-advanced.rego \
-		-d examples/05-advanced.rego \
-		-d examples/06-advanced.rego \
-		-d examples/07-missing.rego \
+		-d examples/04-advanced-resources.rego \
+		-d examples/05-advanced-primary-resource.rego \
+		-d examples/06-advanced-correlation.rego \
+		-d examples/07-advanced-attributes.rego \
+		-d examples/08-missing.rego \
 		examples/main.tf
 
 swagger:
@@ -26,11 +27,12 @@ swagger:
 		-o $(MODELS_DIR) \
 		--model-package models \
 		-D packageName=models
-	sed -i .bak \
+	sed -i.bak \
 		-e 's/Object/interface\{\}/g' \
 		-e 's/OneOfRuleResultResourceAttributePathItems/interface\{\}/g' \
 		-e 's/int32/int/g' \
 		-e 's/\*State /State /g' \
+		-e 's/Type_ /Type /g' \
 		$(MODELS_DIR)/*.go
 	rm -rf \
 		$(MODELS_DIR)/*.bak \

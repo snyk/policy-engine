@@ -84,21 +84,14 @@ components:
         resource_type:
           type: string
           description: The type of the resource.
-        partition:
-          type: string
-          description: |
-            This field is a component of uniquely identifying a resource. It will
-            resolve to different values depending on the input type and environment
-            provider. For example, in a runtime AWS environment, this will be the account
-            ID. In an IaC SCM environment, this could be a git branch. Since this
-            concept doesn't apply in all cases, this field is optional.
         namespace:
           type: string
           description: |
             This field is a component of uniquely identifying a resource. It will
             resolve to different values depending on the input type and environment
             provider. For example, in a runtime AWS environment, this will be the region.
-            For an IaC Terraform resource, this will be the module path.
+            For an IaC Terraform resource, this will be the module path. Customers of the
+            API can set this to something that makes sense for them and parse it back.
         tags:
           type: object
           description: |
@@ -115,14 +108,8 @@ components:
         attributes:
           type: object
           description: |
-            A map of resource attributes. The only required entries are:
-              * id: An identifier for the resource. This can be a natural ID. It is
-                    assumed that this ID is unique within the namespace.
-              * _type: The type of the resource.
+            A map of resource attributes.
           additionalProperties: {}
-          required:
-            - id
-            - _type
     Results:
       description: |
         This is the top-level output from the Unified Policy Engine.
@@ -222,6 +209,9 @@ components:
         resource_id:
           type: string
           description: The ID of the primary resource (if any) associated with this result
+        resource_namespace:
+          type: string
+          description: The namespace of the primary resource (if any) associated with this result
         resource_type:
           type: string
           description: |
@@ -245,16 +235,25 @@ components:
           description: An arbitrary key-value map that a rule can return in its result.
           additionalProperties: {}
         resources:
-          type: object
+          type: array
           description: |
-            A map of resource ID to a resource object associated with this result.
-          additionalProperties:
+            A resource objects associated with this result.
+          items:
             $ref: '#/components/schemas/RuleResultResource'
     RuleResultResource:
       type: object
       description: |
         Identifying information for a resource and attributes associated with a rule result
       properties:
+        id:
+          description: The ID of this resource
+          type: string
+        type:
+          description: The type of this resource
+          type: string
+        namespace:
+          description: The namespace of this resource
+          type: string
         location:
           description: The location of the resource in the source code.
           $ref: '#/components/schemas/SourceLocationStack'
