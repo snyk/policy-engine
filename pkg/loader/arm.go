@@ -89,8 +89,8 @@ func (l *armConfiguration) ToState() models.State {
 
 func (l *armConfiguration) Location(path []interface{}) (LocationStack, error) {
 	return nil, nil
+	/* TODO: Location() is not yet supported for ARM.
 
-	/* TODO
 	if l.source == nil || len(path) < 1 {
 		return nil, nil
 	}

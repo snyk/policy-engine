@@ -119,7 +119,8 @@ func (c *HclConfiguration) LoadedFiles() []string {
 
 func (c *HclConfiguration) Location(path []interface{}) (LocationStack, error) {
     return nil, nil
-    /* TODO
+	/* TODO: Location() is not yet supported for HCL.
+
 	if len(path) < 1 {
 		return nil, nil
 	}

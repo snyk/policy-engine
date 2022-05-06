@@ -131,7 +131,8 @@ func (l *k8sConfiguration) ToState() models.State {
 
 func (l *k8sConfiguration) Location(path []interface{}) (LocationStack, error) {
     return nil, nil
-    /* TODO
+	/* TODO: Location() is not yet supported for k8s.
+
 	if len(path) < 1 {
 		return nil, nil
 	}
