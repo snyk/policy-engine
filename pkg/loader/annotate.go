@@ -1,19 +1,23 @@
-package upe
+package loader
 
 import (
-	"github.com/snyk/unified-policy-engine/pkg/loader"
 	"github.com/snyk/unified-policy-engine/pkg/models"
 )
 
+// TODO: create a map[[3]string]FilePath map.  Then lookup resources here and
+// check if they have a filepath.  The filepath comes from meta.  Then we can
+// look up resources by their [3]string and retrieve resource location info if
+// available.
+
 // Annotate a report with source location information
 func Annotate(
+	configurations LoadedConfigurations,
 	results *models.Results,
-	configurations loader.LoadedConfigurations,
 ) {
 	for _, inputResult := range results.Results {
 		for rid, resources := range inputResult.Input.Resources {
 			for _, resource := range resources {
-				location := resourceLocation(
+				location := annotateResourceLocation(
 					configurations,
 					resource.Namespace,
 					resource.Id,
@@ -32,7 +36,7 @@ func Annotate(
 		for _, ruleResult := range inputResult.RuleResults {
 			for _, result := range ruleResult.Results {
 				for _, resource := range result.Resources {
-					location := resourceLocation(
+					location := annotateResourceLocation(
 						configurations,
 						resource.Namespace,
 						resource.Id,
@@ -55,8 +59,8 @@ func Annotate(
 	}
 }
 
-func resourceLocation(
-	configurations loader.LoadedConfigurations,
+func annotateResourceLocation(
+	configurations LoadedConfigurations,
 	resourceNamespace string,
 	resourceId string,
 	resourceType string,
@@ -73,7 +77,7 @@ func resourceLocation(
 	return locations
 }
 
-func toLocation(loc loader.Location) models.SourceLocation {
+func toLocation(loc Location) models.SourceLocation {
 	return models.SourceLocation{
 		Filepath: loc.Path,
 		Line:     loc.Line,

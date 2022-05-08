@@ -67,7 +67,7 @@ var runCmd = &cobra.Command{
 		})
 		check(err)
 
-		upe.Annotate(results, loadedConfigs)
+		loader.Annotate(loadedConfigs, results)
 
 		bytes, err := json.MarshalIndent(results, "  ", "  ")
 		check(err)
