@@ -20,14 +20,14 @@ import (
 	"path/filepath"
 
 	"github.com/sirupsen/logrus"
-	"github.com/snyk/unified-policy-engine/pkg/models"
 	"github.com/spf13/afero"
 
-	"github.com/fugue/regula/v2/pkg/regulatf"
+	"github.com/snyk/unified-policy-engine/pkg/hcl_interpreter"
+	"github.com/snyk/unified-policy-engine/pkg/models"
 )
 
 // This is the loader that supports reading files and directories of HCL (.tf)
-// files.  The implementation is in the `./pkg/regulatf/` package in this
+// files.  The implementation is in the `./pkg/hcl_interpreter/` package in this
 // repository: this file just wraps that.  That directory also contains a
 // README explaining how everything fits together.
 type TfDetector struct{}
@@ -47,7 +47,7 @@ func (t *TfDetector) DetectFile(i InputFile, opts DetectOptions) (IACConfigurati
 		}
 	}
 
-	moduleTree, err := regulatf.ParseFiles(nil, inputFs, false, dir, []string{i.Path()})
+	moduleTree, err := hcl_interpreter.ParseFiles(nil, inputFs, false, dir, []string{i.Path()})
 	if err != nil {
 		return nil, err
 	}
@@ -80,8 +80,8 @@ func (t *TfDetector) DetectDirectory(i InputDirectory, opts DetectOptions) (IACC
 		return nil, nil
 	}
 
-	moduleRegister := regulatf.NewTerraformRegister(i.Path())
-	moduleTree, err := regulatf.ParseDirectory(moduleRegister, nil, i.Path())
+	moduleRegister := hcl_interpreter.NewTerraformRegister(i.Path())
+	moduleTree, err := hcl_interpreter.ParseDirectory(moduleRegister, nil, i.Path())
 	if err != nil {
 		return nil, err
 	}
@@ -96,13 +96,13 @@ func (t *TfDetector) DetectDirectory(i InputDirectory, opts DetectOptions) (IACC
 }
 
 type HclConfiguration struct {
-	moduleTree *regulatf.ModuleTree
-	evaluation *regulatf.Evaluation
+	moduleTree *hcl_interpreter.ModuleTree
+	evaluation *hcl_interpreter.Evaluation
 }
 
-func newHclConfiguration(moduleTree *regulatf.ModuleTree) (*HclConfiguration, error) {
-	analysis := regulatf.AnalyzeModuleTree(moduleTree)
-	evaluation, err := regulatf.EvaluateAnalysis(analysis)
+func newHclConfiguration(moduleTree *hcl_interpreter.ModuleTree) (*HclConfiguration, error) {
+	analysis := hcl_interpreter.AnalyzeModuleTree(moduleTree)
+	evaluation, err := hcl_interpreter.EvaluateAnalysis(analysis)
 	if err != nil {
 		return nil, err
 	}
@@ -118,14 +118,17 @@ func (c *HclConfiguration) LoadedFiles() []string {
 }
 
 func (c *HclConfiguration) Location(path []interface{}) (LocationStack, error) {
-    return nil, nil
-	/* TODO: Location() is not yet supported for HCL.
-
-	if len(path) < 1 {
+	// Format is {resourceType, resourceId, attributePath...}
+	if len(path) < 2 {
 		return nil, nil
 	}
 
-	ranges := c.evaluation.Location(path[0])
+	resourceId, ok := path[1].(string)
+	if !ok {
+		return nil, fmt.Errorf("Expected string resource ID in path")
+	}
+
+	ranges := c.evaluation.Location(resourceId, path[2:])
 	locs := LocationStack{}
 	for _, r := range ranges {
 		locs = append(locs, Location{
@@ -135,7 +138,6 @@ func (c *HclConfiguration) Location(path []interface{}) (LocationStack, error) {
 		})
 	}
 	return locs, nil
-	*/
 }
 
 func (c *HclConfiguration) RegulaInput() RegulaInput {
