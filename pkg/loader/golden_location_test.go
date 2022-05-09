@@ -2,6 +2,7 @@ package loader
 
 import (
 	"encoding/json"
+	"path/filepath"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -25,7 +26,7 @@ var goldenLocationTests = []goldenLocationTest{
 			{
 				path: []interface{}{"Vpc", "MyVpc"},
 				expected: LocationStack{Location{
-					Path: "golden_test/cfn/example-01/main.yaml",
+					Path: "main.yaml",
 					Line: 6,
 					Col:  3,
 				}},
@@ -38,7 +39,7 @@ var goldenLocationTests = []goldenLocationTest{
 			{
 				path: []interface{}{"AWS::S3::Bucket", "Bucket1"},
 				expected: LocationStack{Location{
-					Path: "golden_test/cfn/json-01/cfn.json",
+					Path: "cfn.json",
 					Line: 5,
 					Col:  9,
 				}},
@@ -46,10 +47,121 @@ var goldenLocationTests = []goldenLocationTest{
 			{
 				path: []interface{}{"AWS::S3::Bucket", "Bucket2"},
 				expected: LocationStack{Location{
-					Path: "golden_test/cfn/json-01/cfn.json",
+					Path: "cfn.json",
 					Line: 11,
 					Col:  9,
 				}},
+			},
+		},
+	},
+	// Terraform
+	{
+		directory: "golden_test/tf/example-terraform-modules",
+		cases: []goldenLocationTestCase{
+			{
+				path: []interface{}{"aws_security_group", "aws_security_group.parent"},
+				expected: LocationStack{
+					{
+						Path: "main.tf",
+						Line: 22,
+						Col:  1,
+					},
+				},
+			},
+			{
+				path: []interface{}{"aws_vpc", "aws_vpc.parent"},
+				expected: LocationStack{
+					{
+						Path: "main.tf",
+						Line: 18,
+						Col:  1,
+					},
+				},
+			},
+			{
+				path: []interface{}{"aws_vpc", "module.child1.aws_vpc.child"},
+				expected: LocationStack{
+					{
+						Path: filepath.Join("child1", "main.tf"),
+						Line: 9,
+						Col:  1,
+					},
+					{
+						Path: "main.tf",
+						Line: 10,
+						Col:  12,
+					},
+				},
+			},
+			{
+				path: []interface{}{"aws_security_group", "module.child1.module.grandchild1.aws_security_group.grandchild"},
+				expected: LocationStack{
+					{
+						Path: filepath.Join("child1", "grandchild1", "main.tf"),
+						Line: 9,
+						Col:  1,
+					},
+					{
+						Path: filepath.Join("child1", "main.tf"),
+						Line: 6,
+						Col:  12,
+					},
+					{
+						Path: "main.tf",
+						Line: 10,
+						Col:  12,
+					},
+				},
+			},
+			{
+				path: []interface{}{"aws_vpc", "module.child1.module.grandchild1.aws_vpc.grandchild"},
+				expected: LocationStack{
+					{
+						Path: filepath.Join("child1", "grandchild1", "main.tf"),
+						Line: 5,
+						Col:  1,
+					},
+					{
+						Path: filepath.Join("child1", "main.tf"),
+						Line: 6,
+						Col:  12,
+					},
+					{
+						Path: "main.tf",
+						Line: 10,
+						Col:  12,
+					},
+				},
+			},
+			{
+				path: []interface{}{"aws_security_group", "module.child2.aws_security_group.child"},
+				expected: LocationStack{
+					{
+						Path: filepath.Join("child2", "main.tf"),
+						Line: 9,
+						Col:  1,
+					},
+					{
+						Path: "main.tf",
+						Line: 14,
+						Col:  12,
+					},
+				},
+			},
+			{
+				path: []interface{}{"aws_vpc", "module.child2.aws_vpc.child"},
+				expected: []Location{
+					{
+						Path: filepath.Join("child2", "main.tf"),
+						Line: 5,
+						Col:  1,
+					},
+					{
+						Path: "main.tf",
+						Line: 14,
+						Col:  12,
+					},
+				},
 			},
 		},
 	},
@@ -76,7 +188,12 @@ func TestGoldenLocation(t *testing.T) {
 						t.Fatal(err)
 					}
 
-					assert.Equal(t, cas.expected, actual)
+					relative := make(LocationStack, len(cas.expected))
+					for i := range cas.expected {
+						relative[i] = cas.expected[i]
+						relative[i].Path = filepath.Join(test.directory, cas.expected[i].Path)
+					}
+					assert.Equal(t, relative, actual)
 				})
 			}
 		})
