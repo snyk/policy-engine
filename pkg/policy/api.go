@@ -1,8 +1,12 @@
 package policy
 
 import (
+	"bytes"
 	"embed"
+	"encoding/json"
 	"fmt"
+	"os"
+	"os/exec"
 
 	"github.com/open-policy-agent/opa/ast"
 	"github.com/open-policy-agent/opa/rego"
@@ -21,6 +25,7 @@ var RegoAPIProvider = data.FSProvider(regoApi, "regoapi")
 // Constants for builtin functions
 const resourcesByTypeName = "__resources_by_type"
 const currentInputTypeName = "__current_input_type"
+const cloudResourcesName = "__cloud_resources"
 
 var builtinDeclarations = map[string]*types.Function{
 	resourcesByTypeName: types.NewFunction(
@@ -43,6 +48,13 @@ var builtinDeclarations = map[string]*types.Function{
 	currentInputTypeName: types.NewFunction(
 		types.Args(),
 		types.S,
+	),
+	cloudResourcesName: types.NewFunction(
+		types.Args(types.S),
+		types.NewArray(nil, types.NewObject(
+			nil,
+			types.NewDynamicProperty(types.S, types.A),
+		)),
 	),
 }
 
@@ -125,6 +137,73 @@ func resourceStateToRegoInput(resource models.ResourceState) map[string]interfac
 	return obj
 }
 
+type cloudResources struct{}
+
+func (*cloudResources) decl() *rego.Function {
+	return &rego.Function{
+		Name:    cloudResourcesName,
+		Decl:    builtinDeclarations[cloudResourcesName],
+		Memoize: true,
+	}
+}
+
+func envVarsSet(vars ...string) bool {
+	for _, envVar := range vars {
+		if os.Getenv(envVar) == "" {
+			return false
+		}
+	}
+	return true
+}
+
+type cloudResource struct {
+	Id    string
+	Attrs map[string]interface{}
+}
+
+func getCloudResources(rt string) ([]cloudResource, error) {
+	if !envVarsSet("DRIFTCTL_PATH", "AWS_ACCESS_KEY_ID", "AWS_SECRET_ACCESS_KEY") {
+		return []cloudResource{}, nil
+	}
+
+	// nasty hack for spike, to use custom-built driftctl version
+	driftctlPath := os.Getenv("DRIFTCTL_PATH")
+
+	cmd := exec.Command(driftctlPath, "list", rt)
+	var stdout, stderr bytes.Buffer
+	cmd.Stdout = &stdout
+	cmd.Stderr = &stderr
+	if err := cmd.Run(); err != nil {
+		return nil, fmt.Errorf("error running driftctl: %s: %s\n%s", err, stdout.String(), stderr.String())
+	}
+	var resources []cloudResource
+	if err := json.Unmarshal(stdout.Bytes(), &resources); err != nil {
+		return nil, err
+	}
+	return resources, nil
+}
+
+func (*cloudResources) impl(bctx rego.BuiltinContext, operands []*ast.Term) (*ast.Term, error) {
+	arg, err := builtins.StringOperand(operands[0].Value, 0)
+	if err != nil {
+		panic(err)
+	}
+	rt := string(arg)
+	resources, err := getCloudResources(rt)
+	if err != nil {
+		panic(err)
+	}
+	ret := []map[string]interface{}{}
+	for _, resource := range resources {
+		ret = append(ret, resource.Attrs)
+	}
+	val, err := ast.InterfaceToValue(ret)
+	if err != nil {
+		panic(err)
+	}
+	return ast.NewTerm(val), nil
+}
+
 type currentInputType struct {
 	input *models.State
 }
@@ -156,6 +235,7 @@ func NewBuiltins(input *models.State) *Builtins {
 		funcs: []builtin{
 			r,
 			&currentInputType{input},
+			&cloudResources{},
 		},
 	}
 }
