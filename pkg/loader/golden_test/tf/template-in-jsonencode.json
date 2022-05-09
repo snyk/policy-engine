@@ -28,5 +28,8 @@
         }
       }
     }
+  },
+  "scope": {
+    "filepath": "golden_test/tf/template-in-jsonencode/main.tf"
   }
 }

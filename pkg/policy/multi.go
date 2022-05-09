@@ -52,7 +52,7 @@ func (p *MultiResourcePolicy) Eval(
 		rego.Query(p.judgementRule.query()),
 		rego.Input(options.Input),
 	)
-	builtins := NewBuiltins(options.Input)
+	builtins := NewBuiltins(options.Input, options.ResourcesResolvers)
 	opts = append(opts, builtins.Rego()...)
 	query, err := rego.New(opts...).PrepareForEval(ctx)
 	if err != nil {

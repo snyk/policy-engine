@@ -17,5 +17,8 @@
         }
       }
     }
+  },
+  "scope": {
+    "filepath": "golden_test/tf/issue-305/main.tf"
   }
 }

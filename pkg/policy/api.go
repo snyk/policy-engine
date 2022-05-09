@@ -1,6 +1,7 @@
 package policy
 
 import (
+	"context"
 	"embed"
 	"fmt"
 
@@ -18,10 +19,27 @@ var regoApi embed.FS
 // RegoAPIProvider is a provider for the embedded 'snyk' and 'fugue' Rego APIs.
 var RegoAPIProvider = data.FSProvider(regoApi, "regoapi")
 
+// ResourcesQuery describes a request for a specific resource type from the given scope.
+// An empty scope is interpreted as the scope of the current input.
+type ResourcesQuery struct {
+	ResourceType string            `json:"resource_type"`
+	Scope        map[string]string `json:"scope"`
+}
+
+// ResourcesResult contains an indication of whether the Scope specified in the
+// ResourcesQuery was found and a slice of resources.
+type ResourcesResult struct {
+	ScopeFound bool
+	Resources  []models.ResourceState
+}
+
+type ResourcesResolver func(ctx context.Context, req ResourcesQuery) (ResourcesResult, error)
+
 // Constants for builtin functions
 const resourcesByTypeName = "__resources_by_type"
 const currentInputTypeName = "__current_input_type"
 const inputResourceTypesName = "__input_resource_types"
+const queryName = "__query"
 
 var builtinDeclarations = map[string]*types.Function{
 	resourcesByTypeName: types.NewFunction(
@@ -48,6 +66,24 @@ var builtinDeclarations = map[string]*types.Function{
 	inputResourceTypesName: types.NewFunction(
 		types.Args(),
 		types.NewSet(types.S),
+	),
+	queryName: types.NewFunction(
+		types.Args(
+			types.NewObject(
+				[]*types.StaticProperty{
+					types.NewStaticProperty("resource_type", types.S),
+					types.NewStaticProperty("scope", types.NewObject(
+						nil,
+						types.NewDynamicProperty(types.S, types.S),
+					)),
+				},
+				nil,
+			),
+		),
+		types.NewArray(nil, types.NewObject(
+			nil,
+			types.NewDynamicProperty(types.S, types.A),
+		)),
 	),
 }
 
@@ -76,13 +112,6 @@ type builtin interface {
 type resourcesByType struct {
 	calledWith map[string]bool
 	input      *models.State
-}
-
-func newResourcesByType(input *models.State) *resourcesByType {
-	return &resourcesByType{
-		calledWith: map[string]bool{},
-		input:      input,
-	}
 }
 
 func (r *resourcesByType) decl() *rego.Function {
@@ -135,6 +164,14 @@ func resourceStateToRegoInput(resource models.ResourceState) map[string]interfac
 	return obj
 }
 
+func resourceStatesToRegoInputs(resources []models.ResourceState) []map[string]interface{} {
+	ret := make([]map[string]interface{}, len(resources))
+	for i, resource := range resources {
+		ret[i] = resourceStateToRegoInput(resource)
+	}
+	return ret
+}
+
 type currentInputType struct {
 	input *models.State
 }
@@ -178,18 +215,25 @@ func (c *inputResourceTypes) impl(
 }
 
 type Builtins struct {
-	resourcesByType *resourcesByType // We want a separate ref to this to make it cleaner to get resource types back out
-	funcs           []builtin
+	resourcesQueried map[string]bool // We want a separate ref to this to make it cleaner to get resource types back out
+	funcs            []builtin
 }
 
-func NewBuiltins(input *models.State) *Builtins {
-	r := newResourcesByType(input)
+func NewBuiltins(input *models.State, resourcesResolvers []ResourcesResolver) *Builtins {
+	// Share the same calledWith map across resource-querying builtins, so that
+	// all queried resources are returned by inputResourceTypes
+	inputResolver := newInputResolver(input)
+	resourcesByType := &resourcesByType{input: input, calledWith: inputResolver.calledWith}
+
 	return &Builtins{
-		resourcesByType: r,
+		resourcesQueried: inputResolver.calledWith,
 		funcs: []builtin{
-			r,
+			&Query{
+				ResourcesResolvers: append([]ResourcesResolver{inputResolver.resolve}, resourcesResolvers...),
+			},
 			&currentInputType{input},
 			&inputResourceTypes{input},
+			resourcesByType,
 		},
 	}
 }
@@ -203,8 +247,8 @@ func (b *Builtins) Rego() []func(*rego.Rego) {
 }
 
 func (b *Builtins) ResourceTypes() []string {
-	rts := make([]string, 0, len(b.resourcesByType.calledWith))
-	for rt := range b.resourcesByType.calledWith {
+	rts := make([]string, 0, len(b.resourcesQueried))
+	for rt := range b.resourcesQueried {
 		rts = append(rts, rt)
 	}
 	return rts

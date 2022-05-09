@@ -98,5 +98,8 @@
         }
       }
     }
+  },
+  "scope": {
+    "filepath": "golden_test/tfplan/modules/plan.json"
   }
 }

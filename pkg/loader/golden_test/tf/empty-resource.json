@@ -15,5 +15,8 @@
         "attributes": {}
       }
     }
+  },
+  "scope": {
+    "filepath": "golden_test/tf/empty-resource/test.tf"
   }
 }

@@ -37,5 +37,8 @@
         }
       }
     }
+  },
+  "scope": {
+    "filepath": "golden_test/cfn/example-03/main.yaml"
   }
 }

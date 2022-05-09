@@ -26,6 +26,7 @@ This document describes the contract and API for policies that run in the policy
     - [Missing-resource policy](#missing-resource-policy)
       - [Missing-resource policy examples](#missing-resource-policy-examples)
   - [The `snyk` API](#the-snyk-api)
+    - [`snyk.query(<query>)`](#snykquery-query)
     - [`snyk.resources(<resource type>)`](#snykresourcesresource-type)
       - [Example `snyk.resources` call and output](#example-snykresources-call-and-output)
     - [`snyk.input_resource_types`](#snykinput_resource_types)
@@ -312,14 +313,18 @@ The `snyk.resources` function takes in a single resource type string and returns
 array of [resource objects](#resource-objects) of that type from the current `State`
 being evaluated.
 
-Internally, the policy engine tracks calls to `snyk.resources` to produce the
-`resource_types` array in the results output. This array may be used by downstream
-consumers to add context to policy results. For example, a consumer may need to
-communicate that some policy results were inconclusive if the resource types used by the
-policy were not surveyed. For this reason, some policies should be written to call
-`snyk.resources` for a particular type _only if_ that resource type exists in the input.
-See [`snyk.input_resource_types`](#snykinput_resource_types) below for an example of
+Internally, the policy engine tracks calls to `snyk.resources` (and
+`snyk.query`) to produce the `resource_types` array in the results output. This
+array may be used by downstream consumers to add context to policy results. For
+example, a consumer may need to communicate that some policy results were
+inconclusive if the resource types used by the policy were not surveyed. For
+this reason, some policies should be written to call `snyk.resources` for a
+particular type _only if_ that resource type exists in the input. See
+[`snyk.input_resource_types`](#snykinput_resource_types) below for an example of
 this idiom.
+
+`snyk.resources("some-type")` return equivalent results to (and is a special
+case of) `snyk.query({"resource_type": "some-type", "scope": {}})`.
 
 #### Example `snyk.resources` call and output
 
@@ -346,6 +351,81 @@ $ ./policy-engine repl examples/main.tf
 ]
 > 
 ```
+
+### `snyk.query(<query>)`
+
+Queries the input for resources.
+
+The parameter is an object, with two permitted fields. The first is
+"resource_type", which is expected to have a string value. The second, "scope"
+is a set of key-value pairs where the values are strings. Under the default
+engine configuration, this query scope is compared to the "input scope", which
+is set at config load time. An IaC input might be expected to have "filename"
+set, for example. The query scope acts as a filter. The empty object, `{}`, is
+the most permissive query scope, so all resources in the input of the requested
+type will be returned.
+
+The library API provides a mechanism to influence the behavior of this builtin,
+and to inject custom resource resolver logic. You can read more about how to add
+custom resource resolvers
+[here](../library_usage.md#custom-resource-resolution).
+
+A simple query:
+
+```
+snyk.query({
+  "resource_type": "aws_cloudtrail",
+  "scope": {},
+})
+```
+
+Will return all aws_cloudtrail resources in the input, regardless of input scope
+(i.e. what IaC file they came from, or for cloud resources, what account/region
+metadata was added by the loader).
+
+In an IaC context, this query:
+
+```
+snyk.query({
+  "resource_type": "aws_cloudtrail",
+  "scope": {
+    "filename": "main.tf",
+  },
+})
+```
+
+Will return all aws_cloudtrail resources found in main.tf. In a cloud context,
+in which the loaders are presumably setting input scope to various cloud
+attributes such as region/account, instead of IaC file names, this query will
+return nothing.
+
+When a query returns nothing due to a scope mismatch, the chain of custom
+resource resolvers will be invoked. Optionally, the library client's custom
+resolvers might fetch such resources from a place other than the input.
+
+This query:
+
+```
+snyk.query({
+  "resource_type": "aws_cloudtrail",
+  "scope": {
+    "foo": "bar",
+  },
+})
+```
+
+Will return nothing, unless a UPE config loader happens to set the "foo" input
+scope field, which doesn't seem likely! The exact input scope fields set by
+loaders are specific to the environment of that loader (e.g. cloud
+region/account, or IaC filename, module name).
+
+UPE policies that make queries with specific scope will likely be rarer than
+ones that do not, because they implicitly rely on the behavior of loaders and/or
+custom resolvers. Queries that do not make use of specific scope, only
+requesting resources by type, can use `snyk.resources()` instead if the author
+wishes, which is backed by the same implemenation as `snyk.query()`, but should
+never trigger the custom resolver chain, since the most permissive scope is
+always used.
 
 ### `snyk.input_resource_types`
 

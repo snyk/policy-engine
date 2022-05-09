@@ -67,5 +67,8 @@
         }
       }
     }
+  },
+  "scope": {
+    "filepath": "golden_test/tf/example-terraform-modules"
   }
 }

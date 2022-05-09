@@ -20,4 +20,7 @@ type State struct {
 	Meta map[string]interface{} `json:"meta,omitempty"`
 	// Resources is a map of resource type to a map of a unique resource key to a resource object.
 	Resources map[string]map[string]ResourceState `json:"resources"`
+	// Describes the origin of the input, e.g. filepath + branch for IaC files, or
+	// account/region for cloud resources
+	Scope map[string]interface{} `json:"scope"`
 }

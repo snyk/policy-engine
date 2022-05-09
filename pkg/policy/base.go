@@ -43,9 +43,10 @@ var SupportedInputTypes = inputs.InputTypes{
 }
 
 type EvalOptions struct {
-	RegoOptions []func(*rego.Rego)
-	Input       *models.State
-	Logger      logging.Logger
+	RegoOptions        []func(*rego.Rego)
+	Input              *models.State
+	Logger             logging.Logger
+	ResourcesResolvers []ResourcesResolver
 }
 
 // Policy is an interface that supports all of the ways we want to interact
