@@ -4,22 +4,27 @@ import (
 	"github.com/snyk/unified-policy-engine/pkg/models"
 )
 
-// TODO: create a map[[3]string]FilePath map.  Then lookup resources here and
-// check if they have a filepath.  The filepath comes from meta.  Then we can
-// look up resources by their [3]string and retrieve resource location info if
-// available.
-
 // Annotate a report with source location information
-func Annotate(
+func AnnotateResults(
 	configurations LoadedConfigurations,
 	results *models.Results,
 ) {
 	for _, inputResult := range results.Results {
+		// Retrieve the filepath of the input state by looking in the metadata.
+		if inputResult.Input.Meta == nil {
+			continue
+		}
+		filepath, haveFilepath := inputResult.Input.Meta["filepath"].(string)
+		if !haveFilepath {
+			continue
+		}
+
+		// Annotate resources in input state
 		for rid, resources := range inputResult.Input.Resources {
 			for _, resource := range resources {
 				location := annotateResourceLocation(
 					configurations,
-					resource.Namespace,
+					filepath,
 					resource.Id,
 					resource.ResourceType,
 				)
@@ -33,27 +38,40 @@ func Annotate(
 			}
 		}
 
+		// Annotate resources in rule results.
 		for _, ruleResult := range inputResult.RuleResults {
 			for _, result := range ruleResult.Results {
-				for _, resource := range result.Resources {
-					location := annotateResourceLocation(
-						configurations,
-						resource.Namespace,
-						resource.Id,
-						resource.Type,
-					)
-					resource.Location = location
+				annotateRuleResult(
+					configurations,
+					filepath,
+					result,
+				)
+			}
+		}
+	}
+}
 
-					for i := range resource.Attributes {
-						attributePath := []interface{}{resource.Type, resource.Id}
-						attributePath = append(attributePath, resource.Attributes[i].Path...)
-						location, _ := configurations.Location(resource.Namespace, attributePath)
-						if len(location) > 0 {
-							loc := toLocation(location[0])
-							resource.Attributes[i].Location = &loc
-						}
-					}
-				}
+func annotateRuleResult(
+	configurations LoadedConfigurations,
+	filepath string,
+	result models.RuleResult,
+) {
+	for _, resource := range result.Resources {
+		location := annotateResourceLocation(
+			configurations,
+			filepath,
+			resource.Id,
+			resource.Type,
+		)
+		resource.Location = location
+
+		for i := range resource.Attributes {
+			attributePath := []interface{}{resource.Type, resource.Id}
+			attributePath = append(attributePath, resource.Attributes[i].Path...)
+			location, _ := configurations.Location(filepath, attributePath)
+			if len(location) > 0 {
+				loc := toLocation(location[0])
+				resource.Attributes[i].Location = &loc
 			}
 		}
 	}
@@ -61,12 +79,12 @@ func Annotate(
 
 func annotateResourceLocation(
 	configurations LoadedConfigurations,
-	resourceNamespace string,
+	filepath string,
 	resourceId string,
 	resourceType string,
 ) []models.SourceLocation {
 	resourcePath := []interface{}{resourceType, resourceId}
-	resourceLocs, _ := configurations.Location(resourceNamespace, resourcePath)
+	resourceLocs, _ := configurations.Location(filepath, resourcePath)
 	if resourceLocs == nil {
 		return nil
 	}
