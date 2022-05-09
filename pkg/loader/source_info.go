@@ -22,7 +22,6 @@ import (
 	"bytes"
 	"fmt"
 	"io"
-	"strconv"
 
 	"gopkg.in/yaml.v3"
 )
@@ -101,14 +100,17 @@ func (node *SourceInfoNode) GetIndex(index int) (*SourceInfoNode, error) {
 }
 
 // GetPath tries to retrieve a path as far as possible.
-func (node *SourceInfoNode) GetPath(path []string) (*SourceInfoNode, error) {
+func (node *SourceInfoNode) GetPath(path []interface{}) (*SourceInfoNode, error) {
 	if len(path) == 0 {
 		return node, nil
 	}
 
-	key := path[0]
 	switch node.body.Kind {
 	case yaml.MappingNode:
+		key, ok := path[0].(string)
+		if !ok {
+			return node, fmt.Errorf("Expected string key")
+		}
 		child, err := node.GetKey(key)
 		if err != nil {
 			return node, err
@@ -116,19 +118,19 @@ func (node *SourceInfoNode) GetPath(path []string) (*SourceInfoNode, error) {
 			return child.GetPath(path[1:])
 		}
 	case yaml.SequenceNode:
-		index, err := strconv.Atoi(key)
+		index, ok := path[0].(int)
+		if !ok {
+			return node, fmt.Errorf("Expected int index")
+		}
+
+		child, err := node.GetIndex(index)
 		if err != nil {
 			return node, err
 		} else {
-			child, err := node.GetIndex(index)
-			if err != nil {
-				return node, err
-			} else {
-				return child.GetPath(path[1:])
-			}
+			return child.GetPath(path[1:])
 		}
 	default:
-		return node, fmt.Errorf("Expected %s or %s at key %s but got %s", prettyKind(yaml.MappingNode), prettyKind(yaml.SequenceNode), key, prettyKind(node.body.Kind))
+		return node, fmt.Errorf("Expected %s or %s at key %s but got %s", prettyKind(yaml.MappingNode), prettyKind(yaml.SequenceNode), path[0], prettyKind(node.body.Kind))
 	}
 }
 

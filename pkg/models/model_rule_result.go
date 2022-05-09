@@ -29,5 +29,5 @@ type RuleResult struct {
 	// An arbitrary key-value map that a rule can return in its result.
 	Context map[string]interface{} `json:"context,omitempty"`
 	// A resource objects associated with this result.
-	Resources []RuleResultResource `json:"resources,omitempty"`
+	Resources []*RuleResultResource `json:"resources,omitempty"`
 }

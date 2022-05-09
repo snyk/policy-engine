@@ -15,8 +15,8 @@ type RuleResultResource struct {
 	// The type of this resource
 	Type string `json:"type,omitempty"`
 	// The namespace of this resource
-	Namespace string            `json:"namespace,omitempty"`
-	Location  *[]SourceLocation `json:"location,omitempty"`
+	Namespace string           `json:"namespace,omitempty"`
+	Location  []SourceLocation `json:"location,omitempty"`
 	// Attributes of the resource that were associated with a rule result.
 	Attributes []RuleResultResourceAttribute `json:"attributes,omitempty"`
 }

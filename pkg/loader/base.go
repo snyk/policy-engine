@@ -120,7 +120,10 @@ type LoadedConfigurations interface {
 	AlreadyLoaded(path string) bool
 	// Location resolves a file path and attribute path from the regula output to a
 	// location within a file.
-	Location(path string, attributePath []string) (LocationStack, error)
+	//
+	// If we are working with a resource-based input, the first element of the
+	// attributePath is usually the resource type, and the second one the ID.
+	Location(path string, attributePath []interface{}) (LocationStack, error)
 	// RegulaInput renders the RegulaInput from all of the contained configurations.
 	RegulaInput() []RegulaInput
 	ToStates() []models.State
@@ -141,8 +144,9 @@ type IACConfiguration interface {
 	// LoadedFiles are all of the files contained within this configuration.
 	LoadedFiles() []string
 	// Location resolves an attribute path to to a file, line and column.
-	// The first element of the attributePath is usually the resource ID.
-	Location(attributePath []string) (LocationStack, error)
+	// If we are working with a resource-based input, the first element of the
+	// attributePath is usually the resource type, and the second one the ID.
+	Location(attributePath []interface{}) (LocationStack, error)
 }
 
 // Location is a filepath, line and column.

@@ -129,7 +129,10 @@ func (l *k8sConfiguration) ToState() models.State {
 	return toState("k8s", l.path, l.resources)
 }
 
-func (l *k8sConfiguration) Location(path []string) (LocationStack, error) {
+func (l *k8sConfiguration) Location(path []interface{}) (LocationStack, error) {
+    return nil, nil
+	/* TODO: Location() is not yet supported for k8s.
+
 	if len(path) < 1 {
 		return nil, nil
 	}
@@ -141,6 +144,7 @@ func (l *k8sConfiguration) Location(path []string) (LocationStack, error) {
 	} else {
 		return nil, nil
 	}
+	*/
 }
 
 func (l *k8sConfiguration) LoadedFiles() []string {

@@ -95,7 +95,7 @@ func (l *tfRuntimeLoader) LoadedFiles() []string {
 	return []string{l.path}
 }
 
-func (l *tfRuntimeLoader) Location(attributePath []string) (LocationStack, error) {
+func (l *tfRuntimeLoader) Location(attributePath []interface{}) (LocationStack, error) {
 	return nil, nil
 }
 

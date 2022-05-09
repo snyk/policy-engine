@@ -67,6 +67,8 @@ var runCmd = &cobra.Command{
 		})
 		check(err)
 
+		loader.AnnotateResults(loadedConfigs, results)
+
 		bytes, err := json.MarshalIndent(results, "  ", "  ")
 		check(err)
 		fmt.Fprintf(os.Stdout, "%s\n", string(bytes))

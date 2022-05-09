@@ -117,7 +117,10 @@ func (c *HclConfiguration) LoadedFiles() []string {
 	return c.moduleTree.LoadedFiles()
 }
 
-func (c *HclConfiguration) Location(path []string) (LocationStack, error) {
+func (c *HclConfiguration) Location(path []interface{}) (LocationStack, error) {
+    return nil, nil
+	/* TODO: Location() is not yet supported for HCL.
+
 	if len(path) < 1 {
 		return nil, nil
 	}
@@ -132,6 +135,7 @@ func (c *HclConfiguration) Location(path []string) (LocationStack, error) {
 		})
 	}
 	return locs, nil
+	*/
 }
 
 func (c *HclConfiguration) RegulaInput() RegulaInput {
