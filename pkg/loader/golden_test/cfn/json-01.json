@@ -1,0 +1,22 @@
+{
+  "content": {
+    "resources": {
+      "Bucket1": {
+        "AccessControl": "Private",
+        "_type": "AWS::S3::Bucket",
+        "id": "Bucket1"
+      },
+      "Bucket2": {
+        "AccessControl": "Private",
+        "PublicAccessBlockConfiguration": {
+          "BlockPublicAcls": true,
+          "IgnorePublicAcls": true,
+          "RestrictPublicBuckets": true
+        },
+        "_type": "AWS::S3::Bucket",
+        "id": "Bucket2"
+      }
+    }
+  },
+  "filepath": "golden_test/cfn/json-01/cfn.json"
+}
