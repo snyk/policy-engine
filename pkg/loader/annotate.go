@@ -11,9 +11,6 @@ func AnnotateResults(
 ) {
 	for _, inputResult := range results.Results {
 		// Retrieve the filepath of the input state by looking in the metadata.
-		if inputResult.Input.Meta == nil {
-			continue
-		}
 		filepath, haveFilepath := inputResult.Input.Meta["filepath"].(string)
 		if !haveFilepath {
 			continue
