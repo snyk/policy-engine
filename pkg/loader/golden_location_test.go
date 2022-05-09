@@ -163,6 +163,68 @@ var goldenLocationTests = []goldenLocationTest{
 					},
 				},
 			},
+			{
+				path: []interface{}{
+					"aws_vpc",
+					"module.child2.aws_vpc.child",
+					"cidr_block",
+				},
+				expected: []Location{
+					{
+						Path: filepath.Join("child2", "main.tf"),
+						Line: 6,
+						Col:  3,
+					},
+					{
+						Path: "main.tf",
+						Line: 14,
+						Col:  12,
+					},
+				},
+			},
+		},
+	},
+	{
+		directory: "golden_test/tf/kubernetes-01",
+		cases: []goldenLocationTestCase{
+			{
+				path: []interface{}{
+					"kubernetes_pod",
+					"kubernetes_pod.multiple_containers",
+					"spec",
+					0,
+					"init_container",
+					0,
+					"env",
+				},
+				expected: LocationStack{
+					{
+						Path: "main.tf",
+						Line: 13,
+						Col:  7,
+					},
+				},
+			},
+			{
+				path: []interface{}{
+					"kubernetes_pod",
+					"kubernetes_pod.multiple_containers",
+					"spec",
+					0,
+					"container",
+					1,
+					"security_context",
+					0,
+					"privileged",
+				},
+				expected: LocationStack{
+					{
+						Path: "main.tf",
+						Line: 42,
+						Col:  9,
+					},
+				},
+			},
 		},
 	},
 }
