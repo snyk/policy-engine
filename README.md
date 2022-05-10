@@ -254,6 +254,7 @@ Then the `from_port` path would be `["ingress", 0, "from_port"]`.
         passed in to `snyk.resources`
      *  `_namespace`: Together with the `id` and `_type`, this forms a unique
         identifier for the resource
+     *  `_meta`: An object containing metadata for the resource
 
 ## Testing rules
 

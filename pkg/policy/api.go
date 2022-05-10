@@ -122,6 +122,11 @@ func resourceStateToRegoInput(resource models.ResourceState) map[string]interfac
 	obj["id"] = resource.Id
 	obj["_type"] = resource.ResourceType
 	obj["_namespace"] = resource.Namespace
+	if resource.Meta == nil {
+		obj["_meta"] = map[string]interface{}{}
+	} else {
+		obj["_meta"] = resource.Meta
+	}
 	return obj
 }
 

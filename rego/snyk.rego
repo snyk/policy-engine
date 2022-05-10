@@ -7,6 +7,7 @@ resources(resource_type) = ret {
 			"id": resource.id,
 			"_type": resource_type,
 			"_namespace": resource.namespace,
+			"_meta": object.get(resource, "meta", {}),
 		}, resource.attributes)
 	]
 }
