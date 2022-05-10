@@ -20,11 +20,11 @@ import (
 var replCmd = &cobra.Command{
 	Use:   "repl [-d <rules/metadata>...] [input]",
 	Short: "Unified Policy Engine",
-	Run: func(cmd *cobra.Command, args []string) {
+	RunE: func(cmd *cobra.Command, args []string) error {
 		ctx := context.Background()
 		consumer := upe.NewPolicyConsumer()
 		if len(args) > 1 {
-			check(fmt.Errorf("Expected at most 1 input"))
+			return fmt.Errorf("Expected at most 1 input")
 		} else if len(args) == 1 {
 			configLoader := loader.LocalConfigurationLoader(loader.LoadPathsOptions{
 				Paths: args,
@@ -36,15 +36,26 @@ var replCmd = &cobra.Command{
 				IgnoreDirs:  false,
 			})
 			loadedConfigs, err := configLoader()
-			check(err)
+			if err != nil {
+				return err
+			}
 			states := loadedConfigs.ToStates()
-			consumer.DataDocument(ctx, "repl/input/state.json", jsonMarshalUnmarshal(&states[0]))
+			if len(states) != 1 {
+				return fmt.Errorf("Expected a single state but got %d", len(states))
+			}
+			replInput, err := jsonMarshalUnmarshal(states[0])
+			if err != nil {
+				return err
+			}
+			consumer.DataDocument(ctx, "repl/input/state.json", replInput)
 		}
 		data.PureRegoProvider()(ctx, consumer)
 		for _, path := range rootCmdRegoPaths {
 			if isTgz(path) {
 				f, err := os.Open(path)
-				check(err)
+				if err != nil {
+					return err
+				}
 				data.TarGzProvider(f)(ctx, consumer)
 			} else {
 				data.LocalProvider(path)(ctx, consumer)
@@ -54,12 +65,15 @@ var replCmd = &cobra.Command{
 		txn, err := store.NewTransaction(ctx, storage.TransactionParams{
 			Write: true,
 		})
-		check(err)
+		if err != nil {
+			return err
+		}
 		for p, m := range consumer.Modules {
 			store.UpsertPolicy(ctx, txn, p, []byte(m.String()))
 		}
-		err = store.Commit(ctx, txn)
-		check(err)
+		if err = store.Commit(ctx, txn); err != nil {
+			return err
+		}
 		var historyPath string
 		if homeDir, err := os.UserHomeDir(); err == nil {
 			historyPath = filepath.Join(homeDir, ".upe-history")
@@ -76,13 +90,18 @@ var replCmd = &cobra.Command{
 		)
 		r.OneShot(ctx, "strict-builtin-errors")
 		r.Loop(ctx)
+		return nil
 	},
 }
 
-func jsonMarshalUnmarshal(v interface{}) map[string]interface{} {
-	b, err := json.Marshal(v)
-	check(err)
-	out := map[string]interface{}{}
-	json.Unmarshal(b, &out)
-	return out
+func jsonMarshalUnmarshal(v interface{}) (map[string]interface{}, error) {
+	if b, err := json.Marshal(v); err != nil {
+		return nil, err
+	} else {
+		out := map[string]interface{}{}
+		if err := json.Unmarshal(b, &out); err != nil {
+			return nil, err
+		}
+		return out, nil
+	}
 }
