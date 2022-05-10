@@ -297,16 +297,17 @@ operation:
 Running with an input is intended to be used to debug rule code with some real input.
 Running without an input is intended to be used to debug tests.
 
+Both modes of operation use the ["pure rego" version](rego/snyk.rego) of the `snyk` API
+rather than the custom built-ins used by the `run` command. In practice, these should
+behave the same.
+
 #### With an input
 
 Running the REPL with an input will setup an environment that closely matches the way
-rules are evaluated:
+rules are evaluated by:
 
-* The input is parsed into a `State` object
-* The custom built-ins are loaded with the input
-  * This means, for example, that `snyk.resources(<resource type>)` will work as
-    expected
-* The `input` document is set to the entire `State` object.
+* Parsing the input into a `State` object
+* Setting the `input` document to the state object
   * This can be useful for inspecting the input from within the REPL, but rule code must
     use functions from the snyk API like snyk.resources() to access the input, to ensure
     compatibility with the production (non-repl) engine.
@@ -373,9 +374,8 @@ $ ./unified-policy-engine repl -d examples examples/main.tf
 
 #### Without an input
 
-Running the REPL without an input will setup an environment that closely matches the way
-that tests are evaluated. The pure rego version of the `snyk` library is loaded instead
-of the version that uses custom built-ins.
+Running the REPL without an input is useful for debugging tests and interacting with
+test fixtures.
 
 ##### Example
 
