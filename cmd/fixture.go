@@ -51,7 +51,11 @@ var fixtureCmd = &cobra.Command{
 		}
 
 		states := loadedConfigs.ToStates()
-		bytes, err := json.MarshalIndent(states, "", "  ")
+		if len(states) != 1 {
+			return fmt.Errorf("Expected a single state but got %d", len(states))
+		}
+
+		bytes, err := json.MarshalIndent(states[0], "", "  ")
 		if err != nil {
 			return err
 		}

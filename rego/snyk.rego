@@ -2,7 +2,7 @@ package snyk
 
 resources(resource_type) = ret {
 	ret := [obj |
-		resource := input[_].resources[resource_type][_]
+		resource := input.resources[resource_type][_]
 		obj := object.union({
 			"id": resource.id,
 			"_type": resource_type,
