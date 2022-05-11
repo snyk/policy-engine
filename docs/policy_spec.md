@@ -49,8 +49,8 @@ refers to as a rule elsewhere.
     - `package rules.my_rule`
     - `package rules.snyk_007.tf`
 
-2. Policies must contain a `deny[info]` "judgement rule", where `info` is assigned to
-   an object (described in the next section). It's assumed that the `deny[info]` rule
+2. Policies must contain a `deny[info]` "judgement rule", where `info` is an object
+   (which is described in the next section). It's assumed that the `deny[info]` rule
    is written to match failing resources or conditions.
     * The required fields in the `info` object will depend on which
       [archetype](#policy-archetypes) the policy conforms to.
