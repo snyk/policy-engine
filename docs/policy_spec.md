@@ -38,7 +38,7 @@ Engine (UPE).
 
 ### Policy vs. rule
 
-This document uses the term "policy" to refer to a rego file that UPE queries in order
+This document uses the term "policy" to refer to an OPA package in one or more rego files that UPE queries in order
 to evaluate some input. This is mainly done to disambiguate "rules" in the Open Policy
 Agent terminology (which is used extensively throughout this document) from what Snyk
 refers to as a rule elsewhere.
