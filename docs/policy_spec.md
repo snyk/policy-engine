@@ -80,7 +80,7 @@ When `resource_type` is set to `MULTIPLE`, the `input` document will be set to t
 [State object](#state-object) that is currently being processed by the engine. 
 
 When `resource_type` is set to a specific resource type (e.g. `aws_s3_bucket`), UPE will
-set the `input` document to the `attributes` map of a single resource state. 
+set the `input` document to the `attributes` object of a single resource state. 
 
 When `resource_type` is unspecified, it defaults to `MULTIPLE`.
 
