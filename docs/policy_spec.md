@@ -187,8 +187,8 @@ optionally:
 
 | Field              |  Type  | Description                                                                                  |
 | :----------------- | :----: | :------------------------------------------------------------------------------------------- |
-| `resource`         | object | A [resource object](#resource-objects) to associate with a policy result                      |
-| `primary_resource` | object | The primary [resource object](#resource-objects) associated with a policy result              |
+| `resource`         | object | A [resource object](#resource-objects) to associate with a policy result                     |
+| `primary_resource` | object | The primary [resource object](#resource-objects) associated with a policy result             |
 | `attributes`       | array  | An array of [attribute paths](#attribute-paths) from the resource in the `resource` property |
 | `correlation`      | string | A manually-specified [correlation ID](#correlation-ids)                                      |
 
@@ -364,7 +364,8 @@ would become the following resource object:
 }
 ```
 
-In general, policies will not need to interact with the added properties.
+In general, policies will not need to interact with the added properties apart from
+`id`, which can be useful wherever a resource identifier is needed.
 
 #### Obtaining resource objects
 
@@ -379,9 +380,25 @@ obtained via the [`snyk.resources`](#snykresourcesresource-type) function.
 ### Attribute paths
 
 Attribute paths are arrays of strings and integers that describe the location of a
-particular attribute within a resource. The `attributes` properties that you see in
-the [`deny`](#denyinfo) and [`resources`](#resourcesinfo) definitions are arrays of
-attribute paths, e.g:
+particular attribute within a resource. For example, given the following JSON
+attributes:
+
+```json
+{
+  "ingress": [
+    {
+      "from_port": 22,
+      "to_port": 22
+    }
+  ]
+}
+```
+
+The path to `from_port` would be `["ingress", 0, "from_port"]`.
+
+
+The `attributes` properties that you see in the [`deny`](#denyinfo) and
+[`resources`](#resourcesinfo) definitions are arrays of attribute paths, e.g:
 
 ```open-policy-agent
 [
