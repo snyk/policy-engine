@@ -186,8 +186,8 @@ func toIaCCustomInput(state *models.State) map[string]map[string]map[string]inte
 	inputResource := map[string]map[string]interface{}{}
 	for rt, resources := range state.Resources {
 		inputResourceType := map[string]interface{}{}
-		for name, r := range resources {
-			inputResourceType[name] = r.Attributes
+		for _, r := range resources {
+			inputResourceType[r.Id] = r.Attributes
 		}
 		inputResource[rt] = inputResourceType
 	}

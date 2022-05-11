@@ -3,6 +3,7 @@ package policy
 import (
 	"embed"
 	"fmt"
+	"strings"
 
 	"github.com/open-policy-agent/opa/ast"
 	"github.com/open-policy-agent/opa/rego"
@@ -25,18 +26,16 @@ const currentInputTypeName = "__current_input_type"
 var builtinDeclarations = map[string]*types.Function{
 	resourcesByTypeName: types.NewFunction(
 		types.Args(types.S),
-		types.NewObject(
+		types.NewArray(
 			nil,
-			types.NewDynamicProperty(
-				types.S,
-				types.NewObject(
-					[]*types.StaticProperty{
-						types.NewStaticProperty("id", types.S),
-						types.NewStaticProperty("_type", types.S),
-						types.NewStaticProperty("_namespace", types.S),
-					},
-					types.NewDynamicProperty(types.S, types.A),
-				),
+			types.NewObject(
+				[]*types.StaticProperty{
+					types.NewStaticProperty("id", types.S),
+					types.NewStaticProperty("_uid", types.S),
+					types.NewStaticProperty("_type", types.S),
+					types.NewStaticProperty("_namespace", types.S),
+				},
+				types.NewDynamicProperty(types.S, types.A),
 			),
 		),
 	),
@@ -100,10 +99,11 @@ func (r *resourcesByType) impl(
 		return nil, err
 	}
 	rt := string(arg)
-	ret := map[string]map[string]interface{}{}
+	ret := []map[string]interface{}{}
 	if resources, ok := r.input.Resources[rt]; ok {
-		for resourceKey, resource := range resources {
-			ret[resourceKey] = resourceStateToRegoInput(resource)
+		ret = make([]map[string]interface{}, len(resources))
+		for idx, resource := range resources {
+			ret[idx] = resourceStateToRegoInput(resource)
 		}
 	}
 	val, err := ast.InterfaceToValue(ret)
@@ -127,6 +127,14 @@ func resourceStateToRegoInput(resource models.ResourceState) map[string]interfac
 	} else {
 		obj["_meta"] = resource.Meta
 	}
+	obj["_uid"] = strings.Join(
+		[]string{
+			resource.Namespace,
+			resource.ResourceType,
+			resource.Id,
+		},
+		":",
+	)
 	return obj
 }
 

@@ -62,10 +62,10 @@ components:
         resources:
           type: object
           description: |
-            Resources is a map of resource type to a map of a unique resource key to a resource object.
+            Resources is a map of resource type to an array of resource states.
           additionalProperties:
-            type: object
-            additionalProperties:
+            type: array
+            items:
               $ref: '#/components/schemas/ResourceState'
     ResourceState:
       description: The state of a single resource

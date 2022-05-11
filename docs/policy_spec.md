@@ -373,6 +373,7 @@ would become the following resource object:
   "_provider": "aws",
   "_tags": {},
   "_type": "aws_cloudtrail",
+  "_uid": "examples/main.tf:aws_cloudtrail:aws_cloudtrail.cloudtrail1",
   "id": "aws_cloudtrail.cloudtrail1",
   "include_global_service_events": true,
   "name": "cloudtrail1",
@@ -382,7 +383,8 @@ would become the following resource object:
 ```
 
 In general, policies will not need to interact with the added properties apart from
-`id`, which can be useful wherever a resource identifier is needed.
+`id`, which can be useful wherever a human friendly resource identifier is needed or
+`_uid` wherever a unique identifier is needed.
 
 #### Obtaining resource objects
 

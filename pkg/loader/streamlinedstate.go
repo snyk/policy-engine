@@ -51,29 +51,27 @@ func (t *StreamlinedStateDetector) DetectFile(i InputFile, opts DetectOptions) (
 	}
 
 	var environmentProvider string
-	resourcesByType := map[string]map[string]models.ResourceState{}
+	resourcesByType := map[string][]models.ResourceState{}
 
 	for resourceKey, attributes := range j.Resources {
 		if environmentProvider == "" {
 			environmentProvider = strings.SplitN(resourceKey, "_", 2)[0]
 		}
 		resourceType := extractString(attributes, "_type")
-		resources, ok := resourcesByType[resourceType]
-		if !ok {
-			resources = map[string]models.ResourceState{}
-			resourcesByType[resourceType] = resources
-		}
-		resources[resourceKey] = models.ResourceState{
-			Id:           extractString(attributes, "id"),
-			ResourceType: resourceType,
-			Namespace:    extractString(attributes, "_provider"),
-			Attributes:   attributes,
-			Meta: map[string]interface{}{
-				"tfruntime": map[string]interface{}{
-					"key": resourceKey,
+		resourcesByType[resourceType] = append(
+			resourcesByType[resourceType],
+			models.ResourceState{
+				Id:           extractString(attributes, "id"),
+				ResourceType: resourceType,
+				Namespace:    extractString(attributes, "_provider"),
+				Attributes:   attributes,
+				Meta: map[string]interface{}{
+					"tfruntime": map[string]interface{}{
+						"key": resourceKey,
+					},
 				},
 			},
-		}
+		)
 	}
 
 	return &streamlinedStateLoader{
@@ -90,7 +88,7 @@ func (t *StreamlinedStateDetector) DetectDirectory(i InputDirectory, opts Detect
 type streamlinedStateLoader struct {
 	path                string
 	environmentProvider string
-	resourcesByType     map[string]map[string]models.ResourceState
+	resourcesByType     map[string][]models.ResourceState
 }
 
 func (l *streamlinedStateLoader) LoadedFiles() []string {
