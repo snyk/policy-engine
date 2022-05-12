@@ -133,8 +133,7 @@ to clarify the intent of each field.
 | `category`      | string | The category of the policy                                                                                       |
 | `tags`          | array  | An array of tag strings associated with this policy                                                              |
 | `service_group` | string | The service group of the primary resource associated with this policy (e.g. "EBS", "EC2")                        |
-| `controls`      | object | A map of rule set ID to an array of control tags                                                                 |
-| `rule_sets`     | array  | An array of rule set IDs                                                                                         |
+| `controls`      | object | A map of rule set ID to a map of versions to a list of control IDs                                               |
 | `severity`      | string | The severity of the issue identified by this policy                                                              |
 
 Example with all fields populated:
