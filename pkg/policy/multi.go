@@ -46,6 +46,7 @@ func (p *MultiResourcePolicy) Eval(
 	output.Title = metadata.Title
 	output.Description = metadata.Description
 	output.Controls = metadata.Controls
+	output.References = metadata.References
 	opts := append(
 		options.RegoOptions,
 		rego.Query(p.judgementRule.query()),

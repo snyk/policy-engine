@@ -166,16 +166,13 @@ components:
           description: A markdown formatted string containing useful links
         controls:
           type: object
-          description: A map of rule set ID to a list of control tags
+          description: A map of rule set ID to a map of versions to a list of control IDs
           additionalProperties:
-            type: array
-            items:
-              type: string
-        rule_sets:
-          type: array
-          description: A list of rule set IDs associated with this rule
-          items:
-            type: string
+            type: object
+            additionalProperties:
+              type: array
+              items:
+                type: string
         resource_types:
           type: array
           description: A list of resource types that the rule uses.

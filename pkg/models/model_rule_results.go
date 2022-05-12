@@ -18,10 +18,8 @@ type RuleResults struct {
 	Description string `json:"description,omitempty"`
 	// A markdown formatted string containing useful links
 	References string `json:"references,omitempty"`
-	// A map of rule set ID to a list of control tags
-	Controls map[string][]string `json:"controls,omitempty"`
-	// A list of rule set IDs associated with this rule
-	RuleSets []string `json:"rule_sets,omitempty"`
+	// A map of rule set ID to a map of versions to a list of control IDs
+	Controls map[string]map[string][]string `json:"controls,omitempty"`
 	// A list of resource types that the rule uses.
 	ResourceTypes []string     `json:"resource_types,omitempty"`
 	Results       []RuleResult `json:"results"`
