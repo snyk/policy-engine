@@ -67,6 +67,11 @@ func (t *TfRuntimeDetector) DetectFile(i InputFile, opts DetectOptions) (IACConf
 			ResourceType: resourceType,
 			Namespace:    extractString(attributes, "_provider"),
 			Attributes:   attributes,
+			Meta: map[string]interface{}{
+				"tfruntime": map[string]interface{}{
+					"key": resourceKey,
+				},
+			},
 		}
 	}
 

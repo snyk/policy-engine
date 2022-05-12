@@ -7,8 +7,6 @@ This repository contains a Go library that performs two main functions:
 
 It also provides a small CLI that can be used to author and test policies.
 
-## Building & running
-
 ```sh
 go build
 ./unified-policy-engine help
