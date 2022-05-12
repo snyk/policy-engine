@@ -153,19 +153,16 @@ metadata := {
     ],
     "service_group": "S3",
     "controls": {
-        "CIS-AWS_v1.3.0": [
-            "CIS-AWS_v1.3.0_5.1",
-            "CIS-AWS_v1.3.0_5.2"
-        ],
-        "CIS-AWS_v1.4.0": [
-            "CIS-AWS_v1.4.0_6.7"
-        ]
+        "CIS-AWS": {
+          "v1.3.0": [
+            "5.1",
+            "5.2"
+          ],
+          "v1.4.0": [
+            "6.7"
+          ]
+        }
     },
-    "rule_sets": [
-        "CIS-AWS_v1.3.0",
-        "CIS-AWS_v1.4.0",
-        "2931f772-5599-4aed-9e2d-b5ed9a2d7aa3"
-    ],
     "severity": "Critical"
 }
 ```

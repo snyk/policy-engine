@@ -89,16 +89,16 @@ func (i *ruleInfo) hasKey() bool {
 }
 
 type Metadata struct {
-	ID           string              `json:"id"`
-	Title        string              `json:"title"`
-	Description  string              `json:"description"`
-	Remediation  map[string]string   `json:"remediation"`
-	References   string              `json:"references"` // TODO: Should this be a dict, similar to a bibliography?
-	Categories   []string            `json:"categories"`
-	ServiceGroup string              `json:"service_group"` // TODO: Should this be a []string?
-	Controls     map[string][]string `json:"controls"`
-	RuleSets     []string            `json:"rule_sets"`
-	Severity     string              `json:"severity"`
+	ID           string                         `json:"id"`
+	Title        string                         `json:"title"`
+	Description  string                         `json:"description"`
+	Remediation  map[string]string              `json:"remediation"`
+	References   string                         `json:"references"`
+	Category     string                         `json:"category"`
+	Tags         []string                       `json:"tags"`
+	ServiceGroup string                         `json:"service_group"`
+	Controls     map[string]map[string][]string `json:"controls"`
+	Severity     string                         `json:"severity"`
 }
 
 // BasePolicy implements functionality that is shared between different concrete
@@ -229,8 +229,8 @@ func (p *BasePolicy) Metadata(
 			Description: d.Description,
 		}
 		if d.Custom != nil {
-			m.Controls = d.Custom.Controls
-			m.RuleSets = d.Custom.Families
+			// It's not necessary to process controls here, because this path is only
+			// for backwards compatibility with custom rules.
 			m.Severity = d.Custom.Severity
 		}
 	default:
