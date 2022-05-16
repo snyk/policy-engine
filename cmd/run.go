@@ -7,6 +7,7 @@ import (
 	"os"
 
 	"github.com/snyk/unified-policy-engine/pkg/data"
+	"github.com/snyk/unified-policy-engine/pkg/inputtypes"
 	"github.com/snyk/unified-policy-engine/pkg/loader"
 	"github.com/snyk/unified-policy-engine/pkg/metrics"
 	"github.com/snyk/unified-policy-engine/pkg/upe"
@@ -46,11 +47,11 @@ var runCmd = &cobra.Command{
 		}
 		inputType := loader.Auto
 		if *runCmdCloud {
-			inputType = loader.TfRuntime
+			inputType = loader.StreamlinedState
 		}
 		configLoader := loader.LocalConfigurationLoader(loader.LoadPathsOptions{
 			Paths:       args,
-			InputTypes:  []loader.InputType{inputType},
+			InputTypes:  inputtypes.InputTypes{inputType},
 			NoGitIgnore: false,
 			IgnoreDirs:  false,
 		})

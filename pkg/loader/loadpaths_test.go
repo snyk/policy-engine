@@ -20,13 +20,14 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
+	"github.com/snyk/unified-policy-engine/pkg/inputtypes"
 	"github.com/snyk/unified-policy-engine/pkg/loader"
 )
 
 func TestLoadPathsDirAuto(t *testing.T) {
 	loadedConfigs, err := loader.LocalConfigurationLoader(loader.LoadPathsOptions{
 		Paths:      []string{"test_inputs/data"},
-		InputTypes: []loader.InputType{loader.Auto},
+		InputTypes: inputtypes.InputTypes{loader.Auto},
 	})()
 	assert.Nil(t, err)
 	assert.NotNil(t, loadedConfigs)
@@ -41,7 +42,7 @@ func TestLoadPathsFiles(t *testing.T) {
 			"test_inputs/data/cfn.yaml",
 			"test_inputs/data/tfplan.0.15.json",
 		},
-		InputTypes: []loader.InputType{loader.Auto},
+		InputTypes: inputtypes.InputTypes{loader.Auto},
 	})()
 	assert.Nil(t, err)
 	assert.NotNil(t, loadedConfigs)
@@ -53,7 +54,7 @@ func TestLoadPathsFiles(t *testing.T) {
 func TestLoadPathsDirWithType(t *testing.T) {
 	loadedConfigs, err := loader.LocalConfigurationLoader(loader.LoadPathsOptions{
 		Paths:      []string{"test_inputs/data"},
-		InputTypes: []loader.InputType{loader.TfPlan},
+		InputTypes: inputtypes.InputTypes{inputtypes.TerraformPlan},
 	})()
 	assert.Nil(t, err)
 	assert.NotNil(t, loadedConfigs)

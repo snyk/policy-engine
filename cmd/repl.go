@@ -12,6 +12,7 @@ import (
 	"github.com/open-policy-agent/opa/storage"
 	"github.com/open-policy-agent/opa/storage/inmem"
 	"github.com/snyk/unified-policy-engine/pkg/data"
+	"github.com/snyk/unified-policy-engine/pkg/inputtypes"
 	"github.com/snyk/unified-policy-engine/pkg/loader"
 	"github.com/snyk/unified-policy-engine/pkg/upe"
 	"github.com/spf13/cobra"
@@ -28,9 +29,9 @@ var replCmd = &cobra.Command{
 		} else if len(args) == 1 {
 			configLoader := loader.LocalConfigurationLoader(loader.LoadPathsOptions{
 				Paths: args,
-				InputTypes: []loader.InputType{
+				InputTypes: inputtypes.InputTypes{
 					loader.Auto,
-					loader.TfRuntime,
+					loader.StreamlinedState,
 				},
 				NoGitIgnore: false,
 				IgnoreDirs:  false,

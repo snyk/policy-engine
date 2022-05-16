@@ -35,7 +35,7 @@ func (p *SingleResourcePolicy) Eval(
 		WithField(logging.POLICY_TYPE, "single_resource").
 		WithField(logging.JUDGEMENT_NAME, p.judgementRule.name).
 		WithField(logging.JUDGEMENT_KEY, p.judgementRule.key).
-		WithField(logging.RESOURCE_TYPE, p.resourceType()).
+		WithField(logging.RESOURCE_TYPE, p.resourceType).
 		WithField(logging.INPUT_TYPE, p.InputType())
 	output := models.RuleResults{}
 	metadata, err := p.Metadata(ctx, options.RegoOptions)
@@ -60,7 +60,7 @@ func (p *SingleResourcePolicy) Eval(
 		return []models.RuleResults{output}, err
 	}
 	ruleResults := []models.RuleResult{}
-	rt := p.resourceType()
+	rt := p.resourceType
 	output.ResourceTypes = []string{rt}
 	if resources, ok := options.Input.Resources[rt]; ok {
 		for _, resource := range resources {

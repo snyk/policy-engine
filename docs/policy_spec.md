@@ -14,6 +14,7 @@ Engine (UPE).
     - [`input_type`](#input_type)
     - [`metadata`](#metadata)
       - [Supported fields](#supported-fields)
+      - [Remediation](#remediation)
     - [`resources[info]`](#resourcesinfo)
       - [`info` object properties](#info-object-properties-1)
       - [Correlation IDs](#correlation-ids)
@@ -96,21 +97,19 @@ resource_type := "aws_s3_bucket"
 
 ### `input_type`
 
-The `input_type` rule defines defines which input types a rule applies to. The current
-list of supported input types are:
+The `input_type` rule defines defines which input types a rule applies to. There is a
+hierarchy to input types that enables policy authors to write a single policy that 
+applies to multiple types. The current list of valid values for this rule are:
 
-* `cfn` (CloudFormation template)
-* `tf` (Terraform HCL)
+* `tf_hcl` (Terraform HCL)
 * `tf_plan` (Terraform plan file)
-* `tf_runtime` (Runtime state from Snyk Cloud)
+* `cloud_scan` (State produced by Snyk Cloud)
+* `cfn` (Cloudformation template)
 * `k8s` (Kubernetes manifest)
 * `arm` (Azure ARM template)
+* `tf` (an aggregate type that includes: `tf_hcl`, `tf_plan`, and `cloud_scan`)
 
 When `input_type` is unspecified, it defaults to `tf`.
-
-**NOTE** The current behavior is that UPE will treat `tf`, `tf_plan`, and `tf_runtime`
-as equal, i.e. policies that specify any of these input types will run for all inputs.
-This could be subject to change in future versions of UPE.
 
 ### `metadata`
 
@@ -128,7 +127,7 @@ to clarify the intent of each field.
 | `id`            | string | A short identifier for the policy. The same ID can be shared across different implementations of the same policy |
 | `title`         | string | A short description of the policy                                                                                |
 | `description`   | string | A longer description of the policy                                                                               |
-| `remediation`   | string | Remediation steps for the issue identified by the policy                                                         |
+| `remediation`   | object | [Remediation steps](#remediation) for the issue identified by the policy                                         |
 | `references`    | string | Links to additional information about the issue identified by the policy                                         |
 | `category`      | string | The category of the policy                                                                                       |
 | `tags`          | array  | An array of tag strings associated with this policy                                                              |
@@ -143,7 +142,11 @@ metadata := {
     "id": "COMPANY_0001",
     "title": "S3 bucket name contains the word 'bucket'",
     "description": "It is unnecessary for resource names to contain their type.",
-    "remediation": "1. Go to the AWS console\n2. Navigate to the S3 service page\n3. ...",
+    "remediation": {
+      "console": "1. Go to the AWS console\n2. Navigate to the S3 service page\n3. ...",
+      "cloudformation": "1. Find the corresponding AWS::S3::Bucket resource\n2. ...",
+      "terraform": "1. Find the corresponding aws_s3_bucket resource\n2. ..."
+    },
     "references": "[Some blog post](https://example.com/bucket-naming-conventions)",
     "category": "Best Practices",
     "tags": [
@@ -165,6 +168,24 @@ metadata := {
     "severity": "Critical"
 }
 ```
+
+#### Remediation
+
+Policies can provide input-type specific remediation steps via the `remediation`
+metadata field. If this field is set, UPE will, by default, pick a remediation string
+from this field based on the current input type using the following mapping:
+
+| Input type   | Key in `remediation` object |
+| :----------- | :-------------------------- |
+| `tf_hcl`     | `terraform`                 |
+| `tf_plan`    | `terraform`                 |
+| `cfn`        | `cloudformation`            |
+| `cloud_scan` | `console`                   |
+| `k8s`        | `k8s`                       |
+| `arm`        | `arm`                       |
+
+Policies can also bypass this behavior by returning a `remediation` string in the
+[info object returned by the `deny` judgement rule](#info-object-properties).
 
 ### `resources[info]`
 

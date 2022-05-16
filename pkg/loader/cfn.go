@@ -20,6 +20,7 @@ import (
 	"regexp"
 	"strings"
 
+	"github.com/snyk/unified-policy-engine/pkg/inputtypes"
 	"github.com/snyk/unified-policy-engine/pkg/interfacetricks"
 	"github.com/snyk/unified-policy-engine/pkg/models"
 	"gopkg.in/yaml.v3"
@@ -136,7 +137,7 @@ type cfnConfiguration struct {
 }
 
 func (l *cfnConfiguration) ToState() models.State {
-	return toState("cfn", l.path, l.resources)
+	return toState(inputtypes.CloudFormation.Name, l.path, l.resources)
 }
 
 func (l *cfnConfiguration) Location(path []interface{}) (LocationStack, error) {

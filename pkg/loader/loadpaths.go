@@ -23,6 +23,7 @@ import (
 	"sort"
 
 	"github.com/sirupsen/logrus"
+	"github.com/snyk/unified-policy-engine/pkg/inputtypes"
 	"github.com/snyk/unified-policy-engine/pkg/models"
 
 	"github.com/fugue/regula/v2/pkg/git"
@@ -34,7 +35,7 @@ type LoadPathsOptions struct {
 	// Paths sets which paths the loader will search in for IaC configurations
 	Paths []string
 	// InputTypes sets which input types the loader will try to parse
-	InputTypes []InputType
+	InputTypes inputtypes.InputTypes
 	// NoGitIgnore disables the .gitignore functionality. When true, the loader will
 	// not filter the input paths based on the contents of relevant .gitignore files.
 	NoGitIgnore bool
@@ -258,9 +259,9 @@ func (l *loadedConfigurations) Count() int {
 	return len(l.configurations)
 }
 
-func detectorByInputType(inputType InputType) (ConfigurationDetector, error) {
-	switch inputType {
-	case Auto:
+func detectorByInputType(inputType *inputtypes.InputType) (ConfigurationDetector, error) {
+	switch inputType.Name {
+	case Auto.Name:
 		return NewAutoDetector(
 			&CfnDetector{},
 			&TfPlanDetector{},
@@ -268,35 +269,35 @@ func detectorByInputType(inputType InputType) (ConfigurationDetector, error) {
 			&KubernetesDetector{},
 			&ArmDetector{},
 		), nil
-	case Cfn:
+	case inputtypes.CloudFormation.Name:
 		return &CfnDetector{}, nil
-	case TfPlan:
+	case inputtypes.TerraformPlan.Name:
 		return &TfPlanDetector{}, nil
-	case Tf:
+	case inputtypes.TerraformHCL.Name:
 		return &TfDetector{}, nil
-	case TfRuntime:
-		return &TfRuntimeDetector{}, nil
-	case K8s:
+	case StreamlinedState.Name:
+		return &StreamlinedStateDetector{}, nil
+	case inputtypes.Kubernetes.Name:
 		return &KubernetesDetector{}, nil
-	case Arm:
+	case inputtypes.Arm.Name:
 		return &ArmDetector{}, nil
 	default:
 		return nil, fmt.Errorf("Unsupported input type: %v", inputType)
 	}
 }
 
-func DetectorByInputTypes(inputTypes []InputType) (ConfigurationDetector, error) {
+func DetectorByInputTypes(inputTypes inputtypes.InputTypes) (ConfigurationDetector, error) {
 	if len(inputTypes) == 0 {
 		return detectorByInputType(Auto)
 	} else if len(inputTypes) == 1 {
 		return detectorByInputType(inputTypes[0])
 	}
-	inputTypesSet := map[InputType]bool{}
+	inputTypesSet := map[string]bool{}
 	for _, i := range inputTypes {
-		inputTypesSet[i] = true
+		inputTypesSet[i.Name] = true
 	}
-	if inputTypesSet[Auto] && !inputTypesSet[TfRuntime] {
-		// Auto includes all other detector types besides TfRuntime
+	if inputTypesSet[Auto.Name] && !inputTypesSet[StreamlinedState.Name] {
+		// Auto includes all other detector types besides streamlined state
 		return detectorByInputType(Auto)
 	}
 	detectors := []ConfigurationDetector{}

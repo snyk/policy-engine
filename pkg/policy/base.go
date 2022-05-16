@@ -8,6 +8,7 @@ import (
 
 	"github.com/open-policy-agent/opa/ast"
 	"github.com/open-policy-agent/opa/rego"
+	"github.com/snyk/unified-policy-engine/pkg/inputtypes"
 	"github.com/snyk/unified-policy-engine/pkg/logging"
 	"github.com/snyk/unified-policy-engine/pkg/models"
 )
@@ -30,6 +31,16 @@ const inputTypeRuleName = "input_type"
 const multipleResourceType = "MULTIPLE"
 const defaultInputType = "tf"
 
+var PolicyInputTypes = inputtypes.InputTypes{
+	inputtypes.Arm,
+	inputtypes.CloudFormation,
+	inputtypes.CloudScan,
+	inputtypes.Kubernetes,
+	inputtypes.TerraformHCL,
+	inputtypes.TerraformPlan,
+	inputtypes.Terraform,
+}
+
 type EvalOptions struct {
 	RegoOptions []func(*rego.Rego)
 	Input       *models.State
@@ -44,6 +55,7 @@ type Policy interface {
 	ID(ctx context.Context, options []func(*rego.Rego)) (string, error)
 	Eval(ctx context.Context, options EvalOptions) ([]models.RuleResults, error)
 	InputType() string
+	InputTypeMatches(inputType string) bool
 }
 
 type ruleInfo struct {
@@ -105,6 +117,8 @@ type Metadata struct {
 // Policy implementations.
 type BasePolicy struct {
 	pkg              string
+	resourceType     string
+	inputType        *inputtypes.InputType
 	judgementRule    ruleInfo
 	metadataRule     ruleInfo
 	resourcesRule    ruleInfo
@@ -123,48 +137,68 @@ type ModuleSet struct {
 // does not contain a recognized Judgement.
 func NewBasePolicy(moduleSet ModuleSet) (*BasePolicy, error) {
 	pkg := moduleSet.Path.String()
-	judgement := ruleInfo{}
-	metadata := ruleInfo{}
-	resources := ruleInfo{}
-	inputType := ruleInfo{}
-	resourceType := ruleInfo{}
+	judgementRule := ruleInfo{}
+	metadataRule := ruleInfo{}
+	resourcesRule := ruleInfo{}
+	inputTypeRule := ruleInfo{}
+	resourceTypeRule := ruleInfo{}
 	for _, module := range moduleSet.Modules {
 		for _, r := range module.Rules {
 			name := r.Head.Name.String()
 			switch name {
 			case "allow", "deny", "policy":
-				if err := judgement.add(r); err != nil {
+				if err := judgementRule.add(r); err != nil {
 					return nil, err
 				}
 			case "metadata", "__rego__metadoc__":
-				if err := metadata.add(r); err != nil {
+				if err := metadataRule.add(r); err != nil {
 					return nil, err
 				}
 			case "resources":
-				if err := resources.add(r); err != nil {
+				if err := resourcesRule.add(r); err != nil {
 					return nil, err
 				}
 			case "input_type":
-				if err := inputType.add(r); err != nil {
+				if err := inputTypeRule.add(r); err != nil {
 					return nil, err
 				}
 			case "resource_type":
-				if err := resourceType.add(r); err != nil {
+				if err := resourceTypeRule.add(r); err != nil {
 					return nil, err
 				}
 			}
 		}
 	}
-	if judgement.name == "" {
+	if judgementRule.name == "" {
 		return nil, nil
+	}
+	resourceType := resourceTypeRule.value
+	if resourceType == "" {
+		resourceType = multipleResourceType
+	}
+	var inputType *inputtypes.InputType
+	if inputTypeRule.value == "" {
+		inputType = inputtypes.Terraform
+	} else {
+		// TODO: This code currently handles unknown input types by creating a new input
+		// type, which is one way to support arbitrary input types. Do we want to
+		// consider this case an error instead?
+		inputType, _ := PolicyInputTypes.FromString(inputTypeRule.value)
+		if inputType == nil {
+			inputType = &inputtypes.InputType{
+				Name: inputTypeRule.value,
+			}
+		}
 	}
 	return &BasePolicy{
 		pkg:              pkg,
-		judgementRule:    judgement,
-		metadataRule:     metadata,
-		resourcesRule:    resources,
-		inputTypeRule:    inputType,
-		resourceTypeRule: resourceType,
+		resourceType:     resourceType,
+		inputType:        inputType,
+		judgementRule:    judgementRule,
+		metadataRule:     metadataRule,
+		resourcesRule:    resourcesRule,
+		inputTypeRule:    inputTypeRule,
+		resourceTypeRule: resourceTypeRule,
 	}, nil
 }
 
@@ -174,19 +208,11 @@ func (p *BasePolicy) Package() string {
 }
 
 func (p *BasePolicy) InputType() string {
-	inputType := p.inputTypeRule.value
-	if inputType == "" {
-		return defaultInputType
-	}
-	return inputType
+	return p.inputType.Name
 }
 
-func (p *BasePolicy) resourceType() string {
-	resourceType := p.resourceTypeRule.value
-	if resourceType == "" {
-		return multipleResourceType
-	}
-	return resourceType
+func (p *BasePolicy) InputTypeMatches(inputType string) bool {
+	return p.inputType.Matches(inputType)
 }
 
 func (p *BasePolicy) Metadata(

@@ -17,8 +17,8 @@ package loader
 
 import (
 	"fmt"
-	"strings"
 
+	"github.com/snyk/unified-policy-engine/pkg/inputtypes"
 	"github.com/snyk/unified-policy-engine/pkg/models"
 )
 
@@ -32,79 +32,32 @@ import (
 // stdIn is the path used for stdin.
 const stdIn = "<stdin>"
 
-// InputType is a flag that determines which types regula should look for.
-type InputType int
-
-const (
-	// Auto means that regula will automatically try to determine which input types are
-	// in the given paths.
-	Auto InputType = iota
-	// TfPlan means that regula will only look for Terraform plan JSON files in given
-	// directories and it will assume that given files are Terraform plan JSON.
-	TfPlan
-	// Cfn means that regula will only look for CloudFormation template files in given
-	// directories and it will assume that given files are CloudFormation YAML or JSON.
-	Cfn
-	// Tf means that regula will load the HCL in the directory in a similar
-	// way to terraform plan, or it can also load individual files.
-	Tf
-	// Kubernetes manifests will be loaded
-	K8s
-	// Azure Resource Manager JSON
-	Arm
-	TfRuntime
-)
-
-// InputTypeIDs maps the InputType enums to string values that can be specified in
-// CLI options.
-var InputTypeIDs = map[InputType][]string{
-	Auto:      {"auto"},
-	TfPlan:    {"tf-plan", "tf_plan"},
-	Cfn:       {"cfn"},
-	Tf:        {"tf"},
-	K8s:       {"k8s", "kubernetes"},
-	Arm:       {"arm"},
-	TfRuntime: {"tf_runtime"},
+var Auto = &inputtypes.InputType{
+	Name: "auto",
+	Children: inputtypes.InputTypes{
+		inputtypes.Arm,
+		inputtypes.CloudFormation,
+		inputtypes.Kubernetes,
+		inputtypes.TerraformHCL,
+		inputtypes.TerraformPlan,
+	},
 }
 
-var DefaultInputTypes = InputTypeIDs[Auto]
-
-func InputTypeFromString(name string) (InputType, error) {
-	lower := strings.ToLower(name)
-	for t, ids := range InputTypeIDs {
-		for _, i := range ids {
-			if lower == i {
-				return t, nil
-			}
-		}
-	}
-	return -1, fmt.Errorf("Unrecognized input type %v", name)
+// StreamlinedState is a temporary addition until we're able to completely replace the
+// old streamlined state format.
+var StreamlinedState = &inputtypes.InputType{
+	Name:    "streamlined_state",
+	Aliases: []string{"streamlined-state"},
 }
 
-func ValidateInputType(name string) error {
-	if _, err := InputTypeFromString(name); err != nil {
-		return err
-	}
-	return nil
-}
-
-func InputTypesFromStrings(names []string) ([]InputType, error) {
-	inputTypes := make([]InputType, len(names))
-	for idx, n := range names {
-		t, err := InputTypeFromString(n)
-		if err != nil {
-			return nil, err
-		}
-		inputTypes[idx] = t
-	}
-	return inputTypes, nil
-}
-
-func ValidateInputTypes(names []string) error {
-	if _, err := InputTypesFromStrings(names); err != nil {
-		return err
-	}
-	return nil
+var InputTypes = inputtypes.InputTypes{
+	Auto,
+	inputtypes.Arm,
+	inputtypes.CloudFormation,
+	inputtypes.Kubernetes,
+	inputtypes.TerraformHCL,
+	inputtypes.TerraformPlan,
+	StreamlinedState,
 }
 
 // LoadedConfigurations is a container for IACConfigurations loaded by Regula.
