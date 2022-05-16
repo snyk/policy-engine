@@ -3,10 +3,10 @@ package cmd
 import (
 	"encoding/json"
 	"fmt"
-	"os"
 	"path/filepath"
 	"strings"
 
+	"github.com/open-policy-agent/opa/format"
 	"github.com/snyk/unified-policy-engine/pkg/loader"
 	"github.com/spf13/cobra"
 )
@@ -59,9 +59,15 @@ var fixtureCmd = &cobra.Command{
 		if err != nil {
 			return err
 		}
+		bytes = []byte(fmt.Sprintf(`package %s
+mock_input = %s`, packageName, string(bytes)))
 
-		fmt.Fprintf(os.Stdout, `package %s
-mock_input = %s`, packageName, string(bytes))
+		bytes, err = format.Source("-", bytes)
+		if err != nil {
+			return err
+		}
+
+		fmt.Printf("%s", string(bytes))
 		return nil
 	},
 }
