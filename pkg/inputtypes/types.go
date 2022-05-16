@@ -12,6 +12,18 @@ type InputType struct {
 }
 
 func (t *InputType) Matches(inputType string) bool {
+	if t.Name == inputType {
+		return true
+	}
+	for _, c := range t.Children {
+		if c.Matches(inputType) {
+			return true
+		}
+	}
+	return false
+}
+
+func (t *InputType) FuzzyMatches(inputType string) bool {
 	inputType = strings.ToLower(inputType)
 	if t.Name == inputType {
 		return true
@@ -22,7 +34,7 @@ func (t *InputType) Matches(inputType string) bool {
 		}
 	}
 	for _, c := range t.Children {
-		if c.Matches(inputType) {
+		if c.FuzzyMatches(inputType) {
 			return true
 		}
 	}

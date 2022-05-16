@@ -29,7 +29,6 @@ const resourcesRuleName = "resources"
 const resourceTypeRuleName = "resource_type"
 const inputTypeRuleName = "input_type"
 const multipleResourceType = "MULTIPLE"
-const defaultInputType = "tf"
 
 var PolicyInputTypes = inputtypes.InputTypes{
 	inputtypes.Arm,
@@ -100,6 +99,17 @@ func (i *ruleInfo) hasKey() bool {
 	return i.key != ""
 }
 
+// remediationKeys is a map of input type name to the key that's used in the remediation
+// map in metadata
+var remediationKeys = map[string]string{
+	inputtypes.Arm.Name:            "arm",
+	inputtypes.CloudFormation.Name: "cloudformation",
+	inputtypes.CloudScan.Name:      "console",
+	inputtypes.Kubernetes.Name:     "k8s",
+	inputtypes.TerraformHCL.Name:   "terraform",
+	inputtypes.TerraformPlan.Name:  "terraform",
+}
+
 type Metadata struct {
 	ID           string                         `json:"id"`
 	Title        string                         `json:"title"`
@@ -111,6 +121,14 @@ type Metadata struct {
 	ServiceGroup string                         `json:"service_group"`
 	Controls     map[string]map[string][]string `json:"controls"`
 	Severity     string                         `json:"severity"`
+}
+
+func (m Metadata) RemediationFor(inputType string) string {
+	key, ok := remediationKeys[inputType]
+	if !ok {
+		return ""
+	}
+	return m.Remediation[key]
 }
 
 // BasePolicy implements functionality that is shared between different concrete
