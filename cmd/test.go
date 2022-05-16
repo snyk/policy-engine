@@ -45,16 +45,29 @@ var testCmd = &cobra.Command{
 			return err
 		}
 
+		exitCode := 0
+		dup := make(chan *tester.Result)
+		go func() {
+			defer close(dup)
+			for tr := range ch {
+				if !tr.Pass() {
+					exitCode = 1
+				}
+				dup <- tr
+			}
+		}()
+
 		reporter := tester.PrettyReporter{
 			Output:      os.Stdout,
 			FailureLine: true,
 			Verbose:     true,
 		}
 
-		if err := reporter.Report(ch); err != nil {
+		if err := reporter.Report(dup); err != nil {
 			return err
 		}
 
+		os.Exit(exitCode)
 		return nil
 	},
 }
