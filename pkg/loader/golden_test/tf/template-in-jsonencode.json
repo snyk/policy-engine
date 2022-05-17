@@ -7,8 +7,8 @@
     "filepath": "golden_test/tf/template-in-jsonencode/main.tf"
   },
   "resources": {
-    "aws_s3_bucket": {
-      "aws_s3_bucket.test1": {
+    "aws_s3_bucket": [
+      {
         "id": "aws_s3_bucket.test1",
         "resource_type": "aws_s3_bucket",
         "namespace": "golden_test/tf/template-in-jsonencode/main.tf",
@@ -21,9 +21,9 @@
           "id": "aws_s3_bucket.test1"
         }
       }
-    },
-    "aws_s3_bucket_policy": {
-      "aws_s3_bucket_policy.test1": {
+    ],
+    "aws_s3_bucket_policy": [
+      {
         "id": "aws_s3_bucket_policy.test1",
         "resource_type": "aws_s3_bucket_policy",
         "namespace": "golden_test/tf/template-in-jsonencode/main.tf",
@@ -37,6 +37,6 @@
           "policy": "{\"Id\":\"MYBUCKETPOLICY\",\"Statement\":[{\"Action\":\"s3:List*\",\"Effect\":\"Allow\",\"Principal\":\"*\",\"Resource\":\"aws_s3_bucket.test1/*\",\"Sid\":\"IPAllow\"}],\"Version\":\"2012-10-17\"}"
         }
       }
-    }
+    ]
   }
 }

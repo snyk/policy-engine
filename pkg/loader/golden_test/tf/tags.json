@@ -7,8 +7,8 @@
     "filepath": "golden_test/tf/tags/main.tf"
   },
   "resources": {
-    "aws_autoscaling_group": {
-      "aws_autoscaling_group.example": {
+    "aws_autoscaling_group": [
+      {
         "id": "aws_autoscaling_group.example",
         "resource_type": "aws_autoscaling_group",
         "namespace": "golden_test/tf/tags/main.tf",
@@ -42,9 +42,9 @@
           ]
         }
       }
-    },
-    "aws_launch_template": {
-      "aws_launch_template.example": {
+    ],
+    "aws_launch_template": [
+      {
         "id": "aws_launch_template.example",
         "resource_type": "aws_launch_template",
         "namespace": "golden_test/tf/tags/main.tf",
@@ -60,9 +60,9 @@
           "provider": null
         }
       }
-    },
-    "aws_s3_bucket": {
-      "aws_s3_bucket.example": {
+    ],
+    "aws_s3_bucket": [
+      {
         "id": "aws_s3_bucket.example",
         "resource_type": "aws_s3_bucket",
         "namespace": "golden_test/tf/tags/main.tf",
@@ -81,9 +81,9 @@
           }
         }
       }
-    },
-    "google_compute_instance": {
-      "google_compute_instance.default": {
+    ],
+    "google_compute_instance": [
+      {
         "id": "google_compute_instance.default",
         "resource_type": "google_compute_instance",
         "namespace": "golden_test/tf/tags/main.tf",
@@ -127,9 +127,9 @@
           "zone": "us-central1-a"
         }
       }
-    },
-    "google_storage_bucket": {
-      "google_storage_bucket.example": {
+    ],
+    "google_storage_bucket": [
+      {
         "id": "google_storage_bucket.example",
         "resource_type": "google_storage_bucket",
         "namespace": "golden_test/tf/tags/main.tf",
@@ -149,6 +149,6 @@
           "provider": null
         }
       }
-    }
+    ]
   }
 }

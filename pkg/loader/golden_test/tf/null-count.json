@@ -7,8 +7,8 @@
     "filepath": "golden_test/tf/null-count/main.tf"
   },
   "resources": {
-    "aws_s3_bucket": {
-      "aws_s3_bucket.foo": {
+    "aws_s3_bucket": [
+      {
         "id": "aws_s3_bucket.foo",
         "resource_type": "aws_s3_bucket",
         "namespace": "golden_test/tf/null-count/main.tf",
@@ -22,6 +22,6 @@
           "id": "aws_s3_bucket.foo"
         }
       }
-    }
+    ]
   }
 }

@@ -7,8 +7,8 @@
     "filepath": "golden_test/tf/kubernetes-01/main.tf"
   },
   "resources": {
-    "kubernetes_pod": {
-      "kubernetes_pod.multiple_containers": {
+    "kubernetes_pod": [
+      {
         "id": "kubernetes_pod.multiple_containers",
         "resource_type": "kubernetes_pod",
         "namespace": "golden_test/tf/kubernetes-01/main.tf",
@@ -96,6 +96,6 @@
           ]
         }
       }
-    }
+    ]
   }
 }

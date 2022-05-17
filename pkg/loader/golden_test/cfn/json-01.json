@@ -7,8 +7,8 @@
     "filepath": "golden_test/cfn/json-01/cfn.json"
   },
   "resources": {
-    "AWS::S3::Bucket": {
-      "Bucket1": {
+    "AWS::S3::Bucket": [
+      {
         "id": "Bucket1",
         "resource_type": "AWS::S3::Bucket",
         "namespace": "golden_test/cfn/json-01/cfn.json",
@@ -18,7 +18,7 @@
           "id": "Bucket1"
         }
       },
-      "Bucket2": {
+      {
         "id": "Bucket2",
         "resource_type": "AWS::S3::Bucket",
         "namespace": "golden_test/cfn/json-01/cfn.json",
@@ -33,6 +33,6 @@
           "id": "Bucket2"
         }
       }
-    }
+    ]
   }
 }

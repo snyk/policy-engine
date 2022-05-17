@@ -7,8 +7,8 @@
     "filepath": "golden_test/tfplan/example-04/plan.json"
   },
   "resources": {
-    "aws_s3_bucket": {
-      "aws_s3_bucket.example": {
+    "aws_s3_bucket": [
+      {
         "id": "aws_s3_bucket.example",
         "resource_type": "aws_s3_bucket",
         "namespace": "golden_test/tfplan/example-04/plan.json",
@@ -30,6 +30,6 @@
           "website": []
         }
       }
-    }
+    ]
   }
 }

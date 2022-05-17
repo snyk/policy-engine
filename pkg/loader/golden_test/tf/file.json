@@ -7,8 +7,8 @@
     "filepath": "golden_test/tf/file"
   },
   "resources": {
-    "aws_s3_bucket": {
-      "aws_s3_bucket.trail_bucket": {
+    "aws_s3_bucket": [
+      {
         "id": "aws_s3_bucket.trail_bucket",
         "resource_type": "aws_s3_bucket",
         "namespace": "golden_test/tf/file",
@@ -22,6 +22,6 @@
           "tags": null
         }
       }
-    }
+    ]
   }
 }

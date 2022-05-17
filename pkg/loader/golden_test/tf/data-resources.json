@@ -7,34 +7,8 @@
     "filepath": "golden_test/tf/data-resources/main.tf"
   },
   "resources": {
-    "data.google_iam_policy": {
-      "data.google_iam_policy.all_authenticated_users": {
-        "id": "data.google_iam_policy.all_authenticated_users",
-        "resource_type": "data.google_iam_policy",
-        "namespace": "golden_test/tf/data-resources/main.tf",
-        "attributes": {
-          "_filepath": "golden_test/tf/data-resources/main.tf",
-          "_provider": "google",
-          "_tags": {},
-          "_type": "data.google_iam_policy",
-          "binding": [
-            {
-              "members": [
-                "user:jason@fugue.co"
-              ],
-              "role": "roles/storage.admin"
-            },
-            {
-              "members": [
-                "allAuthenticatedUsers"
-              ],
-              "role": "roles/storage.objectViewer"
-            }
-          ],
-          "id": "data.google_iam_policy.all_authenticated_users"
-        }
-      },
-      "data.google_iam_policy.all_users": {
+    "data.google_iam_policy": [
+      {
         "id": "data.google_iam_policy.all_users",
         "resource_type": "data.google_iam_policy",
         "namespace": "golden_test/tf/data-resources/main.tf",
@@ -59,24 +33,36 @@
           ],
           "id": "data.google_iam_policy.all_users"
         }
-      }
-    },
-    "google_storage_bucket": {
-      "google_storage_bucket.all_authenticated_users": {
-        "id": "google_storage_bucket.all_authenticated_users",
-        "resource_type": "google_storage_bucket",
+      },
+      {
+        "id": "data.google_iam_policy.all_authenticated_users",
+        "resource_type": "data.google_iam_policy",
         "namespace": "golden_test/tf/data-resources/main.tf",
         "attributes": {
           "_filepath": "golden_test/tf/data-resources/main.tf",
           "_provider": "google",
           "_tags": {},
-          "_type": "google_storage_bucket",
-          "force_destroy": true,
-          "id": "google_storage_bucket.all_authenticated_users",
-          "name": "invalid-public-all-authenticated-iam"
+          "_type": "data.google_iam_policy",
+          "binding": [
+            {
+              "members": [
+                "user:jason@fugue.co"
+              ],
+              "role": "roles/storage.admin"
+            },
+            {
+              "members": [
+                "allAuthenticatedUsers"
+              ],
+              "role": "roles/storage.objectViewer"
+            }
+          ],
+          "id": "data.google_iam_policy.all_authenticated_users"
         }
-      },
-      "google_storage_bucket.all_users": {
+      }
+    ],
+    "google_storage_bucket": [
+      {
         "id": "google_storage_bucket.all_users",
         "resource_type": "google_storage_bucket",
         "namespace": "golden_test/tf/data-resources/main.tf",
@@ -89,24 +75,24 @@
           "id": "google_storage_bucket.all_users",
           "name": "invalid-public-all-users-iam"
         }
-      }
-    },
-    "google_storage_bucket_iam_policy": {
-      "google_storage_bucket_iam_policy.all_authenticated_users_policy": {
-        "id": "google_storage_bucket_iam_policy.all_authenticated_users_policy",
-        "resource_type": "google_storage_bucket_iam_policy",
+      },
+      {
+        "id": "google_storage_bucket.all_authenticated_users",
+        "resource_type": "google_storage_bucket",
         "namespace": "golden_test/tf/data-resources/main.tf",
         "attributes": {
           "_filepath": "golden_test/tf/data-resources/main.tf",
           "_provider": "google",
           "_tags": {},
-          "_type": "google_storage_bucket_iam_policy",
-          "bucket": "invalid-public-all-authenticated-iam",
-          "id": "google_storage_bucket_iam_policy.all_authenticated_users_policy",
-          "policy_data": "data.google_iam_policy.all_authenticated_users"
+          "_type": "google_storage_bucket",
+          "force_destroy": true,
+          "id": "google_storage_bucket.all_authenticated_users",
+          "name": "invalid-public-all-authenticated-iam"
         }
-      },
-      "google_storage_bucket_iam_policy.all_users_policy": {
+      }
+    ],
+    "google_storage_bucket_iam_policy": [
+      {
         "id": "google_storage_bucket_iam_policy.all_users_policy",
         "resource_type": "google_storage_bucket_iam_policy",
         "namespace": "golden_test/tf/data-resources/main.tf",
@@ -119,7 +105,21 @@
           "id": "google_storage_bucket_iam_policy.all_users_policy",
           "policy_data": "data.google_iam_policy.all_users"
         }
+      },
+      {
+        "id": "google_storage_bucket_iam_policy.all_authenticated_users_policy",
+        "resource_type": "google_storage_bucket_iam_policy",
+        "namespace": "golden_test/tf/data-resources/main.tf",
+        "attributes": {
+          "_filepath": "golden_test/tf/data-resources/main.tf",
+          "_provider": "google",
+          "_tags": {},
+          "_type": "google_storage_bucket_iam_policy",
+          "bucket": "invalid-public-all-authenticated-iam",
+          "id": "google_storage_bucket_iam_policy.all_authenticated_users_policy",
+          "policy_data": "data.google_iam_policy.all_authenticated_users"
+        }
       }
-    }
+    ]
   }
 }

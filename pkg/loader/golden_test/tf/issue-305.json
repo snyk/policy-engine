@@ -7,8 +7,8 @@
     "filepath": "golden_test/tf/issue-305/main.tf"
   },
   "resources": {
-    "aws_s3_bucket": {
-      "aws_s3_bucket.bucket": {
+    "aws_s3_bucket": [
+      {
         "id": "aws_s3_bucket.bucket",
         "resource_type": "aws_s3_bucket",
         "namespace": "golden_test/tf/issue-305/main.tf",
@@ -21,6 +21,6 @@
           "id": "aws_s3_bucket.bucket"
         }
       }
-    }
+    ]
   }
 }

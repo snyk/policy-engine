@@ -7,8 +7,8 @@
     "filepath": "golden_test/tf/repeated-blocks/main.tf"
   },
   "resources": {
-    "google_sql_database_instance": {
-      "google_sql_database_instance.default": {
+    "google_sql_database_instance": [
+      {
         "id": "google_sql_database_instance.default",
         "resource_type": "google_sql_database_instance",
         "namespace": "golden_test/tf/repeated-blocks/main.tf",
@@ -63,6 +63,6 @@
           ]
         }
       }
-    }
+    ]
   }
 }

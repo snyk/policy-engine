@@ -7,8 +7,8 @@
     "filepath": "golden_test/cfn/example-03/main.yaml"
   },
   "resources": {
-    "AWS::CloudTrail::Trail": {
-      "CloudTrailLogging": {
+    "AWS::CloudTrail::Trail": [
+      {
         "id": "CloudTrailLogging",
         "resource_type": "AWS::CloudTrail::Trail",
         "namespace": "golden_test/cfn/example-03/main.yaml",
@@ -36,6 +36,6 @@
           "id": "CloudTrailLogging"
         }
       }
-    }
+    ]
   }
 }

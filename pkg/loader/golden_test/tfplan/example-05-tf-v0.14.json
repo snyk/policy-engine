@@ -7,8 +7,8 @@
     "filepath": "golden_test/tfplan/example-05-tf-v0.14/plan.json"
   },
   "resources": {
-    "aws_cloudwatch_log_group": {
-      "aws_cloudwatch_log_group.fargate-logs": {
+    "aws_cloudwatch_log_group": [
+      {
         "id": "aws_cloudwatch_log_group.fargate-logs",
         "resource_type": "aws_cloudwatch_log_group",
         "namespace": "golden_test/tfplan/example-05-tf-v0.14/plan.json",
@@ -29,9 +29,9 @@
           }
         }
       }
-    },
-    "aws_kms_key": {
-      "aws_kms_key.cloudwatch": {
+    ],
+    "aws_kms_key": [
+      {
         "id": "aws_kms_key.cloudwatch",
         "resource_type": "aws_kms_key",
         "namespace": "golden_test/tfplan/example-05-tf-v0.14/plan.json",
@@ -55,6 +55,6 @@
           }
         }
       }
-    }
+    ]
   }
 }

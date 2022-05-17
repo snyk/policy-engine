@@ -7,23 +7,8 @@
     "filepath": "golden_test/tfplan/modules/plan.json"
   },
   "resources": {
-    "aws_security_group": {
-      "aws_security_group.parent": {
-        "id": "aws_security_group.parent",
-        "resource_type": "aws_security_group",
-        "namespace": "golden_test/tfplan/modules/plan.json",
-        "attributes": {
-          "_type": "aws_security_group",
-          "description": "Managed by Terraform",
-          "id": "aws_security_group.parent",
-          "name_prefix": null,
-          "revoke_rules_on_delete": false,
-          "tags": null,
-          "timeouts": null,
-          "vpc_id": "module.child1.module.grandchild1.aws_vpc.grandchild"
-        }
-      },
-      "module.child1.module.grandchild1.aws_security_group.grandchild": {
+    "aws_security_group": [
+      {
         "id": "module.child1.module.grandchild1.aws_security_group.grandchild",
         "resource_type": "aws_security_group",
         "namespace": "golden_test/tfplan/modules/plan.json",
@@ -38,7 +23,7 @@
           "vpc_id": "module.child1.module.grandchild1.aws_vpc.grandchild"
         }
       },
-      "module.child2.aws_security_group.child": {
+      {
         "id": "module.child2.aws_security_group.child",
         "resource_type": "aws_security_group",
         "namespace": "golden_test/tfplan/modules/plan.json",
@@ -52,24 +37,25 @@
           "timeouts": null,
           "vpc_id": "module.child1.module.grandchild1.aws_vpc.grandchild"
         }
-      }
-    },
-    "aws_vpc": {
-      "aws_vpc.parent": {
-        "id": "aws_vpc.parent",
-        "resource_type": "aws_vpc",
+      },
+      {
+        "id": "aws_security_group.parent",
+        "resource_type": "aws_security_group",
         "namespace": "golden_test/tfplan/modules/plan.json",
         "attributes": {
-          "_type": "aws_vpc",
-          "assign_generated_ipv6_cidr_block": false,
-          "cidr_block": "10.0.0.0/16",
-          "enable_dns_support": true,
-          "id": "aws_vpc.parent",
-          "instance_tenancy": "default",
-          "tags": null
+          "_type": "aws_security_group",
+          "description": "Managed by Terraform",
+          "id": "aws_security_group.parent",
+          "name_prefix": null,
+          "revoke_rules_on_delete": false,
+          "tags": null,
+          "timeouts": null,
+          "vpc_id": "module.child1.module.grandchild1.aws_vpc.grandchild"
         }
-      },
-      "module.child1.aws_vpc.child": {
+      }
+    ],
+    "aws_vpc": [
+      {
         "id": "module.child1.aws_vpc.child",
         "resource_type": "aws_vpc",
         "namespace": "golden_test/tfplan/modules/plan.json",
@@ -83,7 +69,7 @@
           "tags": null
         }
       },
-      "module.child1.module.grandchild1.aws_vpc.grandchild": {
+      {
         "id": "module.child1.module.grandchild1.aws_vpc.grandchild",
         "resource_type": "aws_vpc",
         "namespace": "golden_test/tfplan/modules/plan.json",
@@ -97,7 +83,7 @@
           "tags": null
         }
       },
-      "module.child2.aws_vpc.child": {
+      {
         "id": "module.child2.aws_vpc.child",
         "resource_type": "aws_vpc",
         "namespace": "golden_test/tfplan/modules/plan.json",
@@ -110,7 +96,21 @@
           "instance_tenancy": "default",
           "tags": null
         }
+      },
+      {
+        "id": "aws_vpc.parent",
+        "resource_type": "aws_vpc",
+        "namespace": "golden_test/tfplan/modules/plan.json",
+        "attributes": {
+          "_type": "aws_vpc",
+          "assign_generated_ipv6_cidr_block": false,
+          "cidr_block": "10.0.0.0/16",
+          "enable_dns_support": true,
+          "id": "aws_vpc.parent",
+          "instance_tenancy": "default",
+          "tags": null
+        }
       }
-    }
+    ]
   }
 }

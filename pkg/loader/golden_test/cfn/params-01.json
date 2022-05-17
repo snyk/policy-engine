@@ -7,8 +7,8 @@
     "filepath": "golden_test/cfn/params-01/main.yml"
   },
   "resources": {
-    "Server": {
-      "MyServer": {
+    "Server": [
+      {
         "id": "MyServer",
         "resource_type": "Server",
         "namespace": "golden_test/cfn/params-01/main.yml",
@@ -19,6 +19,6 @@
           "id": "MyServer"
         }
       }
-    }
+    ]
   }
 }

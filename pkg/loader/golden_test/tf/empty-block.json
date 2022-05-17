@@ -7,8 +7,8 @@
     "filepath": "golden_test/tf/empty-block/main.tf"
   },
   "resources": {
-    "google_compute_instance": {
-      "google_compute_instance.test": {
+    "google_compute_instance": [
+      {
         "id": "google_compute_instance.test",
         "resource_type": "google_compute_instance",
         "namespace": "golden_test/tf/empty-block/main.tf",
@@ -40,6 +40,6 @@
           "zone": "us-east1-b"
         }
       }
-    }
+    ]
   }
 }

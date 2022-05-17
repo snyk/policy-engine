@@ -7,8 +7,8 @@
     "filepath": "golden_test/tfplan/example-03/plan.json"
   },
   "resources": {
-    "azurerm_monitor_log_profile": {
-      "azurerm_monitor_log_profile.main": {
+    "azurerm_monitor_log_profile": [
+      {
         "id": "azurerm_monitor_log_profile.main",
         "resource_type": "azurerm_monitor_log_profile",
         "namespace": "golden_test/tfplan/example-03/plan.json",
@@ -36,9 +36,9 @@
           "timeouts": null
         }
       }
-    },
-    "azurerm_resource_group": {
-      "azurerm_resource_group.main": {
+    ],
+    "azurerm_resource_group": [
+      {
         "id": "azurerm_resource_group.main",
         "resource_type": "azurerm_resource_group",
         "namespace": "golden_test/tfplan/example-03/plan.json",
@@ -51,9 +51,9 @@
           "timeouts": null
         }
       }
-    },
-    "azurerm_storage_account": {
-      "azurerm_storage_account.main": {
+    ],
+    "azurerm_storage_account": [
+      {
         "id": "azurerm_storage_account.main",
         "resource_type": "azurerm_storage_account",
         "namespace": "golden_test/tfplan/example-03/plan.json",
@@ -77,6 +77,6 @@
           "timeouts": null
         }
       }
-    }
+    ]
   }
 }

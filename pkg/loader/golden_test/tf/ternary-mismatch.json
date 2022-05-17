@@ -7,21 +7,8 @@
     "filepath": "golden_test/tf/ternary-mismatch/main.tf"
   },
   "resources": {
-    "aws_s3_bucket": {
-      "aws_s3_bucket.bar": {
-        "id": "aws_s3_bucket.bar",
-        "resource_type": "aws_s3_bucket",
-        "namespace": "golden_test/tf/ternary-mismatch/main.tf",
-        "attributes": {
-          "_filepath": "golden_test/tf/ternary-mismatch/main.tf",
-          "_provider": "aws",
-          "_tags": {},
-          "_type": "aws_s3_bucket",
-          "bucket": null,
-          "id": "aws_s3_bucket.bar"
-        }
-      },
-      "aws_s3_bucket.foo": {
+    "aws_s3_bucket": [
+      {
         "id": "aws_s3_bucket.foo",
         "resource_type": "aws_s3_bucket",
         "namespace": "golden_test/tf/ternary-mismatch/main.tf",
@@ -33,7 +20,20 @@
           "bucket": null,
           "id": "aws_s3_bucket.foo"
         }
+      },
+      {
+        "id": "aws_s3_bucket.bar",
+        "resource_type": "aws_s3_bucket",
+        "namespace": "golden_test/tf/ternary-mismatch/main.tf",
+        "attributes": {
+          "_filepath": "golden_test/tf/ternary-mismatch/main.tf",
+          "_provider": "aws",
+          "_tags": {},
+          "_type": "aws_s3_bucket",
+          "bucket": null,
+          "id": "aws_s3_bucket.bar"
+        }
       }
-    }
+    ]
   }
 }
