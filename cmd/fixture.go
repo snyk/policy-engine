@@ -7,7 +7,7 @@ import (
 	"strings"
 
 	"github.com/open-policy-agent/opa/format"
-	"github.com/snyk/unified-policy-engine/pkg/inputtypes"
+	"github.com/snyk/unified-policy-engine/pkg/inputs"
 	"github.com/snyk/unified-policy-engine/pkg/loader"
 	"github.com/spf13/cobra"
 )
@@ -22,7 +22,7 @@ var fixtureCmd = &cobra.Command{
 	RunE: func(cmd *cobra.Command, args []string) error {
 		configLoader := loader.LocalConfigurationLoader(loader.LoadPathsOptions{
 			Paths: args,
-			InputTypes: inputtypes.InputTypes{
+			InputTypes: inputs.InputTypes{
 				loader.Auto,
 				loader.StreamlinedState,
 			},

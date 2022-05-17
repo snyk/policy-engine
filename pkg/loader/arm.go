@@ -19,7 +19,7 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"github.com/snyk/unified-policy-engine/pkg/inputtypes"
+	"github.com/snyk/unified-policy-engine/pkg/inputs"
 	"github.com/snyk/unified-policy-engine/pkg/models"
 )
 
@@ -78,7 +78,7 @@ type armConfiguration struct {
 }
 
 func (l *armConfiguration) ToState() models.State {
-	return toState(inputtypes.Arm.Name, l.path, l.resources)
+	return toState(inputs.Arm.Name, l.path, l.resources)
 }
 
 func (l *armConfiguration) Location(path []interface{}) (LocationStack, error) {

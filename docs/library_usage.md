@@ -42,7 +42,10 @@ format.
 ```go
 package main
 
-import "github.com/snyk/unified-policy-engine/pkg/loader"
+import (
+  "github.com/snyk/unified-policy-engine/pkg/inputs"
+  "github.com/snyk/unified-policy-engine/pkg/loader"
+)
 
 func main() {
   // Initialize the loader
@@ -52,7 +55,7 @@ func main() {
     Paths:       args,
     // InputTypes sets which input types the loader should attempt to parse. The
     // loader.Auto input type includes all known IaC formats.
-    InputTypes:  []loader.InputType{inputType},
+    InputTypes:  inputs.InputTypes{inputType},
     // By default, this loader will respect .gitignore files that it finds. This loader
     // searches upwards through parent directories until it finds a .git directory. If
     // a .git directory is found, it will then search for .gitignore files in any

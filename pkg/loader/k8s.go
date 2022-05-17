@@ -20,7 +20,7 @@ import (
 	"fmt"
 	"io"
 
-	"github.com/snyk/unified-policy-engine/pkg/inputtypes"
+	"github.com/snyk/unified-policy-engine/pkg/inputs"
 	"github.com/snyk/unified-policy-engine/pkg/models"
 	"gopkg.in/yaml.v3"
 )
@@ -121,7 +121,7 @@ type k8sConfiguration struct {
 
 
 func (l *k8sConfiguration) ToState() models.State {
-	return toState(inputtypes.Kubernetes.Name, l.path, l.resources)
+	return toState(inputs.Kubernetes.Name, l.path, l.resources)
 }
 
 func (l *k8sConfiguration) Location(path []interface{}) (LocationStack, error) {

@@ -18,7 +18,7 @@ package loader
 import (
 	"fmt"
 
-	"github.com/snyk/unified-policy-engine/pkg/inputtypes"
+	"github.com/snyk/unified-policy-engine/pkg/inputs"
 	"github.com/snyk/unified-policy-engine/pkg/models"
 )
 
@@ -32,31 +32,31 @@ import (
 // stdIn is the path used for stdin.
 const stdIn = "<stdin>"
 
-var Auto = &inputtypes.InputType{
+var Auto = &inputs.InputType{
 	Name: "auto",
-	Children: inputtypes.InputTypes{
-		inputtypes.Arm,
-		inputtypes.CloudFormation,
-		inputtypes.Kubernetes,
-		inputtypes.TerraformHCL,
-		inputtypes.TerraformPlan,
+	Children: inputs.InputTypes{
+		inputs.Arm,
+		inputs.CloudFormation,
+		inputs.Kubernetes,
+		inputs.TerraformHCL,
+		inputs.TerraformPlan,
 	},
 }
 
 // StreamlinedState is a temporary addition until we're able to completely replace the
 // old streamlined state format.
-var StreamlinedState = &inputtypes.InputType{
+var StreamlinedState = &inputs.InputType{
 	Name:    "streamlined_state",
 	Aliases: []string{"streamlined-state"},
 }
 
-var InputTypes = inputtypes.InputTypes{
+var SupportedInputTypes = inputs.InputTypes{
 	Auto,
-	inputtypes.Arm,
-	inputtypes.CloudFormation,
-	inputtypes.Kubernetes,
-	inputtypes.TerraformHCL,
-	inputtypes.TerraformPlan,
+	inputs.Arm,
+	inputs.CloudFormation,
+	inputs.Kubernetes,
+	inputs.TerraformHCL,
+	inputs.TerraformPlan,
 	StreamlinedState,
 }
 

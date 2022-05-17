@@ -23,7 +23,7 @@ import (
 	"sort"
 
 	"github.com/sirupsen/logrus"
-	"github.com/snyk/unified-policy-engine/pkg/inputtypes"
+	"github.com/snyk/unified-policy-engine/pkg/inputs"
 	"github.com/snyk/unified-policy-engine/pkg/models"
 
 	"github.com/fugue/regula/v2/pkg/git"
@@ -35,7 +35,7 @@ type LoadPathsOptions struct {
 	// Paths sets which paths the loader will search in for IaC configurations
 	Paths []string
 	// InputTypes sets which input types the loader will try to parse
-	InputTypes inputtypes.InputTypes
+	InputTypes inputs.InputTypes
 	// NoGitIgnore disables the .gitignore functionality. When true, the loader will
 	// not filter the input paths based on the contents of relevant .gitignore files.
 	NoGitIgnore bool
@@ -259,7 +259,7 @@ func (l *loadedConfigurations) Count() int {
 	return len(l.configurations)
 }
 
-func detectorByInputType(inputType *inputtypes.InputType) (ConfigurationDetector, error) {
+func detectorByInputType(inputType *inputs.InputType) (ConfigurationDetector, error) {
 	switch inputType.Name {
 	case Auto.Name:
 		return NewAutoDetector(
@@ -269,24 +269,24 @@ func detectorByInputType(inputType *inputtypes.InputType) (ConfigurationDetector
 			&KubernetesDetector{},
 			&ArmDetector{},
 		), nil
-	case inputtypes.CloudFormation.Name:
+	case inputs.CloudFormation.Name:
 		return &CfnDetector{}, nil
-	case inputtypes.TerraformPlan.Name:
+	case inputs.TerraformPlan.Name:
 		return &TfPlanDetector{}, nil
-	case inputtypes.TerraformHCL.Name:
+	case inputs.TerraformHCL.Name:
 		return &TfDetector{}, nil
 	case StreamlinedState.Name:
 		return &StreamlinedStateDetector{}, nil
-	case inputtypes.Kubernetes.Name:
+	case inputs.Kubernetes.Name:
 		return &KubernetesDetector{}, nil
-	case inputtypes.Arm.Name:
+	case inputs.Arm.Name:
 		return &ArmDetector{}, nil
 	default:
 		return nil, fmt.Errorf("Unsupported input type: %v", inputType)
 	}
 }
 
-func DetectorByInputTypes(inputTypes inputtypes.InputTypes) (ConfigurationDetector, error) {
+func DetectorByInputTypes(inputTypes inputs.InputTypes) (ConfigurationDetector, error) {
 	if len(inputTypes) == 0 {
 		return detectorByInputType(Auto)
 	} else if len(inputTypes) == 1 {

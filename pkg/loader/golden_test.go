@@ -23,7 +23,7 @@ import (
 	"testing"
 
 	"github.com/fugue/regula/v2/pkg/git"
-	"github.com/snyk/unified-policy-engine/pkg/inputtypes"
+	"github.com/snyk/unified-policy-engine/pkg/inputs"
 
 	"github.com/stretchr/testify/assert"
 )
@@ -44,7 +44,7 @@ func DefaultParseDirectory(dirPath string) (IACConfiguration, error) {
 		return nil, err
 	}
 
-	detector, err := DetectorByInputTypes(inputtypes.InputTypes{Auto})
+	detector, err := DetectorByInputTypes(inputs.InputTypes{Auto})
 	if err != nil {
 		return nil, err
 	}

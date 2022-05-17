@@ -20,7 +20,7 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/snyk/unified-policy-engine/pkg/inputtypes"
+	"github.com/snyk/unified-policy-engine/pkg/inputs"
 	"github.com/snyk/unified-policy-engine/pkg/interfacetricks"
 	"github.com/snyk/unified-policy-engine/pkg/models"
 	"gopkg.in/yaml.v3"
@@ -70,7 +70,7 @@ func (l *tfPlan) Location(attributePath []interface{}) (LocationStack, error) {
 }
 
 func (l *tfPlan) ToState() models.State {
-	return toState(inputtypes.TerraformPlan.Name, l.path, l.plan.resources())
+	return toState(inputs.TerraformPlan.Name, l.path, l.plan.resources())
 }
 
 // This (among with other types prefixed with tfplan_) matches the JSON

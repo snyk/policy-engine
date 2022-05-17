@@ -19,7 +19,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/snyk/unified-policy-engine/pkg/inputtypes"
+	"github.com/snyk/unified-policy-engine/pkg/inputs"
 	"github.com/snyk/unified-policy-engine/pkg/models"
 	"gopkg.in/yaml.v3"
 )
@@ -106,7 +106,7 @@ func (l *streamlinedStateLoader) ToState() models.State {
 		// Note that this is outputting the CloudScan input type, because this type is
 		// intended to be a stand-in for cloud scan until we're able to produce cloud
 		// scan inputs without using the streamlined state format.
-		InputType:           inputtypes.CloudScan.Name,
+		InputType:           inputs.CloudScan.Name,
 		EnvironmentProvider: l.environmentProvider,
 		Resources:           l.resourcesByType,
 	}

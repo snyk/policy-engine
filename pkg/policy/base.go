@@ -8,7 +8,7 @@ import (
 
 	"github.com/open-policy-agent/opa/ast"
 	"github.com/open-policy-agent/opa/rego"
-	"github.com/snyk/unified-policy-engine/pkg/inputtypes"
+	"github.com/snyk/unified-policy-engine/pkg/inputs"
 	"github.com/snyk/unified-policy-engine/pkg/logging"
 	"github.com/snyk/unified-policy-engine/pkg/models"
 )
@@ -30,14 +30,14 @@ const resourceTypeRuleName = "resource_type"
 const inputTypeRuleName = "input_type"
 const multipleResourceType = "MULTIPLE"
 
-var PolicyInputTypes = inputtypes.InputTypes{
-	inputtypes.Arm,
-	inputtypes.CloudFormation,
-	inputtypes.CloudScan,
-	inputtypes.Kubernetes,
-	inputtypes.TerraformHCL,
-	inputtypes.TerraformPlan,
-	inputtypes.Terraform,
+var SupportedInputTypes = inputs.InputTypes{
+	inputs.Arm,
+	inputs.CloudFormation,
+	inputs.CloudScan,
+	inputs.Kubernetes,
+	inputs.TerraformHCL,
+	inputs.TerraformPlan,
+	inputs.Terraform,
 }
 
 type EvalOptions struct {
@@ -102,12 +102,12 @@ func (i *ruleInfo) hasKey() bool {
 // remediationKeys is a map of input type name to the key that's used in the remediation
 // map in metadata
 var remediationKeys = map[string]string{
-	inputtypes.Arm.Name:            "arm",
-	inputtypes.CloudFormation.Name: "cloudformation",
-	inputtypes.CloudScan.Name:      "console",
-	inputtypes.Kubernetes.Name:     "k8s",
-	inputtypes.TerraformHCL.Name:   "terraform",
-	inputtypes.TerraformPlan.Name:  "terraform",
+	inputs.Arm.Name:            "arm",
+	inputs.CloudFormation.Name: "cloudformation",
+	inputs.CloudScan.Name:      "console",
+	inputs.Kubernetes.Name:     "k8s",
+	inputs.TerraformHCL.Name:   "terraform",
+	inputs.TerraformPlan.Name:  "terraform",
 }
 
 type Metadata struct {
@@ -136,7 +136,7 @@ func (m Metadata) RemediationFor(inputType string) string {
 type BasePolicy struct {
 	pkg              string
 	resourceType     string
-	inputType        *inputtypes.InputType
+	inputType        *inputs.InputType
 	judgementRule    ruleInfo
 	metadataRule     ruleInfo
 	resourcesRule    ruleInfo
@@ -194,16 +194,16 @@ func NewBasePolicy(moduleSet ModuleSet) (*BasePolicy, error) {
 	if resourceType == "" {
 		resourceType = multipleResourceType
 	}
-	var inputType *inputtypes.InputType
+	var inputType *inputs.InputType
 	if inputTypeRule.value == "" {
-		inputType = inputtypes.Terraform
+		inputType = inputs.Terraform
 	} else {
 		// TODO: This code currently handles unknown input types by creating a new input
 		// type, which is one way to support arbitrary input types. Do we want to
 		// consider this case an error instead?
-		inputType, _ := PolicyInputTypes.FromString(inputTypeRule.value)
+		inputType, _ := SupportedInputTypes.FromString(inputTypeRule.value)
 		if inputType == nil {
-			inputType = &inputtypes.InputType{
+			inputType = &inputs.InputType{
 				Name: inputTypeRule.value,
 			}
 		}

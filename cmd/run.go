@@ -7,7 +7,7 @@ import (
 	"os"
 
 	"github.com/snyk/unified-policy-engine/pkg/data"
-	"github.com/snyk/unified-policy-engine/pkg/inputtypes"
+	"github.com/snyk/unified-policy-engine/pkg/inputs"
 	"github.com/snyk/unified-policy-engine/pkg/loader"
 	"github.com/snyk/unified-policy-engine/pkg/metrics"
 	"github.com/snyk/unified-policy-engine/pkg/upe"
@@ -51,7 +51,7 @@ var runCmd = &cobra.Command{
 		}
 		configLoader := loader.LocalConfigurationLoader(loader.LoadPathsOptions{
 			Paths:       args,
-			InputTypes:  inputtypes.InputTypes{inputType},
+			InputTypes:  inputs.InputTypes{inputType},
 			NoGitIgnore: false,
 			IgnoreDirs:  false,
 		})
