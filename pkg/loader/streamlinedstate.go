@@ -19,18 +19,19 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/snyk/unified-policy-engine/pkg/inputs"
 	"github.com/snyk/unified-policy-engine/pkg/models"
 	"gopkg.in/yaml.v3"
 )
 
-type TfRuntimeDetector struct{}
+type StreamlinedStateDetector struct{}
 
 type streamlinedTfState struct {
 	Skeleton  map[string]interface{}            `yaml:"_skeleton"`
 	Resources map[string]map[string]interface{} `yaml:"resources"`
 }
 
-func (t *TfRuntimeDetector) DetectFile(i InputFile, opts DetectOptions) (IACConfiguration, error) {
+func (t *StreamlinedStateDetector) DetectFile(i InputFile, opts DetectOptions) (IACConfiguration, error) {
 	if !opts.IgnoreExt && i.Ext() != ".json" {
 		return nil, fmt.Errorf("File does not have .json extension: %v", i.Path())
 	}
@@ -75,34 +76,37 @@ func (t *TfRuntimeDetector) DetectFile(i InputFile, opts DetectOptions) (IACConf
 		}
 	}
 
-	return &tfRuntimeLoader{
+	return &streamlinedStateLoader{
 		path:                i.Path(),
 		environmentProvider: environmentProvider,
 		resourcesByType:     resourcesByType,
 	}, nil
 }
 
-func (t *TfRuntimeDetector) DetectDirectory(i InputDirectory, opts DetectOptions) (IACConfiguration, error) {
+func (t *StreamlinedStateDetector) DetectDirectory(i InputDirectory, opts DetectOptions) (IACConfiguration, error) {
 	return nil, nil
 }
 
-type tfRuntimeLoader struct {
+type streamlinedStateLoader struct {
 	path                string
 	environmentProvider string
 	resourcesByType     map[string]map[string]models.ResourceState
 }
 
-func (l *tfRuntimeLoader) LoadedFiles() []string {
+func (l *streamlinedStateLoader) LoadedFiles() []string {
 	return []string{l.path}
 }
 
-func (l *tfRuntimeLoader) Location(attributePath []interface{}) (LocationStack, error) {
+func (l *streamlinedStateLoader) Location(attributePath []interface{}) (LocationStack, error) {
 	return nil, nil
 }
 
-func (l *tfRuntimeLoader) ToState() models.State {
+func (l *streamlinedStateLoader) ToState() models.State {
 	return models.State{
-		InputType:           "tf_runtime",
+		// Note that this is outputting the CloudScan input type, because this type is
+		// intended to be a stand-in for cloud scan until we're able to produce cloud
+		// scan inputs without using the streamlined state format.
+		InputType:           inputs.CloudScan.Name,
 		EnvironmentProvider: l.environmentProvider,
 		Resources:           l.resourcesByType,
 	}
