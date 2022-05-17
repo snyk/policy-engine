@@ -1,35 +1,45 @@
 {
-  "content": {
-    "hcl_resource_view_version": "0.0.1",
-    "resources": {
+  "format": "",
+  "format_version": "",
+  "input_type": "tf",
+  "environment_provider": "iac",
+  "meta": {
+    "filepath": "golden_test/tf/empty-block/main.tf"
+  },
+  "resources": {
+    "google_compute_instance": {
       "google_compute_instance.test": {
-        "_filepath": "golden_test/tf/empty-block/main.tf",
-        "_provider": "google",
-        "_tags": {},
-        "_type": "google_compute_instance",
-        "boot_disk": [
-          {
-            "initialize_params": [
-              {
-                "image": "debian-cloud/debian-9"
-              }
-            ]
-          }
-        ],
         "id": "google_compute_instance.test",
-        "machine_type": "e2-micro",
-        "name": "no-metadata-keys-set",
-        "network_interface": [
-          {
-            "access_config": [
-              {}
-            ],
-            "network": "default"
-          }
-        ],
-        "zone": "us-east1-b"
+        "resource_type": "google_compute_instance",
+        "namespace": "golden_test/tf/empty-block/main.tf",
+        "attributes": {
+          "_filepath": "golden_test/tf/empty-block/main.tf",
+          "_provider": "google",
+          "_tags": {},
+          "_type": "google_compute_instance",
+          "boot_disk": [
+            {
+              "initialize_params": [
+                {
+                  "image": "debian-cloud/debian-9"
+                }
+              ]
+            }
+          ],
+          "id": "google_compute_instance.test",
+          "machine_type": "e2-micro",
+          "name": "no-metadata-keys-set",
+          "network_interface": [
+            {
+              "access_config": [
+                {}
+              ],
+              "network": "default"
+            }
+          ],
+          "zone": "us-east1-b"
+        }
       }
     }
-  },
-  "filepath": "golden_test/tf/empty-block/main.tf"
+  }
 }

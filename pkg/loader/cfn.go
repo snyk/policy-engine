@@ -135,15 +135,6 @@ type cfnConfiguration struct {
 	resources map[string]interface{}
 }
 
-func (l *cfnConfiguration) RegulaInput() RegulaInput {
-	return RegulaInput{
-		"filepath": l.path,
-		"content": map[string]interface{}{
-			"resources": l.resources,
-		},
-	}
-}
-
 func (l *cfnConfiguration) ToState() models.State {
 	return toState("cfn", l.path, l.resources)
 }

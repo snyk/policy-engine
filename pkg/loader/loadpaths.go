@@ -220,19 +220,6 @@ func (l *loadedConfigurations) AlreadyLoaded(path string) bool {
 	return l.ConfigurationPath(path) != nil
 }
 
-func (l *loadedConfigurations) RegulaInput() []RegulaInput {
-	keys := []string{}
-	for k := range l.configurations {
-		keys = append(keys, k)
-	}
-	sort.Strings(keys)
-	input := []RegulaInput{}
-	for _, k := range keys {
-		input = append(input, l.configurations[k].RegulaInput())
-	}
-	return input
-}
-
 func (l *loadedConfigurations) ToStates() []models.State {
 	keys := []string{}
 	for k := range l.configurations {

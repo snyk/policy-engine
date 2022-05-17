@@ -1,25 +1,42 @@
 {
-  "content": {
-    "hcl_resource_view_version": "0.0.1",
-    "resources": {
+  "format": "",
+  "format_version": "",
+  "input_type": "tf",
+  "environment_provider": "iac",
+  "meta": {
+    "filepath": "golden_test/tf/template-in-jsonencode/main.tf"
+  },
+  "resources": {
+    "aws_s3_bucket": {
       "aws_s3_bucket.test1": {
-        "_filepath": "golden_test/tf/template-in-jsonencode/main.tf",
-        "_provider": "aws",
-        "_tags": {},
-        "_type": "aws_s3_bucket",
-        "bucket": "test1",
-        "id": "aws_s3_bucket.test1"
-      },
+        "id": "aws_s3_bucket.test1",
+        "resource_type": "aws_s3_bucket",
+        "namespace": "golden_test/tf/template-in-jsonencode/main.tf",
+        "attributes": {
+          "_filepath": "golden_test/tf/template-in-jsonencode/main.tf",
+          "_provider": "aws",
+          "_tags": {},
+          "_type": "aws_s3_bucket",
+          "bucket": "test1",
+          "id": "aws_s3_bucket.test1"
+        }
+      }
+    },
+    "aws_s3_bucket_policy": {
       "aws_s3_bucket_policy.test1": {
-        "_filepath": "golden_test/tf/template-in-jsonencode/main.tf",
-        "_provider": "aws",
-        "_tags": {},
-        "_type": "aws_s3_bucket_policy",
-        "bucket": "aws_s3_bucket.test1",
         "id": "aws_s3_bucket_policy.test1",
-        "policy": "{\"Id\":\"MYBUCKETPOLICY\",\"Statement\":[{\"Action\":\"s3:List*\",\"Effect\":\"Allow\",\"Principal\":\"*\",\"Resource\":\"aws_s3_bucket.test1/*\",\"Sid\":\"IPAllow\"}],\"Version\":\"2012-10-17\"}"
+        "resource_type": "aws_s3_bucket_policy",
+        "namespace": "golden_test/tf/template-in-jsonencode/main.tf",
+        "attributes": {
+          "_filepath": "golden_test/tf/template-in-jsonencode/main.tf",
+          "_provider": "aws",
+          "_tags": {},
+          "_type": "aws_s3_bucket_policy",
+          "bucket": "aws_s3_bucket.test1",
+          "id": "aws_s3_bucket_policy.test1",
+          "policy": "{\"Id\":\"MYBUCKETPOLICY\",\"Statement\":[{\"Action\":\"s3:List*\",\"Effect\":\"Allow\",\"Principal\":\"*\",\"Resource\":\"aws_s3_bucket.test1/*\",\"Sid\":\"IPAllow\"}],\"Version\":\"2012-10-17\"}"
+        }
       }
     }
-  },
-  "filepath": "golden_test/tf/template-in-jsonencode/main.tf"
+  }
 }

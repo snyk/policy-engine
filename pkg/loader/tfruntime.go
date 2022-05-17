@@ -92,10 +92,6 @@ type tfRuntimeLoader struct {
 	resourcesByType     map[string]map[string]models.ResourceState
 }
 
-func (l *tfRuntimeLoader) RegulaInput() RegulaInput {
-	return RegulaInput{}
-}
-
 func (l *tfRuntimeLoader) LoadedFiles() []string {
 	return []string{l.path}
 }

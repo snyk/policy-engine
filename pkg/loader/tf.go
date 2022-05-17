@@ -140,16 +140,6 @@ func (c *HclConfiguration) Location(path []interface{}) (LocationStack, error) {
 	return locs, nil
 }
 
-func (c *HclConfiguration) RegulaInput() RegulaInput {
-	return map[string]interface{}{
-		"filepath": c.moduleTree.FilePath(),
-		"content": map[string]interface{}{
-			"hcl_resource_view_version": "0.0.1",
-			"resources":                 c.evaluation.Resources(),
-		},
-	}
-}
-
 func (c *HclConfiguration) ToState() models.State {
 	return toState("tf", c.moduleTree.FilePath(), c.evaluation.Resources())
 }

@@ -109,7 +109,7 @@ func TestGolden(t *testing.T) {
 				t.Fatalf("No configuration found in %s", entry.directory)
 			}
 
-			actualBytes, err := json.MarshalIndent(iac.RegulaInput(), "", "  ")
+			actualBytes, err := json.MarshalIndent(iac.ToState(), "", "  ")
 			if err != nil {
 				t.Fatal(err)
 			}

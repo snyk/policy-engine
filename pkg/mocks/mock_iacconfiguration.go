@@ -9,6 +9,7 @@ import (
 
 	gomock "github.com/golang/mock/gomock"
 	loader "github.com/snyk/unified-policy-engine/pkg/loader"
+	models "github.com/snyk/unified-policy-engine/pkg/models"
 )
 
 // MockIACConfiguration is a mock of IACConfiguration interface.
@@ -49,7 +50,7 @@ func (mr *MockIACConfigurationMockRecorder) LoadedFiles() *gomock.Call {
 }
 
 // Location mocks base method.
-func (m *MockIACConfiguration) Location(arg0 []string) ([]loader.Location, error) {
+func (m *MockIACConfiguration) Location(arg0 []interface{}) ([]loader.Location, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Location", arg0)
 	ret0, _ := ret[0].([]loader.Location)
@@ -63,16 +64,16 @@ func (mr *MockIACConfigurationMockRecorder) Location(arg0 interface{}) *gomock.C
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Location", reflect.TypeOf((*MockIACConfiguration)(nil).Location), arg0)
 }
 
-// RegulaInput mocks base method.
-func (m *MockIACConfiguration) RegulaInput() loader.RegulaInput {
+// ToState mocks base method.
+func (m *MockIACConfiguration) ToState() models.State {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "RegulaInput")
-	ret0, _ := ret[0].(loader.RegulaInput)
+	ret := m.ctrl.Call(m, "ToState")
+	ret0, _ := ret[0].(models.State)
 	return ret0
 }
 
-// RegulaInput indicates an expected call of RegulaInput.
-func (mr *MockIACConfigurationMockRecorder) RegulaInput() *gomock.Call {
+// ToState indicates an expected call of ToState.
+func (mr *MockIACConfigurationMockRecorder) ToState() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RegulaInput", reflect.TypeOf((*MockIACConfiguration)(nil).RegulaInput))
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ToState", reflect.TypeOf((*MockIACConfiguration)(nil).ToState))
 }
