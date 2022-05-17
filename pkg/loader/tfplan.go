@@ -405,6 +405,7 @@ func (plan *tfplan_Plan) resources(resourceNamespace string) map[string]models.R
 	) {
 		id := pvr.Address
 		attributes := map[string]interface{}{}
+		meta := map[string]interface{}{}
 
 		// Copy attributes from planned values.
 		for k, attr := range pvr.Values {
@@ -465,11 +466,20 @@ func (plan *tfplan_Plan) resources(resourceNamespace string) map[string]models.R
 			}
 		})
 
+		if config, ok := plan.Configuration.ProviderConfig[cr.ProviderConfigKey]; ok {
+			if config.VersionConstraint != "" {
+				meta["terraform"] = map[string]interface{}{
+					"provider_version_constraint": config.VersionConstraint,
+				}
+			}
+		}
+
 		resources[id] = models.ResourceState{
 			Id:           id,
 			ResourceType: pvr.Type,
 			Namespace:    resourceNamespace,
 			Attributes:   attributes,
+			Meta:         meta,
 		}
 	})
 
