@@ -118,12 +118,6 @@ type k8sConfiguration struct {
 	resources map[string]interface{}
 }
 
-func (l *k8sConfiguration) RegulaInput() RegulaInput {
-	return RegulaInput{
-		"filepath": l.path,
-		"content":  l.content,
-	}
-}
 
 func (l *k8sConfiguration) ToState() models.State {
 	return toState("k8s", l.path, l.resources)

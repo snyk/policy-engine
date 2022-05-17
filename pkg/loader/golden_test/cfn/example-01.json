@@ -1,17 +1,35 @@
 {
-  "content": {
-    "resources": {
+  "format": "",
+  "format_version": "",
+  "input_type": "cfn",
+  "environment_provider": "iac",
+  "meta": {
+    "filepath": "golden_test/cfn/example-01/main.yaml"
+  },
+  "resources": {
+    "SecurityGroupId": {
       "MySecurityGroup": {
-        "Vpc": "MyVpc",
-        "_type": "SecurityGroupId",
-        "id": "MySecurityGroup"
-      },
+        "id": "MySecurityGroup",
+        "resource_type": "SecurityGroupId",
+        "namespace": "golden_test/cfn/example-01/main.yaml",
+        "attributes": {
+          "Vpc": "MyVpc",
+          "_type": "SecurityGroupId",
+          "id": "MySecurityGroup"
+        }
+      }
+    },
+    "Vpc": {
       "MyVpc": {
-        "Name": "bar",
-        "_type": "Vpc",
-        "id": "MyVpc"
+        "id": "MyVpc",
+        "resource_type": "Vpc",
+        "namespace": "golden_test/cfn/example-01/main.yaml",
+        "attributes": {
+          "Name": "bar",
+          "_type": "Vpc",
+          "id": "MyVpc"
+        }
       }
     }
-  },
-  "filepath": "golden_test/cfn/example-01/main.yaml"
+  }
 }

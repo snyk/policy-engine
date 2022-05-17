@@ -1,22 +1,32 @@
 {
-  "content": {
-    "hcl_resource_view_version": "0.0.1",
-    "resources": {
+  "format": "",
+  "format_version": "",
+  "input_type": "tf",
+  "environment_provider": "iac",
+  "meta": {
+    "filepath": "golden_test/tf/vars/main.tf"
+  },
+  "resources": {
+    "aws_s3_bucket": {
       "aws_s3_bucket.main": {
-        "_filepath": "golden_test/tf/vars/main.tf",
-        "_provider": "aws",
-        "_tags": {
-          "department": "engineering",
-          "environment": null
-        },
-        "_type": "aws_s3_bucket",
         "id": "aws_s3_bucket.main",
-        "tags": {
-          "department": "engineering",
-          "environment": null
+        "resource_type": "aws_s3_bucket",
+        "namespace": "golden_test/tf/vars/main.tf",
+        "attributes": {
+          "_filepath": "golden_test/tf/vars/main.tf",
+          "_provider": "aws",
+          "_tags": {
+            "department": "engineering",
+            "environment": null
+          },
+          "_type": "aws_s3_bucket",
+          "id": "aws_s3_bucket.main",
+          "tags": {
+            "department": "engineering",
+            "environment": null
+          }
         }
       }
     }
-  },
-  "filepath": "golden_test/tf/vars/main.tf"
+  }
 }

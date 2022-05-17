@@ -1,22 +1,38 @@
 {
-  "content": {
-    "resources": {
+  "format": "",
+  "format_version": "",
+  "input_type": "cfn",
+  "environment_provider": "iac",
+  "meta": {
+    "filepath": "golden_test/cfn/json-01/cfn.json"
+  },
+  "resources": {
+    "AWS::S3::Bucket": {
       "Bucket1": {
-        "AccessControl": "Private",
-        "_type": "AWS::S3::Bucket",
-        "id": "Bucket1"
+        "id": "Bucket1",
+        "resource_type": "AWS::S3::Bucket",
+        "namespace": "golden_test/cfn/json-01/cfn.json",
+        "attributes": {
+          "AccessControl": "Private",
+          "_type": "AWS::S3::Bucket",
+          "id": "Bucket1"
+        }
       },
       "Bucket2": {
-        "AccessControl": "Private",
-        "PublicAccessBlockConfiguration": {
-          "BlockPublicAcls": true,
-          "IgnorePublicAcls": true,
-          "RestrictPublicBuckets": true
-        },
-        "_type": "AWS::S3::Bucket",
-        "id": "Bucket2"
+        "id": "Bucket2",
+        "resource_type": "AWS::S3::Bucket",
+        "namespace": "golden_test/cfn/json-01/cfn.json",
+        "attributes": {
+          "AccessControl": "Private",
+          "PublicAccessBlockConfiguration": {
+            "BlockPublicAcls": true,
+            "IgnorePublicAcls": true,
+            "RestrictPublicBuckets": true
+          },
+          "_type": "AWS::S3::Bucket",
+          "id": "Bucket2"
+        }
       }
     }
-  },
-  "filepath": "golden_test/cfn/json-01/cfn.json"
+  }
 }

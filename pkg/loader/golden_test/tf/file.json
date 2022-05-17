@@ -1,17 +1,27 @@
 {
-  "content": {
-    "hcl_resource_view_version": "0.0.1",
-    "resources": {
+  "format": "",
+  "format_version": "",
+  "input_type": "tf",
+  "environment_provider": "iac",
+  "meta": {
+    "filepath": "golden_test/tf/file"
+  },
+  "resources": {
+    "aws_s3_bucket": {
       "aws_s3_bucket.trail_bucket": {
-        "_filepath": "golden_test/tf/file/main.tf",
-        "_provider": "aws",
-        "_tags": {},
-        "_type": "aws_s3_bucket",
-        "force_destroy": true,
         "id": "aws_s3_bucket.trail_bucket",
-        "tags": null
+        "resource_type": "aws_s3_bucket",
+        "namespace": "golden_test/tf/file",
+        "attributes": {
+          "_filepath": "golden_test/tf/file/main.tf",
+          "_provider": "aws",
+          "_tags": {},
+          "_type": "aws_s3_bucket",
+          "force_destroy": true,
+          "id": "aws_s3_bucket.trail_bucket",
+          "tags": null
+        }
       }
     }
-  },
-  "filepath": "golden_test/tf/file"
+  }
 }

@@ -1,55 +1,82 @@
 {
-  "content": {
-    "azurerm_monitor_log_profile.main": {
-      "_type": "azurerm_monitor_log_profile",
-      "categories": [
-        "Action",
-        "Delete",
-        "Write"
-      ],
-      "id": "azurerm_monitor_log_profile.main",
-      "locations": [
-        "global",
-        "westeurope"
-      ],
-      "name": "main",
-      "retention_policy": [
-        {
-          "days": 0,
-          "enabled": false
-        }
-      ],
-      "servicebus_rule_id": null,
-      "storage_account_id": "azurerm_storage_account.main",
-      "timeouts": null
-    },
-    "azurerm_resource_group.main": {
-      "_type": "azurerm_resource_group",
-      "id": "azurerm_resource_group.main",
-      "location": "westeurope",
-      "name": "main",
-      "tags": null,
-      "timeouts": null
-    },
-    "azurerm_storage_account.main": {
-      "_type": "azurerm_storage_account",
-      "account_kind": "StorageV2",
-      "account_replication_type": "GRS",
-      "account_tier": "Standard",
-      "allow_blob_public_access": false,
-      "custom_domain": [],
-      "enable_https_traffic_only": true,
-      "id": "azurerm_storage_account.main",
-      "is_hns_enabled": false,
-      "location": "westeurope",
-      "min_tls_version": "TLS1_0",
-      "name": "main",
-      "nfsv3_enabled": false,
-      "resource_group_name": "main",
-      "static_website": [],
-      "tags": null,
-      "timeouts": null
-    }
+  "format": "",
+  "format_version": "",
+  "input_type": "tf_plan",
+  "environment_provider": "iac",
+  "meta": {
+    "filepath": "golden_test/tfplan/example-03/plan.json"
   },
-  "filepath": "golden_test/tfplan/example-03/plan.json"
+  "resources": {
+    "azurerm_monitor_log_profile": {
+      "azurerm_monitor_log_profile.main": {
+        "id": "azurerm_monitor_log_profile.main",
+        "resource_type": "azurerm_monitor_log_profile",
+        "namespace": "golden_test/tfplan/example-03/plan.json",
+        "attributes": {
+          "_type": "azurerm_monitor_log_profile",
+          "categories": [
+            "Action",
+            "Delete",
+            "Write"
+          ],
+          "id": "azurerm_monitor_log_profile.main",
+          "locations": [
+            "global",
+            "westeurope"
+          ],
+          "name": "main",
+          "retention_policy": [
+            {
+              "days": 0,
+              "enabled": false
+            }
+          ],
+          "servicebus_rule_id": null,
+          "storage_account_id": "azurerm_storage_account.main",
+          "timeouts": null
+        }
+      }
+    },
+    "azurerm_resource_group": {
+      "azurerm_resource_group.main": {
+        "id": "azurerm_resource_group.main",
+        "resource_type": "azurerm_resource_group",
+        "namespace": "golden_test/tfplan/example-03/plan.json",
+        "attributes": {
+          "_type": "azurerm_resource_group",
+          "id": "azurerm_resource_group.main",
+          "location": "westeurope",
+          "name": "main",
+          "tags": null,
+          "timeouts": null
+        }
+      }
+    },
+    "azurerm_storage_account": {
+      "azurerm_storage_account.main": {
+        "id": "azurerm_storage_account.main",
+        "resource_type": "azurerm_storage_account",
+        "namespace": "golden_test/tfplan/example-03/plan.json",
+        "attributes": {
+          "_type": "azurerm_storage_account",
+          "account_kind": "StorageV2",
+          "account_replication_type": "GRS",
+          "account_tier": "Standard",
+          "allow_blob_public_access": false,
+          "custom_domain": [],
+          "enable_https_traffic_only": true,
+          "id": "azurerm_storage_account.main",
+          "is_hns_enabled": false,
+          "location": "westeurope",
+          "min_tls_version": "TLS1_0",
+          "name": "main",
+          "nfsv3_enabled": false,
+          "resource_group_name": "main",
+          "static_website": [],
+          "tags": null,
+          "timeouts": null
+        }
+      }
+    }
+  }
 }
