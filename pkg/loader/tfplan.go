@@ -115,7 +115,12 @@ type tfplan_ResourceChangeChange struct {
 }
 
 type tfplan_Configuration struct {
-	RootModule *tfplan_ConfigurationModule `yaml:"root_module"`
+	ProviderConfig map[string]*tfplan_ProviderConfig `yaml:"provider_config"`
+	RootModule     *tfplan_ConfigurationModule       `yaml:"root_module"`
+}
+
+type tfplan_ProviderConfig struct {
+	VersionConstraint string `yaml:"version_constraint"`
 }
 
 type tfplan_ConfigurationModule struct {
@@ -135,8 +140,9 @@ type tfplan_ConfigurationModuleCall struct {
 }
 
 type tfplan_ConfigurationResource struct {
-	Address     string                                     `yaml:"address"`
-	Expressions map[string]*tfplan_ConfigurationExpression `yaml:"expressions"`
+	Address           string                                     `yaml:"address"`
+	ProviderConfigKey string                                     `yaml:"provider_config_key"`
+	Expressions       map[string]*tfplan_ConfigurationExpression `yaml:"expressions"`
 }
 
 type tfplan_ConfigurationExpression struct {
