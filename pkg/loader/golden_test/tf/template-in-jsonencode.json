@@ -1,7 +1,7 @@
 {
   "format": "",
   "format_version": "",
-  "input_type": "tf",
+  "input_type": "tf_hcl",
   "environment_provider": "iac",
   "meta": {
     "filepath": "golden_test/tf/template-in-jsonencode/main.tf"
