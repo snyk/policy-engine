@@ -8,11 +8,11 @@ resources(resource_type) = ret {
 			"_type": resource_type,
 			"_namespace": resource.namespace,
 			"_meta": object.get(resource, "meta", {}),
-			"_uid": concat(":", [
-				resource.namespace,
-				resource_type,
-				resource.id,
-			]),
+			"_uid": crypto.sha256(concat(":", [
+				crypto.sha256(resource.namespace),
+				crypto.sha256(resource_type),
+				crypto.sha256(resource.id),
+			])),
 		}, resource.attributes)
 	]
 }

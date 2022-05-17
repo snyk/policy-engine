@@ -373,7 +373,7 @@ would become the following resource object:
   "_provider": "aws",
   "_tags": {},
   "_type": "aws_cloudtrail",
-  "_uid": "examples/main.tf:aws_cloudtrail:aws_cloudtrail.cloudtrail1",
+  "_uid": "9077f4cd96cc20577b57c6ccd4885c210efcff2aa86b93244822938550ce97bc",
   "id": "aws_cloudtrail.cloudtrail1",
   "include_global_service_events": true,
   "name": "cloudtrail1",

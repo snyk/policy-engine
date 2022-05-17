@@ -1,6 +1,7 @@
 package policy
 
 import (
+	"crypto/sha256"
 	"embed"
 	"fmt"
 	"strings"
@@ -114,6 +115,25 @@ func (r *resourcesByType) impl(
 	return ast.NewTerm(val), nil
 }
 
+func hash(s string) string {
+	// We're using the same procedure as OPA's crypto.sha256() builtin for consistency
+	// with uids calculated in rego.
+	return fmt.Sprintf("%x", sha256.Sum256([]byte(s)))
+}
+
+func calculateUid(resource models.ResourceState) string {
+	return hash(
+		strings.Join(
+			[]string{
+				hash(resource.Namespace),
+				hash(resource.ResourceType),
+				hash(resource.Id),
+			},
+			":",
+		),
+	)
+}
+
 func resourceStateToRegoInput(resource models.ResourceState) map[string]interface{} {
 	obj := map[string]interface{}{}
 	for k, attr := range resource.Attributes {
@@ -127,14 +147,7 @@ func resourceStateToRegoInput(resource models.ResourceState) map[string]interfac
 	} else {
 		obj["_meta"] = resource.Meta
 	}
-	obj["_uid"] = strings.Join(
-		[]string{
-			resource.Namespace,
-			resource.ResourceType,
-			resource.Id,
-		},
-		":",
-	)
+	obj["_uid"] = calculateUid(resource)
 	return obj
 }
 
