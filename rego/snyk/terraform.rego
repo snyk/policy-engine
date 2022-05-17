@@ -27,7 +27,7 @@ semver_constraint_operator(lhs, "=", rhs) {
 }
 
 semver_constraint_operator(lhs, "!=", rhs) {
-	lhs == rhs
+	lhs != rhs
 }
 
 semver_constraint_operator(lhs, ">", rhs) {
