@@ -1,15 +1,25 @@
 {
-  "content": {
-    "hcl_resource_view_version": "0.0.1",
-    "resources": {
+  "format": "",
+  "format_version": "",
+  "input_type": "tf",
+  "environment_provider": "iac",
+  "meta": {
+    "filepath": "golden_test/tf/empty-resource/test.tf"
+  },
+  "resources": {
+    "data.aws_caller_identity": {
       "data.aws_caller_identity.current": {
-        "_filepath": "golden_test/tf/empty-resource/test.tf",
-        "_provider": "aws",
-        "_tags": {},
-        "_type": "data.aws_caller_identity",
-        "id": "data.aws_caller_identity.current"
+        "id": "data.aws_caller_identity.current",
+        "resource_type": "data.aws_caller_identity",
+        "namespace": "golden_test/tf/empty-resource/test.tf",
+        "attributes": {
+          "_filepath": "golden_test/tf/empty-resource/test.tf",
+          "_provider": "aws",
+          "_tags": {},
+          "_type": "data.aws_caller_identity",
+          "id": "data.aws_caller_identity.current"
+        }
       }
     }
-  },
-  "filepath": "golden_test/tf/empty-resource/test.tf"
+  }
 }

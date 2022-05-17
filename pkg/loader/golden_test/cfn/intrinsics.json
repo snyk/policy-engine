@@ -1,149 +1,236 @@
 {
-  "content": {
-    "resources": {
-      "Function": {
-        "Code": {
-          "ZipFile": "exports.handler = (event, context) =\u003e {\n  console.log(JSON.stringify(event))\n}\n"
-        },
-        "Handler": "index.handler",
-        "Role": "FunctionRole",
-        "Runtime": "nodejs12.x",
-        "_type": "AWS::Lambda::Function",
-        "id": "Function"
-      },
-      "Function2": {
-        "Code": {
-          "ZipFile": "exports.handler = (event, context) =\u003e {\n  console.log(JSON.stringify(event))\n}\n"
-        },
-        "Handler": "index.handler",
-        "Role": "FunctionRole",
-        "Runtime": "nodejs12.x",
-        "_type": "AWS::Lambda::Function",
-        "id": "Function2"
-      },
-      "Function3": {
-        "Code": {
-          "ZipFile": "exports.handler = (event, context) =\u003e {\n  console.log(JSON.stringify(event))\n}\n"
-        },
-        "Handler": "index.handler",
-        "Role": "FunctionRole",
-        "Runtime": "nodejs12.x",
-        "_type": "AWS::Lambda::Function",
-        "id": "Function3"
-      },
-      "Function4": {
-        "Code": {
-          "ZipFile": "exports.handler = (event, context) =\u003e {\n  console.log(JSON.stringify(event))\n}\n"
-        },
-        "FunctionName": "function4",
-        "Handler": "index.handler",
-        "Role": "FunctionRole",
-        "Runtime": "nodejs12.x",
-        "_type": "AWS::Lambda::Function",
-        "id": "Function4"
-      },
-      "Function5": {
-        "Code": {
-          "ZipFile": "exports.handler = (event, context) =\u003e {\n  console.log(JSON.stringify(event))\n}\n"
-        },
-        "FunctionName": "function5",
-        "Handler": "index.handler",
-        "Role": "FunctionRole",
-        "Runtime": "nodejs12.x",
-        "_type": "AWS::Lambda::Function",
-        "id": "Function5"
-      },
+  "format": "",
+  "format_version": "",
+  "input_type": "cfn",
+  "environment_provider": "iac",
+  "meta": {
+    "filepath": "golden_test/cfn/intrinsics/main.yaml"
+  },
+  "resources": {
+    "AWS::IAM::Role": {
+      "FunctionRole": {
+        "id": "FunctionRole",
+        "resource_type": "AWS::IAM::Role",
+        "namespace": "golden_test/cfn/intrinsics/main.yaml",
+        "attributes": {
+          "AssumeRolePolicyDocument": {
+            "Statement": [
+              {
+                "Action": "sts:AssumeRole",
+                "Effect": "Allow",
+                "Principal": {
+                  "Service": "lambda.amazonaws.com"
+                }
+              }
+            ],
+            "Version": "2012-10-17"
+          },
+          "ManagedPolicyArns": [
+            "arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
+          ],
+          "Path": "/",
+          "_type": "AWS::IAM::Role",
+          "id": "FunctionRole"
+        }
+      }
+    },
+    "AWS::Lambda::Alias": {
       "Function5Alias": {
-        "FunctionName": "Function5",
-        "FunctionVersion": "$LATEST",
-        "Name": "v1",
-        "_type": "AWS::Lambda::Alias",
-        "id": "Function5Alias"
-      },
-      "Function6": {
-        "Code": {
-          "ZipFile": "exports.handler = (event, context) =\u003e {\n  console.log(JSON.stringify(event))\n}\n"
-        },
-        "FunctionName": "AWS::Region",
-        "Handler": "index.handler",
-        "Role": "FunctionRole",
-        "Runtime": "nodejs12.x",
-        "_type": "AWS::Lambda::Function",
-        "id": "Function6"
+        "id": "Function5Alias",
+        "resource_type": "AWS::Lambda::Alias",
+        "namespace": "golden_test/cfn/intrinsics/main.yaml",
+        "attributes": {
+          "FunctionName": "Function5",
+          "FunctionVersion": "$LATEST",
+          "Name": "v1",
+          "_type": "AWS::Lambda::Alias",
+          "id": "Function5Alias"
+        }
       },
       "Function6Alias": {
-        "FunctionName": "Function5",
-        "FunctionVersion": "$LATEST",
-        "Name": "v1",
-        "_type": "AWS::Lambda::Alias",
-        "id": "Function6Alias"
+        "id": "Function6Alias",
+        "resource_type": "AWS::Lambda::Alias",
+        "namespace": "golden_test/cfn/intrinsics/main.yaml",
+        "attributes": {
+          "FunctionName": "Function5",
+          "FunctionVersion": "$LATEST",
+          "Name": "v1",
+          "_type": "AWS::Lambda::Alias",
+          "id": "Function6Alias"
+        }
+      }
+    },
+    "AWS::Lambda::Function": {
+      "Function": {
+        "id": "Function",
+        "resource_type": "AWS::Lambda::Function",
+        "namespace": "golden_test/cfn/intrinsics/main.yaml",
+        "attributes": {
+          "Code": {
+            "ZipFile": "exports.handler = (event, context) =\u003e {\n  console.log(JSON.stringify(event))\n}\n"
+          },
+          "Handler": "index.handler",
+          "Role": "FunctionRole",
+          "Runtime": "nodejs12.x",
+          "_type": "AWS::Lambda::Function",
+          "id": "Function"
+        }
       },
+      "Function2": {
+        "id": "Function2",
+        "resource_type": "AWS::Lambda::Function",
+        "namespace": "golden_test/cfn/intrinsics/main.yaml",
+        "attributes": {
+          "Code": {
+            "ZipFile": "exports.handler = (event, context) =\u003e {\n  console.log(JSON.stringify(event))\n}\n"
+          },
+          "Handler": "index.handler",
+          "Role": "FunctionRole",
+          "Runtime": "nodejs12.x",
+          "_type": "AWS::Lambda::Function",
+          "id": "Function2"
+        }
+      },
+      "Function3": {
+        "id": "Function3",
+        "resource_type": "AWS::Lambda::Function",
+        "namespace": "golden_test/cfn/intrinsics/main.yaml",
+        "attributes": {
+          "Code": {
+            "ZipFile": "exports.handler = (event, context) =\u003e {\n  console.log(JSON.stringify(event))\n}\n"
+          },
+          "Handler": "index.handler",
+          "Role": "FunctionRole",
+          "Runtime": "nodejs12.x",
+          "_type": "AWS::Lambda::Function",
+          "id": "Function3"
+        }
+      },
+      "Function4": {
+        "id": "Function4",
+        "resource_type": "AWS::Lambda::Function",
+        "namespace": "golden_test/cfn/intrinsics/main.yaml",
+        "attributes": {
+          "Code": {
+            "ZipFile": "exports.handler = (event, context) =\u003e {\n  console.log(JSON.stringify(event))\n}\n"
+          },
+          "FunctionName": "function4",
+          "Handler": "index.handler",
+          "Role": "FunctionRole",
+          "Runtime": "nodejs12.x",
+          "_type": "AWS::Lambda::Function",
+          "id": "Function4"
+        }
+      },
+      "Function5": {
+        "id": "Function5",
+        "resource_type": "AWS::Lambda::Function",
+        "namespace": "golden_test/cfn/intrinsics/main.yaml",
+        "attributes": {
+          "Code": {
+            "ZipFile": "exports.handler = (event, context) =\u003e {\n  console.log(JSON.stringify(event))\n}\n"
+          },
+          "FunctionName": "function5",
+          "Handler": "index.handler",
+          "Role": "FunctionRole",
+          "Runtime": "nodejs12.x",
+          "_type": "AWS::Lambda::Function",
+          "id": "Function5"
+        }
+      },
+      "Function6": {
+        "id": "Function6",
+        "resource_type": "AWS::Lambda::Function",
+        "namespace": "golden_test/cfn/intrinsics/main.yaml",
+        "attributes": {
+          "Code": {
+            "ZipFile": "exports.handler = (event, context) =\u003e {\n  console.log(JSON.stringify(event))\n}\n"
+          },
+          "FunctionName": "AWS::Region",
+          "Handler": "index.handler",
+          "Role": "FunctionRole",
+          "Runtime": "nodejs12.x",
+          "_type": "AWS::Lambda::Function",
+          "id": "Function6"
+        }
+      }
+    },
+    "AWS::Lambda::Permission": {
       "FunctionPermissionByArn": {
-        "Action": "lambda:InvokeFunction",
-        "FunctionName": "Function",
-        "Principal": "*",
-        "_type": "AWS::Lambda::Permission",
-        "id": "FunctionPermissionByArn"
+        "id": "FunctionPermissionByArn",
+        "resource_type": "AWS::Lambda::Permission",
+        "namespace": "golden_test/cfn/intrinsics/main.yaml",
+        "attributes": {
+          "Action": "lambda:InvokeFunction",
+          "FunctionName": "Function",
+          "Principal": "*",
+          "_type": "AWS::Lambda::Permission",
+          "id": "FunctionPermissionByArn"
+        }
       },
       "FunctionPermissionByHardcodedName": {
-        "Action": "lambda:InvokeFunction",
-        "FunctionName": "function4",
-        "Principal": "*",
-        "_type": "AWS::Lambda::Permission",
-        "id": "FunctionPermissionByHardcodedName"
+        "id": "FunctionPermissionByHardcodedName",
+        "resource_type": "AWS::Lambda::Permission",
+        "namespace": "golden_test/cfn/intrinsics/main.yaml",
+        "attributes": {
+          "Action": "lambda:InvokeFunction",
+          "FunctionName": "function4",
+          "Principal": "*",
+          "_type": "AWS::Lambda::Permission",
+          "id": "FunctionPermissionByHardcodedName"
+        }
       },
       "FunctionPermissionByHardcodedNameAndAlias": {
-        "Action": "lambda:InvokeFunction",
-        "FunctionName": "function5:v1",
-        "Principal": "*",
-        "_type": "AWS::Lambda::Permission",
-        "id": "FunctionPermissionByHardcodedNameAndAlias"
+        "id": "FunctionPermissionByHardcodedNameAndAlias",
+        "resource_type": "AWS::Lambda::Permission",
+        "namespace": "golden_test/cfn/intrinsics/main.yaml",
+        "attributes": {
+          "Action": "lambda:InvokeFunction",
+          "FunctionName": "function5:v1",
+          "Principal": "*",
+          "_type": "AWS::Lambda::Permission",
+          "id": "FunctionPermissionByHardcodedNameAndAlias"
+        }
       },
       "FunctionPermissionByNameAndAliasUsingFunctions": {
-        "Action": "lambda:InvokeFunction",
-        "FunctionName": "AWS::Region",
-        "Principal": "*",
-        "_type": "AWS::Lambda::Permission",
-        "id": "FunctionPermissionByNameAndAliasUsingFunctions"
+        "id": "FunctionPermissionByNameAndAliasUsingFunctions",
+        "resource_type": "AWS::Lambda::Permission",
+        "namespace": "golden_test/cfn/intrinsics/main.yaml",
+        "attributes": {
+          "Action": "lambda:InvokeFunction",
+          "FunctionName": "AWS::Region",
+          "Principal": "*",
+          "_type": "AWS::Lambda::Permission",
+          "id": "FunctionPermissionByNameAndAliasUsingFunctions"
+        }
       },
       "FunctionPermissionByPartialArn": {
-        "Action": "lambda:InvokeFunction",
-        "FunctionName": [
-          "AWS::AccountId",
-          "Function3"
-        ],
-        "Principal": "*",
-        "_type": "AWS::Lambda::Permission",
-        "id": "FunctionPermissionByPartialArn"
+        "id": "FunctionPermissionByPartialArn",
+        "resource_type": "AWS::Lambda::Permission",
+        "namespace": "golden_test/cfn/intrinsics/main.yaml",
+        "attributes": {
+          "Action": "lambda:InvokeFunction",
+          "FunctionName": [
+            "AWS::AccountId",
+            "Function3"
+          ],
+          "Principal": "*",
+          "_type": "AWS::Lambda::Permission",
+          "id": "FunctionPermissionByPartialArn"
+        }
       },
       "FunctionPermissionByRef": {
-        "Action": "lambda:InvokeFunction",
-        "FunctionName": "Function2",
-        "Principal": "*",
-        "_type": "AWS::Lambda::Permission",
-        "id": "FunctionPermissionByRef"
-      },
-      "FunctionRole": {
-        "AssumeRolePolicyDocument": {
-          "Statement": [
-            {
-              "Action": "sts:AssumeRole",
-              "Effect": "Allow",
-              "Principal": {
-                "Service": "lambda.amazonaws.com"
-              }
-            }
-          ],
-          "Version": "2012-10-17"
-        },
-        "ManagedPolicyArns": [
-          "arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
-        ],
-        "Path": "/",
-        "_type": "AWS::IAM::Role",
-        "id": "FunctionRole"
+        "id": "FunctionPermissionByRef",
+        "resource_type": "AWS::Lambda::Permission",
+        "namespace": "golden_test/cfn/intrinsics/main.yaml",
+        "attributes": {
+          "Action": "lambda:InvokeFunction",
+          "FunctionName": "Function2",
+          "Principal": "*",
+          "_type": "AWS::Lambda::Permission",
+          "id": "FunctionPermissionByRef"
+        }
       }
     }
-  },
-  "filepath": "golden_test/cfn/intrinsics/main.yaml"
+  }
 }

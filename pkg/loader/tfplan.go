@@ -60,13 +60,6 @@ type tfPlan struct {
 	plan *tfplan_Plan
 }
 
-func (l *tfPlan) RegulaInput() RegulaInput {
-	return RegulaInput{
-		"filepath": l.path,
-		"content":  l.plan.resources(),
-	}
-}
-
 func (l *tfPlan) LoadedFiles() []string {
 	return []string{l.path}
 }

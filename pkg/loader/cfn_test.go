@@ -16,7 +16,6 @@
 package loader_test
 
 import (
-	"encoding/json"
 	"testing"
 
 	"github.com/golang/mock/gomock"
@@ -107,14 +106,4 @@ func TestCfnDetectorNotYAML(t *testing.T) {
 	})
 	assert.NotNil(t, err)
 	assert.Nil(t, cfn)
-}
-
-// This is annoying, but we care about the values (not the types)
-func coerceRegulaInput(t *testing.T, regulaInput loader.RegulaInput) loader.RegulaInput {
-	coerced := loader.RegulaInput{}
-	bytes, err := json.Marshal(regulaInput)
-	assert.Nil(t, err)
-	err = json.Unmarshal(bytes, &coerced)
-
-	return coerced
 }

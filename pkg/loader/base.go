@@ -124,8 +124,7 @@ type LoadedConfigurations interface {
 	// If we are working with a resource-based input, the first element of the
 	// attributePath is usually the resource type, and the second one the ID.
 	Location(path string, attributePath []interface{}) (LocationStack, error)
-	// RegulaInput renders the RegulaInput from all of the contained configurations.
-	RegulaInput() []RegulaInput
+	// ToStates converts contained configurations to rule input.
 	ToStates() []models.State
 	// Count returns the number of loaded configurations.
 	Count() int
@@ -133,13 +132,9 @@ type LoadedConfigurations interface {
 
 type ConfigurationLoader func() (LoadedConfigurations, error)
 
-// RegulaInput is a generic map that can be fed to OPA for regula.
-type RegulaInput map[string]interface{}
-
 // IACConfiguration is a loaded IaC Configuration.
 type IACConfiguration interface {
-	// RegulaInput returns a input for regula.
-	RegulaInput() RegulaInput
+	// ToState() returns the input for the rule engine.
 	ToState() models.State
 	// LoadedFiles are all of the files contained within this configuration.
 	LoadedFiles() []string

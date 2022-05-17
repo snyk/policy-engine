@@ -1,7 +1,10 @@
 {
-  "content": {
-    "hcl_resource_view_version": "0.0.1",
-    "resources": {}
+  "format": "",
+  "format_version": "",
+  "input_type": "tf",
+  "environment_provider": "iac",
+  "meta": {
+    "filepath": "golden_test/tf/count-var/main.tf"
   },
-  "filepath": "golden_test/tf/count-var/main.tf"
+  "resources": {}
 }

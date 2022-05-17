@@ -76,13 +76,6 @@ type armConfiguration struct {
 	resources map[string]interface{}
 }
 
-func (l *armConfiguration) RegulaInput() RegulaInput {
-	return RegulaInput{
-		"filepath": l.path,
-		"content":  l.template.Contents,
-	}
-}
-
 func (l *armConfiguration) ToState() models.State {
 	return toState("arm", l.path, l.resources)
 }
