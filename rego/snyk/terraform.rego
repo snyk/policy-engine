@@ -1,5 +1,14 @@
 package snyk.terraform
 
+# Checks if the provider used for the resource is compatible with the given
+# major version.
+resource_provider_version_compatible(resource, semver) {
+	meta := object.get(resource, "_meta", {})
+	terraform := object.get(meta, "terraform", {})
+	version_constraints := object.get(terraform, "provider_version_constraint", "")
+	semver_constraints_ok(semver, version_constraints)
+}
+
 # Verifies that a semver satisfies a constraint.
 # See <https://www.terraform.io/language/expressions/version-constraints>.
 semver_constraints_ok(semver, constraints) {
@@ -14,6 +23,8 @@ semver_constraints_fail(semver, constraints) {
 semver_constraint_fail(semver, constraint) {
 	not semver_constraint_ok(semver, constraint)
 }
+
+semver_constraint_ok(semver, "") = true
 
 semver_constraint_ok(semver, constraint) {
 	lhs = parse_semver(semver)
