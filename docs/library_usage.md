@@ -10,6 +10,7 @@ components together.
       - [`LocalConfigurationLoader`](#localconfigurationloader)
     - [`LoadedConfigurations`](#loadedconfigurations)
     - [Example](#example)
+      - [Obtaining input types for the InputTypes option](#obtaining-input-types-for-the-inputtypes-option)
   - [Evaluating policies](#evaluating-policies)
     - [`upe.Engine`](#upeengine)
     - [`data.Provider`](#dataprovider)
@@ -75,6 +76,14 @@ func main() {
   // ...
 }
 ```
+
+#### Obtaining input types for the InputTypes option
+
+The `loader` package has a `SupportedInputTypes` variable that defines which input types
+it can parse. You can use the `loader.SupportedInputTypes.FromString(inputType)` method
+to translate a string representation of an input type (for example from CLI arguments
+or a configuration file) into an `InputType` object which can be used in the
+`LoadPathsOptions.InputTypes` field.
 
 ## Evaluating policies
 

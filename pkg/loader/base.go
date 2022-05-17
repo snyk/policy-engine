@@ -32,6 +32,8 @@ import (
 // stdIn is the path used for stdin.
 const stdIn = "<stdin>"
 
+// Auto is an aggregate type that contains all of the IaC input types that this package
+// supports.
 var Auto = &inputs.InputType{
 	Name: "auto",
 	Children: inputs.InputTypes{
@@ -50,6 +52,7 @@ var StreamlinedState = &inputs.InputType{
 	Aliases: []string{"streamlined-state"},
 }
 
+// SupportedInputTypes contains all of the input types that this package supports.
 var SupportedInputTypes = inputs.InputTypes{
 	Auto,
 	inputs.Arm,

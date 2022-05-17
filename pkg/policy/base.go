@@ -30,6 +30,8 @@ const resourceTypeRuleName = "resource_type"
 const inputTypeRuleName = "input_type"
 const multipleResourceType = "MULTIPLE"
 
+// SupportedInputTypes contains all of the input types that this package officially
+// supports.
 var SupportedInputTypes = inputs.InputTypes{
 	inputs.Arm,
 	inputs.CloudFormation,
