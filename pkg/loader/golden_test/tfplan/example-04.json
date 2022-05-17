@@ -13,13 +13,11 @@
         "resource_type": "aws_s3_bucket",
         "namespace": "golden_test/tfplan/example-04/plan.json",
         "attributes": {
-          "_type": "aws_s3_bucket",
           "acl": "private",
           "bucket_prefix": "example",
           "cors_rule": [],
           "force_destroy": false,
           "grant": [],
-          "id": "aws_s3_bucket.example",
           "lifecycle_rule": [],
           "logging": [],
           "object_lock_configuration": [],

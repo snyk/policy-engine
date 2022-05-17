@@ -69,7 +69,14 @@ func (l *tfPlan) Location(attributePath []interface{}) (LocationStack, error) {
 }
 
 func (l *tfPlan) ToState() models.State {
-	return toState("tf_plan", l.path, l.plan.resources())
+	return models.State{
+		InputType:           "tf_plan",
+		EnvironmentProvider: "iac",
+		Meta: map[string]interface{}{
+			"filepath": l.path,
+		},
+		Resources: groupResourcesByType(l.plan.resources(l.path)),
+	}
 }
 
 // This (among with other types prefixed with tfplan_) matches the JSON
@@ -384,11 +391,11 @@ func (expr *tfplan_ConfigurationExpression) references(resolve func(string) *str
 }
 
 // Main entry point to convert this to an input state.
-func (plan *tfplan_Plan) resources() map[string]interface{} {
+func (plan *tfplan_Plan) resources(resourceNamespace string) map[string]models.ResourceState {
 	// Calculate outputs
 	resolveGlobally := plan.pointers()
 
-	resources := map[string]interface{}{}
+	resources := map[string]models.ResourceState{}
 	plan.visitResources(func(
 		module string,
 		path string,
@@ -397,11 +404,11 @@ func (plan *tfplan_Plan) resources() map[string]interface{} {
 		cr *tfplan_ConfigurationResource,
 	) {
 		id := pvr.Address
-		obj := map[string]interface{}{}
+		attributes := map[string]interface{}{}
 
 		// Copy attributes from planned values.
 		for k, attr := range pvr.Values {
-			obj[k] = attr
+			attributes[k] = attr
 		}
 
 		// Retain only references that are in AfterUnknown.
@@ -450,7 +457,7 @@ func (plan *tfplan_Plan) resources() map[string]interface{} {
 		)
 
 		// Merge in references
-		interfacetricks.MergeWith(obj, refs, func(left interface{}, right interface{}) interface{} {
+		interfacetricks.MergeWith(attributes, refs, func(left interface{}, right interface{}) interface{} {
 			if right == nil {
 				return left
 			} else {
@@ -458,9 +465,12 @@ func (plan *tfplan_Plan) resources() map[string]interface{} {
 			}
 		})
 
-		obj["_type"] = pvr.Type
-		obj["id"] = id
-		resources[id] = obj
+		resources[id] = models.ResourceState{
+			Id:           id,
+			ResourceType: pvr.Type,
+			Namespace:    resourceNamespace,
+			Attributes:   attributes,
+		}
 	})
 
 	return resources
