@@ -12,13 +12,7 @@
         "id": "data.aws_caller_identity.current",
         "resource_type": "data.aws_caller_identity",
         "namespace": "golden_test/tf/empty-resource/test.tf",
-        "attributes": {
-          "_filepath": "golden_test/tf/empty-resource/test.tf",
-          "_provider": "aws",
-          "_tags": {},
-          "_type": "data.aws_caller_identity",
-          "id": "data.aws_caller_identity.current"
-        }
+        "attributes": {}
       }
     }
   }

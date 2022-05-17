@@ -13,11 +13,6 @@
         "resource_type": "kubernetes_pod",
         "namespace": "golden_test/tf/kubernetes-01/main.tf",
         "attributes": {
-          "_filepath": "golden_test/tf/kubernetes-01/main.tf",
-          "_provider": "kubernetes",
-          "_tags": {},
-          "_type": "kubernetes_pod",
-          "id": "kubernetes_pod.multiple_containers",
           "metadata": [
             {
               "name": "multiple-containers"

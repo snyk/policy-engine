@@ -13,12 +13,7 @@
         "resource_type": "aws_s3_bucket",
         "namespace": "golden_test/tf/template-in-jsonencode/main.tf",
         "attributes": {
-          "_filepath": "golden_test/tf/template-in-jsonencode/main.tf",
-          "_provider": "aws",
-          "_tags": {},
-          "_type": "aws_s3_bucket",
-          "bucket": "test1",
-          "id": "aws_s3_bucket.test1"
+          "bucket": "test1"
         }
       }
     },
@@ -28,12 +23,7 @@
         "resource_type": "aws_s3_bucket_policy",
         "namespace": "golden_test/tf/template-in-jsonencode/main.tf",
         "attributes": {
-          "_filepath": "golden_test/tf/template-in-jsonencode/main.tf",
-          "_provider": "aws",
-          "_tags": {},
-          "_type": "aws_s3_bucket_policy",
           "bucket": "aws_s3_bucket.test1",
-          "id": "aws_s3_bucket_policy.test1",
           "policy": "{\"Id\":\"MYBUCKETPOLICY\",\"Statement\":[{\"Action\":\"s3:List*\",\"Effect\":\"Allow\",\"Principal\":\"*\",\"Resource\":\"aws_s3_bucket.test1/*\",\"Sid\":\"IPAllow\"}],\"Version\":\"2012-10-17\"}"
         }
       }

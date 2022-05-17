@@ -13,13 +13,8 @@
         "resource_type": "aws_s3_bucket",
         "namespace": "golden_test/tf/null-count/main.tf",
         "attributes": {
-          "_filepath": "golden_test/tf/null-count/main.tf",
-          "_provider": "aws",
-          "_tags": {},
-          "_type": "aws_s3_bucket",
           "bucket": "mybucket-0",
-          "count": null,
-          "id": "aws_s3_bucket.foo"
+          "count": null
         }
       }
     }

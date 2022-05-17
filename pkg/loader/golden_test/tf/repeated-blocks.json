@@ -13,13 +13,8 @@
         "resource_type": "google_sql_database_instance",
         "namespace": "golden_test/tf/repeated-blocks/main.tf",
         "attributes": {
-          "_filepath": "golden_test/tf/repeated-blocks/main.tf",
-          "_provider": "google",
-          "_tags": {},
-          "_type": "google_sql_database_instance",
           "database_version": "POSTGRES_11",
           "deletion_protection": false,
-          "id": "google_sql_database_instance.default",
           "name": "all-valid-flags-pg-instance",
           "region": "us-east1",
           "settings": [

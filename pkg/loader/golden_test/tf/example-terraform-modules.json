@@ -13,11 +13,6 @@
         "resource_type": "aws_security_group",
         "namespace": "golden_test/tf/example-terraform-modules",
         "attributes": {
-          "_filepath": "golden_test/tf/example-terraform-modules/main.tf",
-          "_provider": "aws",
-          "_tags": {},
-          "_type": "aws_security_group",
-          "id": "aws_security_group.parent",
           "vpc_id": "module.child1.module.grandchild1.aws_vpc.grandchild"
         }
       },
@@ -26,11 +21,6 @@
         "resource_type": "aws_security_group",
         "namespace": "golden_test/tf/example-terraform-modules",
         "attributes": {
-          "_filepath": "golden_test/tf/example-terraform-modules/child1/grandchild1/main.tf",
-          "_provider": "aws",
-          "_tags": {},
-          "_type": "aws_security_group",
-          "id": "module.child1.module.grandchild1.aws_security_group.grandchild",
           "vpc_id": "module.child1.module.grandchild1.aws_vpc.grandchild"
         }
       },
@@ -39,11 +29,6 @@
         "resource_type": "aws_security_group",
         "namespace": "golden_test/tf/example-terraform-modules",
         "attributes": {
-          "_filepath": "golden_test/tf/example-terraform-modules/child2/main.tf",
-          "_provider": "aws",
-          "_tags": {},
-          "_type": "aws_security_group",
-          "id": "module.child2.aws_security_group.child",
           "vpc_id": "module.child1.module.grandchild1.aws_vpc.grandchild"
         }
       }
@@ -54,12 +39,7 @@
         "resource_type": "aws_vpc",
         "namespace": "golden_test/tf/example-terraform-modules",
         "attributes": {
-          "_filepath": "golden_test/tf/example-terraform-modules/main.tf",
-          "_provider": "aws",
-          "_tags": {},
-          "_type": "aws_vpc",
-          "cidr_block": "10.0.0.0/16",
-          "id": "aws_vpc.parent"
+          "cidr_block": "10.0.0.0/16"
         }
       },
       "module.child1.aws_vpc.child": {
@@ -67,12 +47,7 @@
         "resource_type": "aws_vpc",
         "namespace": "golden_test/tf/example-terraform-modules",
         "attributes": {
-          "_filepath": "golden_test/tf/example-terraform-modules/child1/main.tf",
-          "_provider": "aws",
-          "_tags": {},
-          "_type": "aws_vpc",
-          "cidr_block": "10.0.0.0/16",
-          "id": "module.child1.aws_vpc.child"
+          "cidr_block": "10.0.0.0/16"
         }
       },
       "module.child1.module.grandchild1.aws_vpc.grandchild": {
@@ -80,12 +55,7 @@
         "resource_type": "aws_vpc",
         "namespace": "golden_test/tf/example-terraform-modules",
         "attributes": {
-          "_filepath": "golden_test/tf/example-terraform-modules/child1/grandchild1/main.tf",
-          "_provider": "aws",
-          "_tags": {},
-          "_type": "aws_vpc",
-          "cidr_block": "10.0.0.0/16",
-          "id": "module.child1.module.grandchild1.aws_vpc.grandchild"
+          "cidr_block": "10.0.0.0/16"
         }
       },
       "module.child2.aws_vpc.child": {
@@ -93,12 +63,7 @@
         "resource_type": "aws_vpc",
         "namespace": "golden_test/tf/example-terraform-modules",
         "attributes": {
-          "_filepath": "golden_test/tf/example-terraform-modules/child2/main.tf",
-          "_provider": "aws",
-          "_tags": {},
-          "_type": "aws_vpc",
-          "cidr_block": "10.0.0.0/16",
-          "id": "module.child2.aws_vpc.child"
+          "cidr_block": "10.0.0.0/16"
         }
       }
     }

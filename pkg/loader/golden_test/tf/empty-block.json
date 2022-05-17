@@ -13,10 +13,6 @@
         "resource_type": "google_compute_instance",
         "namespace": "golden_test/tf/empty-block/main.tf",
         "attributes": {
-          "_filepath": "golden_test/tf/empty-block/main.tf",
-          "_provider": "google",
-          "_tags": {},
-          "_type": "google_compute_instance",
           "boot_disk": [
             {
               "initialize_params": [
@@ -26,7 +22,6 @@
               ]
             }
           ],
-          "id": "google_compute_instance.test",
           "machine_type": "e2-micro",
           "name": "no-metadata-keys-set",
           "network_interface": [

@@ -13,14 +13,6 @@
         "resource_type": "aws_s3_bucket",
         "namespace": "golden_test/tf/vars/main.tf",
         "attributes": {
-          "_filepath": "golden_test/tf/vars/main.tf",
-          "_provider": "aws",
-          "_tags": {
-            "department": "engineering",
-            "environment": null
-          },
-          "_type": "aws_s3_bucket",
-          "id": "aws_s3_bucket.main",
           "tags": {
             "department": "engineering",
             "environment": null
