@@ -28,7 +28,7 @@ var runCmd = &cobra.Command{
 		for _, k := range runCmdRules {
 			selectedRules[k] = true
 		}
-		providers := []data.Provider{}
+		providers := []data.Provider{data.PureRegoLibProvider()}
 		for _, path := range rootCmdRegoPaths {
 			if isTgz(path) {
 				f, err := os.Open(path)
