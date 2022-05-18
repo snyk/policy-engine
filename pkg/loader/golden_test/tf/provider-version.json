@@ -1,0 +1,55 @@
+{
+  "format": "",
+  "format_version": "",
+  "input_type": "tf",
+  "environment_provider": "iac",
+  "meta": {
+    "filepath": "golden_test/tf/provider-version/main.tf"
+  },
+  "resources": {
+    "aws_kms_key": {
+      "aws_kms_key.key": {
+        "id": "aws_kms_key.key",
+        "resource_type": "aws_kms_key",
+        "namespace": "golden_test/tf/provider-version/main.tf",
+        "meta": {
+          "terraform": {
+            "provider_version_constraint": "~\u003e 3.0.0"
+          }
+        },
+        "attributes": {
+          "deletion_window_in_days": 10,
+          "description": "This key is used to encrypt bucket objects"
+        }
+      }
+    },
+    "aws_s3_bucket": {
+      "aws_s3_bucket.bucket": {
+        "id": "aws_s3_bucket.bucket",
+        "resource_type": "aws_s3_bucket",
+        "namespace": "golden_test/tf/provider-version/main.tf",
+        "meta": {
+          "terraform": {
+            "provider_version_constraint": "~\u003e 3.0.0"
+          }
+        },
+        "attributes": {
+          "server_side_encryption_configuration": [
+            {
+              "rule": [
+                {
+                  "apply_server_side_encryption_by_default": [
+                    {
+                      "kms_master_key_id": "aws_kms_key.key",
+                      "sse_algorithm": "aws:kms"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      }
+    }
+  }
+}
