@@ -1,0 +1,72 @@
+{
+  "format": "",
+  "format_version": "",
+  "input_type": "tf_plan",
+  "environment_provider": "iac",
+  "meta": {
+    "filepath": "golden_test/tfplan/provider-version/plan.json"
+  },
+  "resources": {
+    "aws_kms_key": {
+      "aws_kms_key.key": {
+        "id": "aws_kms_key.key",
+        "resource_type": "aws_kms_key",
+        "namespace": "golden_test/tfplan/provider-version/plan.json",
+        "meta": {
+          "terraform": {
+            "provider_version_constraint": "~\u003e 3.0.0"
+          }
+        },
+        "attributes": {
+          "customer_master_key_spec": "SYMMETRIC_DEFAULT",
+          "deletion_window_in_days": 10,
+          "description": "This key is used to encrypt bucket objects",
+          "enable_key_rotation": false,
+          "is_enabled": true,
+          "key_usage": "ENCRYPT_DECRYPT",
+          "tags": null
+        }
+      }
+    },
+    "aws_s3_bucket": {
+      "aws_s3_bucket.bucket": {
+        "id": "aws_s3_bucket.bucket",
+        "resource_type": "aws_s3_bucket",
+        "namespace": "golden_test/tfplan/provider-version/plan.json",
+        "meta": {
+          "terraform": {
+            "provider_version_constraint": "~\u003e 3.0.0"
+          }
+        },
+        "attributes": {
+          "acl": "private",
+          "bucket_prefix": null,
+          "cors_rule": [],
+          "force_destroy": false,
+          "grant": [],
+          "lifecycle_rule": [],
+          "logging": [],
+          "object_lock_configuration": [],
+          "policy": null,
+          "replication_configuration": [],
+          "server_side_encryption_configuration": [
+            {
+              "rule": [
+                {
+                  "apply_server_side_encryption_by_default": [
+                    {
+                      "kms_master_key_id": "aws_kms_key.key",
+                      "sse_algorithm": "aws:kms"
+                    }
+                  ]
+                }
+              ]
+            }
+          ],
+          "tags": null,
+          "website": []
+        }
+      }
+    }
+  }
+}
