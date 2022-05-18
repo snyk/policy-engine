@@ -14,7 +14,7 @@
         "namespace": "golden_test/tf/provider-version/main.tf",
         "meta": {
           "terraform": {
-            "provider_version_constraint": "~\u003e 3.0.0"
+            "provider_version_constraint": "~\u003e 4.0.0"
           }
         },
         "attributes": {
@@ -24,26 +24,50 @@
       }
     },
     "aws_s3_bucket": {
-      "aws_s3_bucket.bucket": {
-        "id": "aws_s3_bucket.bucket",
+      "aws_s3_bucket.bucket1": {
+        "id": "aws_s3_bucket.bucket1",
         "resource_type": "aws_s3_bucket",
         "namespace": "golden_test/tf/provider-version/main.tf",
         "meta": {
           "terraform": {
-            "provider_version_constraint": "~\u003e 3.0.0"
+            "provider_version_constraint": "~\u003e 4.0.0"
+          }
+        },
+        "attributes": {}
+      },
+      "aws_s3_bucket.bucket2": {
+        "id": "aws_s3_bucket.bucket2",
+        "resource_type": "aws_s3_bucket",
+        "namespace": "golden_test/tf/provider-version/main.tf",
+        "meta": {
+          "terraform": {
+            "provider_version_constraint": "~\u003e 4.0.0"
           }
         },
         "attributes": {
-          "server_side_encryption_configuration": [
+          "provider": "aws.west"
+        }
+      }
+    },
+    "aws_s3_bucket_server_side_encryption_configuration": {
+      "aws_s3_bucket_server_side_encryption_configuration.bucket2": {
+        "id": "aws_s3_bucket_server_side_encryption_configuration.bucket2",
+        "resource_type": "aws_s3_bucket_server_side_encryption_configuration",
+        "namespace": "golden_test/tf/provider-version/main.tf",
+        "meta": {
+          "terraform": {
+            "provider_version_constraint": "~\u003e 4.0.0"
+          }
+        },
+        "attributes": {
+          "bucket": "aws_s3_bucket.bucket2",
+          "provider": "aws.west",
+          "rule": [
             {
-              "rule": [
+              "apply_server_side_encryption_by_default": [
                 {
-                  "apply_server_side_encryption_by_default": [
-                    {
-                      "kms_master_key_id": "aws_kms_key.key",
-                      "sse_algorithm": "aws:kms"
-                    }
-                  ]
+                  "kms_master_key_id": "aws_kms_key.key",
+                  "sse_algorithm": "aws:kms"
                 }
               ]
             }

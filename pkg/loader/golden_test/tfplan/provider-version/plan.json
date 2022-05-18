@@ -12,6 +12,7 @@
           "provider_name": "registry.terraform.io/hashicorp/aws",
           "schema_version": 0,
           "values": {
+            "bypass_policy_lockout_safety_check": false,
             "customer_master_key_spec": "SYMMETRIC_DEFAULT",
             "deletion_window_in_days": 10,
             "description": "This key is used to encrypt bucket objects",
@@ -20,41 +21,21 @@
             "key_usage": "ENCRYPT_DECRYPT",
             "tags": null
           },
-          "sensitive_values": {}
+          "sensitive_values": {
+            "tags_all": {}
+          }
         },
         {
-          "address": "aws_s3_bucket.bucket",
+          "address": "aws_s3_bucket.bucket1",
           "mode": "managed",
           "type": "aws_s3_bucket",
-          "name": "bucket",
+          "name": "bucket1",
           "provider_name": "registry.terraform.io/hashicorp/aws",
           "schema_version": 0,
           "values": {
-            "acl": "private",
             "bucket_prefix": null,
-            "cors_rule": [],
             "force_destroy": false,
-            "grant": [],
-            "lifecycle_rule": [],
-            "logging": [],
-            "object_lock_configuration": [],
-            "policy": null,
-            "replication_configuration": [],
-            "server_side_encryption_configuration": [
-              {
-                "rule": [
-                  {
-                    "apply_server_side_encryption_by_default": [
-                      {
-                        "sse_algorithm": "aws:kms"
-                      }
-                    ]
-                  }
-                ]
-              }
-            ],
-            "tags": null,
-            "website": []
+            "tags": null
           },
           "sensitive_values": {
             "cors_rule": [],
@@ -63,19 +44,65 @@
             "logging": [],
             "object_lock_configuration": [],
             "replication_configuration": [],
-            "server_side_encryption_configuration": [
-              {
-                "rule": [
-                  {
-                    "apply_server_side_encryption_by_default": [
-                      {}
-                    ]
-                  }
-                ]
-              }
-            ],
+            "server_side_encryption_configuration": [],
+            "tags_all": {},
             "versioning": [],
             "website": []
+          }
+        },
+        {
+          "address": "aws_s3_bucket.bucket2",
+          "mode": "managed",
+          "type": "aws_s3_bucket",
+          "name": "bucket2",
+          "provider_name": "registry.terraform.io/hashicorp/aws",
+          "schema_version": 0,
+          "values": {
+            "bucket_prefix": null,
+            "force_destroy": false,
+            "tags": null
+          },
+          "sensitive_values": {
+            "cors_rule": [],
+            "grant": [],
+            "lifecycle_rule": [],
+            "logging": [],
+            "object_lock_configuration": [],
+            "replication_configuration": [],
+            "server_side_encryption_configuration": [],
+            "tags_all": {},
+            "versioning": [],
+            "website": []
+          }
+        },
+        {
+          "address": "aws_s3_bucket_server_side_encryption_configuration.bucket2",
+          "mode": "managed",
+          "type": "aws_s3_bucket_server_side_encryption_configuration",
+          "name": "bucket2",
+          "provider_name": "registry.terraform.io/hashicorp/aws",
+          "schema_version": 0,
+          "values": {
+            "expected_bucket_owner": null,
+            "rule": [
+              {
+                "apply_server_side_encryption_by_default": [
+                  {
+                    "sse_algorithm": "aws:kms"
+                  }
+                ],
+                "bucket_key_enabled": null
+              }
+            ]
+          },
+          "sensitive_values": {
+            "rule": [
+              {
+                "apply_server_side_encryption_by_default": [
+                  {}
+                ]
+              }
+            ]
           }
         }
       ]
@@ -94,6 +121,7 @@
         ],
         "before": null,
         "after": {
+          "bypass_policy_lockout_safety_check": false,
           "customer_master_key_spec": "SYMMETRIC_DEFAULT",
           "deletion_window_in_days": 10,
           "description": "This key is used to encrypt bucket objects",
@@ -106,17 +134,21 @@
           "arn": true,
           "id": true,
           "key_id": true,
-          "policy": true
+          "multi_region": true,
+          "policy": true,
+          "tags_all": true
         },
         "before_sensitive": false,
-        "after_sensitive": {}
+        "after_sensitive": {
+          "tags_all": {}
+        }
       }
     },
     {
-      "address": "aws_s3_bucket.bucket",
+      "address": "aws_s3_bucket.bucket1",
       "mode": "managed",
       "type": "aws_s3_bucket",
-      "name": "bucket",
+      "name": "bucket1",
       "provider_name": "registry.terraform.io/hashicorp/aws",
       "change": {
         "actions": [
@@ -124,63 +156,32 @@
         ],
         "before": null,
         "after": {
-          "acl": "private",
           "bucket_prefix": null,
-          "cors_rule": [],
           "force_destroy": false,
-          "grant": [],
-          "lifecycle_rule": [],
-          "logging": [],
-          "object_lock_configuration": [],
-          "policy": null,
-          "replication_configuration": [],
-          "server_side_encryption_configuration": [
-            {
-              "rule": [
-                {
-                  "apply_server_side_encryption_by_default": [
-                    {
-                      "sse_algorithm": "aws:kms"
-                    }
-                  ]
-                }
-              ]
-            }
-          ],
-          "tags": null,
-          "website": []
+          "tags": null
         },
         "after_unknown": {
           "acceleration_status": true,
+          "acl": true,
           "arn": true,
           "bucket": true,
           "bucket_domain_name": true,
           "bucket_regional_domain_name": true,
-          "cors_rule": [],
-          "grant": [],
+          "cors_rule": true,
+          "grant": true,
           "hosted_zone_id": true,
           "id": true,
-          "lifecycle_rule": [],
-          "logging": [],
-          "object_lock_configuration": [],
+          "lifecycle_rule": true,
+          "logging": true,
+          "object_lock_configuration": true,
+          "policy": true,
           "region": true,
-          "replication_configuration": [],
+          "replication_configuration": true,
           "request_payer": true,
-          "server_side_encryption_configuration": [
-            {
-              "rule": [
-                {
-                  "apply_server_side_encryption_by_default": [
-                    {
-                      "kms_master_key_id": true
-                    }
-                  ]
-                }
-              ]
-            }
-          ],
+          "server_side_encryption_configuration": true,
+          "tags_all": true,
           "versioning": true,
-          "website": [],
+          "website": true,
           "website_domain": true,
           "website_endpoint": true
         },
@@ -192,19 +193,115 @@
           "logging": [],
           "object_lock_configuration": [],
           "replication_configuration": [],
-          "server_side_encryption_configuration": [
+          "server_side_encryption_configuration": [],
+          "tags_all": {},
+          "versioning": [],
+          "website": []
+        }
+      }
+    },
+    {
+      "address": "aws_s3_bucket.bucket2",
+      "mode": "managed",
+      "type": "aws_s3_bucket",
+      "name": "bucket2",
+      "provider_name": "registry.terraform.io/hashicorp/aws",
+      "change": {
+        "actions": [
+          "create"
+        ],
+        "before": null,
+        "after": {
+          "bucket_prefix": null,
+          "force_destroy": false,
+          "tags": null
+        },
+        "after_unknown": {
+          "acceleration_status": true,
+          "acl": true,
+          "arn": true,
+          "bucket": true,
+          "bucket_domain_name": true,
+          "bucket_regional_domain_name": true,
+          "cors_rule": true,
+          "grant": true,
+          "hosted_zone_id": true,
+          "id": true,
+          "lifecycle_rule": true,
+          "logging": true,
+          "object_lock_configuration": true,
+          "policy": true,
+          "region": true,
+          "replication_configuration": true,
+          "request_payer": true,
+          "server_side_encryption_configuration": true,
+          "tags_all": true,
+          "versioning": true,
+          "website": true,
+          "website_domain": true,
+          "website_endpoint": true
+        },
+        "before_sensitive": false,
+        "after_sensitive": {
+          "cors_rule": [],
+          "grant": [],
+          "lifecycle_rule": [],
+          "logging": [],
+          "object_lock_configuration": [],
+          "replication_configuration": [],
+          "server_side_encryption_configuration": [],
+          "tags_all": {},
+          "versioning": [],
+          "website": []
+        }
+      }
+    },
+    {
+      "address": "aws_s3_bucket_server_side_encryption_configuration.bucket2",
+      "mode": "managed",
+      "type": "aws_s3_bucket_server_side_encryption_configuration",
+      "name": "bucket2",
+      "provider_name": "registry.terraform.io/hashicorp/aws",
+      "change": {
+        "actions": [
+          "create"
+        ],
+        "before": null,
+        "after": {
+          "expected_bucket_owner": null,
+          "rule": [
             {
-              "rule": [
+              "apply_server_side_encryption_by_default": [
                 {
-                  "apply_server_side_encryption_by_default": [
-                    {}
-                  ]
+                  "sse_algorithm": "aws:kms"
+                }
+              ],
+              "bucket_key_enabled": null
+            }
+          ]
+        },
+        "after_unknown": {
+          "bucket": true,
+          "id": true,
+          "rule": [
+            {
+              "apply_server_side_encryption_by_default": [
+                {
+                  "kms_master_key_id": true
                 }
               ]
             }
-          ],
-          "versioning": [],
-          "website": []
+          ]
+        },
+        "before_sensitive": false,
+        "after_sensitive": {
+          "rule": [
+            {
+              "apply_server_side_encryption_by_default": [
+                {}
+              ]
+            }
+          ]
         }
       }
     }
@@ -213,10 +310,20 @@
     "provider_config": {
       "aws": {
         "name": "aws",
-        "version_constraint": "~> 3.0.0",
+        "version_constraint": "~> 4.0.0",
         "expressions": {
           "region": {
             "constant_value": "us-east-1"
+          }
+        }
+      },
+      "aws.west": {
+        "name": "aws",
+        "alias": "west",
+        "version_constraint": "~> 4.0.0",
+        "expressions": {
+          "region": {
+            "constant_value": "us-west-1"
           }
         }
       }
@@ -240,29 +347,47 @@
           "schema_version": 0
         },
         {
-          "address": "aws_s3_bucket.bucket",
+          "address": "aws_s3_bucket.bucket1",
           "mode": "managed",
           "type": "aws_s3_bucket",
-          "name": "bucket",
+          "name": "bucket1",
           "provider_config_key": "aws",
+          "schema_version": 0
+        },
+        {
+          "address": "aws_s3_bucket.bucket2",
+          "mode": "managed",
+          "type": "aws_s3_bucket",
+          "name": "bucket2",
+          "provider_config_key": "aws.west",
+          "schema_version": 0
+        },
+        {
+          "address": "aws_s3_bucket_server_side_encryption_configuration.bucket2",
+          "mode": "managed",
+          "type": "aws_s3_bucket_server_side_encryption_configuration",
+          "name": "bucket2",
+          "provider_config_key": "aws.west",
           "expressions": {
-            "server_side_encryption_configuration": [
+            "bucket": {
+              "references": [
+                "aws_s3_bucket.bucket2.bucket",
+                "aws_s3_bucket.bucket2"
+              ]
+            },
+            "rule": [
               {
-                "rule": [
+                "apply_server_side_encryption_by_default": [
                   {
-                    "apply_server_side_encryption_by_default": [
-                      {
-                        "kms_master_key_id": {
-                          "references": [
-                            "aws_kms_key.key.arn",
-                            "aws_kms_key.key"
-                          ]
-                        },
-                        "sse_algorithm": {
-                          "constant_value": "aws:kms"
-                        }
-                      }
-                    ]
+                    "kms_master_key_id": {
+                      "references": [
+                        "aws_kms_key.key.arn",
+                        "aws_kms_key.key"
+                      ]
+                    },
+                    "sse_algorithm": {
+                      "constant_value": "aws:kms"
+                    }
                   }
                 ]
               }

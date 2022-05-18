@@ -14,10 +14,11 @@
         "namespace": "golden_test/tfplan/provider-version/plan.json",
         "meta": {
           "terraform": {
-            "provider_version_constraint": "~\u003e 3.0.0"
+            "provider_version_constraint": "~\u003e 4.0.0"
           }
         },
         "attributes": {
+          "bypass_policy_lockout_safety_check": false,
           "customer_master_key_spec": "SYMMETRIC_DEFAULT",
           "deletion_window_in_days": 10,
           "description": "This key is used to encrypt bucket objects",
@@ -29,42 +30,61 @@
       }
     },
     "aws_s3_bucket": {
-      "aws_s3_bucket.bucket": {
-        "id": "aws_s3_bucket.bucket",
+      "aws_s3_bucket.bucket1": {
+        "id": "aws_s3_bucket.bucket1",
         "resource_type": "aws_s3_bucket",
         "namespace": "golden_test/tfplan/provider-version/plan.json",
         "meta": {
           "terraform": {
-            "provider_version_constraint": "~\u003e 3.0.0"
+            "provider_version_constraint": "~\u003e 4.0.0"
           }
         },
         "attributes": {
-          "acl": "private",
           "bucket_prefix": null,
-          "cors_rule": [],
           "force_destroy": false,
-          "grant": [],
-          "lifecycle_rule": [],
-          "logging": [],
-          "object_lock_configuration": [],
-          "policy": null,
-          "replication_configuration": [],
-          "server_side_encryption_configuration": [
+          "tags": null
+        }
+      },
+      "aws_s3_bucket.bucket2": {
+        "id": "aws_s3_bucket.bucket2",
+        "resource_type": "aws_s3_bucket",
+        "namespace": "golden_test/tfplan/provider-version/plan.json",
+        "meta": {
+          "terraform": {
+            "provider_version_constraint": "~\u003e 4.0.0"
+          }
+        },
+        "attributes": {
+          "bucket_prefix": null,
+          "force_destroy": false,
+          "tags": null
+        }
+      }
+    },
+    "aws_s3_bucket_server_side_encryption_configuration": {
+      "aws_s3_bucket_server_side_encryption_configuration.bucket2": {
+        "id": "aws_s3_bucket_server_side_encryption_configuration.bucket2",
+        "resource_type": "aws_s3_bucket_server_side_encryption_configuration",
+        "namespace": "golden_test/tfplan/provider-version/plan.json",
+        "meta": {
+          "terraform": {
+            "provider_version_constraint": "~\u003e 4.0.0"
+          }
+        },
+        "attributes": {
+          "bucket": "aws_s3_bucket.bucket2",
+          "expected_bucket_owner": null,
+          "rule": [
             {
-              "rule": [
+              "apply_server_side_encryption_by_default": [
                 {
-                  "apply_server_side_encryption_by_default": [
-                    {
-                      "kms_master_key_id": "aws_kms_key.key",
-                      "sse_algorithm": "aws:kms"
-                    }
-                  ]
+                  "kms_master_key_id": "aws_kms_key.key",
+                  "sse_algorithm": "aws:kms"
                 }
-              ]
+              ],
+              "bucket_key_enabled": null
             }
-          ],
-          "tags": null,
-          "website": []
+          ]
         }
       }
     }
