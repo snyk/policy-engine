@@ -25,12 +25,13 @@ type ModuleMeta struct {
 }
 
 type ResourceMeta struct {
-	Data     bool
-	Type     string
-	Provider string
-	Count    bool
-	Location hcl.Range
-	Body     hcl.Body // For source code locations only.
+	Data                      bool
+	Type                      string
+	Provider                  string
+	ProviderVersionConstraint string
+	Count                     bool
+	Location                  hcl.Range
+	Body                      hcl.Body // For source code locations only.
 }
 
 // We load the entire tree of submodules in one pass.
@@ -242,11 +243,11 @@ func walkModule(v Visitor, moduleName ModuleName, module *configs.Module) {
 	}
 
 	for _, resource := range module.DataResources {
-		walkResource(v, moduleName, resource, true)
+		walkResource(v, moduleName, module, resource, true)
 	}
 
 	for _, resource := range module.ManagedResources {
-		walkResource(v, moduleName, resource, false)
+		walkResource(v, moduleName, module, resource, false)
 	}
 
 	for _, output := range module.Outputs {
@@ -254,7 +255,13 @@ func walkModule(v Visitor, moduleName ModuleName, module *configs.Module) {
 	}
 }
 
-func walkResource(v Visitor, moduleName ModuleName, resource *configs.Resource, isDataResource bool) {
+func walkResource(
+	v Visitor,
+	moduleName ModuleName,
+	module *configs.Module,
+	resource *configs.Resource,
+	isDataResource bool,
+) {
 	name := EmptyFullName(moduleName)
 	if isDataResource {
 		name = name.AddKey("data")
@@ -270,6 +277,12 @@ func walkResource(v Visitor, moduleName ModuleName, resource *configs.Resource, 
 		Count:    haveCount,
 		Body:     resource.Config,
 	}
+
+	providerName := resource.ProviderConfigAddr().LocalName
+	if providerReqs, ok := module.ProviderRequirements.RequiredProviders[providerName]; ok {
+		resourceMeta.ProviderVersionConstraint = providerReqs.Requirement.Required.String()
+	}
+
 	v.EnterResource(name, resourceMeta)
 
 	if haveCount {

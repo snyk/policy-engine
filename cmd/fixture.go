@@ -41,6 +41,7 @@ var fixtureCmd = &cobra.Command{
 
 			normalized := filepath.ToSlash(args[0])
 			normalized = strings.TrimSuffix(normalized, filepath.Ext(normalized))
+			normalized = strings.ReplaceAll(normalized, "-", "_")
 			parts := []string{}
 			for _, part := range strings.Split(normalized, "/") {
 				if part != "" {

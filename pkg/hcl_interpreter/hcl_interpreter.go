@@ -334,11 +334,19 @@ func (v *Evaluation) Resources() map[string]models.ResourceState {
 			attrs = obj
 		}
 
+		meta := map[string]interface{}{}
+		if resource.ProviderVersionConstraint != "" {
+			meta["terraform"] = map[string]interface{}{
+				"provider_version_constraint": resource.ProviderVersionConstraint,
+			}
+		}
+
 		// TODO: Support tags again: PopulateTags(input[resourceKey])
 		input[resourceKey] = models.ResourceState{
 			Id:           resourceKey,
 			ResourceType: resourceType,
 			Attributes:   attrs,
+			Meta:         meta,
 		}
 	}
 
