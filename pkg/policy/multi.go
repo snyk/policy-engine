@@ -13,6 +13,7 @@ import (
 type ProcessMultiResultSet func(
 	resultSet rego.ResultSet,
 	metadata Metadata,
+	defaultRemediation string,
 	resources map[string]*ruleResultBuilder,
 ) ([]models.RuleResult, error)
 
@@ -72,7 +73,13 @@ func (p *MultiResourcePolicy) Eval(
 		output.Errors = append(output.Errors, err.Error())
 		return []models.RuleResults{output}, err
 	}
-	ruleResults, err := p.processResultSet(resultSet, metadata, resources)
+	defaultRemediation := metadata.RemediationFor(options.Input.InputType)
+	ruleResults, err := p.processResultSet(
+		resultSet,
+		metadata,
+		defaultRemediation,
+		resources,
+	)
 	if err != nil {
 		logger.Error(ctx, "Failed to process result set")
 		output.Errors = append(output.Errors, err.Error())
@@ -87,6 +94,7 @@ func (p *MultiResourcePolicy) Eval(
 func processMultiDenyPolicyResult(
 	resultSet rego.ResultSet,
 	metadata Metadata,
+	defaultRemediation string,
 	resources map[string]*ruleResultBuilder,
 ) ([]models.RuleResult, error) {
 	policyResults := []policyResult{}
@@ -99,6 +107,7 @@ func processMultiDenyPolicyResult(
 		builders[correlation] = builder
 		builder.passed = true
 		builder.severity = metadata.Severity
+		builder.remediation = defaultRemediation
 	}
 
 	for _, result := range policyResults {
@@ -122,6 +131,12 @@ func processMultiDenyPolicyResult(
 			for _, attr := range result.Attributes {
 				builder.addResourceAttribute(result.Resource.Key(), attr)
 			}
+		}
+		if result.Remediation != "" {
+			builder.remediation = result.Remediation
+		}
+		if result.Severity != "" {
+			builder.severity = result.Severity
 		}
 	}
 

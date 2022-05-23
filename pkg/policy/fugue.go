@@ -11,6 +11,7 @@ func processFugueAllowBoolean(
 	resultSet rego.ResultSet,
 	resource *models.ResourceState,
 	metadata Metadata,
+	_ string,
 ) ([]models.RuleResult, error) {
 	var allow bool
 	if err := unmarshalResultSet(resultSet, &allow); err != nil {
@@ -29,6 +30,7 @@ func processFugueDenyBoolean(
 	resultSet rego.ResultSet,
 	resource *models.ResourceState,
 	metadata Metadata,
+	_ string,
 ) ([]models.RuleResult, error) {
 	var deny bool
 	if err := unmarshalResultSet(resultSet, &deny); err != nil {
@@ -46,6 +48,7 @@ func processFugueAllowString(
 	resultSet rego.ResultSet,
 	resource *models.ResourceState,
 	metadata Metadata,
+	_ string,
 ) ([]models.RuleResult, error) {
 	messages := []string{}
 	if err := unmarshalResultSet(resultSet, &messages); err != nil {
@@ -93,6 +96,7 @@ func processFugueDenyString(
 func processFuguePolicyResultSet(
 	resultSet rego.ResultSet,
 	metadata Metadata,
+	_ string,
 	_ map[string]*ruleResultBuilder,
 ) ([]models.RuleResult, error) {
 	policyResults := []policyResult{}
@@ -118,12 +122,13 @@ func processFugueAllowPolicyResult(
 	resultSet rego.ResultSet,
 	resource *models.ResourceState,
 	metadata Metadata,
+	_ string,
 ) ([]models.RuleResult, error) {
 	policyResults := []policyResult{}
 	if err := unmarshalResultSet(resultSet, &policyResults); err != nil {
 		// It might be a fugue allow[msg] style rule in this case. Try that as a
 		// fallback.
-		return processFugueAllowString(resultSet, resource, metadata)
+		return processFugueAllowString(resultSet, resource, metadata, "")
 	}
 	results := []models.RuleResult{}
 	for _, r := range policyResults {

@@ -14,6 +14,7 @@ type ProcessSingleResultSet func(
 	resultSet rego.ResultSet,
 	resource *models.ResourceState,
 	metadata Metadata,
+	defaultRemediation string,
 ) ([]models.RuleResult, error)
 
 // SingleResourcePolicy represents a policy that takes a single resource as input.
@@ -35,7 +36,7 @@ func (p *SingleResourcePolicy) Eval(
 		WithField(logging.POLICY_TYPE, "single_resource").
 		WithField(logging.JUDGEMENT_NAME, p.judgementRule.name).
 		WithField(logging.JUDGEMENT_KEY, p.judgementRule.key).
-		WithField(logging.RESOURCE_TYPE, p.resourceType()).
+		WithField(logging.RESOURCE_TYPE, p.resourceType).
 		WithField(logging.INPUT_TYPE, p.InputType())
 	output := models.RuleResults{}
 	metadata, err := p.Metadata(ctx, options.RegoOptions)
@@ -60,9 +61,10 @@ func (p *SingleResourcePolicy) Eval(
 		return []models.RuleResults{output}, err
 	}
 	ruleResults := []models.RuleResult{}
-	rt := p.resourceType()
+	rt := p.resourceType
 	output.ResourceTypes = []string{rt}
 	if resources, ok := options.Input.Resources[rt]; ok {
+		defaultRemediation := metadata.RemediationFor(options.Input.InputType)
 		for _, resource := range resources {
 			logger := logger.WithField(logging.RESOURCE_ID, resource.Id)
 			inputDoc := resourceStateToRegoInput(resource)
@@ -72,7 +74,12 @@ func (p *SingleResourcePolicy) Eval(
 				output.Errors = append(output.Errors, err.Error())
 				return []models.RuleResults{output}, err
 			}
-			ruleResult, err := p.processResultSet(resultSet, &resource, metadata)
+			ruleResult, err := p.processResultSet(
+				resultSet,
+				&resource,
+				metadata,
+				defaultRemediation,
+			)
 			if err != nil {
 				logger.Error(ctx, "Failed to process result set")
 				output.Errors = append(output.Errors, err.Error())
@@ -90,6 +97,7 @@ func processSingleDenyPolicyResult(
 	resultSet rego.ResultSet,
 	resource *models.ResourceState,
 	metadata Metadata,
+	defaultRemediation string,
 ) ([]models.RuleResult, error) {
 	policyResults := []policyResult{}
 	if err := unmarshalResultSet(resultSet, &policyResults); err != nil {
@@ -111,7 +119,16 @@ func processSingleDenyPolicyResult(
 		}
 
 		result.message = r.Message
-		result.severity = metadata.Severity
+		if r.Severity != "" {
+			result.severity = r.Severity
+		} else {
+			result.severity = metadata.Severity
+		}
+		if r.Remediation != "" {
+			result.remediation = r.Remediation
+		} else {
+			result.remediation = defaultRemediation
+		}
 		results = append(results, result.toRuleResult())
 	}
 

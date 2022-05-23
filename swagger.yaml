@@ -37,9 +37,9 @@ components:
             The type of input that this state was generated from. This value factors into
             which rules are run for this input.
           enum:
-            - tf
+            - tf_hcl
             - tf_plan
-            - tf_runtime
+            - cloud_scan
             - cfn
             - k8s
             - arm

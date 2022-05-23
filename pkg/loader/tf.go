@@ -23,6 +23,7 @@ import (
 	"github.com/spf13/afero"
 
 	"github.com/snyk/unified-policy-engine/pkg/hcl_interpreter"
+	"github.com/snyk/unified-policy-engine/pkg/inputs"
 	"github.com/snyk/unified-policy-engine/pkg/models"
 )
 
@@ -150,7 +151,7 @@ func (c *HclConfiguration) ToState() models.State {
 	}
 
 	return models.State{
-		InputType:           "tf",
+		InputType:           inputs.Terraform.Name,
 		EnvironmentProvider: "iac",
 		Meta: map[string]interface{}{
 			"filepath": c.moduleTree.FilePath(),

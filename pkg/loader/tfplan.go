@@ -20,6 +20,7 @@ import (
 	"sort"
 	"strings"
 
+	"github.com/snyk/unified-policy-engine/pkg/inputs"
 	"github.com/snyk/unified-policy-engine/pkg/interfacetricks"
 	"github.com/snyk/unified-policy-engine/pkg/models"
 	"gopkg.in/yaml.v3"
@@ -70,7 +71,7 @@ func (l *tfPlan) Location(attributePath []interface{}) (LocationStack, error) {
 
 func (l *tfPlan) ToState() models.State {
 	return models.State{
-		InputType:           "tf_plan",
+		InputType:           inputs.TerraformPlan.Name,
 		EnvironmentProvider: "iac",
 		Meta: map[string]interface{}{
 			"filepath": l.path,

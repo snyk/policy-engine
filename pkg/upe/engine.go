@@ -167,7 +167,7 @@ func (e *Engine) Eval(ctx context.Context, options *EvalOptions) (*models.Result
 		totalEvalStart := time.Now()
 		go func() {
 			for _, p := range policies {
-				if !inputTypeMatches(p.InputType(), state.InputType) {
+				if !p.InputTypeMatches(state.InputType) {
 					continue
 				}
 				wg.Add(1)
@@ -235,13 +235,4 @@ func (e *Engine) Eval(ctx context.Context, options *EvalOptions) (*models.Result
 		FormatVersion: "1.0.0",
 		Results:       results,
 	}, nil
-}
-
-func inputTypeMatches(t1, t2 string) bool {
-	switch t1 {
-	case "tf", "tf_runtime", "tf_plan":
-		return t2 == "tf" || t2 == "tf_runtime" || t2 == "tf_plan"
-	default:
-		return t1 == t2
-	}
 }

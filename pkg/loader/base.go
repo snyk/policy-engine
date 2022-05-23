@@ -17,8 +17,8 @@ package loader
 
 import (
 	"fmt"
-	"strings"
 
+	"github.com/snyk/unified-policy-engine/pkg/inputs"
 	"github.com/snyk/unified-policy-engine/pkg/models"
 )
 
@@ -32,79 +32,35 @@ import (
 // stdIn is the path used for stdin.
 const stdIn = "<stdin>"
 
-// InputType is a flag that determines which types regula should look for.
-type InputType int
-
-const (
-	// Auto means that regula will automatically try to determine which input types are
-	// in the given paths.
-	Auto InputType = iota
-	// TfPlan means that regula will only look for Terraform plan JSON files in given
-	// directories and it will assume that given files are Terraform plan JSON.
-	TfPlan
-	// Cfn means that regula will only look for CloudFormation template files in given
-	// directories and it will assume that given files are CloudFormation YAML or JSON.
-	Cfn
-	// Tf means that regula will load the HCL in the directory in a similar
-	// way to terraform plan, or it can also load individual files.
-	Tf
-	// Kubernetes manifests will be loaded
-	K8s
-	// Azure Resource Manager JSON
-	Arm
-	TfRuntime
-)
-
-// InputTypeIDs maps the InputType enums to string values that can be specified in
-// CLI options.
-var InputTypeIDs = map[InputType][]string{
-	Auto:      {"auto"},
-	TfPlan:    {"tf-plan", "tf_plan"},
-	Cfn:       {"cfn"},
-	Tf:        {"tf"},
-	K8s:       {"k8s", "kubernetes"},
-	Arm:       {"arm"},
-	TfRuntime: {"tf_runtime"},
+// Auto is an aggregate type that contains all of the IaC input types that this package
+// supports.
+var Auto = &inputs.InputType{
+	Name: "auto",
+	Children: inputs.InputTypes{
+		inputs.Arm,
+		inputs.CloudFormation,
+		inputs.Kubernetes,
+		inputs.TerraformHCL,
+		inputs.TerraformPlan,
+	},
 }
 
-var DefaultInputTypes = InputTypeIDs[Auto]
-
-func InputTypeFromString(name string) (InputType, error) {
-	lower := strings.ToLower(name)
-	for t, ids := range InputTypeIDs {
-		for _, i := range ids {
-			if lower == i {
-				return t, nil
-			}
-		}
-	}
-	return -1, fmt.Errorf("Unrecognized input type %v", name)
+// StreamlinedState is a temporary addition until we're able to completely replace the
+// old streamlined state format.
+var StreamlinedState = &inputs.InputType{
+	Name:    "streamlined_state",
+	Aliases: []string{"streamlined-state"},
 }
 
-func ValidateInputType(name string) error {
-	if _, err := InputTypeFromString(name); err != nil {
-		return err
-	}
-	return nil
-}
-
-func InputTypesFromStrings(names []string) ([]InputType, error) {
-	inputTypes := make([]InputType, len(names))
-	for idx, n := range names {
-		t, err := InputTypeFromString(n)
-		if err != nil {
-			return nil, err
-		}
-		inputTypes[idx] = t
-	}
-	return inputTypes, nil
-}
-
-func ValidateInputTypes(names []string) error {
-	if _, err := InputTypesFromStrings(names); err != nil {
-		return err
-	}
-	return nil
+// SupportedInputTypes contains all of the input types that this package supports.
+var SupportedInputTypes = inputs.InputTypes{
+	Auto,
+	inputs.Arm,
+	inputs.CloudFormation,
+	inputs.Kubernetes,
+	inputs.TerraformHCL,
+	inputs.TerraformPlan,
+	StreamlinedState,
 }
 
 // LoadedConfigurations is a container for IACConfigurations loaded by Regula.
