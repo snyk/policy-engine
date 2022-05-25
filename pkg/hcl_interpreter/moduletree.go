@@ -35,10 +35,11 @@ type ResourceMeta struct {
 
 // We load the entire tree of submodules in one pass.
 type ModuleTree struct {
-	meta     *ModuleMeta
-	config   *hclsyntax.Body // Call to the module, nil if root.
-	module   *configs.Module
-	children map[string]*ModuleTree
+	meta           *ModuleMeta
+	config         *hclsyntax.Body // Call to the module, nil if root.
+	module         *configs.Module
+	variableValues map[string]cty.Value // Variables set
+	children       map[string]*ModuleTree
 }
 
 func ParseDirectory(
@@ -61,7 +62,12 @@ func ParseDirectory(
 		filepaths[i] = TfFilePathJoin(dir, filepath.Base(file))
 	}
 
-	return ParseFiles(moduleRegister, parserFs, true, dir, filepaths)
+	varfiles, err := findVarFiles(parserFs, dir)
+	if err != nil {
+		return nil, err
+	}
+
+	return ParseFiles(moduleRegister, parserFs, true, dir, filepaths, varfiles)
 }
 
 func ParseFiles(
@@ -70,6 +76,7 @@ func ParseFiles(
 	recurse bool,
 	dir string,
 	filepaths []string,
+	varfiles []string,
 ) (*ModuleTree, error) {
 	meta := &ModuleMeta{
 		Dir:       dir,
@@ -89,6 +96,17 @@ func ParseFiles(
 	}
 	module, lDiags := configs.NewModule(parsedFiles, overrideFiles)
 	diags = append(diags, lDiags...)
+
+	// Deal with varfiles
+	variableValues := map[string]cty.Value{}
+	for _, varfile := range varfiles {
+		values, lDiags := parser.LoadValuesFile(varfile)
+		for k, v := range values {
+			variableValues[k] = v
+		}
+		diags = append(diags, lDiags...)
+	}
+
 	if diags.HasErrors() {
 		logrus.Warn(diags.Error())
 	}
@@ -133,7 +151,7 @@ func ParseFiles(
 		}
 	}
 
-	return &ModuleTree{meta, nil, module, children}, nil
+	return &ModuleTree{meta, nil, module, variableValues, children}, nil
 }
 
 func (mtree *ModuleTree) Warnings() []string {
@@ -210,7 +228,7 @@ func (mtree *ModuleTree) Walk(v Visitor) {
 
 func walkModuleTree(v Visitor, moduleName ModuleName, mtree *ModuleTree) {
 	v.VisitModule(moduleName, mtree.meta)
-	walkModule(v, moduleName, mtree.module)
+	walkModule(v, moduleName, mtree.module, mtree.variableValues)
 	for key, child := range mtree.children {
 		childModuleName := make([]string, len(moduleName)+1)
 		copy(childModuleName, moduleName)
@@ -224,11 +242,14 @@ func walkModuleTree(v Visitor, moduleName ModuleName, mtree *ModuleTree) {
 	}
 }
 
-func walkModule(v Visitor, moduleName ModuleName, module *configs.Module) {
+func walkModule(v Visitor, moduleName ModuleName, module *configs.Module, variableValues map[string]cty.Value) {
 	name := EmptyFullName(moduleName)
 
 	for _, variable := range module.Variables {
-		if !variable.Default.IsNull() {
+		if val, ok := variableValues[variable.Name]; ok {
+			expr := hclsyntax.LiteralValueExpr{Val: val}
+			v.VisitExpr(name.AddKey("variable").AddKey(variable.Name), &expr)
+		} else if !variable.Default.IsNull() {
 			expr := hclsyntax.LiteralValueExpr{
 				Val:      variable.Default,
 				SrcRange: variable.DeclRange,
