@@ -102,6 +102,7 @@ type tfplan_PlannedValuesModule struct {
 
 type tfplan_PlannedValuesResource struct {
 	Address string                 `yaml:"address"`
+	Mode    string                 `yaml:"mode"`
 	Type    string                 `yaml:"type"`
 	Values  map[string]interface{} `yaml:"values"`
 }
@@ -475,9 +476,16 @@ func (plan *tfplan_Plan) resources(resourceNamespace string) map[string]models.R
 			}
 		}
 
+		var resourceType string
+		if pvr.Mode == "data" {
+			resourceType = strings.Join([]string{pvr.Mode, pvr.Type}, ".")
+		} else {
+			resourceType = pvr.Type
+		}
+
 		resources[id] = models.ResourceState{
 			Id:           id,
-			ResourceType: pvr.Type,
+			ResourceType: resourceType,
 			Namespace:    resourceNamespace,
 			Attributes:   attributes,
 			Meta:         meta,
