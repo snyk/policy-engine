@@ -29,6 +29,7 @@ Engine (UPE).
   - [The `snyk` API](#the-snyk-api)
     - [`snyk.resources(<resource type>)`](#snykresourcesresource-type)
       - [Example `snyk.resources` call and output](#example-snykresources-call-and-output)
+    - [`snyk.terraform.resource_provider_version_constraint(<resource>, <constraint>)`](#snykterraformresource_provider_version_constraintresource-constraint)
   - [Types reference](#types-reference)
     - [State object](#state-object)
     - [Resource objects](#resource-objects)
@@ -331,6 +332,30 @@ $ ./unified-policy-engine repl examples/main.tf
 ]
 > 
 ```
+
+### `snyk.terraform.resource_provider_version_constraint(<resource>, <constraint>)`
+
+This function takes a resource and a version constraint for the terraform
+provider, for example `">= 4"` or `"~>3, != 3.0.1"`.  You can see the full
+syntax for the version constraints here:
+<https://www.terraform.io/language/expressions/version-constraints>.
+
+Keep in mind that in many cases, we don't know the exact provider version that
+is being used.  We can only deduce constraints from `required_providers` blocks:
+
+```
+terraform {
+  required_providers {
+    aws = {
+      version = "~> 4.0.0"
+    }
+  }
+}
+```
+
+So this function checks if the version constraint specified in the argument
+is _compatible_ with all the requirements.  This means that if there are
+no requirements, this function will always return `true`.
 
 ## Types reference
 

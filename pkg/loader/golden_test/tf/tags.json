@@ -13,17 +13,10 @@
         "resource_type": "aws_autoscaling_group",
         "namespace": "golden_test/tf/tags/main.tf",
         "attributes": {
-          "_filepath": "golden_test/tf/tags/main.tf",
-          "_provider": "aws",
-          "_tags": {
-            "Stage": "Dev"
-          },
-          "_type": "aws_autoscaling_group",
           "availability_zones": [
             "us-east-1a"
           ],
           "desired_capacity": 1,
-          "id": "aws_autoscaling_group.example",
           "launch_template": [
             {
               "id": "aws_launch_template.example",
@@ -49,11 +42,6 @@
         "resource_type": "aws_launch_template",
         "namespace": "golden_test/tf/tags/main.tf",
         "attributes": {
-          "_filepath": "golden_test/tf/tags/main.tf",
-          "_provider": "aws",
-          "_tags": {},
-          "_type": "aws_launch_template",
-          "id": "aws_launch_template.example",
           "image_id": "ami-1a2b3c",
           "instance_type": "t2.micro",
           "name_prefix": "example",
@@ -67,14 +55,7 @@
         "resource_type": "aws_s3_bucket",
         "namespace": "golden_test/tf/tags/main.tf",
         "attributes": {
-          "_filepath": "golden_test/tf/tags/main.tf",
-          "_provider": "aws",
-          "_tags": {
-            "Stage": "Prod"
-          },
-          "_type": "aws_s3_bucket",
           "bucket_prefix": "example",
-          "id": "aws_s3_bucket.example",
           "provider": null,
           "tags": {
             "Stage": "Prod"
@@ -88,13 +69,6 @@
         "resource_type": "google_compute_instance",
         "namespace": "golden_test/tf/tags/main.tf",
         "attributes": {
-          "_filepath": "golden_test/tf/tags/main.tf",
-          "_provider": "google",
-          "_tags": {
-            "bar": null,
-            "foo": null
-          },
-          "_type": "google_compute_instance",
           "boot_disk": [
             {
               "initialize_params": [
@@ -104,7 +78,6 @@
               ]
             }
           ],
-          "id": "google_compute_instance.default",
           "machine_type": "e2-medium",
           "name": "test",
           "network_interface": [
@@ -134,13 +107,6 @@
         "resource_type": "google_storage_bucket",
         "namespace": "golden_test/tf/tags/main.tf",
         "attributes": {
-          "_filepath": "golden_test/tf/tags/main.tf",
-          "_provider": "google",
-          "_tags": {
-            "Stage": "Prod"
-          },
-          "_type": "google_storage_bucket",
-          "id": "google_storage_bucket.example",
           "labels": {
             "Stage": "Prod"
           },

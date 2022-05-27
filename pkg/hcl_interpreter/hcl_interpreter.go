@@ -8,8 +8,9 @@ import (
 	"github.com/zclconf/go-cty/cty"
 
 	"github.com/fugue/regula/v2/pkg/terraform/lang"
-
 	"github.com/fugue/regula/v2/pkg/topsort"
+
+	"github.com/snyk/unified-policy-engine/pkg/models"
 )
 
 type Analysis struct {
@@ -296,8 +297,8 @@ func (v *Evaluation) evaluate() error {
 	return nil
 }
 
-func (v *Evaluation) Resources() map[string]interface{} {
-	input := map[string]interface{}{}
+func (v *Evaluation) Resources() map[string]models.ResourceState {
+	input := map[string]models.ResourceState{}
 
 	for resourceKey, resource := range v.Analysis.Resources {
 		resourceName, err := StringToFullName(resourceKey)
@@ -312,20 +313,14 @@ func (v *Evaluation) Resources() map[string]interface{} {
 			resourceType = "data." + resourceType
 		}
 
-		tree := SingletonValTree(LocalName{"id"}, cty.StringVal(resourceKey))
-		tree = MergeValTree(tree, SingletonValTree(LocalName{"_type"}, cty.StringVal(resourceType)))
-		tree = MergeValTree(tree, SingletonValTree(LocalName{"_provider"}, cty.StringVal(resource.Provider)))
-		tree = MergeValTree(tree, SingletonValTree(LocalName{"_filepath"}, cty.StringVal(resource.Location.Filename)))
-
 		resourceAttrsName := *resourceName
 		if resource.Count {
 			resourceAttrsName = resourceAttrsName.AddIndex(0)
 		}
 
 		attributes := LookupValTree(v.Modules[module], resourceAttrsName.Local)
-		tree = MergeValTree(tree, attributes)
 
-		if countTree := LookupValTree(tree, LocalName{"count"}); countTree != nil {
+		if countTree := LookupValTree(attributes, LocalName{"count"}); countTree != nil {
 			if countVal, ok := countTree.(cty.Value); ok {
 				count := ValueToInt(countVal)
 				if count != nil && *count < 1 {
@@ -334,8 +329,25 @@ func (v *Evaluation) Resources() map[string]interface{} {
 			}
 		}
 
-		input[resourceKey] = ValueToInterface(ValTreeToValue(tree))
-		PopulateTags(input[resourceKey])
+		attrs := map[string]interface{}{}
+		if obj, ok := ValueToInterface(ValTreeToValue(attributes)).(map[string]interface{}); ok {
+			attrs = obj
+		}
+
+		meta := map[string]interface{}{}
+		if resource.ProviderVersionConstraint != "" {
+			meta["terraform"] = map[string]interface{}{
+				"provider_version_constraint": resource.ProviderVersionConstraint,
+			}
+		}
+
+		// TODO: Support tags again: PopulateTags(input[resourceKey])
+		input[resourceKey] = models.ResourceState{
+			Id:           resourceKey,
+			ResourceType: resourceType,
+			Attributes:   attrs,
+			Meta:         meta,
+		}
 	}
 
 	return input

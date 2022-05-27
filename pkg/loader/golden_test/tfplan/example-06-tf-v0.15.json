@@ -13,9 +13,7 @@
         "resource_type": "aws_security_group",
         "namespace": "golden_test/tfplan/example-06-tf-v0.15/plan.json",
         "attributes": {
-          "_type": "aws_security_group",
           "description": "Managed by Terraform",
-          "id": "aws_security_group.parent",
           "revoke_rules_on_delete": false,
           "tags": null,
           "timeouts": null,
@@ -27,9 +25,7 @@
         "resource_type": "aws_security_group",
         "namespace": "golden_test/tfplan/example-06-tf-v0.15/plan.json",
         "attributes": {
-          "_type": "aws_security_group",
           "description": "Managed by Terraform",
-          "id": "module.child1.module.grandchild1.aws_security_group.grandchild",
           "revoke_rules_on_delete": false,
           "tags": null,
           "timeouts": null,
@@ -41,9 +37,7 @@
         "resource_type": "aws_security_group",
         "namespace": "golden_test/tfplan/example-06-tf-v0.15/plan.json",
         "attributes": {
-          "_type": "aws_security_group",
           "description": "Managed by Terraform",
-          "id": "module.child2.aws_security_group.child",
           "revoke_rules_on_delete": false,
           "tags": null,
           "timeouts": null,
@@ -57,11 +51,9 @@
         "resource_type": "aws_vpc",
         "namespace": "golden_test/tfplan/example-06-tf-v0.15/plan.json",
         "attributes": {
-          "_type": "aws_vpc",
           "assign_generated_ipv6_cidr_block": false,
           "cidr_block": "10.0.0.0/16",
           "enable_dns_support": true,
-          "id": "aws_vpc.parent",
           "instance_tenancy": "default",
           "tags": null
         }
@@ -71,11 +63,9 @@
         "resource_type": "aws_vpc",
         "namespace": "golden_test/tfplan/example-06-tf-v0.15/plan.json",
         "attributes": {
-          "_type": "aws_vpc",
           "assign_generated_ipv6_cidr_block": false,
           "cidr_block": "10.0.0.0/16",
           "enable_dns_support": true,
-          "id": "module.child1.aws_vpc.child",
           "instance_tenancy": "default",
           "tags": null
         }
@@ -85,11 +75,9 @@
         "resource_type": "aws_vpc",
         "namespace": "golden_test/tfplan/example-06-tf-v0.15/plan.json",
         "attributes": {
-          "_type": "aws_vpc",
           "assign_generated_ipv6_cidr_block": false,
           "cidr_block": "10.0.0.0/16",
           "enable_dns_support": true,
-          "id": "module.child1.module.grandchild1.aws_vpc.grandchild",
           "instance_tenancy": "default",
           "tags": null
         }
@@ -99,11 +87,9 @@
         "resource_type": "aws_vpc",
         "namespace": "golden_test/tfplan/example-06-tf-v0.15/plan.json",
         "attributes": {
-          "_type": "aws_vpc",
           "assign_generated_ipv6_cidr_block": false,
           "cidr_block": "10.0.0.0/16",
           "enable_dns_support": true,
-          "id": "module.child2.aws_vpc.child",
           "instance_tenancy": "default",
           "tags": null
         }
