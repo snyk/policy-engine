@@ -1,6 +1,9 @@
 package policy
 
 import (
+	"sort"
+	"strings"
+
 	"github.com/snyk/unified-policy-engine/pkg/interfacetricks"
 	"github.com/snyk/unified-policy-engine/pkg/models"
 )
@@ -11,7 +14,7 @@ import (
 type ruleResultBuilder struct {
 	passed            bool
 	ignored           bool
-	message           string
+	messages          []string
 	resourceId        string
 	resourceNamespace string
 	resourceType      string
@@ -81,10 +84,11 @@ func (builder *ruleResultBuilder) toRuleResult() models.RuleResult {
 	for _, resource := range builder.resources {
 		resources = append(resources, resource)
 	}
+	sort.Strings(builder.messages)
 	return models.RuleResult{
 		Passed:            builder.passed,
 		Ignored:           builder.ignored,
-		Message:           builder.message,
+		Message:           strings.Join(builder.messages, "\n"),
 		ResourceId:        builder.resourceId,
 		ResourceNamespace: builder.resourceNamespace,
 		ResourceType:      builder.resourceType,

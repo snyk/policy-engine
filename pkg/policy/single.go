@@ -118,7 +118,7 @@ func processSingleDenyPolicyResult(
 			result.addResourceAttribute(resourceKey, attr)
 		}
 
-		result.message = r.Message
+		result.messages = append(result.messages, r.Message)
 		if r.Severity != "" {
 			result.severity = r.Severity
 		} else {
