@@ -142,9 +142,20 @@ func (c *HclConfiguration) Location(path []interface{}) (LocationStack, error) {
 }
 
 func (c *HclConfiguration) ToState() models.State {
-	return toState(
-		inputs.TerraformHCL.Name,
-		c.moduleTree.FilePath(),
-		c.evaluation.Resources(),
-	)
+	resources := c.evaluation.Resources()
+
+	namespace := c.moduleTree.FilePath()
+	for k, resource := range resources {
+		resource.Namespace = namespace
+		resources[k] = resource
+	}
+
+	return models.State{
+		InputType:           inputs.TerraformHCL.Name,
+		EnvironmentProvider: "iac",
+		Meta: map[string]interface{}{
+			"filepath": c.moduleTree.FilePath(),
+		},
+		Resources: groupResourcesByType(resources),
+	}
 }

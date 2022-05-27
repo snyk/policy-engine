@@ -13,8 +13,6 @@
         "resource_type": "aws_cloudwatch_log_group",
         "namespace": "golden_test/tfplan/example-05-tf-v0.15/plan.json",
         "attributes": {
-          "_type": "aws_cloudwatch_log_group",
-          "id": "aws_cloudwatch_log_group.fargate-logs",
           "kms_key_id": "aws_kms_key.cloudwatch",
           "name": "/ecs/fargate-task-definition",
           "name_prefix": null,
@@ -36,13 +34,11 @@
         "resource_type": "aws_kms_key",
         "namespace": "golden_test/tfplan/example-05-tf-v0.15/plan.json",
         "attributes": {
-          "_type": "aws_kms_key",
           "bypass_policy_lockout_safety_check": false,
           "customer_master_key_spec": "SYMMETRIC_DEFAULT",
           "deletion_window_in_days": 10,
           "description": "cloudwatch kms key",
           "enable_key_rotation": true,
-          "id": "aws_kms_key.cloudwatch",
           "is_enabled": true,
           "key_usage": "ENCRYPT_DECRYPT",
           "tags": {

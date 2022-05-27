@@ -17,7 +17,10 @@ var testCmd = &cobra.Command{
 	RunE: func(cmd *cobra.Command, args []string) error {
 		ctx := context.Background()
 
-		providers := []data.Provider{data.PureRegoProvider()}
+		providers := []data.Provider{
+			data.PureRegoBuiltinsProvider(),
+			data.PureRegoLibProvider(),
+		}
 		for _, path := range rootCmdRegoPaths {
 			providers = append(providers, data.LocalProvider(path))
 		}

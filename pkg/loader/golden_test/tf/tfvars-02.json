@@ -13,15 +13,6 @@
         "resource_type": "aws_s3_bucket",
         "namespace": "golden_test/tf/tfvars-02",
         "attributes": {
-          "_filepath": "golden_test/tf/tfvars-02/main.tf",
-          "_provider": "aws",
-          "_tags": {
-            "booly": "yes",
-            "listy": "Hello",
-            "mappy": "value"
-          },
-          "_type": "aws_s3_bucket",
-          "id": "aws_s3_bucket.bucket",
           "tags": {
             "booly": "yes",
             "listy": "Hello",

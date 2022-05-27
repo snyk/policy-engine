@@ -50,7 +50,12 @@ var replCmd = &cobra.Command{
 			}
 			consumer.DataDocument(ctx, "repl/input/state.json", replInput)
 		}
-		data.PureRegoProvider()(ctx, consumer)
+		if err := data.PureRegoBuiltinsProvider()(ctx, consumer); err != nil {
+			return err
+		}
+		if err := data.PureRegoLibProvider()(ctx, consumer); err != nil {
+			return err
+		}
 		for _, path := range rootCmdRegoPaths {
 			if isTgz(path) {
 				f, err := os.Open(path)

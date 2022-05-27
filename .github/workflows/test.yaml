@@ -16,4 +16,6 @@ jobs:
     - uses: actions/setup-go@v2
       with:
         go-version: ${{ matrix.go }}
+    - run: go install github.com/open-policy-agent/opa@v0.39.0
     - run: go test ./...
+    - run: opa test rego

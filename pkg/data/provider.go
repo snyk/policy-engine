@@ -111,9 +111,20 @@ func TarGzProvider(reader io.Reader) Provider {
 
 // Provides the pure rego version of the API.  Don't use this to evaluate rules
 // in production.
-func PureRegoProvider() Provider {
+func PureRegoBuiltinsProvider() Provider {
 	return func(ctx context.Context, consumer Consumer) error {
 		err := regoParser(ctx, "snyk.rego", bytes.NewReader(embed.SnykRego), consumer)
+		if err != nil {
+			return nil
+		}
+		return nil
+	}
+}
+
+// Provides the pure rego part of the API.
+func PureRegoLibProvider() Provider {
+	return func(ctx context.Context, consumer Consumer) error {
+		err := regoParser(ctx, "snyk/terraform.rego", bytes.NewReader(embed.SnykTerraformRego), consumer)
 		if err != nil {
 			return nil
 		}
