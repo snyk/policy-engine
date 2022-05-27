@@ -423,7 +423,7 @@ syntax for the version constraints here:
 Keep in mind that in many cases, we don't know the exact provider version that
 is being used.  We can only deduce constraints from `required_providers` blocks:
 
-```
+```hcl
 terraform {
   required_providers {
     aws = {
