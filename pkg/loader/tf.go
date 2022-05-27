@@ -151,7 +151,7 @@ func (c *HclConfiguration) ToState() models.State {
 	}
 
 	return models.State{
-		InputType:           inputs.Terraform.Name,
+		InputType:           inputs.TerraformHCL.Name,
 		EnvironmentProvider: "iac",
 		Meta: map[string]interface{}{
 			"filepath": c.moduleTree.FilePath(),
