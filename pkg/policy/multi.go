@@ -121,7 +121,7 @@ func processMultiDenyPolicyResult(
 		}
 
 		builder.passed = false
-		builder.message = result.Message
+		builder.messages = append(builder.messages, result.Message)
 		if result.ResourceType != "" {
 			builder.resourceType = result.ResourceType
 		}

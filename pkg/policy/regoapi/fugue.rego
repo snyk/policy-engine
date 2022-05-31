@@ -2,6 +2,14 @@ package fugue
 
 input_type := __current_input_type()
 
+input_resource_types := __input_resource_types()
+
+# Deprecated
+resource_types_v0 := input_resource_types
+
+# Internal
+resource_types := input_resource_types
+
 resources(resource_type) = ret {
   ret := __resources_by_type(resource_type)
 }

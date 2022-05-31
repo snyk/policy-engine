@@ -42,7 +42,6 @@ var testCmd = &cobra.Command{
 		ch, err := tester.NewRunner().
 			SetStore(store).
 			SetModules(consumer.Modules).
-			EnableTracing(true).
 			RunTests(ctx, txn)
 		if err != nil {
 			return err

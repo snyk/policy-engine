@@ -29,6 +29,10 @@ Engine (UPE).
   - [The `snyk` API](#the-snyk-api)
     - [`snyk.resources(<resource type>)`](#snykresourcesresource-type)
       - [Example `snyk.resources` call and output](#example-snykresources-call-and-output)
+    - [`snyk.input_resource_types`](#snykinput_resource_types)
+      - [Example snyk.input_resource_types usage](#example-snykinput_resource_types-usage)
+    - [`snyk.input_type`](#snykinput_type)
+      - [Example `snyk.input_type` usage](#example-snykinput_type-usage)
     - [`snyk.terraform.resource_provider_version_constraint(<resource>, <constraint>)`](#snykterraformresource_provider_version_constraintresource-constraint)
   - [Types reference](#types-reference)
     - [State object](#state-object)
@@ -305,7 +309,13 @@ array of [resource objects](#resource-objects) of that type from the current `St
 being evaluated.
 
 Internally, UPE tracks calls to `snyk.resources` to produce the `resource_types` array
-in the results output.
+in the results output. This array may be used by downstream consumers to add context to
+policy results. For example, a consumer may need to communicate that some policy results
+were inconclusive if the resource types used by the policy were not surveyed. For this
+reason, some policies should be written to call `snyk.resources` for a particular type
+_only if_ that resource type exists in the input. See
+[`snyk.input_resource_types`](#snykinput_resource_types) below for an example of this
+idiom.
 
 #### Example `snyk.resources` call and output
 
@@ -333,6 +343,76 @@ $ ./unified-policy-engine repl examples/main.tf
 > 
 ```
 
+### `snyk.input_resource_types`
+
+`snyk.input_resource_types` is a `set` of all resource types in the input. This can be
+useful in policies that _can_ check multiple resource types, but don't _require_ them to
+produce conclusive results. A common example of this type of policy is one that enforces
+specific tags across many different resource types. Another common example are policies
+that are written to work with multiple [input types](#input_type), like policies with
+the `tf` input type.
+
+#### Example snyk.input_resource_types usage
+
+This example is from a policy that's written for the `tf` input type. `tf` is an
+aggregate input type that includes some IaC inputs as well as the `cloud_scan` input
+type. This means that it will be used to evaluate both IaC and live, running
+infrastructure.
+
+```open-policy-agent
+# Here we're producing an object of data.aws_iam_policy_document resources. This
+# resource type is an abstraction provided by Terraform and doesn't map to any "real"
+# deployed resource type. So, we only want to enumerate these resources when they exist
+# in the input to avoid reporting this resource type for cloud_scan inputs.
+# 
+# The result is that when no data.aws_iam_policy_document resources exist in the input,
+# this object will be empty.
+policy_documents := {id: doc |
+	snyk.input_resource_types["data.aws_iam_policy_document"]
+	doc := snyk.resources("data.aws_iam_policy_document")[_]
+}
+```
+
+### `snyk.input_type`
+
+`snyk.input_type` gets set to the [input type](#input_type) of the current input being
+evaluated. This can be useful in policies that are written for multiple but only need to
+enforce a particular condition in one of those input types.
+
+#### Example `snyk.input_type` usage
+
+This is example is taken from a policy that enforces some configuration on
+`aws_iam_account_password_policy` resources. For `cloud_scan` inputs, we also want to
+enforce that this resource exists (as in the
+[Missing Resource policy archetype](#missing-resource-policy)).
+
+```open-policy-agent
+password_policy_type := "aws_iam_account_password_policy"
+
+password_policies := snyk.resources(password_policy_type)
+password_policy_exists {
+  _ = password_policies[_]
+}
+
+deny[info] {
+  pol := password_policies[_]
+  pol.minimum_password_length < 14
+  info := {
+    "resource": pol
+    "attributes" [["minimum_password_length"]]
+  }
+}
+
+deny[info] {
+  # We only want this condition to apply to cloud_scan inputs
+  snyk.input_type == "cloud_scan"
+  info := {
+    "resource_type": password_policy_type,
+    "message": "No IAM password policy was found."
+  }
+}
+```
+
 ### `snyk.terraform.resource_provider_version_constraint(<resource>, <constraint>)`
 
 This function takes a resource and a version constraint for the terraform
@@ -343,7 +423,7 @@ syntax for the version constraints here:
 Keep in mind that in many cases, we don't know the exact provider version that
 is being used.  We can only deduce constraints from `required_providers` blocks:
 
-```
+```hcl
 terraform {
   required_providers {
     aws = {

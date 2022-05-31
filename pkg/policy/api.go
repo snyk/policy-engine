@@ -21,6 +21,7 @@ var RegoAPIProvider = data.FSProvider(regoApi, "regoapi")
 // Constants for builtin functions
 const resourcesByTypeName = "__resources_by_type"
 const currentInputTypeName = "__current_input_type"
+const inputResourceTypesName = "__input_resource_types"
 
 var builtinDeclarations = map[string]*types.Function{
 	resourcesByTypeName: types.NewFunction(
@@ -43,6 +44,10 @@ var builtinDeclarations = map[string]*types.Function{
 	currentInputTypeName: types.NewFunction(
 		types.Args(),
 		types.S,
+	),
+	inputResourceTypesName: types.NewFunction(
+		types.Args(),
+		types.NewSet(types.S),
 	),
 }
 
@@ -149,6 +154,29 @@ func (c *currentInputType) impl(
 	return ast.StringTerm(c.input.InputType), nil
 }
 
+type inputResourceTypes struct {
+	input *models.State
+}
+
+func (c *inputResourceTypes) decl() *rego.Function {
+	return &rego.Function{
+		Name:    inputResourceTypesName,
+		Decl:    builtinDeclarations[inputResourceTypesName],
+		Memoize: true,
+	}
+}
+
+func (c *inputResourceTypes) impl(
+	bctx rego.BuiltinContext,
+	operands []*ast.Term,
+) (*ast.Term, error) {
+	rts := make([]*ast.Term, 0, len(c.input.Resources))
+	for rt := range c.input.Resources {
+		rts = append(rts, ast.StringTerm(rt))
+	}
+	return ast.SetTerm(rts...), nil
+}
+
 type Builtins struct {
 	resourcesByType *resourcesByType // We want a separate ref to this to make it cleaner to get resource types back out
 	funcs           []builtin
@@ -161,6 +189,7 @@ func NewBuiltins(input *models.State) *Builtins {
 		funcs: []builtin{
 			r,
 			&currentInputType{input},
+			&inputResourceTypes{input},
 		},
 	}
 }
