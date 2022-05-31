@@ -310,8 +310,8 @@ being evaluated.
 
 Internally, UPE tracks calls to `snyk.resources` to produce the `resource_types` array
 in the results output. This array may be used by downstream consumers to add context to
-rule results. For example, a consumer may need to communicate that some policy results
-were inconclusive if the resource types used by the rule were not surveyed. For this
+policy results. For example, a consumer may need to communicate that some policy results
+were inconclusive if the resource types used by the policy were not surveyed. For this
 reason, some policies should be written to call `snyk.resources` for a particular type
 _only if_ that resource type exists in the input. See
 [`snyk.input_resource_types`](#snykinput_resource_types) below for an example of this
