@@ -1,0 +1,28 @@
+{
+  "format": "",
+  "format_version": "",
+  "input_type": "tf_hcl",
+  "environment_provider": "iac",
+  "meta": {
+    "filepath": "golden_test/tf/tfvars-01"
+  },
+  "resources": {
+    "aws_s3_bucket": {
+      "aws_s3_bucket.bucket": {
+        "id": "aws_s3_bucket.bucket",
+        "resource_type": "aws_s3_bucket",
+        "namespace": "golden_test/tf/tfvars-01",
+        "attributes": {
+          "tags": {
+            "var_1": "default_value",
+            "var_2": "hi I am in terraform.tfvars",
+            "var_3": "hey I'm in terraform.tfvars.json",
+            "var_4": "Hey I'm in aaa",
+            "var_5": "Hey I'm in bbb",
+            "var_6": "Hey I'm in ccc"
+          }
+        }
+      }
+    }
+  }
+}
