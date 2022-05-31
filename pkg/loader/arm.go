@@ -31,7 +31,7 @@ type ArmDetector struct{}
 
 func (c *ArmDetector) DetectFile(i InputFile, opts DetectOptions) (IACConfiguration, error) {
 	if !opts.IgnoreExt && !validArmExts[i.Ext()] {
-		return nil, fmt.Errorf("File does not have .json extension: %v", i.Path())
+		return nil, fmt.Errorf("%w: %v", UnrecognizedFileExtension, i.Ext())
 	}
 	contents, err := i.Contents()
 	if err != nil {
@@ -40,19 +40,19 @@ func (c *ArmDetector) DetectFile(i InputFile, opts DetectOptions) (IACConfigurat
 
 	template := &armTemplate{}
 	if err := json.Unmarshal(contents, &template.Contents); err != nil {
-		return nil, fmt.Errorf("Failed to parse file as JSON %v: %v", i.Path(), err)
+		return nil, fmt.Errorf("%w: %v", FailedToParseInput, err)
 	}
 	_, hasSchema := template.Contents["$schema"]
 	_, hasResources := template.Contents["resources"]
 
 	if !hasSchema || !hasResources {
-		return nil, fmt.Errorf("Input file is not an ARM template: %v", i.Path())
+		return nil, fmt.Errorf("%w", InvalidInput)
 	}
 	resources := map[string]interface{}{}
 	if hasResources {
 		r, resourcesIsMap := template.Contents["resources"].(map[string]interface{})
 		if !resourcesIsMap {
-			return nil, fmt.Errorf("Input file is not a ARM template: %v", i.Path())
+			return nil, fmt.Errorf("%w", InvalidInput)
 		}
 		resources = r
 	}

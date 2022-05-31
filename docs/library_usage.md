@@ -11,6 +11,7 @@ components together.
     - [`LoadedConfigurations`](#loadedconfigurations)
     - [Example](#example)
       - [Obtaining input types for the InputTypes option](#obtaining-input-types-for-the-inputtypes-option)
+    - [Error handling](#error-handling)
   - [Evaluating policies](#evaluating-policies)
     - [`upe.Engine`](#upeengine)
     - [`data.Provider`](#dataprovider)
@@ -44,6 +45,8 @@ format.
 package main
 
 import (
+  "errors"
+
   "github.com/snyk/unified-policy-engine/pkg/inputs"
   "github.com/snyk/unified-policy-engine/pkg/loader"
 )
@@ -69,7 +72,15 @@ func main() {
   // Invoke the loader, returning a LoadedConfigurations struct
   loadedConfigs, err := configLoader()
   if err != nil {
-    // ...
+    // Checking for specific errors
+    switch {
+    case errors.Is(err, loader.NoLoadableInputs):
+      // ...
+    case errors.Is(err, loader.UnrecognizedFileExtension):
+      // ...
+    default:
+      // ...
+    }
   }
   // Transform the loaded configurations into a slice of State structs
   states := loadedConfigs.ToStates()
@@ -84,6 +95,31 @@ it can parse. You can use the `loader.SupportedInputTypes.FromString(inputType)`
 to translate a string representation of an input type (for example from CLI arguments
 or a configuration file) into an `InputType` object which can be used in the
 `LoadPathsOptions.InputTypes` field.
+
+### Error handling
+
+The errors returned by the `ConfigurationLoader` function can be differentiated with
+either the `errors.Is()` function or the `errors.As()` function (or just a type cast)
+from the [errors standard library package](https://pkg.go.dev/errors). All of these
+errors are defined in [`pkg/loader/errors.go`](../pkg/loader/errors.go) and have
+inline documentation.
+
+| Error                       | Differentiated with      |
+| :-------------------------- | :----------------------- |
+| `NoLoadableInputs`          | `errors.Is`              |
+| `UnableToRecognizeType`     | `errors.Is`              |
+| `FailedToProcessInput`      | `errors.As` or type cast |
+| `UnsupportedInputType`      | `errors.Is`              |
+| `UnableToResolveLocation`   | `errors.Is`              |
+| `UnrecognizedFileExtension` | `errors.Is`              |
+| `FailedToParseInput`        | `errors.Is`              |
+| `InvalidInput`              | `errors.Is`              |
+| `UnableToReadFile`          | `errors.Is`              |
+| `UnableToReadDir`           | `errors.Is`              |
+| `UnableToReadStdin`         | `errors.Is`              |
+
+**Note** that `FailedToProcessInput` will always wrap one of the other errors, so it
+does not need to be handled explicitly unless its `Path` attribute is needed.
 
 ## Evaluating policies
 

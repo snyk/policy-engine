@@ -30,7 +30,7 @@ type TfPlanDetector struct{}
 
 func (t *TfPlanDetector) DetectFile(i InputFile, opts DetectOptions) (IACConfiguration, error) {
 	if !opts.IgnoreExt && i.Ext() != ".json" {
-		return nil, fmt.Errorf("File does not have .json extension: %v", i.Path())
+		return nil, fmt.Errorf("%w: %v", UnrecognizedFileExtension, i.Ext())
 	}
 	contents, err := i.Contents()
 	if err != nil {
@@ -39,11 +39,11 @@ func (t *TfPlanDetector) DetectFile(i InputFile, opts DetectOptions) (IACConfigu
 
 	rawPlan := &tfplan_Plan{}
 	if err := yaml.Unmarshal(contents, rawPlan); err != nil {
-		return nil, fmt.Errorf("Failed to parse JSON file %v: %v", i.Path(), err)
+		return nil, fmt.Errorf("%w: %v", FailedToParseInput, err)
 	}
 
 	if rawPlan.TerraformVersion == "" {
-		return nil, fmt.Errorf("Input file is not Terraform Plan JSON: %v", i.Path())
+		return nil, fmt.Errorf("%w", InvalidInput)
 	}
 
 	return &tfPlan{
