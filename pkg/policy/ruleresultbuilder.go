@@ -88,7 +88,7 @@ func (builder *ruleResultBuilder) toRuleResult() models.RuleResult {
 	return models.RuleResult{
 		Passed:            builder.passed,
 		Ignored:           builder.ignored,
-		Message:           strings.Join(builder.messages, "\n"),
+		Message:           strings.Join(builder.messages, "\n\n"),
 		ResourceId:        builder.resourceId,
 		ResourceNamespace: builder.resourceNamespace,
 		ResourceType:      builder.resourceType,
