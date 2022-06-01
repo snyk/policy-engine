@@ -2,6 +2,7 @@ package policy
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/open-policy-agent/opa/rego"
 	"github.com/snyk/unified-policy-engine/pkg/logging"
@@ -41,7 +42,8 @@ func (p *SingleResourcePolicy) Eval(
 	output := models.RuleResults{}
 	metadata, err := p.Metadata(ctx, options.RegoOptions)
 	if err != nil {
-		logger.Error(ctx, "Failed to obtain metadata")
+		logger.Error(ctx, "Failed to query metadata")
+		err = fmt.Errorf("%w: %v", FailedToQueryMetadata, err)
 		output.Errors = append(output.Errors, err.Error())
 		return []models.RuleResults{output}, err
 	}
@@ -57,6 +59,7 @@ func (p *SingleResourcePolicy) Eval(
 	query, err := rego.New(opts...).PrepareForEval(ctx)
 	if err != nil {
 		logger.Error(ctx, "Failed to prepare for eval")
+		err = fmt.Errorf("%w: %v", FailedToPrepareForEval, err)
 		output.Errors = append(output.Errors, err.Error())
 		return []models.RuleResults{output}, err
 	}
@@ -70,7 +73,8 @@ func (p *SingleResourcePolicy) Eval(
 			inputDoc := resourceStateToRegoInput(resource)
 			resultSet, err := query.Eval(ctx, rego.EvalInput(inputDoc))
 			if err != nil {
-				logger.Error(ctx, "Failed to evaluate resource")
+				logger.Error(ctx, "Failed to evaluate rule for resource")
+				err = fmt.Errorf("%w '%s': %v", FailedToEvaluateResource, resource.Id, err)
 				output.Errors = append(output.Errors, err.Error())
 				return []models.RuleResults{output}, err
 			}
@@ -81,7 +85,8 @@ func (p *SingleResourcePolicy) Eval(
 				defaultRemediation,
 			)
 			if err != nil {
-				logger.Error(ctx, "Failed to process result set")
+				logger.Error(ctx, "Failed to process results")
+				err = fmt.Errorf("%w: %v", FailedToProcessResults, err)
 				output.Errors = append(output.Errors, err.Error())
 				return []models.RuleResults{output}, err
 			}

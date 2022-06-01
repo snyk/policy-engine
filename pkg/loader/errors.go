@@ -13,8 +13,8 @@ import (
 // IaC configurations with the given parameters.
 var NoLoadableInputs = errors.New("No recognized inputs with the given parameters")
 
-// UnableToRecognizeType indicates that the loader could not recognize the input from stdin.
-var UnableToRecognizeType = errors.New("Unable to recognize input type")
+// UnableToRecognizeInputType indicates that the loader could not recognize the input from stdin.
+var UnableToRecognizeInputType = errors.New("Unable to recognize input type")
 
 // FailedToProcessInput indicates that the loader failed to process a specific input.
 type FailedToProcessInput struct {

@@ -100,7 +100,7 @@ func LocalConfigurationLoader(options LoadPathsOptions) ConfigurationLoader {
 				if loader != nil {
 					configurations.AddConfiguration(stdIn, loader)
 				} else {
-					return nil, &FailedToProcessInput{Path: path, err: UnableToRecognizeType}
+					return nil, &FailedToProcessInput{Path: path, err: UnableToRecognizeInputType}
 				}
 				continue
 			}
@@ -155,7 +155,7 @@ func LocalConfigurationLoader(options LoadPathsOptions) ConfigurationLoader {
 				if loader != nil {
 					configurations.AddConfiguration(path, loader)
 				} else {
-					return nil, &FailedToProcessInput{Path: path, err: UnableToRecognizeType}
+					return nil, &FailedToProcessInput{Path: path, err: UnableToRecognizeInputType}
 				}
 			}
 		}

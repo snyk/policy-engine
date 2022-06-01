@@ -18,6 +18,7 @@ components together.
       - [`data.FSProvider()`](#datafsprovider)
       - [`data.LocalProvider()`](#datalocalprovider)
     - [Example](#example-1)
+    - [Error handling](#error-handling-1)
   - [Source code location and line numbers](#source-code-location-and-line-numbers)
     - [Example](#example-2)
 
@@ -104,21 +105,21 @@ from the [errors standard library package](https://pkg.go.dev/errors). All of th
 errors are defined in [`pkg/loader/errors.go`](../pkg/loader/errors.go) and have
 inline documentation.
 
-| Error                       | Differentiated with      |
-| :-------------------------- | :----------------------- |
-| `NoLoadableInputs`          | `errors.Is`              |
-| `UnableToRecognizeType`     | `errors.Is`              |
-| `FailedToProcessInput`      | `errors.As` or type cast |
-| `UnsupportedInputType`      | `errors.Is`              |
-| `UnableToResolveLocation`   | `errors.Is`              |
-| `UnrecognizedFileExtension` | `errors.Is`              |
-| `FailedToParseInput`        | `errors.Is`              |
-| `InvalidInput`              | `errors.Is`              |
-| `UnableToReadFile`          | `errors.Is`              |
-| `UnableToReadDir`           | `errors.Is`              |
-| `UnableToReadStdin`         | `errors.Is`              |
+| Error                        | Differentiated with      |
+| :--------------------------- | :----------------------- |
+| `NoLoadableInputs`           | `errors.Is`              |
+| `UnableToRecognizeInputType` | `errors.Is`              |
+| `FailedToProcessInput`       | `errors.As` or type cast |
+| `UnsupportedInputType`       | `errors.Is`              |
+| `UnableToResolveLocation`    | `errors.Is`              |
+| `UnrecognizedFileExtension`  | `errors.Is`              |
+| `FailedToParseInput`         | `errors.Is`              |
+| `InvalidInput`               | `errors.Is`              |
+| `UnableToReadFile`           | `errors.Is`              |
+| `UnableToReadDir`            | `errors.Is`              |
+| `UnableToReadStdin`          | `errors.Is`              |
 
-**Note** that `FailedToProcessInput` will always wrap one of the other errors, so it
+**NOTE** that `FailedToProcessInput` will always wrap one of the other errors, so it
 does not need to be handled explicitly unless its `Path` attribute is needed.
 
 ## Evaluating policies
@@ -206,19 +207,42 @@ func main() {
     Metrics:   m,
   })
   if err != nil {
-    // ...
+    // Checking for specific errors
+    switch {
+    case errors.Is(err, loader.FailedToLoadRegoAPI):
+      // ...
+    case errors.Is(err, loader.FailedToLoadRules):
+      // ...
+    default:
+      // ...
+    }
   }
   // This function returns a *models.Results
-  results, err := engine.Eval(ctx, &upe.EvalOptions{
+  results := engine.Eval(ctx, &upe.EvalOptions{
     // Inputs is a []models.State, like the output of the loadedConfigs.ToStates()
     // described above.
     Inputs: states,
   })
-  if err != nil {
-    // ...
-  }
 }
 ```
+
+### Error handling
+
+The errors returned by the `NewEngine` function can be differentiated with the
+`errors.Is()` function from the
+[errors standard library package](https://pkg.go.dev/errors). All of these errors are
+defined in [`pkg/engine/errors.go`](../pkg/loader/errors.go) and have inline
+documentation.
+
+**NOTE** that `Eval` does not currently return an `error`. Errors that occur during rule
+evaluation will be returned in the `Errors` field of the corresponding `RuleResults`
+model in the output.
+
+| Error                 | Differentiated with |
+| :-------------------- | :------------------ |
+| `FailedToLoadRegoAPI` | `errors.Is`         |
+| `FailedToLoadRules`   | `errors.Is`         |
+| `FailedToCompile`     | `errors.Is`         |
 
 ## Source code location and line numbers
 
