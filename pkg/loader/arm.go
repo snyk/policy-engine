@@ -18,6 +18,7 @@ package loader
 import (
 	"encoding/json"
 	"fmt"
+	"strings"
 
 	"github.com/snyk/unified-policy-engine/pkg/inputs"
 	"github.com/snyk/unified-policy-engine/pkg/models"
@@ -38,31 +39,19 @@ func (c *ArmDetector) DetectFile(i InputFile, opts DetectOptions) (IACConfigurat
 		return nil, err
 	}
 
-	template := &armTemplate{}
-	if err := json.Unmarshal(contents, &template.Contents); err != nil {
+	template := &arm_Template{}
+	if err := json.Unmarshal(contents, &template); err != nil {
 		return nil, fmt.Errorf("Failed to parse file as JSON %v: %v", i.Path(), err)
 	}
-	_, hasSchema := template.Contents["$schema"]
-	_, hasResources := template.Contents["resources"]
 
-	if !hasSchema || !hasResources {
+	if template.Schema == "" || template.Resources == nil {
 		return nil, fmt.Errorf("Input file is not an ARM template: %v", i.Path())
-	}
-	resources := map[string]interface{}{}
-	if hasResources {
-		r, resourcesIsMap := template.Contents["resources"].(map[string]interface{})
-		if !resourcesIsMap {
-			return nil, fmt.Errorf("Input file is not a ARM template: %v", i.Path())
-		}
-		resources = r
 	}
 
 	path := i.Path()
-
 	return &armConfiguration{
-		path:      path,
-		template:  *template,
-		resources: resources,
+		path:     path,
+		template: template,
 	}, nil
 }
 
@@ -71,56 +60,178 @@ func (c *ArmDetector) DetectDirectory(i InputDirectory, opts DetectOptions) (IAC
 }
 
 type armConfiguration struct {
-	path      string
-	template  armTemplate
-	source    *SourceInfoNode
-	resources map[string]interface{}
+	path     string
+	template *arm_Template
+	source   *SourceInfoNode
 }
 
 func (l *armConfiguration) ToState() models.State {
-	return toState(inputs.Arm.Name, l.path, l.resources)
+	resources := map[string]models.ResourceState{}
+	for _, resource := range l.template.resources() {
+		resource.Namespace = l.path
+		resources[resource.Id] = resource
+	}
+
+	return models.State{
+		InputType:           inputs.Arm.Name,
+		EnvironmentProvider: "iac",
+		Meta: map[string]interface{}{
+			"filepath": l.path,
+		},
+		Resources: groupResourcesByType(resources),
+	}
 }
 
 func (l *armConfiguration) Location(path []interface{}) (LocationStack, error) {
 	return nil, nil
-	/* TODO: Location() is not yet supported for ARM.
-
-	if l.source == nil || len(path) < 1 {
-		return nil, nil
-	}
-
-	resourcePath := []string{"Resources"}
-	resourcePath = append(resourcePath, path[0])
-	resource, err := l.source.GetPath(resourcePath)
-	if err != nil {
-		return nil, nil
-	}
-	resourceLine, resourceColumn := resource.Location()
-	resourceLocation := Location{
-		Path: l.path,
-		Line: resourceLine,
-		Col:  resourceColumn,
-	}
-
-	properties, err := resource.GetKey("Properties")
-	if err != nil {
-		return []Location{resourceLocation}, nil
-	}
-
-	attribute, err := properties.GetPath(path[1:])
-	if attribute != nil {
-		return []Location{resourceLocation}, nil
-	}
-
-	line, column := attribute.Location()
-	return []Location{{Path: l.path, Line: line, Col: column}}, nil
-	*/
 }
 
 func (l *armConfiguration) LoadedFiles() []string {
 	return []string{l.path}
 }
 
-type armTemplate struct {
-	Contents map[string]interface{}
+type arm_Template struct {
+	Schema         string         `json:"$schema"`
+	ContentVersion string         `json:"contentVersion"`
+	Resources      []arm_Resource `json:"resources"`
+}
+
+type arm_Resource struct {
+	Type       string                 `json:"type"`
+	ApiVersion string                 `json:"apiVersion"`
+	Name       string                 `json:"name"`
+	Location   string                 `json:"location"`
+	Properties map[string]interface{} `json:"properties"`
+	Tags       map[string]string      `json:"tags"`
+	Resources  []arm_Resource         `json:"resources"`
+}
+
+func (t arm_Template) resources() []models.ResourceState {
+	all := []models.ResourceState{}
+	for _, top := range t.Resources {
+		all = append(all, top.resources(nil)...)
+	}
+	return all
+}
+
+func (r arm_Resource) resources(
+	parent *arm_Name, // Name of the parent, nil if top-level
+) []models.ResourceState {
+	// Extend or construct name.
+	name := parseArmName(r.Type, r.Name)
+	if parent != nil {
+		// We are nested under some parent.
+		name = parent.Child(r.Type, r.Name)
+	} else {
+		// Not nested but our name may refer to a parent.
+		parent = name.Parent()
+	}
+
+	attributes := map[string]interface{}{}
+	attributes["properties"] = r.Properties
+	if r.ApiVersion != "" {
+		attributes["apiVersion"] = r.ApiVersion
+	}
+	if r.Location != "" {
+		attributes["location"] = r.Location
+	}
+
+	meta := map[string]interface{}{}
+	if parent != nil {
+		armMeta := map[string]interface{}{}
+		armMeta["parent_id"] = parent.String()
+		meta["arm"] = armMeta
+	}
+
+	this := models.ResourceState{
+		Id:           name.String(),
+		ResourceType: name.Type(),
+		Attributes:   attributes,
+		Meta:         meta,
+	}
+
+	if len(r.Tags) > 0 {
+		this.Tags = r.Tags
+	}
+
+	list := []models.ResourceState{this}
+	for _, child := range r.Resources {
+		list = append(list, child.resources(&name)...)
+	}
+
+	return list
+}
+
+// Microsoft.Network/virtualNetworks/VNet1/subnets/Subnet1 is represented by:
+//
+// - service: Microsoft.Network
+// - types: [virtualNetworks, subnets]
+// - names: VNet1, Subnet1
+type arm_Name struct {
+	service string
+	types   []string
+	names   []string
+}
+
+func parseArmName(typeString string, nameString string) arm_Name {
+	name := arm_Name{}
+	types := strings.Split(typeString, "/")
+	if len(types) > 0 {
+		name.service = types[0]
+		name.types = types[1:]
+	}
+	name.names = strings.Split(nameString, "/")
+	return name
+}
+
+func (n arm_Name) Type() string {
+	return n.service + "/" + strings.Join(n.types, "/")
+}
+
+func (n arm_Name) String() string {
+	str := n.service
+	for i := 0; i < len(n.types) && i < len(n.names); i++ {
+		str = str + "/" + n.types[i] + "/" + n.names[i]
+	}
+	return str
+}
+
+// Extends a parent name to a child name by adding types and names, e.g.
+//
+//     Microsoft.Network/virtualNetworks/subnets + VNet1/Subnet1 =
+//     -> Microsoft.Network/virtualNetworks/VNet1/subnets/Subnet1
+//
+func (parent arm_Name) Child(typeString string, nameString string) arm_Name {
+	child := arm_Name{}
+	child.service = parent.service
+
+	types := strings.Split(typeString, "/")
+	child.types = make([]string, len(parent.types)+len(types))
+	copy(child.types, parent.types)
+	copy(child.types[len(parent.types):], types)
+
+	names := strings.Split(nameString, "/")
+	child.names = make([]string, len(parent.names)+len(names))
+	copy(child.names, parent.names)
+	copy(child.names[len(parent.names):], names)
+	return child
+}
+
+// Returns the parent name of a child name, or nil if this name has
+// no parent.
+func (child arm_Name) Parent() *arm_Name {
+	if len(child.types) <= 1 || len(child.names) <= 1 {
+		return nil
+	}
+
+	parent := arm_Name{}
+	parent.service = child.service
+
+	parent.types = make([]string, len(child.types)-1)
+	copy(parent.types, child.types)
+
+	parent.names = make([]string, len(child.names)-1)
+	copy(parent.names, child.names)
+
+	return &parent
 }
