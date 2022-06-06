@@ -35,7 +35,7 @@ type TfDetector struct{}
 
 func (t *TfDetector) DetectFile(i InputFile, opts DetectOptions) (IACConfiguration, error) {
 	if !opts.IgnoreExt && i.Ext() != ".tf" {
-		return nil, fmt.Errorf("Expected a .tf extension for %s", i.Path())
+		return nil, fmt.Errorf("%w: %v", UnrecognizedFileExtension, i.Ext())
 	}
 	dir := filepath.Dir(i.Path())
 
@@ -50,7 +50,7 @@ func (t *TfDetector) DetectFile(i InputFile, opts DetectOptions) (IACConfigurati
 
 	moduleTree, err := hcl_interpreter.ParseFiles(nil, inputFs, false, dir, []string{i.Path()}, []string{})
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("%w: %v", FailedToParseInput, err)
 	}
 
 	return newHclConfiguration(moduleTree)
@@ -84,7 +84,7 @@ func (t *TfDetector) DetectDirectory(i InputDirectory, opts DetectOptions) (IACC
 	moduleRegister := hcl_interpreter.NewTerraformRegister(i.Path())
 	moduleTree, err := hcl_interpreter.ParseDirectory(moduleRegister, nil, i.Path())
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("%w: %v", FailedToParseInput, err)
 	}
 
 	if moduleTree != nil {

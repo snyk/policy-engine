@@ -11,12 +11,14 @@ components together.
     - [`LoadedConfigurations`](#loadedconfigurations)
     - [Example](#example)
       - [Obtaining input types for the InputTypes option](#obtaining-input-types-for-the-inputtypes-option)
+    - [Error handling](#error-handling)
   - [Evaluating policies](#evaluating-policies)
     - [`upe.Engine`](#upeengine)
     - [`data.Provider`](#dataprovider)
       - [`data.FSProvider()`](#datafsprovider)
       - [`data.LocalProvider()`](#datalocalprovider)
     - [Example](#example-1)
+    - [Error handling](#error-handling-1)
   - [Source code location and line numbers](#source-code-location-and-line-numbers)
     - [Example](#example-2)
 
@@ -44,6 +46,8 @@ format.
 package main
 
 import (
+  "errors"
+
   "github.com/snyk/unified-policy-engine/pkg/inputs"
   "github.com/snyk/unified-policy-engine/pkg/loader"
 )
@@ -69,7 +73,15 @@ func main() {
   // Invoke the loader, returning a LoadedConfigurations struct
   loadedConfigs, err := configLoader()
   if err != nil {
-    // ...
+    // Checking for specific errors
+    switch {
+    case errors.Is(err, loader.NoLoadableInputs):
+      // ...
+    case errors.Is(err, loader.UnrecognizedFileExtension):
+      // ...
+    default:
+      // ...
+    }
   }
   // Transform the loaded configurations into a slice of State structs
   states := loadedConfigs.ToStates()
@@ -84,6 +96,31 @@ it can parse. You can use the `loader.SupportedInputTypes.FromString(inputType)`
 to translate a string representation of an input type (for example from CLI arguments
 or a configuration file) into an `InputType` object which can be used in the
 `LoadPathsOptions.InputTypes` field.
+
+### Error handling
+
+The errors returned by the `ConfigurationLoader` function can be differentiated with
+either the `errors.Is()` function or the `errors.As()` function (or just a type cast)
+from the [errors standard library package](https://pkg.go.dev/errors). All of these
+errors are defined in [`pkg/loader/errors.go`](../pkg/loader/errors.go) and have
+inline documentation.
+
+| Error                        | Differentiated with      |
+| :--------------------------- | :----------------------- |
+| `NoLoadableInputs`           | `errors.Is`              |
+| `UnableToRecognizeInputType` | `errors.Is`              |
+| `FailedToProcessInput`       | `errors.As` or type cast |
+| `UnsupportedInputType`       | `errors.Is`              |
+| `UnableToResolveLocation`    | `errors.Is`              |
+| `UnrecognizedFileExtension`  | `errors.Is`              |
+| `FailedToParseInput`         | `errors.Is`              |
+| `InvalidInput`               | `errors.Is`              |
+| `UnableToReadFile`           | `errors.Is`              |
+| `UnableToReadDir`            | `errors.Is`              |
+| `UnableToReadStdin`          | `errors.Is`              |
+
+**NOTE** that `FailedToProcessInput` will always wrap one of the other errors, so it
+does not need to be handled explicitly unless its `Path` attribute is needed.
 
 ## Evaluating policies
 
@@ -170,19 +207,42 @@ func main() {
     Metrics:   m,
   })
   if err != nil {
-    // ...
+    // Checking for specific errors
+    switch {
+    case errors.Is(err, loader.FailedToLoadRegoAPI):
+      // ...
+    case errors.Is(err, loader.FailedToLoadRules):
+      // ...
+    default:
+      // ...
+    }
   }
   // This function returns a *models.Results
-  results, err := engine.Eval(ctx, &upe.EvalOptions{
+  results := engine.Eval(ctx, &upe.EvalOptions{
     // Inputs is a []models.State, like the output of the loadedConfigs.ToStates()
     // described above.
     Inputs: states,
   })
-  if err != nil {
-    // ...
-  }
 }
 ```
+
+### Error handling
+
+The errors returned by the `NewEngine` function can be differentiated with the
+`errors.Is()` function from the
+[errors standard library package](https://pkg.go.dev/errors). All of these errors are
+defined in [`pkg/engine/errors.go`](../pkg/loader/errors.go) and have inline
+documentation.
+
+**NOTE** that `Eval` does not currently return an `error`. Errors that occur during rule
+evaluation will be returned in the `Errors` field of the corresponding `RuleResults`
+model in the output.
+
+| Error                 | Differentiated with |
+| :-------------------- | :------------------ |
+| `FailedToLoadRegoAPI` | `errors.Is`         |
+| `FailedToLoadRules`   | `errors.Is`         |
+| `FailedToCompile`     | `errors.Is`         |
 
 ## Source code location and line numbers
 

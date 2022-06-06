@@ -55,13 +55,13 @@ func NewEngine(ctx context.Context, options *EngineOptions) (*Engine, error) {
 	consumer := NewPolicyConsumer()
 	if err := policy.RegoAPIProvider(ctx, consumer); err != nil {
 		logger.Error(ctx, "Failed to load rego API")
-		return nil, err
+		return nil, fmt.Errorf("%w: %v", FailedToLoadRegoAPI, err)
 	}
 	providersStart := time.Now()
 	for _, p := range options.Providers {
 		if err := p(ctx, consumer); err != nil {
 			logger.Error(ctx, "Failed to consume rule and data providers")
-			return nil, err
+			return nil, fmt.Errorf("%w: %v", FailedToLoadRules, err)
 		}
 	}
 	m.Timer(ctx, metrics.PROVIDERS_LOAD_TIME, "", metrics.Labels{}).
@@ -94,7 +94,7 @@ func NewEngine(ctx context.Context, options *EngineOptions) (*Engine, error) {
 	if len(compiler.Errors) > 0 {
 		err := compiler.Errors.Error()
 		logger.Error(ctx, "Failed during compilation")
-		return nil, fmt.Errorf(err)
+		return nil, fmt.Errorf("%w: %v", FailedToCompile, err)
 	}
 	logger.Info(ctx, "Finished initializing engine")
 	m.Counter(ctx, metrics.MODULES_LOADED, "", metrics.Labels{}).
@@ -127,7 +127,7 @@ type EvalOptions struct {
 }
 
 // Eval evaluates the given states using the rules that the engine was initialized with.
-func (e *Engine) Eval(ctx context.Context, options *EvalOptions) (*models.Results, error) {
+func (e *Engine) Eval(ctx context.Context, options *EvalOptions) *models.Results {
 	e.logger.Debug(ctx, "Beginning evaluation")
 	regoOptions := []func(*rego.Rego){
 		rego.Compiler(e.compiler),
@@ -141,8 +141,8 @@ func (e *Engine) Eval(ctx context.Context, options *EvalOptions) (*models.Result
 			id, err := p.ID(ctx, regoOptions)
 			if err != nil {
 				e.logger.WithField("package", p.Package()).
-					Error(ctx, "Failed to extract ID from policy")
-				return nil, err
+					Warn(ctx, "Failed to extract ID from policy")
+				continue
 			}
 			if !e.ruleIDs[id] {
 				continue
@@ -234,5 +234,5 @@ func (e *Engine) Eval(ctx context.Context, options *EvalOptions) (*models.Result
 		Format:        "results",
 		FormatVersion: "1.0.0",
 		Results:       results,
-	}, nil
+	}
 }

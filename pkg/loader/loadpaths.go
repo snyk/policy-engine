@@ -45,35 +45,25 @@ type LoadPathsOptions struct {
 	IgnoreDirs bool
 }
 
-// NoLoadableConfigsError indicates that the loader could not find any recognized
-// IaC configurations with the given parameters.
-type NoLoadableConfigsError struct {
-	paths []string
-}
-
-func (e *NoLoadableConfigsError) Error() string {
-	return fmt.Sprintf("No loadable files in provided paths: %v", e.paths)
-}
-
 // LocalConfigurationLoader returns a ConfigurationLoader that loads IaC configurations
 // from local disk.
 func LocalConfigurationLoader(options LoadPathsOptions) ConfigurationLoader {
 	return func() (LoadedConfigurations, error) {
 		configurations := newLoadedConfigurations()
 		detector, err := DetectorByInputTypes(options.InputTypes)
+		if err != nil {
+			return nil, err
+		}
 		// We want to ignore file extension mismatches when 'auto' is not present in
 		// the selected input types and there is only one input type selected.
 		autoInputTypeSelected := false
 		for _, t := range options.InputTypes {
-			if t == Auto {
+			if t.Name == Auto.Name {
 				autoInputTypeSelected = true
 				break
 			}
 		}
 		ignoreFileExtension := !autoInputTypeSelected && len(options.InputTypes) < 2
-		if err != nil {
-			return nil, err
-		}
 		walkFunc := func(i InputPath) (skip bool, err error) {
 			if configurations.AlreadyLoaded(i.Path()) {
 				skip = true
@@ -105,19 +95,23 @@ func LocalConfigurationLoader(options LoadPathsOptions) ConfigurationLoader {
 					IgnoreExt: true,
 				})
 				if err != nil {
-					return nil, err
+					return nil, &FailedToProcessInput{Path: path, err: err}
 				}
 				if loader != nil {
 					configurations.AddConfiguration(stdIn, loader)
 				} else {
-					return nil, fmt.Errorf("Unable to detect input type of stdin")
+					return nil, &FailedToProcessInput{Path: path, err: UnableToRecognizeInputType}
 				}
 				continue
 			}
 			name := filepath.Base(path)
 			info, err := os.Stat(path)
 			if err != nil {
-				return nil, err
+				return nil, &FailedToProcessInput{Path: path, err: fmt.Errorf(
+					"%w: %v",
+					UnableToReadFile,
+					err,
+				)}
 			}
 			if info.IsDir() {
 				// We want to override the gitignore behavior if the user explicitly gives
@@ -135,20 +129,20 @@ func LocalConfigurationLoader(options LoadPathsOptions) ConfigurationLoader {
 					GitRepoFinder: gitRepoFinder,
 				})
 				if err != nil {
-					return nil, err
+					return nil, &FailedToProcessInput{Path: path, err: err}
 				}
 				loader, err := i.DetectType(detector, DetectOptions{
 					IgnoreExt:  ignoreFileExtension,
 					IgnoreDirs: options.IgnoreDirs,
 				})
 				if err != nil {
-					return nil, err
+					return nil, &FailedToProcessInput{Path: path, err: err}
 				}
 				if loader != nil {
 					configurations.AddConfiguration(path, loader)
 				}
 				if err := i.Walk(walkFunc); err != nil {
-					return nil, err
+					return nil, &FailedToProcessInput{Path: path, err: err}
 				}
 			} else {
 				i := newFile(path, name)
@@ -156,17 +150,17 @@ func LocalConfigurationLoader(options LoadPathsOptions) ConfigurationLoader {
 					IgnoreExt: ignoreFileExtension,
 				})
 				if err != nil {
-					return nil, err
+					return nil, &FailedToProcessInput{Path: path, err: err}
 				}
 				if loader != nil {
 					configurations.AddConfiguration(path, loader)
 				} else {
-					return nil, fmt.Errorf("Unable to detect input type of file %v", i.Path())
+					return nil, &FailedToProcessInput{Path: path, err: UnableToRecognizeInputType}
 				}
 			}
 		}
 		if configurations.Count() < 1 {
-			return nil, &NoLoadableConfigsError{options.Paths}
+			return nil, fmt.Errorf("%w", NoLoadableInputs)
 		}
 
 		return configurations, nil
@@ -237,12 +231,16 @@ func (l *loadedConfigurations) ToStates() []models.State {
 func (l *loadedConfigurations) Location(path string, attributePath []interface{}) (LocationStack, error) {
 	canonical, ok := l.loadedPaths[path]
 	if !ok {
-		return nil, fmt.Errorf("Unable to determine location for given path %v and attribute path %v", path, attributePath)
+		return nil, fmt.Errorf("%w: unrecognized file path %v", UnableToResolveLocation, path)
 	}
 
 	attribute, err := json.Marshal(attributePath)
 	if err != nil {
-		return l.configurations[canonical].Location(attributePath)
+		location, err := l.configurations[canonical].Location(attributePath)
+		if err != nil {
+			err = fmt.Errorf("%w: %v", UnableToResolveLocation, err)
+		}
+		return location, err
 	}
 
 	key := path + ":" + string(attribute)
@@ -250,6 +248,9 @@ func (l *loadedConfigurations) Location(path string, attributePath []interface{}
 		return cached.LocationStack, cached.Error
 	} else {
 		location, err := l.configurations[canonical].Location(attributePath)
+		if err != nil {
+			err = fmt.Errorf("%w: %v", UnableToResolveLocation, err)
+		}
 		l.locationCache[key] = cachedLocation{location, err}
 		return location, err
 	}
@@ -282,7 +283,7 @@ func detectorByInputType(inputType *inputs.InputType) (ConfigurationDetector, er
 	case inputs.Arm.Name:
 		return &ArmDetector{}, nil
 	default:
-		return nil, fmt.Errorf("Unsupported input type: %v", inputType)
+		return nil, fmt.Errorf("%w: %v", UnsupportedInputType, inputType)
 	}
 }
 

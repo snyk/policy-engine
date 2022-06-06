@@ -16,6 +16,7 @@
 package loader_test
 
 import (
+	"errors"
 	"testing"
 
 	"github.com/golang/mock/gomock"
@@ -29,7 +30,6 @@ import (
 func makeMockFile(ctrl *gomock.Controller, path, ext string, contents []byte) loader.InputFile {
 	mockFile := mocks.NewMockInputFile(ctrl)
 	mockFile.EXPECT().Ext().Return(ext)
-	mockFile.EXPECT().Path().Return(path)
 	mockFile.EXPECT().Contents().Return(contents, nil)
 	return mockFile
 }
@@ -49,7 +49,10 @@ func TestCfnDetector(t *testing.T) {
 	detector := &loader.CfnDetector{}
 
 	for _, i := range testInputs {
-		f := makeMockFile(ctrl, i.path, i.ext, i.contents)
+		f := mocks.NewMockInputFile(ctrl)
+		f.EXPECT().Ext().Return(i.ext)
+		f.EXPECT().Path().Return(i.path)
+		f.EXPECT().Contents().Return(i.contents, nil)
 		cfn, err := detector.DetectFile(f, loader.DetectOptions{
 			IgnoreExt: false,
 		})
@@ -66,7 +69,7 @@ func TestCfnDetectorNotCfnContents(t *testing.T) {
 	cfn, err := detector.DetectFile(f, loader.DetectOptions{
 		IgnoreExt: false,
 	})
-	assert.NotNil(t, err)
+	assert.True(t, errors.Is(err, loader.InvalidInput))
 	assert.Nil(t, cfn)
 }
 
@@ -74,12 +77,11 @@ func TestCfnDetectorNotCfnExt(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	detector := &loader.CfnDetector{}
 	f := mocks.NewMockInputFile(ctrl)
-	f.EXPECT().Ext().Return(".cfn")
-	f.EXPECT().Path().Return("cfn.cfn")
+	f.EXPECT().Ext().AnyTimes().Return(".cfn")
 	cfn, err := detector.DetectFile(f, loader.DetectOptions{
 		IgnoreExt: false,
 	})
-	assert.NotNil(t, err)
+	assert.True(t, errors.Is(err, loader.UnrecognizedFileExtension))
 	assert.Nil(t, cfn)
 }
 
@@ -104,6 +106,6 @@ func TestCfnDetectorNotYAML(t *testing.T) {
 	cfn, err := detector.DetectFile(f, loader.DetectOptions{
 		IgnoreExt: false,
 	})
-	assert.NotNil(t, err)
+	assert.True(t, errors.Is(err, loader.FailedToParseInput))
 	assert.Nil(t, cfn)
 }
