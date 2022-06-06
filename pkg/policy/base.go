@@ -116,10 +116,11 @@ type Metadata struct {
 	ID           string                         `json:"id"`
 	Title        string                         `json:"title"`
 	Description  string                         `json:"description"`
+	Platform     []string                       `json:"platform"`
 	Remediation  map[string]string              `json:"remediation"`
 	References   string                         `json:"references"`
 	Category     string                         `json:"category"`
-	Tags         []string                       `json:"tags"`
+	Tags         map[string]interface{}         `json:"tags,omitempty"`
 	ServiceGroup string                         `json:"service_group"`
 	Controls     map[string]map[string][]string `json:"controls"`
 	Severity     string                         `json:"severity"`
@@ -131,6 +132,19 @@ func (m Metadata) RemediationFor(inputType string) string {
 		return ""
 	}
 	return m.Remediation[key]
+}
+
+// Propagate static metadata to rule results.
+func (m Metadata) copyToRuleResults(output *models.RuleResults) {
+	output.Id = m.ID
+	output.Title = m.Title
+	output.Description = m.Description
+	output.Platform = m.Platform
+	output.References = m.References
+	output.Category = m.Category
+	output.Tags = m.Tags
+	output.ServiceGroup = m.ServiceGroup
+	output.Controls = m.Controls
 }
 
 // BasePolicy implements functionality that is shared between different concrete

@@ -158,12 +158,27 @@ components:
         title:
           type: string
           description: The rule title
+        platform:
+          description: The platform describes the CSPs or other technology platform (e.g. Docker) that the rule checks for
+          type: array
+          items:
+            type: string
         description:
           type: string
           description: The rule description
         references:
           type: string
           description: A markdown formatted string containing useful links
+        category:
+          description: The category of the policy
+          type: string
+        tags:
+          description: An array of tag key-value pairs associated with this policy. Values may be `null` for key-only tags.
+          type: object
+          additionalProperties: {}
+        service_group:
+          description: The service group of the primary resource associated with this policy (e.g. "EBS", "EC2")
+          type: string
         controls:
           type: object
           description: A map of rule set ID to a map of versions to a list of control IDs
@@ -187,6 +202,9 @@ components:
           type: array
           items:
             type: string
+        package:
+          description: The Rego package name that defines the rule, useful for debugging
+          type: string
     RuleResult:
       description: A single rule result
       type: object

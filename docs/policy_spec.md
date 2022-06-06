@@ -132,10 +132,11 @@ to clarify the intent of each field.
 | `id`            | string | A short identifier for the policy. The same ID can be shared across different implementations of the same policy |
 | `title`         | string | A short description of the policy                                                                                |
 | `description`   | string | A longer description of the policy                                                                               |
+| `platform`      | array  | The platform describes the CSPs or other technology platform (e.g. Docker) that the rule checks for              |
 | `remediation`   | object | [Remediation steps](#remediation) for the issue identified by the policy                                         |
 | `references`    | string | Links to additional information about the issue identified by the policy                                         |
 | `category`      | string | The category of the policy                                                                                       |
-| `tags`          | array  | An array of tag strings associated with this policy                                                              |
+| `tags`          | object | An array of tag key-value pairs associated with this policy. Values may be `null` for key-only tags.             |
 | `service_group` | string | The service group of the primary resource associated with this policy (e.g. "EBS", "EC2")                        |
 | `controls`      | object | A map of rule set ID to a map of versions to a list of control IDs                                               |
 | `severity`      | string | The severity of the issue identified by this policy                                                              |
@@ -147,6 +148,7 @@ metadata := {
     "id": "COMPANY_0001",
     "title": "S3 bucket name contains the word 'bucket'",
     "description": "It is unnecessary for resource names to contain their type.",
+    "platform": ["AWS"],
     "remediation": {
       "console": "1. Go to the AWS console\n2. Navigate to the S3 service page\n3. ...",
       "cloudformation": "1. Find the corresponding AWS::S3::Bucket resource\n2. ...",
@@ -154,10 +156,10 @@ metadata := {
     },
     "references": "[Some blog post](https://example.com/bucket-naming-conventions)",
     "category": "Best Practices",
-    "tags": [
-        "Naming Conventions",
-        "Pet Peeves"
-    ],
+    "tags": {
+        "Naming Conventions": null,
+        "Pet Peeves": null
+    },
     "service_group": "S3",
     "controls": {
         "CIS-AWS": {

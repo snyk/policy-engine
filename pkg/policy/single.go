@@ -39,17 +39,16 @@ func (p *SingleResourcePolicy) Eval(
 		WithField(logging.RESOURCE_TYPE, p.resourceType).
 		WithField(logging.INPUT_TYPE, p.InputType())
 	output := models.RuleResults{}
+	output.Package_ = p.pkg
+
 	metadata, err := p.Metadata(ctx, options.RegoOptions)
 	if err != nil {
 		logger.Error(ctx, "Failed to obtain metadata")
 		output.Errors = append(output.Errors, err.Error())
 		return []models.RuleResults{output}, err
 	}
-	output.Id = metadata.ID
-	output.Title = metadata.Title
-	output.Description = metadata.Description
-	output.Controls = metadata.Controls
-	output.References = metadata.References
+	metadata.copyToRuleResults(&output)
+
 	opts := append(
 		options.RegoOptions,
 		rego.Query(p.judgementRule.query()),
