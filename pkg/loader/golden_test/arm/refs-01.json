@@ -15,7 +15,7 @@
         "attributes": {
           "apiVersion": "2021-02-01",
           "location": "[resourceGroup().location]",
-          "properties": null
+          "properties": {}
         }
       }
     },
@@ -28,7 +28,7 @@
           "apiVersion": "2021-02-01",
           "location": "[resourceGroup().location]",
           "properties": {
-            "serverFarmId": "[resourceId('Microsoft.Web/serverfarms', 'appServicePlanPortal')]"
+            "serverFarmId": "Microsoft.Web/serverfarms/appServicePlanPortal"
           }
         }
       },
@@ -40,7 +40,7 @@
           "apiVersion": "2021-02-01",
           "location": "[resourceGroup().location]",
           "properties": {
-            "serverFarmId": "[resourceId('Microsoft.Web/serverfarms', 'appServicePlanPortal')]"
+            "serverFarmId": "Microsoft.Web/serverfarms/appServicePlanPortal"
           }
         }
       },
@@ -52,7 +52,7 @@
           "apiVersion": "2021-02-01",
           "location": "[resourceGroup().location]",
           "properties": {
-            "serverFarmId": "[resourceId('Microsoft.Web/serverfarms', 'appServicePlanPortal')]"
+            "serverFarmId": "Microsoft.Web/serverfarms/appServicePlanPortal"
           }
         }
       }

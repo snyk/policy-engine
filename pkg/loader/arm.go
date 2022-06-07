@@ -18,9 +18,11 @@ package loader
 import (
 	"encoding/json"
 	"fmt"
+	"regexp"
 	"strings"
 
 	"github.com/snyk/unified-policy-engine/pkg/inputs"
+	"github.com/snyk/unified-policy-engine/pkg/interfacetricks"
 	"github.com/snyk/unified-policy-engine/pkg/models"
 )
 
@@ -66,10 +68,24 @@ type armConfiguration struct {
 }
 
 func (l *armConfiguration) ToState() models.State {
+	// Initial pass to convert all resources
 	resources := map[string]models.ResourceState{}
+	resourceSet := map[string]struct{}{}
 	for _, resource := range l.template.resources() {
 		resource.Namespace = l.path
 		resources[resource.Id] = resource
+		resourceSet[resource.Id] = struct{}{}
+	}
+
+	// Second pass to rewrite resource references
+	refResolver := arm_ReferenceResolver{
+		resources: resourceSet,
+	}
+	for _, resource := range resources {
+		for k, attr := range resource.Attributes {
+			updated := interfacetricks.TopDownWalk(&refResolver, interfacetricks.Copy(attr))
+			resource.Attributes[k] = updated
+		}
 	}
 
 	return models.State{
@@ -234,4 +250,62 @@ func (child arm_Name) Parent() *arm_Name {
 	copy(parent.names, child.names)
 
 	return &parent
+}
+
+// TopDownInterfaceWalker implementation to find and replace resource references
+// for ARM.
+type arm_ReferenceResolver struct {
+	// Set of present resources.
+	resources map[string]struct{}
+}
+
+func (*arm_ReferenceResolver) WalkArray(arr []interface{}) (interface{}, bool) {
+	return arr, true
+}
+
+func (*arm_ReferenceResolver) WalkObject(obj map[string]interface{}) (interface{}, bool) {
+	return obj, true
+}
+
+func (resolver *arm_ReferenceResolver) WalkString(s string) (interface{}, bool) {
+	if strings.HasPrefix(s, "[") {
+		re := regexp.MustCompile(`[\[\]()',[:space:]]+`)
+		rawTokens := re.Split(s, -1)
+		tokens := []string{}
+		for _, t := range rawTokens {
+			if t != "" {
+				tokens = append(tokens, t)
+			}
+		}
+
+		if len(tokens) >= 3 && tokens[0] == "resourceId" {
+			typeStr := tokens[1]
+			nameStr := strings.Join(tokens[2:], "/")
+			ref := parseArmName(typeStr, nameStr).String()
+			if _, ok := resolver.resources[ref]; ok {
+				return ref, false
+			}
+		}
+	}
+
+	/*
+			startswith(string, "[")
+			tokens := [p | p := regex.split(`[\[\]()',[:space:]]+`, string)[_]; p != ""]
+			ret = rewrite_token_reference(tokens, resources)
+		}
+
+		# Matches patterns that can be used to refer to resources.
+		rewrite_token_reference(tokens, resources) = ret {
+			tokens[0] == "resourceId"
+			type := tokens[1]
+			names := array.slice(tokens, 2, count(tokens))
+			typed_name := make_typed_name(type, concat("/", names))
+			_ := resources[typed_name]
+			ret := typed_name
+	*/
+	return s, false
+}
+
+func (*arm_ReferenceResolver) WalkBool(b bool) (interface{}, bool) {
+	return b, false
 }
