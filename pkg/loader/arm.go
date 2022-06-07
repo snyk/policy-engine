@@ -288,21 +288,6 @@ func (resolver *arm_ReferenceResolver) WalkString(s string) (interface{}, bool) 
 		}
 	}
 
-	/*
-			startswith(string, "[")
-			tokens := [p | p := regex.split(`[\[\]()',[:space:]]+`, string)[_]; p != ""]
-			ret = rewrite_token_reference(tokens, resources)
-		}
-
-		# Matches patterns that can be used to refer to resources.
-		rewrite_token_reference(tokens, resources) = ret {
-			tokens[0] == "resourceId"
-			type := tokens[1]
-			names := array.slice(tokens, 2, count(tokens))
-			typed_name := make_typed_name(type, concat("/", names))
-			_ := resources[typed_name]
-			ret := typed_name
-	*/
 	return s, false
 }
 
