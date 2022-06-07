@@ -32,20 +32,20 @@ type ArmDetector struct{}
 
 func (c *ArmDetector) DetectFile(i InputFile, opts DetectOptions) (IACConfiguration, error) {
 	if !opts.IgnoreExt && !validArmExts[i.Ext()] {
-		return nil, fmt.Errorf("File does not have .json extension: %v", i.Path())
+		return nil, fmt.Errorf("%w: %v", UnrecognizedFileExtension, i.Ext())
 	}
 	contents, err := i.Contents()
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("%w", UnableToReadFile)
 	}
 
 	template := &arm_Template{}
 	if err := json.Unmarshal(contents, &template); err != nil {
-		return nil, fmt.Errorf("Failed to parse file as JSON %v: %v", i.Path(), err)
+		return nil, fmt.Errorf("%w: %v", FailedToParseInput, err)
 	}
 
 	if template.Schema == "" || template.Resources == nil {
-		return nil, fmt.Errorf("Input file is not an ARM template: %v", i.Path())
+		return nil, fmt.Errorf("%w", InvalidInput)
 	}
 
 	path := i.Path()

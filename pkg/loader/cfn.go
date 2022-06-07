@@ -36,7 +36,7 @@ type CfnDetector struct{}
 
 func (c *CfnDetector) DetectFile(i InputFile, opts DetectOptions) (IACConfiguration, error) {
 	if !opts.IgnoreExt && !validCfnExts[i.Ext()] {
-		return nil, fmt.Errorf("File does not have .yaml, .yml, or .json extension: %v", i.Path())
+		return nil, fmt.Errorf("%w: %v", UnrecognizedFileExtension, i.Ext())
 	}
 	contents, err := i.Contents()
 	if err != nil {
@@ -45,11 +45,11 @@ func (c *CfnDetector) DetectFile(i InputFile, opts DetectOptions) (IACConfigurat
 
 	template := &cfnTemplate{}
 	if err := yaml.Unmarshal(contents, &template); err != nil || template == nil {
-		return nil, fmt.Errorf("Failed to parse file as YAML or JSON %v: %v", i.Path(), err)
+		return nil, fmt.Errorf("%w: %v", FailedToParseInput, err)
 	}
 
 	if template.AWSTemplateFormatVersion == nil && template.Resources == nil {
-		return nil, fmt.Errorf("Input file is not a CloudFormation template: %v", i.Path())
+		return nil, fmt.Errorf("%w", InvalidInput)
 	}
 
 	path := i.Path()
@@ -148,7 +148,11 @@ func (l *cfnConfiguration) Location(path []interface{}) (LocationStack, error) {
 
 	resourceId, ok := path[1].(string)
 	if !ok {
-		return nil, fmt.Errorf("Expected string resource ID in path")
+		return nil, fmt.Errorf(
+			"%w: Expected string resource ID in path: %v",
+			UnableToResolveLocation,
+			path,
+		)
 	}
 
 	fullPath := []interface{}{"Resources", resourceId}

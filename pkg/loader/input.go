@@ -16,6 +16,7 @@
 package loader
 
 import (
+	"fmt"
 	"io"
 	"os"
 	"path/filepath"
@@ -78,7 +79,7 @@ func newDirectory(opts directoryOptions) (InputDirectory, error) {
 	contents := []InputPath{}
 	entries, err := os.ReadDir(opts.Path)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("%w: %v", UnableToReadDir, err)
 	}
 	var repo git.Repo
 	if !opts.NoGitIgnore {
@@ -156,7 +157,7 @@ func (f *file) Contents() ([]byte, error) {
 		contents, err := io.ReadAll(os.Stdin)
 		if err != nil {
 			f.cachedContents = []byte{}
-			return nil, err
+			return nil, fmt.Errorf("%w: %v", UnableToReadStdin, err)
 		}
 		f.cachedContents = contents
 		return contents, nil
@@ -165,7 +166,7 @@ func (f *file) Contents() ([]byte, error) {
 	contents, err := os.ReadFile(f.path)
 	if err != nil {
 		f.cachedContents = []byte{}
-		return nil, err
+		return nil, fmt.Errorf("%w: %v", UnableToReadFile, err)
 	}
 	f.cachedContents = contents
 	return contents, nil

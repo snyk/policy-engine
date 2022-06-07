@@ -33,7 +33,7 @@ type streamlinedTfState struct {
 
 func (t *StreamlinedStateDetector) DetectFile(i InputFile, opts DetectOptions) (IACConfiguration, error) {
 	if !opts.IgnoreExt && i.Ext() != ".json" {
-		return nil, fmt.Errorf("File does not have .json extension: %v", i.Path())
+		return nil, fmt.Errorf("%w: %v", UnrecognizedFileExtension, i.Ext())
 	}
 	contents, err := i.Contents()
 	if err != nil {
@@ -41,13 +41,13 @@ func (t *StreamlinedStateDetector) DetectFile(i InputFile, opts DetectOptions) (
 	}
 	j := streamlinedTfState{}
 	if err := yaml.Unmarshal(contents, &j); err != nil {
-		return nil, fmt.Errorf("Failed to parse JSON file %v: %v", i.Path(), err)
+		return nil, fmt.Errorf("%w: %v", FailedToParseInput, err)
 	}
 	hasSkeleton := len(j.Skeleton) > 0
 	hasResources := len(j.Resources) > 0
 
 	if !hasSkeleton || !hasResources {
-		return nil, fmt.Errorf("Input file is not runtime state JSON: %v", i.Path())
+		return nil, fmt.Errorf("%w", InvalidInput)
 	}
 
 	var environmentProvider string

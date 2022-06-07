@@ -51,7 +51,7 @@ type KubernetesDetector struct{}
 
 func (c *KubernetesDetector) DetectFile(i InputFile, opts DetectOptions) (IACConfiguration, error) {
 	if !opts.IgnoreExt && !validK8sExts[i.Ext()] {
-		return nil, fmt.Errorf("file does not have .yaml or .yml extension: %v", i.Path())
+		return nil, fmt.Errorf("%w: %v", UnrecognizedFileExtension, i.Ext())
 	}
 	contents, err := i.Contents()
 	if err != nil {
@@ -59,10 +59,10 @@ func (c *KubernetesDetector) DetectFile(i InputFile, opts DetectOptions) (IACCon
 	}
 	documents, err := splitYAML(contents)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("%w: %v", FailedToParseInput, err)
 	}
 	if len(documents) == 0 {
-		return nil, fmt.Errorf("no valid yaml documents found in %v", i.Path())
+		return nil, fmt.Errorf("%w: did not contain any valid YAML documents", InvalidInput)
 	}
 
 	// Model each YAML document as a resource
@@ -75,21 +75,21 @@ func (c *KubernetesDetector) DetectFile(i InputFile, opts DetectOptions) (IACCon
 	sources := map[string]SourceInfoNode{}
 	documentSources, err := LoadMultiSourceInfoNode(contents)
 	if err != nil {
-		return nil, err
+		documentSources = nil // Don't consider source code locations essential.
 	}
 
 	for documentIdx, document := range documents {
 		var name, namespace string
 		kind, ok := document["kind"]
 		if !ok {
-			return nil, fmt.Errorf("input file does not define a kind: %v", i.Path())
+			return nil, fmt.Errorf("%w: input file does not define a kind", InvalidInput)
 		}
 		if metadata, ok := document["metadata"].(map[string]interface{}); ok {
 			name, _ = metadata["name"].(string)
 			namespace, _ = metadata["namespace"].(string)
 		}
 		if name == "" {
-			return nil, fmt.Errorf("input file does not define a name: %v", i.Path())
+			return nil, fmt.Errorf("%w: input file does not define a name", InvalidInput)
 		}
 		if namespace == "" {
 			namespace = "default"
@@ -118,7 +118,6 @@ type k8sConfiguration struct {
 	sources   map[string]SourceInfoNode
 	resources map[string]interface{}
 }
-
 
 func (l *k8sConfiguration) ToState() models.State {
 	return toState(inputs.Kubernetes.Name, l.path, l.resources)

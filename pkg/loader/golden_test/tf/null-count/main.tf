@@ -1,5 +1,5 @@
 variable "foo_count" {
-  type = int
+  type = number
 }
 
 provider "aws" {

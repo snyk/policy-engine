@@ -16,6 +16,7 @@
 package loader_test
 
 import (
+	"errors"
 	"testing"
 
 	"github.com/golang/mock/gomock"
@@ -41,7 +42,10 @@ func TestTfPlanDetector(t *testing.T) {
 	detector := &loader.TfPlanDetector{}
 
 	for _, i := range testInputs {
-		f := makeMockFile(ctrl, i.path, i.ext, i.contents)
+		f := mocks.NewMockInputFile(ctrl)
+		f.EXPECT().Ext().Return(i.ext)
+		f.EXPECT().Path().Return(i.path)
+		f.EXPECT().Contents().Return(i.contents, nil)
 		loader, err := detector.DetectFile(f, loader.DetectOptions{
 			IgnoreExt: false,
 		})
@@ -55,24 +59,23 @@ func TestTfPlanDetectorNotTfContents(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	detector := &loader.TfPlanDetector{}
 	f := makeMockFile(ctrl, "other.json", ".json", inputs.Contents(t, "other.json"))
-	loader, err := detector.DetectFile(f, loader.DetectOptions{
+	tfplan, err := detector.DetectFile(f, loader.DetectOptions{
 		IgnoreExt: false,
 	})
-	assert.NotNil(t, err)
-	assert.Nil(t, loader)
+	assert.True(t, errors.Is(err, loader.InvalidInput))
+	assert.Nil(t, tfplan)
 }
 
 func TestTfPlanDetectorNotJsonExt(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	detector := &loader.TfPlanDetector{}
 	f := mocks.NewMockInputFile(ctrl)
-	f.EXPECT().Ext().Return(".tfplan")
-	f.EXPECT().Path().Return("plan.tfplan")
-	loader, err := detector.DetectFile(f, loader.DetectOptions{
+	f.EXPECT().Ext().AnyTimes().Return(".tfplan")
+	tfplan, err := detector.DetectFile(f, loader.DetectOptions{
 		IgnoreExt: false,
 	})
-	assert.NotNil(t, err)
-	assert.Nil(t, loader)
+	assert.True(t, errors.Is(err, loader.UnrecognizedFileExtension))
+	assert.Nil(t, tfplan)
 }
 
 func TestTfPlanDetectorIgnoreExt(t *testing.T) {
@@ -81,21 +84,21 @@ func TestTfPlanDetectorIgnoreExt(t *testing.T) {
 	f := mocks.NewMockInputFile(ctrl)
 	f.EXPECT().Path().Return("plan.tfplan")
 	f.EXPECT().Contents().Return(inputs.Contents(t, "tfplan.0.15.json"), nil)
-	loader, err := detector.DetectFile(f, loader.DetectOptions{
+	tfplan, err := detector.DetectFile(f, loader.DetectOptions{
 		IgnoreExt: true,
 	})
 	assert.Nil(t, err)
-	assert.NotNil(t, loader)
-	assert.Equal(t, loader.LoadedFiles(), []string{"plan.tfplan"})
+	assert.NotNil(t, tfplan)
+	assert.Equal(t, tfplan.LoadedFiles(), []string{"plan.tfplan"})
 }
 
 func TestTfPlanDetectorNotYAML(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	detector := &loader.TfPlanDetector{}
 	f := makeMockFile(ctrl, "not_tfplan.json", ".json", inputs.Contents(t, "text.txt"))
-	loader, err := detector.DetectFile(f, loader.DetectOptions{
+	tfplan, err := detector.DetectFile(f, loader.DetectOptions{
 		IgnoreExt: false,
 	})
-	assert.NotNil(t, err)
-	assert.Nil(t, loader)
+	assert.True(t, errors.Is(err, loader.FailedToParseInput))
+	assert.Nil(t, tfplan)
 }
