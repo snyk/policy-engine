@@ -333,6 +333,14 @@ func (resolver *cfnReferenceResolver) WalkObject(obj map[string]interface{}) (in
 	}
 }
 
+func (*cfnReferenceResolver) WalkString(s string) (interface{}, bool) {
+	return s, false
+}
+
+func (*cfnReferenceResolver) WalkBool(b bool) (interface{}, bool) {
+    return b, false
+}
+
 // Resolves references to other resources from the given value.  Returns nil
 // if not applicable.
 func (resolver *cfnReferenceResolver) resolveObject(obj map[string]interface{}) []interface{} {

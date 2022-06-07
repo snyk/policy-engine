@@ -500,22 +500,20 @@ type replaceBoolTopDownWalker struct {
 	replaceBool func(bool) interface{}
 }
 
-func (w *replaceBoolTopDownWalker) WalkArray(arr []interface{}) (interface{}, bool) {
-	for i, v := range arr {
-		if b, ok := v.(bool); ok {
-			arr[i] = w.replaceBool(b)
-		}
-	}
+func (*replaceBoolTopDownWalker) WalkArray(arr []interface{}) (interface{}, bool) {
 	return arr, true
 }
 
-func (w *replaceBoolTopDownWalker) WalkObject(obj map[string]interface{}) (interface{}, bool) {
-	for k, v := range obj {
-		if b, ok := v.(bool); ok {
-			obj[k] = w.replaceBool(b)
-		}
-	}
+func (*replaceBoolTopDownWalker) WalkObject(obj map[string]interface{}) (interface{}, bool) {
 	return obj, true
+}
+
+func (*replaceBoolTopDownWalker) WalkString(s string) (interface{}, bool) {
+    return s, false
+}
+
+func (w *replaceBoolTopDownWalker) WalkBool(b bool) (interface{}, bool) {
+    return w.replaceBool(b), false
 }
 
 // Terraform plan format 0.2 introduced a change where the references array

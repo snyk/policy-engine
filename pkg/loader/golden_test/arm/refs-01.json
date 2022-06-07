@@ -1,0 +1,61 @@
+{
+  "format": "",
+  "format_version": "",
+  "input_type": "arm",
+  "environment_provider": "iac",
+  "meta": {
+    "filepath": "golden_test/arm/refs-01/template.json"
+  },
+  "resources": {
+    "Microsoft.Web/serverfarms": {
+      "Microsoft.Web/serverfarms/appServicePlanPortal": {
+        "id": "Microsoft.Web/serverfarms/appServicePlanPortal",
+        "resource_type": "Microsoft.Web/serverfarms",
+        "namespace": "golden_test/arm/refs-01/template.json",
+        "attributes": {
+          "apiVersion": "2021-02-01",
+          "location": "[resourceGroup().location]",
+          "properties": null
+        }
+      }
+    },
+    "Microsoft.Web/sites": {
+      "Microsoft.Web/sites/invalidType": {
+        "id": "Microsoft.Web/sites/invalidType",
+        "resource_type": "Microsoft.Web/sites",
+        "namespace": "golden_test/arm/refs-01/template.json",
+        "attributes": {
+          "apiVersion": "2021-02-01",
+          "location": "[resourceGroup().location]",
+          "properties": {
+            "serverFarmId": "[resourceId('Microsoft.Web/serverfarms', 'appServicePlanPortal')]"
+          }
+        }
+      },
+      "Microsoft.Web/sites/invalidUnset": {
+        "id": "Microsoft.Web/sites/invalidUnset",
+        "resource_type": "Microsoft.Web/sites",
+        "namespace": "golden_test/arm/refs-01/template.json",
+        "attributes": {
+          "apiVersion": "2021-02-01",
+          "location": "[resourceGroup().location]",
+          "properties": {
+            "serverFarmId": "[resourceId('Microsoft.Web/serverfarms', 'appServicePlanPortal')]"
+          }
+        }
+      },
+      "Microsoft.Web/sites/valid": {
+        "id": "Microsoft.Web/sites/valid",
+        "resource_type": "Microsoft.Web/sites",
+        "namespace": "golden_test/arm/refs-01/template.json",
+        "attributes": {
+          "apiVersion": "2021-02-01",
+          "location": "[resourceGroup().location]",
+          "properties": {
+            "serverFarmId": "[resourceId('Microsoft.Web/serverfarms', 'appServicePlanPortal')]"
+          }
+        }
+      }
+    }
+  }
+}
