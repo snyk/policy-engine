@@ -172,10 +172,11 @@ components:
         category:
           description: The category of the policy
           type: string
-        tags:
-          description: An array of tag key-value pairs associated with this policy. Values may be `null` for key-only tags.
-          type: object
-          additionalProperties: {}
+        labels:
+          description: An array of labels (value-less tags) associated with this policy
+          type: array
+          items:
+            type: string
         service_group:
           description: The service group of the primary resource associated with this policy (e.g. "EBS", "EC2")
           type: string

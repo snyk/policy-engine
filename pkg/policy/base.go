@@ -120,7 +120,7 @@ type Metadata struct {
 	Remediation  map[string]string              `json:"remediation"`
 	References   string                         `json:"references"`
 	Category     string                         `json:"category"`
-	Tags         map[string]interface{}         `json:"tags,omitempty"`
+	Labels       []string                       `json:"labels,omitempty"`
 	ServiceGroup string                         `json:"service_group"`
 	Controls     map[string]map[string][]string `json:"controls"`
 	Severity     string                         `json:"severity"`
@@ -142,7 +142,7 @@ func (m Metadata) copyToRuleResults(output *models.RuleResults) {
 	output.Platform = m.Platform
 	output.References = m.References
 	output.Category = m.Category
-	output.Tags = m.Tags
+	output.Labels = m.Labels
 	output.ServiceGroup = m.ServiceGroup
 	output.Controls = m.Controls
 }

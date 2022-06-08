@@ -13,10 +13,10 @@
     },
     "references": "[Some blog post](https://example.com/bucket-naming-conventions)",
     "category": "Best Practices",
-    "tags": {
-      "Naming Conventions": null,
-      "Pet Peeves": null
-    },
+    "labels": [
+      "Naming Conventions",
+      "Pet Peeves"
+    ],
     "service_group": "S3",
     "controls": {
       "CIS-AWS": {

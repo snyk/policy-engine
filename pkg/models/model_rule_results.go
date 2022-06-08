@@ -22,8 +22,8 @@ type RuleResults struct {
 	References string `json:"references,omitempty"`
 	// The category of the policy
 	Category string `json:"category,omitempty"`
-	// An array of tag key-value pairs associated with this policy. Values may be `null` for key-only tags.
-	Tags map[string]interface{} `json:"tags,omitempty"`
+	// An array of labels (value-less tags) associated with this policy
+	Labels []string `json:"labels,omitempty"`
 	// The service group of the primary resource associated with this policy (e.g. \"EBS\", \"EC2\")
 	ServiceGroup string `json:"service_group,omitempty"`
 	// A map of rule set ID to a map of versions to a list of control IDs

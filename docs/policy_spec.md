@@ -136,7 +136,7 @@ to clarify the intent of each field.
 | `remediation`   | object | [Remediation steps](#remediation) for the issue identified by the policy                                         |
 | `references`    | string | Links to additional information about the issue identified by the policy                                         |
 | `category`      | string | The category of the policy                                                                                       |
-| `tags`          | object | An array of tag key-value pairs associated with this policy. Values may be `null` for key-only tags.             |
+| `labels`        | array  | An array of labels (value-less tags) associated with this policy.                                                |
 | `service_group` | string | The service group of the primary resource associated with this policy (e.g. "EBS", "EC2")                        |
 | `controls`      | object | A map of rule set ID to a map of versions to a list of control IDs                                               |
 | `severity`      | string | The severity of the issue identified by this policy                                                              |
@@ -156,10 +156,10 @@ metadata := {
     },
     "references": "[Some blog post](https://example.com/bucket-naming-conventions)",
     "category": "Best Practices",
-    "tags": {
-        "Naming Conventions": null,
-        "Pet Peeves": null
-    },
+    "labels": [
+        "Naming Conventions",
+        "Pet Peeves"
+    ],
     "service_group": "S3",
     "controls": {
         "CIS-AWS": {
