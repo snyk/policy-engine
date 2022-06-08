@@ -50,10 +50,22 @@ func (c *ArmDetector) DetectFile(i InputFile, opts DetectOptions) (IACConfigurat
 		return nil, fmt.Errorf("%w", InvalidInput)
 	}
 
+	// Don't consider source code locations essential.
+	source, _ := LoadSourceInfoNode(contents)
+
+	// Create a map of resource ID to discovered resources.  This is necessary
+	// for source code locations.
+	discovered := map[string]arm_DiscoverResource{}
+	for _, d := range template.discover() {
+		discovered[d.name.String()] = d
+	}
+
 	path := i.Path()
 	return &armConfiguration{
-		path:     path,
-		template: template,
+		path:       path,
+		template:   template,
+		discovered: discovered,
+		source:     source,
 	}, nil
 }
 
@@ -62,30 +74,28 @@ func (c *ArmDetector) DetectDirectory(i InputDirectory, opts DetectOptions) (IAC
 }
 
 type armConfiguration struct {
-	path     string
-	template *arm_Template
-	source   *SourceInfoNode
+	path       string
+	template   *arm_Template
+	discovered map[string]arm_DiscoverResource
+	source     *SourceInfoNode
 }
 
 func (l *armConfiguration) ToState() models.State {
-	// Initial pass to convert all resources
-	resources := map[string]models.ResourceState{}
+	// Set of all existing resources for the resolver.
 	resourceSet := map[string]struct{}{}
-	for _, resource := range l.template.resources() {
-		resource.Namespace = l.path
-		resources[resource.Id] = resource
-		resourceSet[resource.Id] = struct{}{}
+	for id := range l.discovered {
+		resourceSet[id] = struct{}{}
 	}
-
-	// Second pass to rewrite resource references
 	refResolver := arm_ReferenceResolver{
 		resources: resourceSet,
 	}
-	for _, resource := range resources {
-		for k, attr := range resource.Attributes {
-			updated := interfacetricks.TopDownWalk(&refResolver, interfacetricks.Copy(attr))
-			resource.Attributes[k] = updated
-		}
+
+	// Process resources
+	resources := map[string]models.ResourceState{}
+	for k, d := range l.discovered {
+		resource := d.process(&refResolver)
+		resource.Namespace = l.path
+		resources[k] = resource
 	}
 
 	return models.State{
@@ -99,7 +109,35 @@ func (l *armConfiguration) ToState() models.State {
 }
 
 func (l *armConfiguration) Location(path []interface{}) (LocationStack, error) {
-	return nil, nil
+	// Format is {resourceType, resourceId, attributePath...}
+	if l.source == nil || len(path) < 2 {
+		return nil, nil
+	}
+
+	resourceId, ok := path[1].(string)
+	if !ok {
+		return nil, fmt.Errorf(
+			"%w: Expected string resource ID in path: %v",
+			UnableToResolveLocation,
+			path,
+		)
+	}
+
+	dr, ok := l.discovered[resourceId]
+	if !ok {
+		return nil, fmt.Errorf(
+			"%w: Unable to find resource with ID: %s",
+			UnableToResolveLocation,
+			resourceId,
+		)
+	}
+
+	fullPath := make([]interface{}, len(dr.path))
+	copy(fullPath, dr.path)
+	fullPath = append(fullPath, path[2:]...)
+	node, err := l.source.GetPath(fullPath)
+	line, column := node.Location()
+	return []Location{{Path: l.path, Line: line, Col: column}}, err
 }
 
 func (l *armConfiguration) LoadedFiles() []string {
@@ -122,29 +160,64 @@ type arm_Resource struct {
 	Resources  []arm_Resource         `json:"resources"`
 }
 
-func (t arm_Template) resources() []models.ResourceState {
-	all := []models.ResourceState{}
-	for _, top := range t.Resources {
-		all = append(all, top.resources(nil)...)
-	}
-	return all
+// A resource together with its JSON path and name metadata.  This allows us to
+// iterate them and obtain a flat list before we actually process them.
+type arm_DiscoverResource struct {
+	name     arm_Name
+	path     []interface{}
+	resource arm_Resource
 }
 
-func (r arm_Resource) resources(
-	parent *arm_Name, // Name of the parent, nil if top-level
-) []models.ResourceState {
-	// Extend or construct name.
-	name := parseArmName(r.Type, r.Name)
-	if parent != nil {
-		// We are nested under some parent.
-		name = parent.Child(r.Type, r.Name)
-	} else {
-		// Not nested but our name may refer to a parent.
-		parent = name.Parent()
+func (t arm_Template) discover() []arm_DiscoverResource {
+	discovered := []arm_DiscoverResource{}
+	var visit func([]interface{}, *arm_Name, arm_Resource)
+	visit = func(
+		path []interface{},
+		parentName *arm_Name,
+		resource arm_Resource,
+	) {
+		// Extend or construct name.
+		name := parseArmName(resource.Type, resource.Name)
+		if parentName != nil {
+			// We are nested under some parent.
+			name = parentName.Child(resource.Type, resource.Name)
+		}
+
+		// Add discovered resource.
+		discovered = append(discovered, arm_DiscoverResource{
+			name:     name,
+			path:     path,
+			resource: resource,
+		})
+
+		// Recurse on children.
+		for i, child := range resource.Resources {
+			childPath := make([]interface{}, len(path))
+			copy(childPath, path)
+			childPath = append(childPath, "resources")
+			childPath = append(childPath, i)
+			visit(childPath, &name, child)
+		}
 	}
 
+	for i, top := range t.Resources {
+		visit([]interface{}{"resources", i}, nil, top)
+	}
+	return discovered
+}
+
+func (d arm_DiscoverResource) process(
+	refResolver *arm_ReferenceResolver,
+) models.ResourceState {
+	r := d.resource
+
 	attributes := map[string]interface{}{}
-	attributes["properties"] = r.Properties
+	properties := map[string]interface{}{}
+	for k, attr := range r.Properties {
+		updated := interfacetricks.TopDownWalk(refResolver, interfacetricks.Copy(attr))
+		properties[k] = updated
+	}
+	attributes["properties"] = properties
 	if r.ApiVersion != "" {
 		attributes["apiVersion"] = r.ApiVersion
 	}
@@ -153,29 +226,24 @@ func (r arm_Resource) resources(
 	}
 
 	meta := map[string]interface{}{}
-	if parent != nil {
+	if parent := d.name.Parent(); parent != nil {
 		armMeta := map[string]interface{}{}
 		armMeta["parent_id"] = parent.String()
 		meta["arm"] = armMeta
 	}
 
-	this := models.ResourceState{
-		Id:           name.String(),
-		ResourceType: name.Type(),
+	state := models.ResourceState{
+		Id:           d.name.String(),
+		ResourceType: d.name.Type(),
 		Attributes:   attributes,
 		Meta:         meta,
 	}
 
 	if len(r.Tags) > 0 {
-		this.Tags = r.Tags
+		state.Tags = r.Tags
 	}
 
-	list := []models.ResourceState{this}
-	for _, child := range r.Resources {
-		list = append(list, child.resources(&name)...)
-	}
-
-	return list
+	return state
 }
 
 // Microsoft.Network/virtualNetworks/VNet1/subnets/Subnet1 is represented by:

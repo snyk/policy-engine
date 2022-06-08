@@ -19,6 +19,64 @@ type goldenLocationTestCase struct {
 }
 
 var goldenLocationTests = []goldenLocationTest{
+	// ARM
+	{
+		directory: "golden_test/arm/example-01",
+		cases: []goldenLocationTestCase{
+			{
+				path: []interface{}{
+					"Microsoft.Network/virtualNetworks",
+					"Microsoft.Network/virtualNetworks/VNet1",
+					"properties",
+					"addressSpace",
+					"addressPrefixes",
+					0,
+				},
+				expected: LocationStack{Location{
+					Path: "template.json",
+					Line: 13,
+					Col:  13,
+				}},
+			},
+			{
+				path: []interface{}{
+					"Microsoft.Network/virtualNetworks/subnets",
+					"Microsoft.Network/virtualNetworks/VNet1/subnets/Subnet1",
+					"properties",
+					"addressPrefix",
+				},
+				expected: LocationStack{Location{
+					Path: "template.json",
+					Line: 30,
+					Col:  13,
+				}},
+			},
+			{
+				path: []interface{}{
+					"Microsoft.Network/virtualNetworks/subnets",
+					"Microsoft.Network/virtualNetworks/VNet1/subnets/Subnet2",
+					"properties",
+					"addressPrefix",
+				},
+				expected: LocationStack{Location{
+					Path: "template.json",
+					Line: 43,
+					Col:  9,
+				}},
+			},
+			{
+				path: []interface{}{
+					"Microsoft.Network/virtualNetworks/subnets",
+					"Microsoft.Network/virtualNetworks/VNet1/subnets/Subnet2",
+				},
+				expected: LocationStack{Location{
+					Path: "template.json",
+					Line: 35,
+					Col:  5,
+				}},
+			},
+		},
+	},
 	// CFN
 	{
 		directory: "golden_test/cfn/example-01",
