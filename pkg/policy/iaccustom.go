@@ -54,12 +54,12 @@ func (p *IaCCustomPolicy) Eval(
 		logger.Error(ctx, "Failed to unmarshal result set")
 		return nil, err
 	}
-	return ir.toRuleResults(resourceNamespace), nil
+	return ir.toRuleResults(p.pkg, resourceNamespace), nil
 }
 
 type iacResults []*iacResult
 
-func (r iacResults) toRuleResults(resourceNamespace string) []models.RuleResults {
+func (r iacResults) toRuleResults(pkg string, resourceNamespace string) []models.RuleResults {
 	resultsByRuleID := map[string]models.RuleResults{}
 	for _, ir := range r {
 		id := ir.PublicID
@@ -70,6 +70,7 @@ func (r iacResults) toRuleResults(resourceNamespace string) []models.RuleResults
 				Title:       ir.Title,
 				Description: ir.Issue,                          // TODO: Maybe this should be a combination of both impact and issue?
 				References:  strings.Join(ir.References, "\n"), // TODO: How do we want to transform these?
+				Package_:    pkg,
 			}
 		}
 		ruleResults.Results = append(ruleResults.Results, *ir.toRuleResult(resourceNamespace))

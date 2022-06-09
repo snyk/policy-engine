@@ -1,5 +1,34 @@
 {
-    "metadata": {
-        "description": "This is a description for snyk_001"
-    }
+  "metadata": {
+    "id": "COMPANY_0001",
+    "title": "S3 bucket name contains the word 'bucket'",
+    "description": "It is unnecessary for resource names to contain their type.",
+    "platform": [
+      "AWS"
+    ],
+    "remediation": {
+      "console": "1. Go to the AWS console\n2. Navigate to the S3 service page\n3. ...",
+      "cloudformation": "1. Find the corresponding AWS::S3::Bucket resource\n2. ...",
+      "terraform": "1. Find the corresponding aws_s3_bucket resource\n2. ..."
+    },
+    "references": "[Some blog post](https://example.com/bucket-naming-conventions)",
+    "category": "Best Practices",
+    "labels": [
+      "Naming Conventions",
+      "Pet Peeves"
+    ],
+    "service_group": "S3",
+    "controls": {
+      "CIS-AWS": {
+        "v1.3.0": [
+          "5.1",
+          "5.2"
+        ],
+        "v1.4.0": [
+          "6.7"
+        ]
+      }
+    },
+    "severity": "Critical"
+  }
 }
