@@ -229,6 +229,7 @@ func (d arm_DiscoverResource) process(
 	if parent := d.name.Parent(); parent != nil {
 		armMeta := map[string]interface{}{}
 		armMeta["parent_id"] = parent.String()
+		attributes["_parent_id"] = parent.String() // Backwards-compat :-(
 		meta["arm"] = armMeta
 	}
 

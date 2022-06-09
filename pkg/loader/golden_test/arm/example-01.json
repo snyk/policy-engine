@@ -40,6 +40,7 @@
           }
         },
         "attributes": {
+          "_parent_id": "Microsoft.Network/virtualNetworks/VNet1",
           "apiVersion": "2018-10-01",
           "properties": {
             "addressPrefix": "10.0.0.0/24"
@@ -56,6 +57,7 @@
           }
         },
         "attributes": {
+          "_parent_id": "Microsoft.Network/virtualNetworks/VNet1",
           "apiVersion": "2018-10-01",
           "properties": {
             "addressPrefix": "10.0.1.0/24"
