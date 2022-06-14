@@ -1,6 +1,6 @@
 # Policies specification
 
-This document describes the contract and API for policies that run in the Policy Engine.
+This document describes the contract and API for policies that run in the policy engine.
 
 - [Policies specification](#policies-specification)
   - [Conventions in this document](#conventions-in-this-document)
@@ -84,8 +84,9 @@ archetypes would use it.
 When `resource_type` is set to `MULTIPLE`, the `input` document will be set to the
 [State object](#state-object) that is currently being processed by the engine. 
 
-When `resource_type` is set to a specific resource type (e.g. `aws_s3_bucket`), the policy engine will
-set the `input` document to the `attributes` object of a single resource state. 
+When `resource_type` is set to a specific resource type (e.g. `aws_s3_bucket`), the
+policy engine will set the `input` document to the `attributes` object of a single
+resource state. 
 
 When `resource_type` is unspecified, it defaults to `MULTIPLE`.
 
@@ -178,8 +179,9 @@ metadata := {
 #### Remediation
 
 Policies can provide input-type specific remediation steps via the `remediation`
-metadata field. If this field is set, the policy engine will, by default, pick a remediation string
-from this field based on the current input type using the following mapping:
+metadata field. If this field is set, the policy engine will, by default, pick a
+remediation string from this field based on the current input type using the following
+mapping:
 
 | Input type   | Key in `remediation` object |
 | :----------- | :-------------------------- |
@@ -196,10 +198,10 @@ Policies can also bypass this behavior by returning a `remediation` string in th
 ### `resources[info]`
 
 The `resources` rule is used to define which resources which contributed to a result.
-For the multi-resource and missing-resource policy archetypes, the policy engine uses `resources`
-results to mark resources as passing. For this reason, resources should be written to
-return results regardless of whether the policy as a whole would pass or fail a specific
-resource.
+For the multi-resource and missing-resource policy archetypes, the policy engine uses
+`resources` results to mark resources as passing. For this reason, resources should be
+written to return results regardless of whether the policy as a whole would pass or fail 
+a specific resource.
 
 The `info` return value is set to an object that describes a single resource and
 optionally:
@@ -226,7 +228,8 @@ Similarly, `resources[info]` results have an associated identifier that can be s
 manually via a `correlation` property. Otherwise it will be calculated from the resource
 in the `primary_resource` attribute (if specified) or the `resource` attribute.
 
-the policy engine will relate `resources` results with `deny` results that have the same identifier.
+The policy engine will relate `resources` results with `deny` results that have the same
+identifier.
 
 #### Examples
 
@@ -246,9 +249,9 @@ the policy engine will relate `resources` results with `deny` results that have 
 ### Single-resource policy
 
 Single-resource policies are distinguished by setting the
-[`resource_type` rule](#resource_type) to a single resource type. the policy engine evaluates
-single-resource policies by querying the `deny[info]` rule with the `input` document
-set to a single [resource object](#resource-object)
+[`resource_type` rule](#resource_type) to a single resource type. The policy engine
+evaluates single-resource policies by querying the `deny[info]` rule with the `input`
+document set to a single [resource object](#resource-object)
 
 By definition, single resource policies only interact with a single resource. Therefore,
 the `snyk.resources()` function is not useable in single-resource policies.
@@ -261,11 +264,11 @@ the `snyk.resources()` function is not useable in single-resource policies.
 ### Multi-resource policy
 
 Multi-resource policies are distinguished by setting the
-[`resource_type` rule](#resource_type) to `"MULTIPLE"`. the policy engine evaluates multi-resource
-policies by querying the `deny[info]` rule with the `input` document set to the entire
-`State` object being evaluated. Although multi-resource policies can access individual
-resources via the `input` document, they should use the `snyk.resources()` function to
-retrieve resources from the input by resource type.
+[`resource_type` rule](#resource_type) to `"MULTIPLE"`. The policy engine evaluates
+multi-resource policies by querying the `deny[info]` rule with the `input` document set
+to the entire `State` object being evaluated. Although multi-resource policies can
+access individual resources via the `input` document, they should use the
+`snyk.resources()` function to retrieve resources from the input by resource type.
 
 #### Multi-resource policy examples
 
@@ -299,8 +302,8 @@ deny[info] {
 
 ## The `snyk` API
 
-the policy engine provides a set of functions under the `snyk` namespace that can be used by policies.
-To use them, policies should `import data.snyk`, like is shown in the
+The policy engine provides a set of functions under the `snyk` namespace that can be
+used by policies. To use them, policies should `import data.snyk`, like is shown in the
 [multi-resource policy examples](#multi-resource-policy-examples).
 
 ### `snyk.resources(<resource type>)`
@@ -309,14 +312,14 @@ The `snyk.resources` function takes in a single resource type string and returns
 array of [resource objects](#resource-objects) of that type from the current `State`
 being evaluated.
 
-Internally, the policy engine tracks calls to `snyk.resources` to produce the `resource_types` array
-in the results output. This array may be used by downstream consumers to add context to
-policy results. For example, a consumer may need to communicate that some policy results
-were inconclusive if the resource types used by the policy were not surveyed. For this
-reason, some policies should be written to call `snyk.resources` for a particular type
-_only if_ that resource type exists in the input. See
-[`snyk.input_resource_types`](#snykinput_resource_types) below for an example of this
-idiom.
+Internally, the policy engine tracks calls to `snyk.resources` to produce the
+`resource_types` array in the results output. This array may be used by downstream
+consumers to add context to policy results. For example, a consumer may need to
+communicate that some policy results were inconclusive if the resource types used by the
+policy were not surveyed. For this reason, some policies should be written to call
+`snyk.resources` for a particular type _only if_ that resource type exists in the input.
+See [`snyk.input_resource_types`](#snykinput_resource_types) below for an example of
+this idiom.
 
 #### Example `snyk.resources` call and output
 
@@ -445,9 +448,9 @@ document.
 
 ### State object
 
-"State object" refers to the input to the policy engine's policy evaluation. The state object is
-defined in the [`swagger.yaml` file](../swagger.yaml), which is then used to generate
-[a model struct](../pkg/models/model_state.go).
+"State object" refers to the input to the policy engine's policy evaluation. The state
+object is defined in the [`swagger.yaml` file](../swagger.yaml), which is then used to
+generate [a model struct](../pkg/models/model_state.go).
 
 In general, policies should not interact with the state object directly and should
 instead use [the `snyk` API](#the-snyk-api).

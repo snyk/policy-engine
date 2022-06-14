@@ -27,7 +27,8 @@ components together.
 ### `ConfigurationLoader`
 
 The `ConfigurationLoader` concept from the `loader` package is the main entrypoint to
-parsing IaC configurations into the format expected by the policy engine's policy evaluation code.
+parsing IaC configurations into the format expected by the policy engine's policy
+evaluation code.
 
 #### `LocalConfigurationLoader`
 
@@ -37,8 +38,8 @@ Currently, there is only one implementation of `ConfigurationLoader`, called
 ### `LoadedConfigurations`
 
 The `LoadedConfigurations` type is the output of a `ConfigurationLoader`. It contains
-methods to introspect the loaded configurations and transform them into the the policy engine input
-format.
+methods to introspect the loaded configurations and transform them into the the policy
+engine input format.
 
 ### Example
 
@@ -246,8 +247,8 @@ model in the output.
 
 ## Source code location and line numbers
 
-The `AnnotateResults` function from the policy engine's `loader` package performs a post-processing
-step that annotates results with source code locations, like:
+The `AnnotateResults` function from the policy engine's `loader` package performs a
+post-processing step that annotates results with source code locations, like:
 
 ```json
 {
