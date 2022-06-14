@@ -1,6 +1,6 @@
 # Use as a library
 
-This document describes each of the main components of the `unified-policy-engine`
+This document describes each of the main components of the `policy-engine`
 library. See the [`run` command](cmd/run.go) for an end-to-end example that uses the
 components together.
 
@@ -13,7 +13,7 @@ components together.
       - [Obtaining input types for the InputTypes option](#obtaining-input-types-for-the-inputtypes-option)
     - [Error handling](#error-handling)
   - [Evaluating policies](#evaluating-policies)
-    - [`upe.Engine`](#upeengine)
+    - [`engine.Engine`](#engineengine)
     - [`data.Provider`](#dataprovider)
       - [`data.FSProvider()`](#datafsprovider)
       - [`data.LocalProvider()`](#datalocalprovider)
@@ -27,7 +27,7 @@ components together.
 ### `ConfigurationLoader`
 
 The `ConfigurationLoader` concept from the `loader` package is the main entrypoint to
-parsing IaC configurations into the format expected by UPE's policy evaluation code.
+parsing IaC configurations into the format expected by the policy engine's policy evaluation code.
 
 #### `LocalConfigurationLoader`
 
@@ -37,7 +37,7 @@ Currently, there is only one implementation of `ConfigurationLoader`, called
 ### `LoadedConfigurations`
 
 The `LoadedConfigurations` type is the output of a `ConfigurationLoader`. It contains
-methods to introspect the loaded configurations and transform them into the UPE input
+methods to introspect the loaded configurations and transform them into the the policy engine input
 format.
 
 ### Example
@@ -48,8 +48,8 @@ package main
 import (
   "errors"
 
-  "github.com/snyk/unified-policy-engine/pkg/inputs"
-  "github.com/snyk/unified-policy-engine/pkg/loader"
+  "github.com/snyk/policy-engine/pkg/inputs"
+  "github.com/snyk/policy-engine/pkg/loader"
 )
 
 func main() {
@@ -124,7 +124,7 @@ does not need to be handled explicitly unless its `Path` attribute is needed.
 
 ## Evaluating policies
 
-### `upe.Engine`
+### `engine.Engine`
 
 The `Engine` type is responsible for evaluating some `State`s with a given set of
 policies.
@@ -146,7 +146,7 @@ package main
 import (
   "embed"
 
-  "github.com/snyk/unified-policy-engine/pkg/data"
+  "github.com/snyk/policy-engine/pkg/data"
 )
 
 //go:embed policies
@@ -169,7 +169,7 @@ could point to either a file or directory.
 ```go
 package main
 
-import "github.com/snyk/unified-policy-engine/pkg/data"
+import "github.com/snyk/policy-engine/pkg/data"
 
 func main() {
   // ...
@@ -185,12 +185,12 @@ func main() {
 ```go
 package main
 
-import "github.com/snyk/unified-policy-engine/pkg/upe"
+import "github.com/snyk/policy-engine/pkg/engine"
 
 func main() {
   ctx := context.Background()
   // ...
-  engine, err := upe.NewEngine(ctx, &upe.EngineOptions{
+  engine, err := engine.NewEngine(ctx, &engine.EngineOptions{
     // Providers contains functions that produce parsed OPA modules or data documents.
     // See above for descriptions of the providers included in this library.
     Providers: providers,
@@ -218,7 +218,7 @@ func main() {
     }
   }
   // This function returns a *models.Results
-  results := engine.Eval(ctx, &upe.EvalOptions{
+  results := engine.Eval(ctx, &engine.EvalOptions{
     // Inputs is a []models.State, like the output of the loadedConfigs.ToStates()
     // described above.
     Inputs: states,
@@ -246,7 +246,7 @@ model in the output.
 
 ## Source code location and line numbers
 
-The `AnnotateResults` function from UPE's `loader` package performs a post-processing
+The `AnnotateResults` function from the policy engine's `loader` package performs a post-processing
 step that annotates results with source code locations, like:
 
 ```json
@@ -272,8 +272,8 @@ Building on top of both the ["parsing IaC configurations" example](#example) and
 package main
 
 import (
-    "github.com/snyk/unified-policy-engine/pkg/loader",
-    "github.com/snyk/unified-policy-engine/pkg/upe"
+    "github.com/snyk/policy-engine/pkg/loader",
+    "github.com/snyk/policy-engine/pkg/engine"
 )
 
 func main() {

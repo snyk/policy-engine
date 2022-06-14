@@ -1,6 +1,6 @@
 package loader
 
-import "github.com/snyk/unified-policy-engine/pkg/models"
+import "github.com/snyk/policy-engine/pkg/models"
 
 func toState(
 	inputType string,

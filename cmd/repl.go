@@ -11,19 +11,19 @@ import (
 	"github.com/open-policy-agent/opa/repl"
 	"github.com/open-policy-agent/opa/storage"
 	"github.com/open-policy-agent/opa/storage/inmem"
-	"github.com/snyk/unified-policy-engine/pkg/data"
-	"github.com/snyk/unified-policy-engine/pkg/inputs"
-	"github.com/snyk/unified-policy-engine/pkg/loader"
-	"github.com/snyk/unified-policy-engine/pkg/upe"
+	"github.com/snyk/policy-engine/pkg/data"
+	"github.com/snyk/policy-engine/pkg/engine"
+	"github.com/snyk/policy-engine/pkg/inputs"
+	"github.com/snyk/policy-engine/pkg/loader"
 	"github.com/spf13/cobra"
 )
 
 var replCmd = &cobra.Command{
 	Use:   "repl [-d <rules/metadata>...] [input]",
-	Short: "Unified Policy Engine",
+	Short: "Policy Engine",
 	RunE: func(cmd *cobra.Command, args []string) error {
 		ctx := context.Background()
-		consumer := upe.NewPolicyConsumer()
+		consumer := engine.NewPolicyConsumer()
 		if len(args) > 1 {
 			return fmt.Errorf("Expected at most 1 input")
 		} else if len(args) == 1 {
@@ -82,9 +82,9 @@ var replCmd = &cobra.Command{
 		}
 		var historyPath string
 		if homeDir, err := os.UserHomeDir(); err == nil {
-			historyPath = filepath.Join(homeDir, ".upe-history")
+			historyPath = filepath.Join(homeDir, ".engine-history")
 		} else {
-			historyPath = filepath.Join(".", ".upe-history")
+			historyPath = filepath.Join(".", ".engine-history")
 		}
 		r := repl.New(
 			store,

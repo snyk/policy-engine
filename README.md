@@ -9,7 +9,7 @@ It also provides a small CLI that can be used to author and test policies.
 
 ```sh
 go build
-./unified-policy-engine help
+./policy-engine help
 ```
 
 ## Additional documentation
@@ -22,4 +22,4 @@ set of additional documents are:
 * [Policy authoring guide](docs/policy_authoring.md)
   * Contains a tutorial for authoring policies and instructions for writing policy tests
 * [Use as a library](docs/library_usage.md)
-  * Describes how to use `unified-policy-engine` as a Go library
+  * Describes how to use `policy-engine` as a Go library

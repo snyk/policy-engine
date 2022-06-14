@@ -6,11 +6,11 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/snyk/unified-policy-engine/pkg/data"
-	"github.com/snyk/unified-policy-engine/pkg/inputs"
-	"github.com/snyk/unified-policy-engine/pkg/loader"
-	"github.com/snyk/unified-policy-engine/pkg/metrics"
-	"github.com/snyk/unified-policy-engine/pkg/upe"
+	"github.com/snyk/policy-engine/pkg/data"
+	"github.com/snyk/policy-engine/pkg/engine"
+	"github.com/snyk/policy-engine/pkg/inputs"
+	"github.com/snyk/policy-engine/pkg/loader"
+	"github.com/snyk/policy-engine/pkg/metrics"
 	"github.com/spf13/cobra"
 )
 
@@ -21,7 +21,7 @@ var (
 
 var runCmd = &cobra.Command{
 	Use:   "run [-d <rules/metadata>...] [-r <rule ID>...] <input> [input...]",
-	Short: "Unified Policy Engine",
+	Short: "Policy Engine",
 	Run: func(cmd *cobra.Command, args []string) {
 		logger := cmdLogger()
 		m := metrics.NewLocalMetrics(logger)
@@ -39,7 +39,7 @@ var runCmd = &cobra.Command{
 				providers = append(providers, data.LocalProvider(path))
 			}
 		}
-		options := &upe.EngineOptions{
+		options := &engine.EngineOptions{
 			Providers: providers,
 			RuleIDs:   selectedRules,
 			Logger:    logger,
@@ -60,10 +60,10 @@ var runCmd = &cobra.Command{
 
 		states := loadedConfigs.ToStates()
 		ctx := context.Background()
-		engine, err := upe.NewEngine(ctx, options)
+		eng, err := engine.NewEngine(ctx, options)
 		check(err)
 
-		results := engine.Eval(ctx, &upe.EvalOptions{
+		results := eng.Eval(ctx, &engine.EvalOptions{
 			Inputs: states,
 		})
 

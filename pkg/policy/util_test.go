@@ -5,7 +5,7 @@ import (
 	"testing"
 
 	"github.com/open-policy-agent/opa/ast"
-	"github.com/snyk/unified-policy-engine/pkg/policy"
+	"github.com/snyk/policy-engine/pkg/policy"
 	"github.com/stretchr/testify/assert"
 )
 

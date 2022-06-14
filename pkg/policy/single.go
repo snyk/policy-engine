@@ -5,8 +5,8 @@ import (
 	"fmt"
 
 	"github.com/open-policy-agent/opa/rego"
-	"github.com/snyk/unified-policy-engine/pkg/logging"
-	"github.com/snyk/unified-policy-engine/pkg/models"
+	"github.com/snyk/policy-engine/pkg/logging"
+	"github.com/snyk/policy-engine/pkg/models"
 )
 
 // ProcessSingleResultSet functions extract RuleResult models from the ResultSet of

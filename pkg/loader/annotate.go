@@ -1,7 +1,7 @@
 package loader
 
 import (
-	"github.com/snyk/unified-policy-engine/pkg/models"
+	"github.com/snyk/policy-engine/pkg/models"
 )
 
 // Annotate a report with source location information

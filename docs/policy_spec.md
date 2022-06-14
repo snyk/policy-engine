@@ -1,7 +1,6 @@
 # Policies specification
 
-This document describes the contract and API for policies that run in the Unified Policy
-Engine (UPE).
+This document describes the contract and API for policies that run in the Policy Engine.
 
 - [Policies specification](#policies-specification)
   - [Conventions in this document](#conventions-in-this-document)
@@ -44,10 +43,10 @@ Engine (UPE).
 
 ### Policy vs. rule
 
-This document uses the term "policy" to refer to an OPA package in one or more rego files that UPE queries in order
-to evaluate some input. This is mainly done to disambiguate "rules" in the Open Policy
-Agent terminology (which is used extensively throughout this document) from what Snyk
-refers to as a rule elsewhere.
+This document uses the term "policy" to refer to an OPA package in one or more rego
+files that the policy engine queries in order to evaluate some input. This is mainly
+done to disambiguate "rules" in the Open Policy Agent terminology (which is used
+extensively throughout this document) from what Snyk refers to as a rule elsewhere.
 
 ## Policy requirements
 
@@ -85,7 +84,7 @@ archetypes would use it.
 When `resource_type` is set to `MULTIPLE`, the `input` document will be set to the
 [State object](#state-object) that is currently being processed by the engine. 
 
-When `resource_type` is set to a specific resource type (e.g. `aws_s3_bucket`), UPE will
+When `resource_type` is set to a specific resource type (e.g. `aws_s3_bucket`), the policy engine will
 set the `input` document to the `attributes` object of a single resource state. 
 
 When `resource_type` is unspecified, it defaults to `MULTIPLE`.
@@ -123,7 +122,7 @@ The `metadata` rule defines static metadata associated with the policy. See the
 
 #### Supported fields
 
-**NOTE** that `unified-policy-engine` by itself does not enforce any restrictions on
+**NOTE** that `policy-engine` by itself does not enforce any restrictions on
 metadata fields apart from their data type. The descriptions below are mostly intended
 to clarify the intent of each field.
 
@@ -179,7 +178,7 @@ metadata := {
 #### Remediation
 
 Policies can provide input-type specific remediation steps via the `remediation`
-metadata field. If this field is set, UPE will, by default, pick a remediation string
+metadata field. If this field is set, the policy engine will, by default, pick a remediation string
 from this field based on the current input type using the following mapping:
 
 | Input type   | Key in `remediation` object |
@@ -197,7 +196,7 @@ Policies can also bypass this behavior by returning a `remediation` string in th
 ### `resources[info]`
 
 The `resources` rule is used to define which resources which contributed to a result.
-For the multi-resource and missing-resource policy archetypes, UPE uses `resources`
+For the multi-resource and missing-resource policy archetypes, the policy engine uses `resources`
 results to mark resources as passing. For this reason, resources should be written to
 return results regardless of whether the policy as a whole would pass or fail a specific
 resource.
@@ -227,7 +226,7 @@ Similarly, `resources[info]` results have an associated identifier that can be s
 manually via a `correlation` property. Otherwise it will be calculated from the resource
 in the `primary_resource` attribute (if specified) or the `resource` attribute.
 
-UPE will relate `resources` results with `deny` results that have the same identifier.
+the policy engine will relate `resources` results with `deny` results that have the same identifier.
 
 #### Examples
 
@@ -241,13 +240,13 @@ UPE will relate `resources` results with `deny` results that have the same ident
 * [examples/04-advanced-resources.rego](../examples/04-advanced-resources.rego)
   demonstrates using the `resource` property on the info `object` when the `resources`
   rule is returning the primary resource. In this example, the `resources` rule only
-  serves to enable UPE to identify passing resources.
+  serves to enable the policy engine to identify passing resources.
 ## Policy archetypes
 
 ### Single-resource policy
 
 Single-resource policies are distinguished by setting the
-[`resource_type` rule](#resource_type) to a single resource type. UPE evaluates
+[`resource_type` rule](#resource_type) to a single resource type. the policy engine evaluates
 single-resource policies by querying the `deny[info]` rule with the `input` document
 set to a single [resource object](#resource-object)
 
@@ -262,7 +261,7 @@ the `snyk.resources()` function is not useable in single-resource policies.
 ### Multi-resource policy
 
 Multi-resource policies are distinguished by setting the
-[`resource_type` rule](#resource_type) to `"MULTIPLE"`. UPE evaluates multi-resource
+[`resource_type` rule](#resource_type) to `"MULTIPLE"`. the policy engine evaluates multi-resource
 policies by querying the `deny[info]` rule with the `input` document set to the entire
 `State` object being evaluated. Although multi-resource policies can access individual
 resources via the `input` document, they should use the `snyk.resources()` function to
@@ -300,7 +299,7 @@ deny[info] {
 
 ## The `snyk` API
 
-UPE provides a set of functions under the `snyk` namespace that can be used by policies.
+the policy engine provides a set of functions under the `snyk` namespace that can be used by policies.
 To use them, policies should `import data.snyk`, like is shown in the
 [multi-resource policy examples](#multi-resource-policy-examples).
 
@@ -310,7 +309,7 @@ The `snyk.resources` function takes in a single resource type string and returns
 array of [resource objects](#resource-objects) of that type from the current `State`
 being evaluated.
 
-Internally, UPE tracks calls to `snyk.resources` to produce the `resource_types` array
+Internally, the policy engine tracks calls to `snyk.resources` to produce the `resource_types` array
 in the results output. This array may be used by downstream consumers to add context to
 policy results. For example, a consumer may need to communicate that some policy results
 were inconclusive if the resource types used by the policy were not surveyed. For this
@@ -324,7 +323,7 @@ idiom.
 This example demonstrates the `snyk.resources` input and output in a REPL session:
 
 ```sh
-$ ./unified-policy-engine repl examples/main.tf
+$ ./policy-engine repl examples/main.tf
 > import data.snyk
 > snyk.resources("aws_cloudtrail")
 [
@@ -446,7 +445,7 @@ document.
 
 ### State object
 
-"State object" refers to the input to UPE's policy evaluation. The state object is
+"State object" refers to the input to the policy engine's policy evaluation. The state object is
 defined in the [`swagger.yaml` file](../swagger.yaml), which is then used to generate
 [a model struct](../pkg/models/model_state.go).
 
@@ -457,7 +456,7 @@ instead use [the `snyk` API](#the-snyk-api).
 
 Resource objects are a map of resource property name to property value. Policy authors
 can expect that resource objects are close or identical to how the resources are defined
-in IaC code with some additional properties added by UPE.
+in IaC code with some additional properties added by the policy engine.
 
 For example, the following Terraform resource:
 

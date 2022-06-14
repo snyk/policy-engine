@@ -7,7 +7,7 @@ import (
 	"os"
 
 	"github.com/rs/zerolog"
-	"github.com/snyk/unified-policy-engine/pkg/logging"
+	"github.com/snyk/policy-engine/pkg/logging"
 	"github.com/spf13/cobra"
 )
 
@@ -24,8 +24,8 @@ var (
 )
 
 var rootCmd = &cobra.Command{
-	Use:   "upe",
-	Short: "Unified Policy Engine",
+	Use:   "policy-engine",
+	Short: "Policy Engine",
 }
 
 func Execute() error {
