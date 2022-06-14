@@ -10,7 +10,7 @@ import (
 	"github.com/fugue/regula/v2/pkg/terraform/lang"
 	"github.com/fugue/regula/v2/pkg/topsort"
 
-	"github.com/snyk/unified-policy-engine/pkg/models"
+	"github.com/snyk/policy-engine/pkg/models"
 )
 
 type Analysis struct {

@@ -18,16 +18,16 @@ package loader
 import (
 	"fmt"
 
-	"github.com/snyk/unified-policy-engine/pkg/inputs"
-	"github.com/snyk/unified-policy-engine/pkg/models"
+	"github.com/snyk/policy-engine/pkg/inputs"
+	"github.com/snyk/policy-engine/pkg/models"
 )
 
-//go:generate mockgen -destination=../mocks/mock_iacconfiguration.go -package=mocks github.com/snyk/unified-policy-engine/pkg/loader IACConfiguration
-//go:generate mockgen -destination=../mocks/mock_configurationdetector.go -package=mocks github.com/snyk/unified-policy-engine/pkg/loader ConfigurationDetector
-//go:generate mockgen -destination=../mocks/mock_inputpath.go -package=mocks github.com/snyk/unified-policy-engine/pkg/loader InputPath
-//go:generate mockgen -destination=../mocks/mock_inputdirectory.go -package=mocks github.com/snyk/unified-policy-engine/pkg/loader InputDirectory
-//go:generate mockgen -destination=../mocks/mock_inputfile.go -package=mocks github.com/snyk/unified-policy-engine/pkg/loader InputFile
-//go:generate mockgen -destination=../mocks/mock_loadedconfigurations.go -package=mocks github.com/snyk/unified-policy-engine/pkg/loader LoadedConfigurations
+//go:generate mockgen -destination=../mocks/mock_iacconfiguration.go -package=mocks github.com/snyk/policy-engine/pkg/loader IACConfiguration
+//go:generate mockgen -destination=../mocks/mock_configurationdetector.go -package=mocks github.com/snyk/policy-engine/pkg/loader ConfigurationDetector
+//go:generate mockgen -destination=../mocks/mock_inputpath.go -package=mocks github.com/snyk/policy-engine/pkg/loader InputPath
+//go:generate mockgen -destination=../mocks/mock_inputdirectory.go -package=mocks github.com/snyk/policy-engine/pkg/loader InputDirectory
+//go:generate mockgen -destination=../mocks/mock_inputfile.go -package=mocks github.com/snyk/policy-engine/pkg/loader InputFile
+//go:generate mockgen -destination=../mocks/mock_loadedconfigurations.go -package=mocks github.com/snyk/policy-engine/pkg/loader LoadedConfigurations
 
 // stdIn is the path used for stdin.
 const stdIn = "<stdin>"

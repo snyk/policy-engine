@@ -22,9 +22,9 @@ import (
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/afero"
 
-	"github.com/snyk/unified-policy-engine/pkg/hcl_interpreter"
-	"github.com/snyk/unified-policy-engine/pkg/inputs"
-	"github.com/snyk/unified-policy-engine/pkg/models"
+	"github.com/snyk/policy-engine/pkg/hcl_interpreter"
+	"github.com/snyk/policy-engine/pkg/inputs"
+	"github.com/snyk/policy-engine/pkg/models"
 )
 
 // This is the loader that supports reading files and directories of HCL (.tf)

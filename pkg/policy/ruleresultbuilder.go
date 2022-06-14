@@ -4,8 +4,8 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/snyk/unified-policy-engine/pkg/interfacetricks"
-	"github.com/snyk/unified-policy-engine/pkg/models"
+	"github.com/snyk/policy-engine/pkg/interfacetricks"
+	"github.com/snyk/policy-engine/pkg/models"
 )
 
 // Helper for constructing results.  Takes care of grouping resources by

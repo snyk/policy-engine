@@ -6,8 +6,8 @@ import (
 
 	"github.com/open-policy-agent/opa/storage/inmem"
 	"github.com/open-policy-agent/opa/tester"
-	"github.com/snyk/unified-policy-engine/pkg/data"
-	"github.com/snyk/unified-policy-engine/pkg/upe"
+	"github.com/snyk/policy-engine/pkg/data"
+	"github.com/snyk/policy-engine/pkg/engine"
 	"github.com/spf13/cobra"
 )
 
@@ -25,7 +25,7 @@ var testCmd = &cobra.Command{
 			providers = append(providers, data.LocalProvider(path))
 		}
 
-		consumer := upe.NewPolicyConsumer()
+		consumer := engine.NewPolicyConsumer()
 		for _, provider := range providers {
 			if err := provider(ctx, consumer); err != nil {
 				return err

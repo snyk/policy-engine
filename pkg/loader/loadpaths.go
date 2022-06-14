@@ -23,8 +23,8 @@ import (
 	"sort"
 
 	"github.com/sirupsen/logrus"
-	"github.com/snyk/unified-policy-engine/pkg/inputs"
-	"github.com/snyk/unified-policy-engine/pkg/models"
+	"github.com/snyk/policy-engine/pkg/inputs"
+	"github.com/snyk/policy-engine/pkg/models"
 
 	"github.com/fugue/regula/v2/pkg/git"
 )

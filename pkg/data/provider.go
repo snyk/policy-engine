@@ -12,7 +12,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	embed "github.com/snyk/unified-policy-engine/rego"
+	embed "github.com/snyk/policy-engine/rego"
 )
 
 func FSProvider(fsys fs.FS, basePath string) Provider {

@@ -23,7 +23,7 @@ import (
 	"testing"
 
 	"github.com/fugue/regula/v2/pkg/git"
-	"github.com/snyk/unified-policy-engine/pkg/inputs"
+	"github.com/snyk/policy-engine/pkg/inputs"
 
 	"github.com/stretchr/testify/assert"
 )

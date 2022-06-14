@@ -2,7 +2,7 @@ package policy
 
 import (
 	"github.com/open-policy-agent/opa/rego"
-	"github.com/snyk/unified-policy-engine/pkg/models"
+	"github.com/snyk/policy-engine/pkg/models"
 )
 
 // This file contains code for backwards compatibility with Fugue rules.

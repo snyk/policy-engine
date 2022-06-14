@@ -1,4 +1,4 @@
-package upe
+package engine
 
 import (
 	"context"
@@ -6,7 +6,7 @@ import (
 	"strings"
 
 	"github.com/open-policy-agent/opa/ast"
-	"github.com/snyk/unified-policy-engine/pkg/interfacetricks"
+	"github.com/snyk/policy-engine/pkg/interfacetricks"
 )
 
 var rulesPrefix = ast.Ref{

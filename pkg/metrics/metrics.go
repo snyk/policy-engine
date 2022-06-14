@@ -7,7 +7,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/snyk/unified-policy-engine/pkg/logging"
+	"github.com/snyk/policy-engine/pkg/logging"
 )
 
 type Buckets []float64
