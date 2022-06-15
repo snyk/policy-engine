@@ -1,0 +1,274 @@
+{
+  "format_version": "1.1",
+  "terraform_version": "1.2.2",
+  "planned_values": {
+    "root_module": {
+      "resources": [
+        {
+          "address": "aws_default_security_group.default_sg_allowed_ssh",
+          "mode": "managed",
+          "type": "aws_default_security_group",
+          "name": "default_sg_allowed_ssh",
+          "provider_name": "registry.terraform.io/hashicorp/aws",
+          "schema_version": 1,
+          "values": {
+            "ingress": [
+              {
+                "cidr_blocks": [
+                  "90.90.90.0/24"
+                ],
+                "description": "",
+                "from_port": 22,
+                "ipv6_cidr_blocks": [],
+                "prefix_list_ids": [],
+                "protocol": "tcp",
+                "security_groups": [],
+                "self": false,
+                "to_port": 22
+              }
+            ],
+            "revoke_rules_on_delete": false,
+            "tags": null
+          },
+          "sensitive_values": {
+            "egress": [],
+            "ingress": [
+              {
+                "cidr_blocks": [
+                  false
+                ],
+                "ipv6_cidr_blocks": [],
+                "prefix_list_ids": [],
+                "security_groups": []
+              }
+            ],
+            "tags_all": {}
+          }
+        },
+        {
+          "address": "aws_vpc.vpc_allowed",
+          "mode": "managed",
+          "type": "aws_vpc",
+          "name": "vpc_allowed",
+          "provider_name": "registry.terraform.io/hashicorp/aws",
+          "schema_version": 1,
+          "values": {
+            "assign_generated_ipv6_cidr_block": null,
+            "cidr_block": "10.0.0.0/16",
+            "enable_dns_support": true,
+            "instance_tenancy": "default",
+            "ipv4_ipam_pool_id": null,
+            "ipv4_netmask_length": null,
+            "ipv6_ipam_pool_id": null,
+            "ipv6_netmask_length": null,
+            "tags": {
+              "Name": "opa-rules-test-vpc"
+            },
+            "tags_all": {
+              "Name": "opa-rules-test-vpc"
+            }
+          },
+          "sensitive_values": {
+            "tags": {},
+            "tags_all": {}
+          }
+        }
+      ]
+    }
+  },
+  "resource_changes": [
+    {
+      "address": "aws_default_security_group.default_sg_allowed_ssh",
+      "mode": "managed",
+      "type": "aws_default_security_group",
+      "name": "default_sg_allowed_ssh",
+      "provider_name": "registry.terraform.io/hashicorp/aws",
+      "change": {
+        "actions": [
+          "create"
+        ],
+        "before": null,
+        "after": {
+          "ingress": [
+            {
+              "cidr_blocks": [
+                "90.90.90.0/24"
+              ],
+              "description": "",
+              "from_port": 22,
+              "ipv6_cidr_blocks": [],
+              "prefix_list_ids": [],
+              "protocol": "tcp",
+              "security_groups": [],
+              "self": false,
+              "to_port": 22
+            }
+          ],
+          "revoke_rules_on_delete": false,
+          "tags": null
+        },
+        "after_unknown": {
+          "arn": true,
+          "description": true,
+          "egress": true,
+          "id": true,
+          "ingress": [
+            {
+              "cidr_blocks": [
+                false
+              ],
+              "ipv6_cidr_blocks": [],
+              "prefix_list_ids": [],
+              "security_groups": []
+            }
+          ],
+          "name": true,
+          "owner_id": true,
+          "tags_all": true,
+          "vpc_id": true
+        },
+        "before_sensitive": false,
+        "after_sensitive": {
+          "egress": [],
+          "ingress": [
+            {
+              "cidr_blocks": [
+                false
+              ],
+              "ipv6_cidr_blocks": [],
+              "prefix_list_ids": [],
+              "security_groups": []
+            }
+          ],
+          "tags_all": {}
+        }
+      }
+    },
+    {
+      "address": "aws_vpc.vpc_allowed",
+      "mode": "managed",
+      "type": "aws_vpc",
+      "name": "vpc_allowed",
+      "provider_name": "registry.terraform.io/hashicorp/aws",
+      "change": {
+        "actions": [
+          "create"
+        ],
+        "before": null,
+        "after": {
+          "assign_generated_ipv6_cidr_block": null,
+          "cidr_block": "10.0.0.0/16",
+          "enable_dns_support": true,
+          "instance_tenancy": "default",
+          "ipv4_ipam_pool_id": null,
+          "ipv4_netmask_length": null,
+          "ipv6_ipam_pool_id": null,
+          "ipv6_netmask_length": null,
+          "tags": {
+            "Name": "opa-rules-test-vpc"
+          },
+          "tags_all": {
+            "Name": "opa-rules-test-vpc"
+          }
+        },
+        "after_unknown": {
+          "arn": true,
+          "default_network_acl_id": true,
+          "default_route_table_id": true,
+          "default_security_group_id": true,
+          "dhcp_options_id": true,
+          "enable_classiclink": true,
+          "enable_classiclink_dns_support": true,
+          "enable_dns_hostnames": true,
+          "id": true,
+          "ipv6_association_id": true,
+          "ipv6_cidr_block": true,
+          "main_route_table_id": true,
+          "owner_id": true,
+          "tags": {},
+          "tags_all": {}
+        },
+        "before_sensitive": false,
+        "after_sensitive": {
+          "tags": {},
+          "tags_all": {}
+        }
+      }
+    }
+  ],
+  "configuration": {
+    "provider_config": {
+      "aws": {
+        "name": "aws",
+        "full_name": "registry.terraform.io/hashicorp/aws",
+        "version_constraint": "3.70.0"
+      }
+    },
+    "root_module": {
+      "resources": [
+        {
+          "address": "aws_default_security_group.default_sg_allowed_ssh",
+          "mode": "managed",
+          "type": "aws_default_security_group",
+          "name": "default_sg_allowed_ssh",
+          "provider_config_key": "aws",
+          "expressions": {
+            "ingress": {
+              "constant_value": [
+                {
+                  "cidr_blocks": [
+                    "90.90.90.0/24"
+                  ],
+                  "description": null,
+                  "from_port": 22,
+                  "ipv6_cidr_blocks": null,
+                  "prefix_list_ids": null,
+                  "protocol": "tcp",
+                  "security_groups": null,
+                  "self": null,
+                  "to_port": 22
+                }
+              ]
+            },
+            "vpc_id": {
+              "references": [
+                "aws_vpc.vpc_allowed.id",
+                "aws_vpc.vpc_allowed"
+              ]
+            }
+          },
+          "schema_version": 1
+        },
+        {
+          "address": "aws_vpc.vpc_allowed",
+          "mode": "managed",
+          "type": "aws_vpc",
+          "name": "vpc_allowed",
+          "provider_config_key": "aws",
+          "expressions": {
+            "cidr_block": {
+              "constant_value": "10.0.0.0/16"
+            },
+            "instance_tenancy": {
+              "constant_value": "default"
+            },
+            "tags": {
+              "constant_value": {
+                "Name": "opa-rules-test-vpc"
+              }
+            }
+          },
+          "schema_version": 1
+        }
+      ]
+    }
+  },
+  "relevant_attributes": [
+    {
+      "resource": "aws_vpc.vpc_allowed",
+      "attribute": [
+        "id"
+      ]
+    }
+  ]
+}

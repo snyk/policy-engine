@@ -42,6 +42,7 @@ var Auto = &inputs.InputType{
 		inputs.Kubernetes,
 		inputs.TerraformHCL,
 		inputs.TerraformPlan,
+		inputs.TerraformState,
 	},
 }
 
@@ -60,6 +61,7 @@ var SupportedInputTypes = inputs.InputTypes{
 	inputs.Kubernetes,
 	inputs.TerraformHCL,
 	inputs.TerraformPlan,
+	inputs.TerraformState,
 	StreamlinedState,
 }
 

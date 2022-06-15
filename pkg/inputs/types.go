@@ -86,6 +86,12 @@ var TerraformPlan = &InputType{
 	Aliases: []string{"tf-plan"},
 }
 
+// TerraformState represents Terraform State JSON inputs.
+var TerraformState = &InputType{
+	Name:    "tf_state",
+	Aliases: []string{"tf-state"},
+}
+
 // Terraform is an aggregate input type that encompasses all input types that contain
 // Terraform resource types.
 var Terraform = &InputType{
@@ -94,6 +100,7 @@ var Terraform = &InputType{
 	Children: InputTypes{
 		TerraformHCL,
 		TerraformPlan,
+		TerraformState,
 		CloudScan,
 	},
 }
