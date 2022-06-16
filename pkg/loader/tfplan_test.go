@@ -22,9 +22,9 @@ import (
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
 
-	"github.com/snyk/unified-policy-engine/pkg/loader"
-	inputs "github.com/snyk/unified-policy-engine/pkg/loader/test_inputs"
-	"github.com/snyk/unified-policy-engine/pkg/mocks"
+	"github.com/snyk/policy-engine/pkg/loader"
+	inputs "github.com/snyk/policy-engine/pkg/loader/test_inputs"
+	"github.com/snyk/policy-engine/pkg/mocks"
 )
 
 func TestTfPlanDetector(t *testing.T) {

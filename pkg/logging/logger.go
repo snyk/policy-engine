@@ -12,7 +12,7 @@ var DefaultLogger Logger = NewZeroLogger(zerolog.Logger{}.
 	Output(os.Stderr).
 	With().Timestamp().Logger())
 
-// Logger defines a simple interface for the pluggable logging in UPE
+// Logger defines a simple interface for the pluggable logging in the policy engine
 type Logger interface {
 	Trace(ctx context.Context, msg string)
 	Debug(ctx context.Context, msg string)

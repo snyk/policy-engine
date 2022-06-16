@@ -8,8 +8,8 @@ import (
 	"github.com/open-policy-agent/opa/rego"
 	"github.com/open-policy-agent/opa/topdown/builtins"
 	"github.com/open-policy-agent/opa/types"
-	"github.com/snyk/unified-policy-engine/pkg/data"
-	"github.com/snyk/unified-policy-engine/pkg/models"
+	"github.com/snyk/policy-engine/pkg/data"
+	"github.com/snyk/policy-engine/pkg/models"
 )
 
 //go:embed regoapi
@@ -51,7 +51,7 @@ var builtinDeclarations = map[string]*types.Function{
 	),
 }
 
-// Capabilities returns a Capabilities that includes the UPE builtins.
+// Capabilities returns a Capabilities that includes the the policy engine builtins.
 func Capabilities() *ast.Capabilities {
 	builtins := []*ast.Builtin{}
 	for name, decl := range builtinDeclarations {

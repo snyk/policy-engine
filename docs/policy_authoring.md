@@ -71,7 +71,7 @@ to use standard OPA tooling.
 You can generate a fixture using the `fixture` command.  For example, we can
 generate a fixture for the example terraform file we are using like this:
 
-    ./unified-policy-engine fixture examples/main.tf >examples/tests/fixture.json
+    ./policy-engine fixture examples/main.tf >examples/tests/fixture.json
 
 Fixtures can also be generated using other applications.  The important bit is
 that a fixture should provide a `mock_input` rule which represents the input to
@@ -83,7 +83,7 @@ This allows us to import and use the fixture in a test:
 
 Running the tests:
 
-    ./unified-policy-engine -d examples test
+    ./policy-engine -d examples test
 
 We can also run using vanilla OPA.  This requires us to pass in the
 [rego/](rego/) directory as well:
@@ -93,7 +93,7 @@ We can also run using vanilla OPA.  This requires us to pass in the
 ### Using the REPL
 
 Sometimes it's helpful to interactively evaluate policies in order to debug specific
-portions of code. `unified-policy-engine` includes a REPL that has two modes of
+portions of code. `policy-engine` includes a REPL that has two modes of
 operation:
 
 * With an input
@@ -123,7 +123,7 @@ Introspecting a multi-resource policy:
 
 ```sh
 # Invoking the REPL with an IaC input
-$ ./unified-policy-engine repl -d examples examples/main.tf
+$ ./policy-engine repl -d examples examples/main.tf
 # Switching to the package of a multi-resource policy
 > package rules.snyk_003.tf
 # Evaluating the deny rule
@@ -152,7 +152,7 @@ Introspecting a single-resource policy:
 
 ```sh
 # Invoking the REPL with an IaC input
-$ ./unified-policy-engine repl -d examples examples/main.tf
+$ ./policy-engine repl -d examples examples/main.tf
 # Switching to the package of a single-resource policy
 > package rules.snyk_001.tf
 # Importing the snyk library so that we can use snyk.resources()
@@ -186,7 +186,7 @@ test fixtures.
 
 ```sh
 # Invoking the REPL with a data directory that contains both policies and tests
-$ ./unified-policy-engine repl -d examples
+$ ./policy-engine repl -d examples
 # Switching to the package of a test. In this case, we're using the same package name
 # for both the policy and the test in order to simplify the test code.
 > package rules.snyk_003.tf

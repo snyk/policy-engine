@@ -8,9 +8,9 @@ import (
 
 	"github.com/open-policy-agent/opa/ast"
 	"github.com/open-policy-agent/opa/rego"
-	"github.com/snyk/unified-policy-engine/pkg/inputs"
-	"github.com/snyk/unified-policy-engine/pkg/logging"
-	"github.com/snyk/unified-policy-engine/pkg/models"
+	"github.com/snyk/policy-engine/pkg/inputs"
+	"github.com/snyk/policy-engine/pkg/logging"
+	"github.com/snyk/policy-engine/pkg/models"
 )
 
 // Constants used to determine a policy's type.
@@ -379,7 +379,7 @@ type policyResultResource struct {
 	Namespace    string `json:"_namespace"`
 }
 
-// This struct represents the common return format for UPE policies.
+// This struct represents the common return format for the policy engine policies.
 type policyResult struct {
 	Message      string                `json:"message"`
 	Resource     *policyResultResource `json:"resource"`

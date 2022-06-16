@@ -7,8 +7,8 @@ import (
 	"strings"
 
 	"github.com/open-policy-agent/opa/format"
-	"github.com/snyk/unified-policy-engine/pkg/inputs"
-	"github.com/snyk/unified-policy-engine/pkg/loader"
+	"github.com/snyk/policy-engine/pkg/inputs"
+	"github.com/snyk/policy-engine/pkg/loader"
 	"github.com/spf13/cobra"
 )
 

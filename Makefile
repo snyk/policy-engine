@@ -2,7 +2,7 @@ MODELS_DIR="pkg/models"
 
 demo:
 	go build
-	./unified-policy-engine run \
+	./policy-engine run \
 		-d examples/metadata \
 		-d examples/01-simple.rego \
 		-d examples/02-simple-attributes.rego \

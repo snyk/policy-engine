@@ -1,4 +1,4 @@
-package upe
+package engine
 
 import (
 	"context"
@@ -10,11 +10,11 @@ import (
 	"github.com/open-policy-agent/opa/rego"
 	"github.com/open-policy-agent/opa/storage"
 	"github.com/open-policy-agent/opa/storage/inmem"
-	"github.com/snyk/unified-policy-engine/pkg/data"
-	"github.com/snyk/unified-policy-engine/pkg/logging"
-	"github.com/snyk/unified-policy-engine/pkg/metrics"
-	"github.com/snyk/unified-policy-engine/pkg/models"
-	"github.com/snyk/unified-policy-engine/pkg/policy"
+	"github.com/snyk/policy-engine/pkg/data"
+	"github.com/snyk/policy-engine/pkg/logging"
+	"github.com/snyk/policy-engine/pkg/metrics"
+	"github.com/snyk/policy-engine/pkg/models"
+	"github.com/snyk/policy-engine/pkg/policy"
 )
 
 // Engine is responsible for evaluating some States with a given set of rules.
