@@ -2,7 +2,6 @@ package hcl_interpreter
 
 import (
 	"fmt"
-	"os"
 
 	"github.com/hashicorp/hcl/v2"
 )
@@ -107,8 +106,6 @@ func (node *hclSourceNode) getDescendant(path []interface{}) (*hclSourceNode, er
 	if len(path) == 0 {
 		return node, nil
 	}
-
-	fmt.Fprintf(os.Stderr, "At %v finding child %v\n", node.Range, path[0])
 
 	var child *hclSourceNode
 	var err error

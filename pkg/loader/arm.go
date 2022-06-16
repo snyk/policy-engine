@@ -18,8 +18,11 @@ package loader
 import (
 	"encoding/json"
 	"fmt"
+	"regexp"
+	"strings"
 
 	"github.com/snyk/policy-engine/pkg/inputs"
+	"github.com/snyk/policy-engine/pkg/interfacetricks"
 	"github.com/snyk/policy-engine/pkg/models"
 )
 
@@ -35,34 +38,34 @@ func (c *ArmDetector) DetectFile(i InputFile, opts DetectOptions) (IACConfigurat
 	}
 	contents, err := i.Contents()
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("%w", UnableToReadFile)
 	}
 
-	template := &armTemplate{}
-	if err := json.Unmarshal(contents, &template.Contents); err != nil {
+	template := &arm_Template{}
+	if err := json.Unmarshal(contents, &template); err != nil {
 		return nil, fmt.Errorf("%w: %v", FailedToParseInput, err)
 	}
-	_, hasSchema := template.Contents["$schema"]
-	_, hasResources := template.Contents["resources"]
 
-	if !hasSchema || !hasResources {
+	if template.Schema == "" || template.Resources == nil {
 		return nil, fmt.Errorf("%w", InvalidInput)
 	}
-	resources := map[string]interface{}{}
-	if hasResources {
-		r, resourcesIsMap := template.Contents["resources"].(map[string]interface{})
-		if !resourcesIsMap {
-			return nil, fmt.Errorf("%w", InvalidInput)
-		}
-		resources = r
+
+	// Don't consider source code locations essential.
+	source, _ := LoadSourceInfoNode(contents)
+
+	// Create a map of resource ID to discovered resources.  This is necessary
+	// for source code locations.
+	discovered := map[string]arm_DiscoverResource{}
+	for _, d := range template.discover() {
+		discovered[d.name.String()] = d
 	}
 
 	path := i.Path()
-
 	return &armConfiguration{
-		path:      path,
-		template:  *template,
-		resources: resources,
+		path:       path,
+		template:   template,
+		discovered: discovered,
+		source:     source,
 	}, nil
 }
 
@@ -71,56 +74,292 @@ func (c *ArmDetector) DetectDirectory(i InputDirectory, opts DetectOptions) (IAC
 }
 
 type armConfiguration struct {
-	path      string
-	template  armTemplate
-	source    *SourceInfoNode
-	resources map[string]interface{}
+	path       string
+	template   *arm_Template
+	discovered map[string]arm_DiscoverResource
+	source     *SourceInfoNode
 }
 
 func (l *armConfiguration) ToState() models.State {
-	return toState(inputs.Arm.Name, l.path, l.resources)
+	// Set of all existing resources for the resolver.
+	resourceSet := map[string]struct{}{}
+	for id := range l.discovered {
+		resourceSet[id] = struct{}{}
+	}
+	refResolver := arm_ReferenceResolver{
+		resources: resourceSet,
+	}
+
+	// Process resources
+	resources := map[string]models.ResourceState{}
+	for k, d := range l.discovered {
+		resource := d.process(&refResolver)
+		resource.Namespace = l.path
+		resources[k] = resource
+	}
+
+	return models.State{
+		InputType:           inputs.Arm.Name,
+		EnvironmentProvider: "iac",
+		Meta: map[string]interface{}{
+			"filepath": l.path,
+		},
+		Resources: groupResourcesByType(resources),
+	}
 }
 
 func (l *armConfiguration) Location(path []interface{}) (LocationStack, error) {
-	return nil, nil
-	/* TODO: Location() is not yet supported for ARM.
-
-	if l.source == nil || len(path) < 1 {
+	// Format is {resourceType, resourceId, attributePath...}
+	if l.source == nil || len(path) < 2 {
 		return nil, nil
 	}
 
-	resourcePath := []string{"Resources"}
-	resourcePath = append(resourcePath, path[0])
-	resource, err := l.source.GetPath(resourcePath)
-	if err != nil {
-		return nil, nil
-	}
-	resourceLine, resourceColumn := resource.Location()
-	resourceLocation := Location{
-		Path: l.path,
-		Line: resourceLine,
-		Col:  resourceColumn,
+	resourceId, ok := path[1].(string)
+	if !ok {
+		return nil, fmt.Errorf(
+			"%w: Expected string resource ID in path: %v",
+			UnableToResolveLocation,
+			path,
+		)
 	}
 
-	properties, err := resource.GetKey("Properties")
-	if err != nil {
-		return []Location{resourceLocation}, nil
+	dr, ok := l.discovered[resourceId]
+	if !ok {
+		return nil, fmt.Errorf(
+			"%w: Unable to find resource with ID: %s",
+			UnableToResolveLocation,
+			resourceId,
+		)
 	}
 
-	attribute, err := properties.GetPath(path[1:])
-	if attribute != nil {
-		return []Location{resourceLocation}, nil
-	}
-
-	line, column := attribute.Location()
-	return []Location{{Path: l.path, Line: line, Col: column}}, nil
-	*/
+	fullPath := make([]interface{}, len(dr.path))
+	copy(fullPath, dr.path)
+	fullPath = append(fullPath, path[2:]...)
+	node, err := l.source.GetPath(fullPath)
+	line, column := node.Location()
+	return []Location{{Path: l.path, Line: line, Col: column}}, err
 }
 
 func (l *armConfiguration) LoadedFiles() []string {
 	return []string{l.path}
 }
 
-type armTemplate struct {
-	Contents map[string]interface{}
+type arm_Template struct {
+	Schema         string         `json:"$schema"`
+	ContentVersion string         `json:"contentVersion"`
+	Resources      []arm_Resource `json:"resources"`
+}
+
+type arm_Resource struct {
+	Type       string                 `json:"type"`
+	ApiVersion string                 `json:"apiVersion"`
+	Name       string                 `json:"name"`
+	Location   string                 `json:"location"`
+	Properties map[string]interface{} `json:"properties"`
+	Tags       map[string]string      `json:"tags"`
+	Resources  []arm_Resource         `json:"resources"`
+}
+
+// A resource together with its JSON path and name metadata.  This allows us to
+// iterate them and obtain a flat list before we actually process them.
+type arm_DiscoverResource struct {
+	name     arm_Name
+	path     []interface{}
+	resource arm_Resource
+}
+
+func (t arm_Template) discover() []arm_DiscoverResource {
+	discovered := []arm_DiscoverResource{}
+	var visit func([]interface{}, *arm_Name, arm_Resource)
+	visit = func(
+		path []interface{},
+		parentName *arm_Name,
+		resource arm_Resource,
+	) {
+		// Extend or construct name.
+		name := parseArmName(resource.Type, resource.Name)
+		if parentName != nil {
+			// We are nested under some parent.
+			name = parentName.Child(resource.Type, resource.Name)
+		}
+
+		// Add discovered resource.
+		discovered = append(discovered, arm_DiscoverResource{
+			name:     name,
+			path:     path,
+			resource: resource,
+		})
+
+		// Recurse on children.
+		for i, child := range resource.Resources {
+			childPath := make([]interface{}, len(path))
+			copy(childPath, path)
+			childPath = append(childPath, "resources")
+			childPath = append(childPath, i)
+			visit(childPath, &name, child)
+		}
+	}
+
+	for i, top := range t.Resources {
+		visit([]interface{}{"resources", i}, nil, top)
+	}
+	return discovered
+}
+
+func (d arm_DiscoverResource) process(
+	refResolver *arm_ReferenceResolver,
+) models.ResourceState {
+	r := d.resource
+
+	attributes := map[string]interface{}{}
+	properties := map[string]interface{}{}
+	for k, attr := range r.Properties {
+		updated := interfacetricks.TopDownWalk(refResolver, interfacetricks.Copy(attr))
+		properties[k] = updated
+	}
+	attributes["properties"] = properties
+	if r.ApiVersion != "" {
+		attributes["apiVersion"] = r.ApiVersion
+	}
+	if r.Location != "" {
+		attributes["location"] = r.Location
+	}
+
+	meta := map[string]interface{}{}
+	if parent := d.name.Parent(); parent != nil {
+		armMeta := map[string]interface{}{}
+		armMeta["parent_id"] = parent.String()
+		attributes["_parent_id"] = parent.String() // Backwards-compat :-(
+		meta["arm"] = armMeta
+	}
+
+	state := models.ResourceState{
+		Id:           d.name.String(),
+		ResourceType: d.name.Type(),
+		Attributes:   attributes,
+		Meta:         meta,
+	}
+
+	if len(r.Tags) > 0 {
+		state.Tags = r.Tags
+	}
+
+	return state
+}
+
+// Microsoft.Network/virtualNetworks/VNet1/subnets/Subnet1 is represented by:
+//
+// - service: Microsoft.Network
+// - types: [virtualNetworks, subnets]
+// - names: VNet1, Subnet1
+type arm_Name struct {
+	service string
+	types   []string
+	names   []string
+}
+
+func parseArmName(typeString string, nameString string) arm_Name {
+	name := arm_Name{}
+	types := strings.Split(typeString, "/")
+	if len(types) > 0 {
+		name.service = types[0]
+		name.types = types[1:]
+	}
+	name.names = strings.Split(nameString, "/")
+	return name
+}
+
+func (n arm_Name) Type() string {
+	return n.service + "/" + strings.Join(n.types, "/")
+}
+
+func (n arm_Name) String() string {
+	str := n.service
+	for i := 0; i < len(n.types) && i < len(n.names); i++ {
+		str = str + "/" + n.types[i] + "/" + n.names[i]
+	}
+	return str
+}
+
+// Extends a parent name to a child name by adding types and names, e.g.
+//
+//     Microsoft.Network/virtualNetworks/subnets + VNet1/Subnet1 =
+//     -> Microsoft.Network/virtualNetworks/VNet1/subnets/Subnet1
+//
+func (parent arm_Name) Child(typeString string, nameString string) arm_Name {
+	child := arm_Name{}
+	child.service = parent.service
+
+	types := strings.Split(typeString, "/")
+	child.types = make([]string, len(parent.types)+len(types))
+	copy(child.types, parent.types)
+	copy(child.types[len(parent.types):], types)
+
+	names := strings.Split(nameString, "/")
+	child.names = make([]string, len(parent.names)+len(names))
+	copy(child.names, parent.names)
+	copy(child.names[len(parent.names):], names)
+	return child
+}
+
+// Returns the parent name of a child name, or nil if this name has
+// no parent.
+func (child arm_Name) Parent() *arm_Name {
+	if len(child.types) <= 1 || len(child.names) <= 1 {
+		return nil
+	}
+
+	parent := arm_Name{}
+	parent.service = child.service
+
+	parent.types = make([]string, len(child.types)-1)
+	copy(parent.types, child.types)
+
+	parent.names = make([]string, len(child.names)-1)
+	copy(parent.names, child.names)
+
+	return &parent
+}
+
+// TopDownInterfaceWalker implementation to find and replace resource references
+// for ARM.
+type arm_ReferenceResolver struct {
+	// Set of present resources.
+	resources map[string]struct{}
+}
+
+func (*arm_ReferenceResolver) WalkArray(arr []interface{}) (interface{}, bool) {
+	return arr, true
+}
+
+func (*arm_ReferenceResolver) WalkObject(obj map[string]interface{}) (interface{}, bool) {
+	return obj, true
+}
+
+func (resolver *arm_ReferenceResolver) WalkString(s string) (interface{}, bool) {
+	if strings.HasPrefix(s, "[") {
+		re := regexp.MustCompile(`[\[\]()',[:space:]]+`)
+		rawTokens := re.Split(s, -1)
+		tokens := []string{}
+		for _, t := range rawTokens {
+			if t != "" {
+				tokens = append(tokens, t)
+			}
+		}
+
+		if len(tokens) >= 3 && tokens[0] == "resourceId" {
+			typeStr := tokens[1]
+			nameStr := strings.Join(tokens[2:], "/")
+			ref := parseArmName(typeStr, nameStr).String()
+			if _, ok := resolver.resources[ref]; ok {
+				return ref, false
+			}
+		}
+	}
+
+	return s, false
+}
+
+func (*arm_ReferenceResolver) WalkBool(b bool) (interface{}, bool) {
+	return b, false
 }

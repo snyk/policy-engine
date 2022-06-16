@@ -8,6 +8,9 @@ package interfacetricks
 type TopDownWalker interface {
 	WalkArray([]interface{}) (interface{}, bool)
 	WalkObject(map[string]interface{}) (interface{}, bool)
+
+	WalkString(string) (interface{}, bool)
+	WalkBool(bool) (interface{}, bool)
 }
 
 func TopDownWalk(w TopDownWalker, value interface{}) interface{} {
@@ -21,6 +24,20 @@ func TopDownWalk(w TopDownWalker, value interface{}) interface{} {
 		}
 	case []interface{}:
 		updated, cont := w.WalkArray(v)
+		if cont {
+			return topDownWalkChildren(w, updated)
+		} else {
+			return updated
+		}
+	case string:
+		updated, cont := w.WalkString(v)
+		if cont {
+			return topDownWalkChildren(w, updated)
+		} else {
+			return updated
+		}
+	case bool:
+		updated, cont := w.WalkBool(v)
 		if cont {
 			return topDownWalkChildren(w, updated)
 		} else {
