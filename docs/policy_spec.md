@@ -108,11 +108,12 @@ applies to multiple types. The current list of valid values for this rule are:
 
 * `tf_hcl` (Terraform HCL)
 * `tf_plan` (Terraform plan file)
+* `tf_state` (Terraform state file)
 * `cloud_scan` (State produced by Snyk Cloud)
 * `cfn` (Cloudformation template)
 * `k8s` (Kubernetes manifest)
 * `arm` (Azure ARM template)
-* `tf` (an aggregate type that includes: `tf_hcl`, `tf_plan`, and `cloud_scan`)
+* `tf` (an aggregate type that includes: `tf_hcl`, `tf_plan`, `tf_state`, and `cloud_scan`)
 
 When `input_type` is unspecified, it defaults to `tf`.
 
