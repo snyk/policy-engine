@@ -52,3 +52,9 @@ swagger:
 		$(MODELS_DIR)/README.md \
 		$(MODELS_DIR)/response.go
 	gofmt -w $(MODELS_DIR)/*.go
+
+.PHONY: install_tools
+install_tools:
+	go install github.com/golang/mock/mockgen@v1.6.0
+	go install github.com/goreleaser/goreleaser@v1.9.2
+	go install github.com/miniscruff/changie@v1.7.0
