@@ -66,6 +66,9 @@ var CloudFormation = &InputType{
 var CloudScan = &InputType{
 	Name:    "cloud_scan",
 	Aliases: []string{"cloud-scan"},
+	Children: InputTypes{
+		TerraformState,
+	},
 }
 
 // Kubernetes represents Kubernetes manifest inputs.
@@ -100,7 +103,6 @@ var Terraform = &InputType{
 	Children: InputTypes{
 		TerraformHCL,
 		TerraformPlan,
-		TerraformState,
 		CloudScan,
 	},
 }
