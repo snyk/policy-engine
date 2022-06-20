@@ -58,3 +58,16 @@ install_tools:
 	go install github.com/golang/mock/mockgen@v1.6.0
 	go install github.com/goreleaser/goreleaser@v1.9.2
 	go install github.com/miniscruff/changie@v1.7.0
+
+ifndef VERSION
+$(error VERSION should be set to vX.Y.Z)
+endif
+
+.PHONY: release
+release:
+	changie batch $(VERSION)
+	change merge
+	git add changes/$(VERSION).md CHANGELOG.md
+	git commit -m "Bump version to $(VERSION)"
+	git tag -a -F changes/$(VERSION).md $(VERSION)
+	git push origin main $(VERSION)
