@@ -12,7 +12,7 @@ import (
 )
 
 func TestResolveResources_ReturnsZeroResourcesWhenNoResolversMatch(t *testing.T) {
-	q := &policy.Query{ResourcesResolvers: []policy.ResourcesResolver{nonMatchingResolver}}
+	q := &policy.Query{ResourcesResolver: nonMatchingResolver()}
 	res, err := q.ResolveResources(context.Background(), policy.ResourcesQuery{})
 	require.NoError(t, err)
 	assert.Empty(t, res)
@@ -25,18 +25,18 @@ func TestResolveResources_ReturnsResourcesFromFirstMatchingResolver(t *testing.T
 			Id: "some-resource",
 		},
 	}
-	spyResolver := func(ctx context.Context, req policy.ResourcesQuery) (policy.ResourcesResult, error) {
-		assert.Equal(t, req, query)
-		return policy.ResourcesResult{
-			ScopeFound: true,
-			Resources:  expectedResources,
-		}, nil
+	spyResolver := policy.ResourcesResolver{
+		Resolve: func(ctx context.Context, req policy.ResourcesQuery) (policy.ResourcesResult, error) {
+			assert.Equal(t, req, query)
+			return policy.ResourcesResult{
+				ScopeFound: true,
+				Resources:  expectedResources,
+			}, nil
+		},
 	}
-	q := &policy.Query{ResourcesResolvers: []policy.ResourcesResolver{
-		nonMatchingResolver,
-		spyResolver,
-		panickyResolver,
-	}}
+	q := &policy.Query{
+		ResourcesResolver: nonMatchingResolver().Or(spyResolver.Or(panickyResolver())),
+	}
 	res, err := q.ResolveResources(context.Background(), query)
 	require.NoError(t, err)
 	assert.Equal(t, expectedResources, res)
@@ -44,23 +44,31 @@ func TestResolveResources_ReturnsResourcesFromFirstMatchingResolver(t *testing.T
 
 func TestResolveResources_ReturnsErrorFromFirstResolverThatErrors(t *testing.T) {
 	query := policy.ResourcesQuery{ResourceType: "a-resource-type"}
-	spyResolver := func(ctx context.Context, req policy.ResourcesQuery) (policy.ResourcesResult, error) {
-		assert.Equal(t, req, query)
-		return policy.ResourcesResult{}, errors.New("oops")
+	spyResolver := policy.ResourcesResolver{
+		Resolve: func(ctx context.Context, req policy.ResourcesQuery) (policy.ResourcesResult, error) {
+			assert.Equal(t, req, query)
+			return policy.ResourcesResult{}, errors.New("oops")
+		},
 	}
-	q := &policy.Query{ResourcesResolvers: []policy.ResourcesResolver{
-		nonMatchingResolver,
-		spyResolver,
-		panickyResolver,
-	}}
+	q := &policy.Query{
+		ResourcesResolver: nonMatchingResolver().Or(spyResolver.Or(panickyResolver())),
+	}
 	_, err := q.ResolveResources(context.Background(), query)
 	require.EqualError(t, err, "error in ResourcesResolver: oops")
 }
 
-func nonMatchingResolver(ctx context.Context, req policy.ResourcesQuery) (policy.ResourcesResult, error) {
-	return policy.ResourcesResult{ScopeFound: false}, nil
+func nonMatchingResolver() policy.ResourcesResolver {
+	return policy.ResourcesResolver{
+		Resolve: func(ctx context.Context, req policy.ResourcesQuery) (policy.ResourcesResult, error) {
+			return policy.ResourcesResult{ScopeFound: false}, nil
+		},
+	}
 }
 
-func panickyResolver(ctx context.Context, req policy.ResourcesQuery) (policy.ResourcesResult, error) {
-	panic("this resolver should not have been reached!")
+func panickyResolver() policy.ResourcesResolver {
+	return policy.ResourcesResolver{
+		Resolve: func(ctx context.Context, req policy.ResourcesQuery) (policy.ResourcesResult, error) {
+			panic("this resolver should not have been reached!")
+		},
+	}
 }

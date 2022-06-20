@@ -11,7 +11,7 @@ import (
 )
 
 type Query struct {
-	ResourcesResolvers []ResourcesResolver
+	ResourcesResolver ResourcesResolver
 }
 
 func (*Query) decl() *rego.Function {
@@ -63,14 +63,13 @@ func (q *Query) impl(bctx rego.BuiltinContext, operands []*ast.Term) (*ast.Term,
 }
 
 func (q *Query) ResolveResources(ctx context.Context, query ResourcesQuery) ([]models.ResourceState, error) {
-	for _, resolve := range q.ResourcesResolvers {
-		res, err := resolve(ctx, query)
-		if err != nil {
-			return nil, fmt.Errorf("error in ResourcesResolver: %s", err)
-		}
-		if res.ScopeFound {
-			return res.Resources, nil
-		}
+	resolver := q.ResourcesResolver
+	res, err := resolver.Resolve(ctx, query)
+	if err != nil {
+		return nil, fmt.Errorf("error in ResourcesResolver: %s", err)
+	}
+	if res.ScopeFound {
+		return res.Resources, nil
 	}
 	return []models.ResourceState{}, nil
 }

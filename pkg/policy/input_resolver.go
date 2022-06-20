@@ -18,17 +18,21 @@ func newInputResolver(input *models.State) *inputResolver {
 	}
 }
 
-func (r *inputResolver) resolve(ctx context.Context, query ResourcesQuery) (ResourcesResult, error) {
-	if !ScopeMatches(query.Scope, r.input.Scope) {
-		return ResourcesResult{ScopeFound: false}, nil
+func (r *inputResolver) resolver() ResourcesResolver {
+	return ResourcesResolver{
+		Resolve: func(ctx context.Context, query ResourcesQuery) (ResourcesResult, error) {
+			if !ScopeMatches(query.Scope, r.input.Scope) {
+				return ResourcesResult{ScopeFound: false}, nil
+			}
+			ret := ResourcesResult{ScopeFound: true}
+			if resources, ok := r.input.Resources[query.ResourceType]; ok {
+				ret.ScopeFound = true
+				for _, resource := range resources {
+					ret.Resources = append(ret.Resources, resource)
+				}
+			}
+			r.calledWith[query.ResourceType] = true
+			return ret, nil
+		},
 	}
-	ret := ResourcesResult{ScopeFound: true}
-	if resources, ok := r.input.Resources[query.ResourceType]; ok {
-		ret.ScopeFound = true
-		for _, resource := range resources {
-			ret.Resources = append(ret.Resources, resource)
-		}
-	}
-	r.calledWith[query.ResourceType] = true
-	return ret, nil
 }

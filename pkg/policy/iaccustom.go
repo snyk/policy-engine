@@ -37,7 +37,7 @@ func (p *IaCCustomPolicy) Eval(
 		rego.Query(p.judgementRule.query()),
 		rego.Input(input),
 	)
-	builtins := NewBuiltins(options.Input, options.ResourcesResolvers)
+	builtins := NewBuiltins(options.Input, options.ResourcesResolver)
 	opts = append(opts, builtins.Rego()...)
 	query, err := rego.New(opts...).PrepareForEval(ctx)
 	if err != nil {

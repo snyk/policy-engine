@@ -19,14 +19,14 @@ import (
 
 // Engine is responsible for evaluating some States with a given set of rules.
 type Engine struct {
-	logger             logging.Logger
-	metrics            metrics.Metrics
-	policies           []policy.Policy
-	compiler           *ast.Compiler
-	store              storage.Store
-	ruleIDs            map[string]bool
-	runAllRules        bool
-	resourcesResolvers []policy.ResourcesResolver
+	logger            logging.Logger
+	metrics           metrics.Metrics
+	policies          []policy.Policy
+	compiler          *ast.Compiler
+	store             storage.Store
+	ruleIDs           map[string]bool
+	runAllRules       bool
+	resourcesResolver policy.ResourcesResolver
 }
 
 // EngineOptions contains options for initializing an Engine instance
@@ -43,7 +43,7 @@ type EngineOptions struct {
 	// ResourceResolvers is a list of functions that return a resource state for
 	// the given ResourceRequest. They will be invoked in order until a result is
 	// returned with ScopeFound set to true.
-	ResourcesResolvers []policy.ResourcesResolver
+	ResourcesResolver policy.ResourcesResolver
 }
 
 // NewEngine constructs a new Engine instance.
@@ -109,14 +109,14 @@ func NewEngine(ctx context.Context, options *EngineOptions) (*Engine, error) {
 	m.Counter(ctx, metrics.POLICIES_LOADED, "", metrics.Labels{}).
 		Add(float64(len(policies)))
 	return &Engine{
-		logger:             logger,
-		metrics:            m,
-		compiler:           compiler,
-		policies:           policies,
-		store:              inmem.NewFromObject(consumer.Documents),
-		ruleIDs:            options.RuleIDs,
-		runAllRules:        len(options.RuleIDs) < 1,
-		resourcesResolvers: options.ResourcesResolvers,
+		logger:            logger,
+		metrics:           m,
+		compiler:          compiler,
+		policies:          policies,
+		store:             inmem.NewFromObject(consumer.Documents),
+		ruleIDs:           options.RuleIDs,
+		runAllRules:       len(options.RuleIDs) < 1,
+		resourcesResolver: options.ResourcesResolver,
 	}, nil
 }
 
@@ -161,9 +161,9 @@ func (e *Engine) Eval(ctx context.Context, options *EvalOptions) *models.Results
 	results := []models.Result{}
 	for idx, state := range options.Inputs {
 		options := policy.EvalOptions{
-			RegoOptions:        regoOptions,
-			Input:              &state,
-			ResourcesResolvers: e.resourcesResolvers,
+			RegoOptions:       regoOptions,
+			Input:             &state,
+			ResourcesResolver: e.resourcesResolver,
 		}
 		allRuleResults := []models.RuleResults{}
 		resultsChan := make(chan policyResults)
