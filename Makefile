@@ -59,15 +59,15 @@ install_tools:
 	go install github.com/goreleaser/goreleaser@v1.9.2
 	go install github.com/miniscruff/changie@v1.7.0
 
-ifndef VERSION
-$(error VERSION should be set to vX.Y.Z)
-endif
-
 .PHONY: release
 release:
+	@echo "Testing if $(VERSION) is set..."
+	test $(VERSION)
 	changie batch $(VERSION)
-	change merge
+	changie merge
 	git add changes/$(VERSION).md CHANGELOG.md
+	git diff --staged
+	@echo -n "Are you sure? [y/N] " && read ans && [ $${ans:-N} == y ]
 	git commit -m "Bump version to $(VERSION)"
 	git tag -a -F changes/$(VERSION).md $(VERSION)
 	git push origin main $(VERSION)
