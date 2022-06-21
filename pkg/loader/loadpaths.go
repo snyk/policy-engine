@@ -267,6 +267,7 @@ func detectorByInputType(inputType *inputs.InputType) (ConfigurationDetector, er
 			&CfnDetector{},
 			&TfPlanDetector{},
 			&TfDetector{},
+			&TfStateDetector{},
 			&KubernetesDetector{},
 			&ArmDetector{},
 		), nil

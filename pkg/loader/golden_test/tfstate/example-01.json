@@ -1,0 +1,74 @@
+{
+  "format": "",
+  "format_version": "",
+  "input_type": "tf_plan",
+  "environment_provider": "iac",
+  "meta": {
+    "filepath": "golden_test/tfstate/example-01/state.json"
+  },
+  "resources": {
+    "aws_default_security_group": {
+      "aws_default_security_group.default_sg_allowed_ssh": {
+        "id": "aws_default_security_group.default_sg_allowed_ssh",
+        "resource_type": "aws_default_security_group",
+        "namespace": "golden_test/tfstate/example-01/state.json",
+        "meta": {
+          "terraform": {
+            "provider_version_constraint": "3.70.0"
+          }
+        },
+        "attributes": {
+          "ingress": [
+            {
+              "cidr_blocks": [
+                "90.90.90.0/24"
+              ],
+              "description": "",
+              "from_port": 22,
+              "ipv6_cidr_blocks": [],
+              "prefix_list_ids": [],
+              "protocol": "tcp",
+              "security_groups": [],
+              "self": false,
+              "to_port": 22
+            }
+          ],
+          "revoke_rules_on_delete": false,
+          "tags": null,
+          "vpc_id": "aws_vpc.vpc_allowed"
+        }
+      }
+    },
+    "aws_vpc": {
+      "aws_vpc.vpc_allowed": {
+        "id": "aws_vpc.vpc_allowed",
+        "resource_type": "aws_vpc",
+        "namespace": "golden_test/tfstate/example-01/state.json",
+        "meta": {
+          "terraform": {
+            "provider_version_constraint": "3.70.0"
+          }
+        },
+        "attributes": {
+          "assign_generated_ipv6_cidr_block": null,
+          "cidr_block": "10.0.0.0/16",
+          "enable_dns_support": true,
+          "instance_tenancy": "default",
+          "ipv4_ipam_pool_id": null,
+          "ipv4_netmask_length": null,
+          "ipv6_ipam_pool_id": null,
+          "ipv6_netmask_length": null,
+          "tags": {
+            "Name": "opa-rules-test-vpc"
+          },
+          "tags_all": {
+            "Name": "opa-rules-test-vpc"
+          }
+        }
+      }
+    }
+  },
+  "scope": {
+    "filepath": "golden_test/tfstate/example-01/state.json"
+  }
+}

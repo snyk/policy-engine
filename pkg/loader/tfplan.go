@@ -42,7 +42,7 @@ func (t *TfPlanDetector) DetectFile(i InputFile, opts DetectOptions) (IACConfigu
 		return nil, fmt.Errorf("%w: %v", FailedToParseInput, err)
 	}
 
-	if rawPlan.TerraformVersion == "" {
+	if rawPlan.TerraformVersion == "" || rawPlan.PlannedValues == nil {
 		return nil, fmt.Errorf("%w", InvalidInput)
 	}
 
