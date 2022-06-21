@@ -56,9 +56,7 @@ var runCmd = &cobra.Command{
 			IgnoreDirs:  false,
 		})
 		loadedConfigs, errs := configLoader()
-		for _, err := range errs {
-			check(err)
-		}
+		check(errs...)
 
 		states := loadedConfigs.ToStates()
 		ctx := context.Background()

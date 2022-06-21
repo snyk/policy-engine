@@ -11,9 +11,11 @@ import (
 	"github.com/spf13/cobra"
 )
 
-func check(err error) {
-	if err != nil {
+func check(errs ...error) {
+	for _, err := range errs {
 		fmt.Fprintln(os.Stderr, err)
+	}
+	if len(errs) > 0 {
 		os.Exit(1)
 	}
 }
