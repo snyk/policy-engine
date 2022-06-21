@@ -52,3 +52,22 @@ swagger:
 		$(MODELS_DIR)/README.md \
 		$(MODELS_DIR)/response.go
 	gofmt -w $(MODELS_DIR)/*.go
+
+.PHONY: install_tools
+install_tools:
+	go install github.com/golang/mock/mockgen@v1.6.0
+	go install github.com/goreleaser/goreleaser@v1.9.2
+	go install github.com/miniscruff/changie@v1.7.0
+
+.PHONY: release
+release:
+	@echo "Testing if $(VERSION) is set..."
+	test $(VERSION)
+	changie batch $(VERSION)
+	changie merge
+	git add changes/$(VERSION).md CHANGELOG.md
+	git diff --staged
+	@echo -n "Are you sure? [y/N] " && read ans && [ $${ans:-N} == y ]
+	git commit -m "Bump version to $(VERSION)"
+	git tag -a -F changes/$(VERSION).md $(VERSION)
+	git push origin main $(VERSION)

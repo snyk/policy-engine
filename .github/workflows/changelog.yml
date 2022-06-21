@@ -1,0 +1,18 @@
+name: changelog
+on: [pull_request]
+jobs:
+  changelog:
+    runs-on: ubuntu-latest
+    name: Check changelog entry
+    steps:
+    - uses: actions/checkout@v2
+    - name: Check changelog entry
+      run: |
+        REMOTE=$(git remote | head)
+        git fetch $REMOTE ${{ github.base_ref }}
+        CHANGES="$(git diff $REMOTE/${{ github.base_ref }} -- changes/unreleased/)"
+        echo $CHANGES
+        if [[ "$CHANGES" == "" ]]; then
+            1>&2 echo "Please use 'changie new' to generate a changelog entry"
+            exit 1
+        fi
