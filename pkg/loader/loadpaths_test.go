@@ -56,7 +56,7 @@ func TestLoadPathsDirWithType(t *testing.T) {
 		Paths:      []string{"test_inputs/data"},
 		InputTypes: inputs.InputTypes{inputs.TerraformPlan},
 	})()
-	assert.Nil(t, err)
+	assert.NotNil(t, err)
 	assert.NotNil(t, loadedConfigs)
 	assert.Greater(t, loadedConfigs.Count(), 0)
 	assert.True(t, loadedConfigs.AlreadyLoaded("test_inputs/data/tfplan.0.15.json"))
