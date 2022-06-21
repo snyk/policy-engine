@@ -24,5 +24,8 @@
         }
       }
     }
+  },
+  "scope": {
+    "filepath": "golden_test/tf/tfvars-01"
   }
 }

@@ -75,5 +75,8 @@
         }
       }
     }
+  },
+  "scope": {
+    "filepath": "golden_test/tf/provider-version/main.tf"
   }
 }

@@ -59,5 +59,8 @@
         }
       }
     }
+  },
+  "scope": {
+    "filepath": "golden_test/tf/repeated-blocks/main.tf"
   }
 }

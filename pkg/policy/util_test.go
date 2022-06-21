@@ -207,3 +207,84 @@ func TestModuleSetsWithPrefix(t *testing.T) {
 		assert.Equal(t, expected, output)
 	}
 }
+
+func TestScopeMatches(t *testing.T) {
+	for _, tc := range []struct {
+		name          string
+		query         map[string]string
+		input         map[string]interface{}
+		expectedMatch bool
+	}{
+		{
+			name:          "empty scope matches empty scope",
+			query:         map[string]string{},
+			input:         map[string]interface{}{},
+			expectedMatch: true,
+		},
+		{
+			name:          "empty scope matches any scope",
+			query:         map[string]string{},
+			input:         map[string]interface{}{"filename": "foo.tf", "git_branch": "main"},
+			expectedMatch: true,
+		},
+		{
+			name:          "identical scopes match",
+			query:         map[string]string{"filename": "foo.tf", "git_branch": "main"},
+			input:         map[string]interface{}{"filename": "foo.tf", "git_branch": "main"},
+			expectedMatch: true,
+		},
+		{
+			name:          "matches when all query fields match but input has more fields",
+			query:         map[string]string{"filename": "foo.tf"},
+			input:         map[string]interface{}{"filename": "foo.tf", "git_branch": "main"},
+			expectedMatch: true,
+		},
+		{
+			name:          "doesn't match when queried field differs",
+			query:         map[string]string{"filename": "foo.tf"},
+			input:         map[string]interface{}{"filename": "bar.tf"},
+			expectedMatch: false,
+		},
+		{
+			name:          "query of * matches any present value",
+			query:         map[string]string{"region": "*"},
+			input:         map[string]interface{}{"region": "us-east-1"},
+			expectedMatch: true,
+		},
+		{
+			name:          "query of empty string matches any present value",
+			query:         map[string]string{"region": ""},
+			input:         map[string]interface{}{"region": "us-east-1"},
+			expectedMatch: true,
+		},
+		{
+			name:          "query of * requires value to be present",
+			query:         map[string]string{"region": "*"},
+			input:         map[string]interface{}{},
+			expectedMatch: false,
+		},
+		{
+			name:          "query of empty string requires value to be present",
+			query:         map[string]string{"region": ""},
+			input:         map[string]interface{}{},
+			expectedMatch: false,
+		},
+		{
+			name:          "overall match requires all query fields to match input fields",
+			query:         map[string]string{"region": "us-east-1", "account": "foo"},
+			input:         map[string]interface{}{"region": "us-east-1", "account": "bar"},
+			expectedMatch: false,
+		},
+		{
+			name:          "overall match requires all query fields to at least be present in input",
+			query:         map[string]string{"region": "us-east-1", "account": "foo"},
+			input:         map[string]interface{}{"region": "us-east-1", "something_else": "foo"},
+			expectedMatch: false,
+		},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			matches := policy.ScopeMatches(tc.query, tc.input)
+			assert.Equal(t, tc.expectedMatch, matches)
+		})
+	}
+}

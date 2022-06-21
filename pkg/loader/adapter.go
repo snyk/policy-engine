@@ -14,6 +14,9 @@ func toState(
 			"filepath": filepath,
 		},
 		Resources: map[string]map[string]models.ResourceState{},
+		Scope: map[string]interface{}{
+			"filepath": filepath,
+		},
 	}
 	for resourceId, a := range resourceAttributes {
 		attrs, ok := a.(map[string]interface{})

@@ -6,5 +6,8 @@
   "meta": {
     "filepath": "golden_test/tf/count-var/main.tf"
   },
-  "resources": {}
+  "resources": {},
+  "scope": {
+    "filepath": "golden_test/tf/count-var/main.tf"
+  }
 }

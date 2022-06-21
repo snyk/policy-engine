@@ -67,5 +67,8 @@
         }
       }
     }
+  },
+  "scope": {
+    "filepath": "golden_test/tfstate/example-01/state.json"
   }
 }

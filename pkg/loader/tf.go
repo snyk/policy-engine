@@ -157,5 +157,8 @@ func (c *HclConfiguration) ToState() models.State {
 			"filepath": c.moduleTree.FilePath(),
 		},
 		Resources: groupResourcesByType(resources),
+		Scope: map[string]interface{}{
+			"filepath": c.moduleTree.FilePath(),
+		},
 	}
 }

@@ -92,5 +92,8 @@
         }
       }
     }
+  },
+  "scope": {
+    "filepath": "golden_test/tf/kubernetes-01/main.tf"
   }
 }

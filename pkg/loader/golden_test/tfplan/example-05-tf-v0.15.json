@@ -52,5 +52,8 @@
         }
       }
     }
+  },
+  "scope": {
+    "filepath": "golden_test/tfplan/example-05-tf-v0.15/plan.json"
   }
 }

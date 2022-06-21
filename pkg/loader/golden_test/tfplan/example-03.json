@@ -72,5 +72,8 @@
         }
       }
     }
+  },
+  "scope": {
+    "filepath": "golden_test/tfplan/example-03/plan.json"
   }
 }

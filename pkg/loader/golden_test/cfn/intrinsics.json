@@ -232,5 +232,8 @@
         }
       }
     }
+  },
+  "scope": {
+    "filepath": "golden_test/cfn/intrinsics/main.yaml"
   }
 }

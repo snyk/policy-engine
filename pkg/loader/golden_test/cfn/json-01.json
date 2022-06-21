@@ -34,5 +34,8 @@
         }
       }
     }
+  },
+  "scope": {
+    "filepath": "golden_test/cfn/json-01/cfn.json"
   }
 }

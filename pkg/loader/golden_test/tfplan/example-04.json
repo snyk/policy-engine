@@ -29,5 +29,8 @@
         }
       }
     }
+  },
+  "scope": {
+    "filepath": "golden_test/tfplan/example-04/plan.json"
   }
 }

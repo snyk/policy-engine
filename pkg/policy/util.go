@@ -38,3 +38,18 @@ func ModuleSetsWithPrefix(
 ) []ModuleSet {
 	return moduleSetsHelper(prefix, node, nil)
 }
+
+// TODO support array values?
+func ScopeMatches(query map[string]string, input map[string]interface{}) bool {
+	for queryKey, queryVal := range query {
+		inputVal, present := input[queryKey]
+		if present && (queryVal == "" || queryVal == "*") {
+			continue
+		}
+		if queryVal == inputVal {
+			continue
+		}
+		return false
+	}
+	return true
+}

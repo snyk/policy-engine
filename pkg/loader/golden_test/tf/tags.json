@@ -116,5 +116,8 @@
         }
       }
     }
+  },
+  "scope": {
+    "filepath": "golden_test/tf/tags/main.tf"
   }
 }

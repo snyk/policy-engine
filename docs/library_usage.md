@@ -19,6 +19,7 @@ components together.
       - [`data.LocalProvider()`](#datalocalprovider)
     - [Example](#example-1)
     - [Error handling](#error-handling-1)
+  - [Custom resource resolution](#custom-resource-resolution)
   - [Source code location and line numbers](#source-code-location-and-line-numbers)
     - [Example](#example-2)
 
@@ -123,6 +124,65 @@ inline documentation.
 **NOTE** that `FailedToProcessInput` will always wrap one of the other errors, so it
 does not need to be handled explicitly unless its `Path` attribute is needed.
 
+## Custom resource resolution
+
+The library's caller can customize the behavior of the [`snyk.query`
+builtin](../policy_spec.md#snykquery-query) using Golang functions injected into
+EngineOptions. The main use case of this is to fetch resources from places other
+than the input.
+
+As a concrete example, let's imagine a CLI to scan IaC files for security
+issues. Policy authors might want to write policies that mix cloud resources
+with static config, to enrich the static analysis with some dynamic context, and
+potentially suppress noisy false positives (that are only false in the context
+of some concrete environments).
+
+First, they'll implement the `policy.ResourcesResolver` function signature:
+
+```go
+func getCloudResources(ctx context.Context, query policy.ResourcesQuery) (policy.ResourcesResult, error) {
+	// The "region" input scope field will not be set by IaC config loaders. If it
+	// is present, the resolver chain will be invoked for that query, leading us
+	// here. If it is still not set, then this query must be for something else,
+	// and we should pass on it.
+	if _, ok := query.Scope["region"]; !ok {
+		return policy.ResourcesResult{ScopeFound: false}, nil
+	}
+
+	resources := fetchResourcesFromCloud(query.ResourceType, query.Scope["region"])
+	return policy.ResourcesResult{
+		ScopeFound: true,
+		Resources:  resources,
+	}, nil
+}
+
+```
+
+Then, they can inject that into the engine's resolver chain:
+
+```go
+  engine, err := upe.NewEngine(ctx, &upe.EngineOptions{
+    ...
+    ResourcesResolver: policy.ResourcesResolver(getCloudResources),
+  })
+```
+
+Policies that make use of the "region" input scope field, which will not be set
+by IaC-specific config loaders, such as:
+
+```
+resources := snyk.query({
+  "resource_type": "aws_cloudtrail",
+  "scope": {
+    "region": "us-east-1",
+  },
+})
+```
+
+Will trigger the resolver chain, causing the user-defined `getCloudResources` to
+be called. This function can then fetch the requested resources from the Cloud
+API directly.
+
 ## Evaluating policies
 
 ### `engine.Engine`
@@ -206,6 +266,10 @@ func main() {
     // compatible with the one provided by the snyk/go-common library. The metrics
     // package also contains an implementation of this interface.
     Metrics:   m,
+    // ResourceResolvers is a list of functions that return a resource state for
+    // the given ResourceRequest. They will be invoked in order until a result is
+    // returned with ScopeFound set to true.
+    ResourcesResolvers []policy.ResourcesResolver
   })
   if err != nil {
     // Checking for specific errors

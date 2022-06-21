@@ -77,6 +77,9 @@ func (l *tfPlan) ToState() models.State {
 			"filepath": l.path,
 		},
 		Resources: groupResourcesByType(l.plan.resources(l.path)),
+		Scope: map[string]interface{}{
+			"filepath": l.path,
+		},
 	}
 }
 

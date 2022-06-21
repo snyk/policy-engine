@@ -95,5 +95,8 @@
         }
       }
     }
+  },
+  "scope": {
+    "filepath": "golden_test/tfplan/example-06-tf-v1.0/plan.json"
   }
 }
