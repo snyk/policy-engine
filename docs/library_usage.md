@@ -73,8 +73,8 @@ func main() {
   })
 
   // Invoke the loader, returning a LoadedConfigurations struct
-  loadedConfigs, err := configLoader()
-  if err != nil {
+  loadedConfigs, errs := configLoader()
+  for _, err := range errs {
     // Checking for specific errors
     switch {
     case errors.Is(err, loader.NoLoadableInputs):

@@ -88,7 +88,7 @@ type LoadedConfigurations interface {
 	Count() int
 }
 
-type ConfigurationLoader func() (LoadedConfigurations, error)
+type ConfigurationLoader func() (LoadedConfigurations, []error)
 
 // IACConfiguration is a loaded IaC Configuration.
 type IACConfiguration interface {

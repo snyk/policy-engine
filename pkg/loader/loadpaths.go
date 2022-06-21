@@ -48,11 +48,13 @@ type LoadPathsOptions struct {
 // LocalConfigurationLoader returns a ConfigurationLoader that loads IaC configurations
 // from local disk.
 func LocalConfigurationLoader(options LoadPathsOptions) ConfigurationLoader {
-	return func() (LoadedConfigurations, error) {
+	return func() (LoadedConfigurations, []error) {
+		var errors []error
+
 		configurations := newLoadedConfigurations()
 		detector, err := DetectorByInputTypes(options.InputTypes)
 		if err != nil {
-			return nil, err
+			return nil, []error{err}
 		}
 		// We want to ignore file extension mismatches when 'auto' is not present in
 		// the selected input types and there is only one input type selected.
@@ -64,20 +66,19 @@ func LocalConfigurationLoader(options LoadPathsOptions) ConfigurationLoader {
 			}
 		}
 		ignoreFileExtension := !autoInputTypeSelected && len(options.InputTypes) < 2
-		walkFunc := func(i InputPath) (skip bool, err error) {
+		walkFunc := func(i InputPath) (bool, error) {
 			if configurations.AlreadyLoaded(i.Path()) {
-				skip = true
-				return
+				return true, nil
 			}
-			// Ignore errors when we're recursing
-			loader, _ := i.DetectType(detector, DetectOptions{
+			if loader, err := i.DetectType(detector, DetectOptions{
 				IgnoreExt:  false,
 				IgnoreDirs: options.IgnoreDirs,
-			})
-			if loader != nil {
+			}); err != nil {
+				errors = append(errors, &FailedToProcessInput{Path: i.Path(), err: err})
+			} else if loader != nil {
 				configurations.AddConfiguration(i.Path(), loader)
 			}
-			return
+			return false, nil
 		}
 		gitRepoFinder := git.NewRepoFinder(options.Paths)
 		for _, path := range options.Paths {
@@ -95,23 +96,25 @@ func LocalConfigurationLoader(options LoadPathsOptions) ConfigurationLoader {
 					IgnoreExt: true,
 				})
 				if err != nil {
-					return nil, &FailedToProcessInput{Path: path, err: err}
+					errors = append(errors, &FailedToProcessInput{Path: path, err: err})
+					continue
 				}
 				if loader != nil {
 					configurations.AddConfiguration(stdIn, loader)
 				} else {
-					return nil, &FailedToProcessInput{Path: path, err: UnableToRecognizeInputType}
+					errors = append(errors, &FailedToProcessInput{Path: path, err: UnableToRecognizeInputType})
 				}
 				continue
 			}
 			name := filepath.Base(path)
 			info, err := os.Stat(path)
 			if err != nil {
-				return nil, &FailedToProcessInput{Path: path, err: fmt.Errorf(
+				errors = append(errors, &FailedToProcessInput{Path: path, err: fmt.Errorf(
 					"%w: %v",
 					UnableToReadFile,
 					err,
-				)}
+				)})
+				continue
 			}
 			if info.IsDir() {
 				// We want to override the gitignore behavior if the user explicitly gives
@@ -129,20 +132,23 @@ func LocalConfigurationLoader(options LoadPathsOptions) ConfigurationLoader {
 					GitRepoFinder: gitRepoFinder,
 				})
 				if err != nil {
-					return nil, &FailedToProcessInput{Path: path, err: err}
+					errors = append(errors, &FailedToProcessInput{Path: path, err: err})
+					continue
 				}
 				loader, err := i.DetectType(detector, DetectOptions{
 					IgnoreExt:  ignoreFileExtension,
 					IgnoreDirs: options.IgnoreDirs,
 				})
 				if err != nil {
-					return nil, &FailedToProcessInput{Path: path, err: err}
+					errors = append(errors, &FailedToProcessInput{Path: path, err: err})
+					continue
 				}
 				if loader != nil {
 					configurations.AddConfiguration(path, loader)
 				}
 				if err := i.Walk(walkFunc); err != nil {
-					return nil, &FailedToProcessInput{Path: path, err: err}
+					errors = append(errors, &FailedToProcessInput{Path: path, err: err})
+					continue
 				}
 			} else {
 				i := newFile(path, name)
@@ -150,20 +156,22 @@ func LocalConfigurationLoader(options LoadPathsOptions) ConfigurationLoader {
 					IgnoreExt: ignoreFileExtension,
 				})
 				if err != nil {
-					return nil, &FailedToProcessInput{Path: path, err: err}
+					errors = append(errors, &FailedToProcessInput{Path: path, err: err})
+					continue
 				}
 				if loader != nil {
 					configurations.AddConfiguration(path, loader)
 				} else {
-					return nil, &FailedToProcessInput{Path: path, err: UnableToRecognizeInputType}
+					errors = append(errors, &FailedToProcessInput{Path: path, err: UnableToRecognizeInputType})
+					continue
 				}
 			}
 		}
 		if configurations.Count() < 1 {
-			return nil, fmt.Errorf("%w", NoLoadableInputs)
+			errors = append(errors, fmt.Errorf("%w", NoLoadableInputs))
 		}
 
-		return configurations, nil
+		return configurations, errors
 	}
 }
 
