@@ -40,9 +40,9 @@ type EngineOptions struct {
 	Logger logging.Logger
 	// Metrics is an optional instance of the metrics.Metrics interface
 	Metrics metrics.Metrics
-	// ResourceResolvers is a list of functions that return a resource state for
-	// the given ResourceRequest. They will be invoked in order until a result is
-	// returned with ScopeFound set to true.
+	// ResourceResolver is a function that returns a resource state for the given
+	// ResourceRequest.
+	// Multiple ResourcesResolvers can be composed with And() and Or().
 	ResourcesResolver policy.ResourcesResolver
 }
 

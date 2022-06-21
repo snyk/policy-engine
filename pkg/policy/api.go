@@ -33,58 +33,52 @@ type ResourcesResult struct {
 	Resources  []models.ResourceState
 }
 
-type ResourcesResolver struct {
-	Resolve func(ctx context.Context, req ResourcesQuery) (ResourcesResult, error)
-}
+type ResourcesResolver func(ctx context.Context, req ResourcesQuery) (ResourcesResult, error)
 
 func (l ResourcesResolver) And(r ResourcesResolver) ResourcesResolver {
-	return ResourcesResolver{
-		Resolve: func(ctx context.Context, req ResourcesQuery) (ResourcesResult, error) {
-			result := ResourcesResult{
-				ScopeFound: false,
-				Resources:  []models.ResourceState{},
-			}
-			lresult, err := l.Resolve(ctx, req)
-			if err != nil {
-				return result, err
-			}
-			result.ScopeFound = result.ScopeFound || lresult.ScopeFound
-			result.Resources = append(result.Resources, lresult.Resources...)
-			rresult, err := r.Resolve(ctx, req)
-			if err != nil {
-				return result, err
-			}
-			result.ScopeFound = result.ScopeFound || rresult.ScopeFound
-			result.Resources = append(result.Resources, rresult.Resources...)
-			return result, nil
-		},
+	return func(ctx context.Context, req ResourcesQuery) (ResourcesResult, error) {
+		result := ResourcesResult{
+			ScopeFound: false,
+			Resources:  []models.ResourceState{},
+		}
+		lresult, err := l(ctx, req)
+		if err != nil {
+			return result, err
+		}
+		result.ScopeFound = result.ScopeFound || lresult.ScopeFound
+		result.Resources = append(result.Resources, lresult.Resources...)
+		rresult, err := r(ctx, req)
+		if err != nil {
+			return result, err
+		}
+		result.ScopeFound = result.ScopeFound || rresult.ScopeFound
+		result.Resources = append(result.Resources, rresult.Resources...)
+		return result, nil
 	}
 }
 
 func (l ResourcesResolver) Or(r ResourcesResolver) ResourcesResolver {
-	return ResourcesResolver{
-		Resolve: func(ctx context.Context, req ResourcesQuery) (ResourcesResult, error) {
-			result := ResourcesResult{
-				ScopeFound: false,
-				Resources:  []models.ResourceState{},
-			}
-			lresult, err := l.Resolve(ctx, req)
-			if err != nil {
-				return result, err
-			}
-			result.ScopeFound = result.ScopeFound || lresult.ScopeFound
-			result.Resources = append(result.Resources, lresult.Resources...)
-			if result.ScopeFound {
-				return result, nil
-			}
-			rresult, err := r.Resolve(ctx, req)
-			if err != nil {
-				return result, err
-			}
-			result.ScopeFound = result.ScopeFound || rresult.ScopeFound
-			result.Resources = append(result.Resources, rresult.Resources...)
+	return func(ctx context.Context, req ResourcesQuery) (ResourcesResult, error) {
+		result := ResourcesResult{
+			ScopeFound: false,
+			Resources:  []models.ResourceState{},
+		}
+		lresult, err := l(ctx, req)
+		if err != nil {
+			return result, err
+		}
+		result.ScopeFound = result.ScopeFound || lresult.ScopeFound
+		result.Resources = append(result.Resources, lresult.Resources...)
+		if result.ScopeFound {
 			return result, nil
-		},
+		}
+		rresult, err := r(ctx, req)
+		if err != nil {
+			return result, err
+		}
+		result.ScopeFound = result.ScopeFound || rresult.ScopeFound
+		result.Resources = append(result.Resources, rresult.Resources...)
+		return result, nil
 	}
 }
 
@@ -282,7 +276,7 @@ func NewBuiltins(input *models.State, resourcesResolver ResourcesResolver) *Buil
 		resourcesQueried: inputResolver.calledWith,
 		funcs: []builtin{
 			&Query{
-				ResourcesResolver: inputResolver.resolver().Or(resourcesResolver),
+				ResourcesResolver: ResourcesResolver(inputResolver.resolve).Or(resourcesResolver),
 			},
 			&currentInputType{input},
 			&inputResourceTypes{input},

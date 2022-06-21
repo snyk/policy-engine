@@ -163,7 +163,7 @@ Then, they can inject that into the engine's resolver chain:
 ```go
   engine, err := upe.NewEngine(ctx, &upe.EngineOptions{
     ...
-    ResourcesResolvers: []policy.ResourcesResolver{getCloudResources},
+    ResourcesResolver: policy.ResourcesResolver(getCloudResources),
   })
 ```
 

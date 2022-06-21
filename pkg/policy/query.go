@@ -63,8 +63,7 @@ func (q *Query) impl(bctx rego.BuiltinContext, operands []*ast.Term) (*ast.Term,
 }
 
 func (q *Query) ResolveResources(ctx context.Context, query ResourcesQuery) ([]models.ResourceState, error) {
-	resolver := q.ResourcesResolver
-	res, err := resolver.Resolve(ctx, query)
+	res, err := q.ResourcesResolver(ctx, query)
 	if err != nil {
 		return nil, fmt.Errorf("error in ResourcesResolver: %s", err)
 	}
