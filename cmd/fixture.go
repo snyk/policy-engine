@@ -3,6 +3,7 @@ package cmd
 import (
 	"encoding/json"
 	"fmt"
+	"os"
 	"path/filepath"
 	"strings"
 
@@ -29,9 +30,12 @@ var fixtureCmd = &cobra.Command{
 			NoGitIgnore: false,
 			IgnoreDirs:  false,
 		})
-		loadedConfigs, err := configLoader()
-		if err != nil {
-			return err
+		loadedConfigs, errs := configLoader()
+		if len(errs) > 0 {
+			for _, err := range errs {
+				fmt.Fprintf(os.Stderr, "Error: %v\n", err)
+			}
+			return fmt.Errorf("Could not load configuration")
 		}
 
 		packageName := cmdFixturePackage

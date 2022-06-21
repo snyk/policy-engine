@@ -55,8 +55,10 @@ var runCmd = &cobra.Command{
 			NoGitIgnore: false,
 			IgnoreDirs:  false,
 		})
-		loadedConfigs, err := configLoader()
-		check(err)
+		loadedConfigs, errs := configLoader()
+		for _, err := range errs {
+			check(err)
+		}
 
 		states := loadedConfigs.ToStates()
 		ctx := context.Background()

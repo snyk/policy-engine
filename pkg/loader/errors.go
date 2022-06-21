@@ -3,7 +3,6 @@ package loader
 import (
 	"errors"
 	"fmt"
-	"strings"
 )
 
 ////////////////////////////////
@@ -66,53 +65,3 @@ var UnableToReadDir = errors.New("Unable to read directory")
 
 // UnableToReadStdin indicates that a file could not be read.
 var UnableToReadStdin = errors.New("Unable to read stdin")
-
-// ConfigurationLoaderErrors wraps zero or more configuration errors.
-type ConfigurationLoaderErrors struct {
-	Errors []error
-}
-
-func (e *ConfigurationLoaderErrors) Error() string {
-	var b strings.Builder
-
-	fmt.Fprintf(&b, "configuration errors:\n")
-
-	for _, err := range e.Errors {
-		fmt.Fprintf(&b, " * %v\n", err)
-	}
-
-	return b.String()
-}
-
-func (e *ConfigurationLoaderErrors) Is(target error) bool {
-	for _, err := range e.Errors {
-		if errors.Is(err, target) {
-			return true
-		}
-	}
-	return false
-}
-
-func (e *ConfigurationLoaderErrors) As(target interface{}) bool {
-	for _, err := range e.Errors {
-		if errors.As(err, target) {
-			return true
-		}
-	}
-	return false
-}
-
-func (e *ConfigurationLoaderErrors) Add(err error) {
-	e.Errors = append(e.Errors, err)
-}
-
-func (e *ConfigurationLoaderErrors) Wrap() error {
-	switch len(e.Errors) {
-	case 0:
-		return nil
-	case 1:
-		return e.Errors[0]
-	default:
-		return e
-	}
-}

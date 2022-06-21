@@ -48,13 +48,13 @@ type LoadPathsOptions struct {
 // LocalConfigurationLoader returns a ConfigurationLoader that loads IaC configurations
 // from local disk.
 func LocalConfigurationLoader(options LoadPathsOptions) ConfigurationLoader {
-	return func() (LoadedConfigurations, error) {
-		var errors ConfigurationLoaderErrors
+	return func() (LoadedConfigurations, []error) {
+		var errors []error
 
 		configurations := newLoadedConfigurations()
 		detector, err := DetectorByInputTypes(options.InputTypes)
 		if err != nil {
-			return nil, err
+			return nil, []error{err}
 		}
 		// We want to ignore file extension mismatches when 'auto' is not present in
 		// the selected input types and there is only one input type selected.
@@ -74,7 +74,7 @@ func LocalConfigurationLoader(options LoadPathsOptions) ConfigurationLoader {
 				IgnoreExt:  false,
 				IgnoreDirs: options.IgnoreDirs,
 			}); err != nil {
-				errors.Add(&FailedToProcessInput{Path: i.Path(), err: err})
+				errors = append(errors, &FailedToProcessInput{Path: i.Path(), err: err})
 			} else if loader != nil {
 				configurations.AddConfiguration(i.Path(), loader)
 			}
@@ -96,20 +96,20 @@ func LocalConfigurationLoader(options LoadPathsOptions) ConfigurationLoader {
 					IgnoreExt: true,
 				})
 				if err != nil {
-					errors.Add(&FailedToProcessInput{Path: path, err: err})
+					errors = append(errors, &FailedToProcessInput{Path: path, err: err})
 					continue
 				}
 				if loader != nil {
 					configurations.AddConfiguration(stdIn, loader)
 				} else {
-					errors.Add(&FailedToProcessInput{Path: path, err: UnableToRecognizeInputType})
+					errors = append(errors, &FailedToProcessInput{Path: path, err: UnableToRecognizeInputType})
 				}
 				continue
 			}
 			name := filepath.Base(path)
 			info, err := os.Stat(path)
 			if err != nil {
-				errors.Add(&FailedToProcessInput{Path: path, err: fmt.Errorf(
+				errors = append(errors, &FailedToProcessInput{Path: path, err: fmt.Errorf(
 					"%w: %v",
 					UnableToReadFile,
 					err,
@@ -132,7 +132,7 @@ func LocalConfigurationLoader(options LoadPathsOptions) ConfigurationLoader {
 					GitRepoFinder: gitRepoFinder,
 				})
 				if err != nil {
-					errors.Add(&FailedToProcessInput{Path: path, err: err})
+					errors = append(errors, &FailedToProcessInput{Path: path, err: err})
 					continue
 				}
 				loader, err := i.DetectType(detector, DetectOptions{
@@ -140,14 +140,14 @@ func LocalConfigurationLoader(options LoadPathsOptions) ConfigurationLoader {
 					IgnoreDirs: options.IgnoreDirs,
 				})
 				if err != nil {
-					errors.Add(&FailedToProcessInput{Path: path, err: err})
+					errors = append(errors, &FailedToProcessInput{Path: path, err: err})
 					continue
 				}
 				if loader != nil {
 					configurations.AddConfiguration(path, loader)
 				}
 				if err := i.Walk(walkFunc); err != nil {
-					errors.Add(&FailedToProcessInput{Path: path, err: err})
+					errors = append(errors, &FailedToProcessInput{Path: path, err: err})
 					continue
 				}
 			} else {
@@ -156,22 +156,22 @@ func LocalConfigurationLoader(options LoadPathsOptions) ConfigurationLoader {
 					IgnoreExt: ignoreFileExtension,
 				})
 				if err != nil {
-					errors.Add(&FailedToProcessInput{Path: path, err: err})
+					errors = append(errors, &FailedToProcessInput{Path: path, err: err})
 					continue
 				}
 				if loader != nil {
 					configurations.AddConfiguration(path, loader)
 				} else {
-					errors.Add(&FailedToProcessInput{Path: path, err: UnableToRecognizeInputType})
+					errors = append(errors, &FailedToProcessInput{Path: path, err: UnableToRecognizeInputType})
 					continue
 				}
 			}
 		}
 		if configurations.Count() < 1 {
-			errors.Add(fmt.Errorf("%w", NoLoadableInputs))
+			errors = append(errors, fmt.Errorf("%w", NoLoadableInputs))
 		}
 
-		return configurations, errors.Wrap()
+		return configurations, errors
 	}
 }
 
