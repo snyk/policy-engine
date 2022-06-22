@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"context"
+	"fmt"
 	"os"
 
 	"github.com/open-policy-agent/opa/storage/inmem"
@@ -9,6 +10,12 @@ import (
 	"github.com/snyk/policy-engine/pkg/data"
 	"github.com/snyk/policy-engine/pkg/engine"
 	"github.com/spf13/cobra"
+)
+
+const noTestsFoundCode = 2
+
+var (
+	cmdTestFilter string
 )
 
 var testCmd = &cobra.Command{
@@ -42,17 +49,21 @@ var testCmd = &cobra.Command{
 		ch, err := tester.NewRunner().
 			SetStore(store).
 			SetModules(consumer.Modules).
+			Filter(cmdTestFilter).
 			RunTests(ctx, txn)
 		if err != nil {
 			return err
 		}
 
-		exitCode := 0
+		// exit with non-zero when no tests found
+		exitCode := noTestsFoundCode
 		dup := make(chan *tester.Result)
 		go func() {
 			defer close(dup)
 			for tr := range ch {
-				if !tr.Pass() {
+				if tr.Pass() {
+					exitCode = 0
+				} else {
 					exitCode = 1
 				}
 				dup <- tr
@@ -69,7 +80,15 @@ var testCmd = &cobra.Command{
 			return err
 		}
 
+		if exitCode == noTestsFoundCode {
+			fmt.Fprintln(reporter.Output, "no test cases found")
+		}
+
 		os.Exit(exitCode)
 		return nil
 	},
+}
+
+func init() {
+	testCmd.Flags().StringVarP(&cmdTestFilter, "filter", "f", "", "Regular expression to filter tests by.")
 }
