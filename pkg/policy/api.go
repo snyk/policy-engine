@@ -271,13 +271,15 @@ func NewBuiltins(input *models.State, resourcesResolver ResourcesResolver) *Buil
 	// all queried resources are returned by inputResourceTypes
 	inputResolver := newInputResolver(input)
 	resourcesByType := &resourcesByType{input: input, calledWith: inputResolver.calledWith}
+	resolver := ResourcesResolver(inputResolver.resolve)
+	if resourcesResolver != nil {
+		resolver = resolver.Or(resourcesResolver)
+	}
 
 	return &Builtins{
 		resourcesQueried: inputResolver.calledWith,
 		funcs: []builtin{
-			&Query{
-				ResourcesResolver: ResourcesResolver(inputResolver.resolve).Or(resourcesResolver),
-			},
+			&Query{ResourcesResolver: resolver},
 			&currentInputType{input},
 			&inputResourceTypes{input},
 			resourcesByType,
