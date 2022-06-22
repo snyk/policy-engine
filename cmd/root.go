@@ -12,10 +12,14 @@ import (
 )
 
 func check(errs ...error) {
+	nonNil := []error{}
 	for _, err := range errs {
-		fmt.Fprintln(os.Stderr, err)
+		if err != nil {
+			fmt.Fprintln(os.Stderr, err)
+			nonNil = append(nonNil, err)
+		}
 	}
-	if len(errs) > 0 {
+	if len(nonNil) > 0 {
 		os.Exit(1)
 	}
 }
