@@ -31,6 +31,8 @@ package rules.snyk_005.tf
 
 import data.snyk
 
+resource_type := "aws_s3_bucket"
+
 matches_bucket_or_id(val) {
     val == input.id
 }
