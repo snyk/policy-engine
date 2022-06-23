@@ -65,7 +65,7 @@ release:
 	test $(VERSION)
 	changie batch $(VERSION)
 	changie merge
-	git add changes/$(VERSION).md CHANGELOG.md
+	git add changes CHANGELOG.md
 	git diff --staged
 	@echo -n "Are you sure? [y/N] " && read ans && [ $${ans:-N} == y ]
 	git commit -m "Bump version to $(VERSION)"
