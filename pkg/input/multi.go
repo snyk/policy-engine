@@ -13,16 +13,13 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package loader
+package input
 
-type AutoDetector struct {
-	detectors []ConfigurationDetector
+type MultiDetector struct {
+	detectors []Detector
 }
 
-func (a *AutoDetector) DetectDirectory(i InputDirectory, opts DetectOptions) (IACConfiguration, error) {
-	if opts.IgnoreDirs {
-		return nil, nil
-	}
+func (a *MultiDetector) DetectDirectory(i *Directory, opts DetectOptions) (IACConfiguration, error) {
 	for _, d := range a.detectors {
 		l, err := i.DetectType(d, opts)
 		if err == nil && l != nil {
@@ -33,7 +30,7 @@ func (a *AutoDetector) DetectDirectory(i InputDirectory, opts DetectOptions) (IA
 	return nil, nil
 }
 
-func (a *AutoDetector) DetectFile(i InputFile, opts DetectOptions) (IACConfiguration, error) {
+func (a *MultiDetector) DetectFile(i *File, opts DetectOptions) (IACConfiguration, error) {
 	for _, d := range a.detectors {
 		l, err := i.DetectType(d, opts)
 		if err == nil && l != nil {
@@ -44,8 +41,8 @@ func (a *AutoDetector) DetectFile(i InputFile, opts DetectOptions) (IACConfigura
 	return nil, nil
 }
 
-func NewAutoDetector(detectors ...ConfigurationDetector) *AutoDetector {
-	return &AutoDetector{
+func NewMultiDetector(detectors ...Detector) *MultiDetector {
+	return &MultiDetector{
 		detectors: detectors,
 	}
 }

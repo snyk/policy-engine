@@ -13,7 +13,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package loader
+package input
 
 import (
 	"encoding/json"
@@ -22,45 +22,10 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/fugue/regula/v2/pkg/git"
-	"github.com/snyk/policy-engine/pkg/inputs"
+	"github.com/spf13/afero"
 
 	"github.com/stretchr/testify/assert"
 )
-
-// Utility for loading IaC directories.
-func DefaultParseDirectory(dirPath string) (IACConfiguration, error) {
-	name := filepath.Base(dirPath)
-	repoFinder := git.NewRepoFinder([]string{})
-	dirOpts := directoryOptions{
-		Path:          dirPath,
-		Name:          name,
-		NoGitIgnore:   false,
-		GitRepoFinder: repoFinder,
-	}
-
-	dir, err := newDirectory(dirOpts)
-	if err != nil {
-		return nil, err
-	}
-
-	detector, err := DetectorByInputTypes(inputs.InputTypes{Auto})
-	if err != nil {
-		return nil, err
-	}
-
-	detectOpts := DetectOptions{
-		IgnoreExt:  false,
-		IgnoreDirs: false,
-	}
-	children := dir.Children()
-	if len(children) == 1 {
-		single := newFile(children[0].Path(), children[0].Name())
-		return detector.DetectFile(single, detectOpts)
-	} else {
-		return detector.DetectDirectory(dir, detectOpts)
-	}
-}
 
 type goldenTest struct {
 	directory string
@@ -87,6 +52,25 @@ func listGoldenTests() ([]goldenTest, error) {
 	return goldenTests, nil
 }
 
+func LoadDirOrContents(t *testing.T, dir Directory, detector Detector) IACConfiguration {
+	children, err := dir.Children()
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(children) == 1 {
+		iac, err := children[0].DetectType(detector, DetectOptions{})
+		if err != nil {
+			t.Fatal(err)
+		}
+		return iac
+	}
+	iac, err := dir.DetectType(detector, DetectOptions{})
+	if err != nil {
+		t.Fatal(err)
+	}
+	return iac
+}
+
 func TestGolden(t *testing.T) {
 	fixTests := false
 	for _, arg := range os.Args {
@@ -100,12 +84,16 @@ func TestGolden(t *testing.T) {
 		t.Fatal(err)
 	}
 
+	detector, err := DetectorByInputTypes(Types{Auto})
+	if err != nil {
+		t.Fatal(err)
+	}
 	for _, entry := range goldenTests {
 		t.Run(entry.directory, func(t *testing.T) {
-			iac, err := DefaultParseDirectory(entry.directory)
-			if err != nil {
-				t.Fatal(err)
-			}
+			iac := LoadDirOrContents(t, Directory{
+				Path: entry.directory,
+				Fs:   afero.OsFs{},
+			}, detector)
 			if iac == nil {
 				t.Fatalf("No configuration found in %s", entry.directory)
 			}

@@ -13,21 +13,20 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package loader
+package input
 
 import (
 	"fmt"
 	"regexp"
 	"strings"
 
-	"github.com/snyk/policy-engine/pkg/inputs"
 	"github.com/snyk/policy-engine/pkg/models"
 	"gopkg.in/yaml.v3"
 )
 
 type TfStateDetector struct{}
 
-func (t *TfStateDetector) DetectFile(i InputFile, opts DetectOptions) (IACConfiguration, error) {
+func (t *TfStateDetector) DetectFile(i *File, opts DetectOptions) (IACConfiguration, error) {
 	if !opts.IgnoreExt && i.Ext() != ".json" {
 		return nil, fmt.Errorf("%w: %v", UnrecognizedFileExtension, i.Ext())
 	}
@@ -45,12 +44,12 @@ func (t *TfStateDetector) DetectFile(i InputFile, opts DetectOptions) (IACConfig
 	}
 
 	return &tfstateLoader{
-		path:  i.Path(),
+		path:  i.Path,
 		state: tfstate,
 	}, nil
 }
 
-func (t *TfStateDetector) DetectDirectory(i InputDirectory, opts DetectOptions) (IACConfiguration, error) {
+func (t *TfStateDetector) DetectDirectory(i *Directory, opts DetectOptions) (IACConfiguration, error) {
 	return nil, nil
 }
 
@@ -135,7 +134,7 @@ func (l *tfstateLoader) ToState() models.State {
 	}
 
 	return models.State{
-		InputType:           inputs.TerraformState.Name,
+		InputType:           TerraformState.Name,
 		EnvironmentProvider: environmentProvider,
 		Resources:           groupResourcesByType(resources),
 	}

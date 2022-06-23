@@ -13,17 +13,15 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package loader
+package input
 
 import (
 	"fmt"
 	"path/filepath"
 
 	"github.com/sirupsen/logrus"
-	"github.com/spf13/afero"
 
 	"github.com/snyk/policy-engine/pkg/hcl_interpreter"
-	"github.com/snyk/policy-engine/pkg/inputs"
 	"github.com/snyk/policy-engine/pkg/models"
 )
 
@@ -33,22 +31,12 @@ import (
 // README explaining how everything fits together.
 type TfDetector struct{}
 
-func (t *TfDetector) DetectFile(i InputFile, opts DetectOptions) (IACConfiguration, error) {
+func (t *TfDetector) DetectFile(i *File, opts DetectOptions) (IACConfiguration, error) {
 	if !opts.IgnoreExt && i.Ext() != ".tf" {
 		return nil, fmt.Errorf("%w: %v", UnrecognizedFileExtension, i.Ext())
 	}
-	dir := filepath.Dir(i.Path())
-
-	var inputFs afero.Fs
-	var err error
-	if i.Path() == stdIn {
-		inputFs, err = makeStdInFs(i)
-		if err != nil {
-			return nil, err
-		}
-	}
-
-	moduleTree, err := hcl_interpreter.ParseFiles(nil, inputFs, false, dir, []string{i.Path()}, []string{})
+	dir := filepath.Dir(i.Path)
+	moduleTree, err := hcl_interpreter.ParseFiles(nil, i.Fs, false, dir, []string{i.Path}, []string{})
 	if err != nil {
 		return nil, fmt.Errorf("%w: %v", FailedToParseInput, err)
 	}
@@ -56,24 +44,15 @@ func (t *TfDetector) DetectFile(i InputFile, opts DetectOptions) (IACConfigurati
 	return newHclConfiguration(moduleTree)
 }
 
-func makeStdInFs(i InputFile) (afero.Fs, error) {
-	contents, err := i.Contents()
+func (t *TfDetector) DetectDirectory(i *Directory, opts DetectOptions) (IACConfiguration, error) {
+	// First check that a `.tf` file exists in the directory.
+	tfExists := false
+	children, err := i.Children()
 	if err != nil {
 		return nil, err
 	}
-	inputFs := afero.NewMemMapFs()
-	afero.WriteFile(inputFs, i.Path(), contents, 0644)
-	return inputFs, nil
-}
-
-func (t *TfDetector) DetectDirectory(i InputDirectory, opts DetectOptions) (IACConfiguration, error) {
-	if opts.IgnoreDirs {
-		return nil, nil
-	}
-	// First check that a `.tf` file exists in the directory.
-	tfExists := false
-	for _, child := range i.Children() {
-		if c, ok := child.(InputFile); ok && c.Ext() == ".tf" {
+	for _, child := range children {
+		if c, ok := child.(*File); ok && c.Ext() == ".tf" {
 			tfExists = true
 		}
 	}
@@ -81,8 +60,8 @@ func (t *TfDetector) DetectDirectory(i InputDirectory, opts DetectOptions) (IACC
 		return nil, nil
 	}
 
-	moduleRegister := hcl_interpreter.NewTerraformRegister(i.Path())
-	moduleTree, err := hcl_interpreter.ParseDirectory(moduleRegister, nil, i.Path())
+	moduleRegister := hcl_interpreter.NewTerraformRegister(i.Path)
+	moduleTree, err := hcl_interpreter.ParseDirectory(moduleRegister, nil, i.Path)
 	if err != nil {
 		return nil, fmt.Errorf("%w: %v", FailedToParseInput, err)
 	}
@@ -151,7 +130,7 @@ func (c *HclConfiguration) ToState() models.State {
 	}
 
 	return models.State{
-		InputType:           inputs.TerraformHCL.Name,
+		InputType:           TerraformHCL.Name,
 		EnvironmentProvider: "iac",
 		Meta: map[string]interface{}{
 			"filepath": c.moduleTree.FilePath(),

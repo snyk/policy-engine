@@ -1,10 +1,11 @@
-package loader
+package input
 
 import (
 	"encoding/json"
 	"path/filepath"
 	"testing"
 
+	"github.com/spf13/afero"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -290,12 +291,16 @@ var goldenLocationTests = []goldenLocationTest{
 // Tests for attribute locations.  These use the same input files as the
 // golden_tests since we have a good amount of coverage there.
 func TestGoldenLocation(t *testing.T) {
+	detector, err := DetectorByInputTypes(Types{Auto})
+	if err != nil {
+		t.Fatal(err)
+	}
 	for _, test := range goldenLocationTests {
 		t.Run(test.directory, func(t *testing.T) {
-			iac, err := DefaultParseDirectory(test.directory)
-			if err != nil {
-				t.Fatal(err)
-			}
+			iac := LoadDirOrContents(t, Directory{
+				Path: test.directory,
+				Fs:   afero.OsFs{},
+			}, detector)
 			if iac == nil {
 				t.Fatalf("No configuration found in %s", test.directory)
 			}

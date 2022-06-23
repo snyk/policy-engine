@@ -13,14 +13,13 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package loader
+package input
 
 import (
 	"fmt"
 	"regexp"
 	"strings"
 
-	"github.com/snyk/policy-engine/pkg/inputs"
 	"github.com/snyk/policy-engine/pkg/interfacetricks"
 	"github.com/snyk/policy-engine/pkg/models"
 	"gopkg.in/yaml.v3"
@@ -34,7 +33,7 @@ var validCfnExts map[string]bool = map[string]bool{
 
 type CfnDetector struct{}
 
-func (c *CfnDetector) DetectFile(i InputFile, opts DetectOptions) (IACConfiguration, error) {
+func (c *CfnDetector) DetectFile(i *File, opts DetectOptions) (IACConfiguration, error) {
 	if !opts.IgnoreExt && !validCfnExts[i.Ext()] {
 		return nil, fmt.Errorf("%w: %v", UnrecognizedFileExtension, i.Ext())
 	}
@@ -52,7 +51,7 @@ func (c *CfnDetector) DetectFile(i InputFile, opts DetectOptions) (IACConfigurat
 		return nil, fmt.Errorf("%w", InvalidInput)
 	}
 
-	path := i.Path()
+	path := i.Path
 	source, err := LoadSourceInfoNode(contents)
 	if err != nil {
 		source = nil // Don't consider source code locations essential.
@@ -66,7 +65,7 @@ func (c *CfnDetector) DetectFile(i InputFile, opts DetectOptions) (IACConfigurat
 	}, nil
 }
 
-func (c *CfnDetector) DetectDirectory(i InputDirectory, opts DetectOptions) (IACConfiguration, error) {
+func (c *CfnDetector) DetectDirectory(i *Directory, opts DetectOptions) (IACConfiguration, error) {
 	return nil, nil
 }
 
@@ -137,7 +136,7 @@ type cfnConfiguration struct {
 }
 
 func (l *cfnConfiguration) ToState() models.State {
-	return toState(inputs.CloudFormation.Name, l.path, l.resources)
+	return toState(CloudFormation.Name, l.path, l.resources)
 }
 
 func (l *cfnConfiguration) Location(path []interface{}) (LocationStack, error) {
@@ -338,7 +337,7 @@ func (*cfnReferenceResolver) WalkString(s string) (interface{}, bool) {
 }
 
 func (*cfnReferenceResolver) WalkBool(b bool) (interface{}, bool) {
-    return b, false
+	return b, false
 }
 
 // Resolves references to other resources from the given value.  Returns nil

@@ -1,4 +1,4 @@
-package loader
+package input
 
 import "github.com/snyk/policy-engine/pkg/models"
 
