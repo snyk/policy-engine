@@ -5,10 +5,12 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/open-policy-agent/opa/ast"
 	"github.com/open-policy-agent/opa/storage/inmem"
 	"github.com/open-policy-agent/opa/tester"
 	"github.com/snyk/policy-engine/pkg/data"
 	"github.com/snyk/policy-engine/pkg/engine"
+	"github.com/snyk/policy-engine/pkg/policy"
 	"github.com/spf13/cobra"
 )
 
@@ -46,7 +48,9 @@ var testCmd = &cobra.Command{
 		}
 		defer store.Abort(ctx, txn)
 
+		compiler := ast.NewCompiler().WithCapabilities(policy.Capabilities())
 		ch, err := tester.NewRunner().
+			SetCompiler(compiler).
 			SetStore(store).
 			SetModules(consumer.Modules).
 			Filter(cmdTestFilter).
