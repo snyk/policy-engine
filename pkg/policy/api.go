@@ -13,6 +13,11 @@ import (
 	"github.com/snyk/policy-engine/pkg/models"
 )
 
+// Builtins not available to policy runners.
+var unsafeBuiltins = map[string]struct{}{
+	"http.send": {},
+}
+
 //go:embed regoapi
 var regoApi embed.FS
 
@@ -144,8 +149,13 @@ func Capabilities() *ast.Capabilities {
 		})
 	}
 	base := ast.CapabilitiesForThisVersion()
+	for _, builtin := range base.Builtins {
+		if _, unsafe := unsafeBuiltins[builtin.Name]; !unsafe {
+			builtins = append(builtins, builtin)
+		}
+	}
 	return &ast.Capabilities{
-		Builtins:       append(base.Builtins, builtins...),
+		Builtins:       builtins,
 		AllowNet:       []string{},
 		FutureKeywords: base.FutureKeywords,
 	}
