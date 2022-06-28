@@ -139,7 +139,7 @@ configurations for use with the `engine` package.
 
 ```go
 loader := input.NewLoader(detector)
-loaded, err := loader.Load(input.Directory{
+loaded, err := loader.Load(*input.File{
   Fs: afero.OsFs{},
   Path: "cloudformation.yaml",
 })
