@@ -138,6 +138,7 @@ func (e *Engine) Eval(ctx context.Context, options *EvalOptions) *models.Results
 	regoOptions := []func(*rego.Rego){
 		rego.Compiler(e.compiler),
 		rego.Store(e.store),
+		rego.StrictBuiltinErrors(true),
 	}
 	policies := e.policies
 	if !e.runAllRules {
