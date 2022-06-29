@@ -163,7 +163,7 @@ And rewritten using the proposed function:
 ```open-policy-agent
 check_invalid_via_multiple(mock_input) {
         denies := rule_tests.by_correlation_id(deny) with input as mock_input
-        snyk.matches_snapshot(denies, "invalid_via_multiple_denies")
+        snyk.matches_snapshot(denies, "snapshots/invalid_via_multiple_denies.json")
 
         rs := rule_tests.by_correlation_id(resources) with input as mock_input
         snyk.matches_snapshot(rs, "invalid_via_multiple_rs")
