@@ -44,7 +44,7 @@ snyk.matches_snapshot(some_variable, "some_snapshot_name")
 * If the file does not exist, it will be created and the function will return `true`.
 * If the file does exist and the contents do not match, this function will return an
   error with its message set to the diff.
-* If `policy-engine test` is run with the `--update` option, this function will update
+* If `policy-engine test` is run with the `--update-snapshots` option, this function will update
   any existing snapshots.
 
 ## Example
