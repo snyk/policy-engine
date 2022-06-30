@@ -2,10 +2,10 @@ package hcl_interpreter
 
 import (
 	"encoding/json"
-	"io/ioutil"
 	"path/filepath"
 
 	"github.com/sirupsen/logrus"
+	"github.com/spf13/afero"
 )
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -27,7 +27,7 @@ type terraformModuleRegisterEntry struct {
 	Dir    string `json:"Dir"`
 }
 
-func NewTerraformRegister(dir string) *TerraformModuleRegister {
+func NewTerraformRegister(fsys afero.Fs, dir string) *TerraformModuleRegister {
 	registry := TerraformModuleRegister{
 		data: terraformModuleRegisterFile{
 			[]terraformModuleRegisterEntry{},
@@ -35,7 +35,7 @@ func NewTerraformRegister(dir string) *TerraformModuleRegister {
 		dir: dir,
 	}
 	path := filepath.Join(dir, ".terraform/modules/modules.json")
-	bytes, err := ioutil.ReadFile(path)
+	bytes, err := afero.ReadFile(fsys, path)
 	if err != nil {
 		return &registry
 	}
