@@ -5,7 +5,7 @@ output of the `deny` and `resources` rules, which can be quite large or complex,
 hand. Any time we make updates, for example to reword the message returned by a rule, we
 need to make the same update repeatedly in the expected output in our tests.
 
-This document is a proposal for a new `snyk.matches_snapshot` builtin which can
+This document is a proposal for a new `snyk.test.matches_snapshot` builtin which can
 alleviate some of that burden.
 
 ## Background on snapshot testing
@@ -32,7 +32,7 @@ Similar to the Jest implementation, our snapshot tests should just be another as
 that you can make alongside your other tests:
 
 ```open-policy-agent
-snyk.matches_snapshot(some_variable, "some/file/path.json")
+snyk.test.matches_snapshot(some_variable, "some/file/path.json")
 ```
 
 * This function will assert that the value of `some_variable` matches the contents of
@@ -41,11 +41,10 @@ snyk.matches_snapshot(some_variable, "some/file/path.json")
     * Ideally, this function should be called directly within a test file rather than in
       some library code that is used across tests. That way, the snapshots will be
       created alongside their test files rather than in some central location.
-* If the file does not exist, it will be created and the function will return `true`.
-* If the file does exist and the contents do not match, this function will return an
+* If the file does not exist or the contents do not match, this function will return an
   error with its message set to the diff.
-* If `policy-engine test` is run with the `--update-snapshots` option, this function will update
-  any existing snapshots.
+* If `policy-engine test` is run with the `--update-snapshots` option, this
+  function will update any existing snapshots and create new ones.
 
 ## Example
 
@@ -163,10 +162,10 @@ And rewritten using the proposed function:
 ```open-policy-agent
 check_invalid_via_multiple(mock_input) {
         denies := rule_tests.by_correlation_id(deny) with input as mock_input
-        snyk.matches_snapshot(denies, "snapshots/invalid_via_multiple_denies.json")
+        snyk.test.matches_snapshot(denies, "snapshots/invalid_via_multiple_denies.json")
 
         rs := rule_tests.by_correlation_id(resources) with input as mock_input
-        snyk.matches_snapshot(rs, "snapshots/invalid_via_multiple_rs.json")
+        snyk.test.matches_snapshot(rs, "snapshots/invalid_via_multiple_rs.json")
 }
 
 test_invalid_via_multiple {
