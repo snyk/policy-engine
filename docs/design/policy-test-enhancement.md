@@ -32,11 +32,11 @@ Similar to the Jest implementation, our snapshot tests should just be another as
 that you can make alongside your other tests:
 
 ```open-policy-agent
-snyk.matches_snapshot(some_variable, "some_snapshot_name")
+snyk.matches_snapshot(some_variable, "some/file/path.json")
 ```
 
 * This function will assert that the value of `some_variable` matches the contents of
-  the file `snapshots/some_snapshot_name.json` relative to the file that contains the
+  the file `some/file/path.json` relative to the file that contains the
   function call.
     * Ideally, this function should be called directly within a test file rather than in
       some library code that is used across tests. That way, the snapshots will be
@@ -166,7 +166,7 @@ check_invalid_via_multiple(mock_input) {
         snyk.matches_snapshot(denies, "snapshots/invalid_via_multiple_denies.json")
 
         rs := rule_tests.by_correlation_id(resources) with input as mock_input
-        snyk.matches_snapshot(rs, "invalid_via_multiple_rs")
+        snyk.matches_snapshot(rs, "snapshots/invalid_via_multiple_rs.json")
 }
 
 test_invalid_via_multiple {
