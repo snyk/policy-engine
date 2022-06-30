@@ -2,6 +2,7 @@ package policy
 
 import (
 	"context"
+	"encoding/json"
 	"strconv"
 	"strings"
 
@@ -10,13 +11,13 @@ import (
 	"github.com/snyk/policy-engine/pkg/models"
 )
 
-// This file contains code for backwards compatibility with Snyk IaC custom rules
+// This file contains code for backwards compatibility with legacy Snyk IaC rules
 
-type IaCCustomPolicy struct {
+type LegacyIaCPolicy struct {
 	*BasePolicy
 }
 
-func (p *IaCCustomPolicy) Eval(
+func (p *LegacyIaCPolicy) Eval(
 	ctx context.Context,
 	options EvalOptions,
 ) ([]models.RuleResults, error) {
@@ -49,17 +50,21 @@ func (p *IaCCustomPolicy) Eval(
 		logger.Error(ctx, "Failed to evaluate query")
 		return nil, err
 	}
-	ir := iacResults{}
+	ir := legacyIaCResults{}
 	if err := unmarshalResultSet(resultSet, &ir); err != nil {
 		logger.Error(ctx, "Failed to unmarshal result set")
-		return nil, err
+		return []models.RuleResults{
+			{
+				Errors: []string{err.Error()},
+			},
+		}, err
 	}
-	return ir.toRuleResults(p.pkg, resourceNamespace), nil
+	return ir.toRuleResults(p.pkg, resourceNamespace, options.Input.InputType), nil
 }
 
-type iacResults []*iacResult
+type legacyIaCResults []*legacyIaCResult
 
-func (r iacResults) toRuleResults(pkg string, resourceNamespace string) []models.RuleResults {
+func (r legacyIaCResults) toRuleResults(pkg string, resourceNamespace string, inputType string) []models.RuleResults {
 	resultsByRuleID := map[string]models.RuleResults{}
 	for _, ir := range r {
 		id := ir.PublicID
@@ -73,7 +78,7 @@ func (r iacResults) toRuleResults(pkg string, resourceNamespace string) []models
 				Package_:    pkg,
 			}
 		}
-		ruleResults.Results = append(ruleResults.Results, *ir.toRuleResult(resourceNamespace))
+		ruleResults.Results = append(ruleResults.Results, *ir.toRuleResult(resourceNamespace, inputType))
 		resultsByRuleID[id] = ruleResults
 	}
 	output := make([]models.RuleResults, 0, len(resultsByRuleID))
@@ -83,22 +88,48 @@ func (r iacResults) toRuleResults(pkg string, resourceNamespace string) []models
 	return output
 }
 
-type iacResult struct {
-	PublicID    string   `json:"publicId"`
-	Title       string   `json:"title"`
-	Severity    string   `json:"severity"`
-	Msg         string   `json:"msg"`
-	Issue       string   `json:"issue"`
-	Impact      string   `json:"impact"`
-	Remediation string   `json:"remediation"`
-	References  []string `json:"references"`
+type legacyIaCRemediation struct {
+	Default     string
+	ByInputType map[string]string
 }
 
-func (r *iacResult) toRuleResult(resourceNamespace string) *models.RuleResult {
+func (r *legacyIaCRemediation) UnmarshalJSON(data []byte) error {
+	var remediationString string
+	if err := json.Unmarshal(data, &remediationString); err == nil {
+		r.Default = remediationString
+		return nil
+	}
+	var remediationMap map[string]string
+	err := json.Unmarshal(data, &remediationMap)
+	if err != nil {
+		return err
+	}
+	r.ByInputType = remediationMap
+	return nil
+}
+
+type legacyIaCResult struct {
+	PublicID    string               `json:"publicId"`
+	Title       string               `json:"title"`
+	Severity    string               `json:"severity"`
+	Msg         string               `json:"msg"`
+	Issue       string               `json:"issue"`
+	Impact      string               `json:"impact"`
+	Remediation legacyIaCRemediation `json:"remediation"`
+	References  []string             `json:"references"`
+}
+
+func (r *legacyIaCResult) toRuleResult(resourceNamespace string, inputType string) *models.RuleResult {
 	result := parseMsg(r.Msg, resourceNamespace)
 	result.Passed = false
-	result.Remediation = r.Remediation
 	result.Severity = r.Severity
+
+	if r.Remediation.Default != "" {
+		result.Remediation = r.Remediation.Default
+	} else if key, ok := remediationKeys[inputType]; ok {
+		result.Remediation = r.Remediation.ByInputType[key]
+	}
+
 	return result
 }
 
