@@ -1,0 +1,3 @@
+kind: Fixed
+body: Missing resource_namespace from fugue rules
+time: 2022-07-01T10:18:13.474533-04:00
