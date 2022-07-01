@@ -19,9 +19,11 @@ func processFugueAllowBoolean(
 	}
 	// TODO: propagate remediation from metadata
 	result := models.RuleResult{
-		Passed:     allow,
-		ResourceId: resource.Id,
-		Severity:   metadata.Severity,
+		Passed:            allow,
+		ResourceId:        resource.Id,
+		ResourceType:      resource.ResourceType,
+		ResourceNamespace: resource.Namespace,
+		Severity:          metadata.Severity,
 	}
 	return []models.RuleResult{result}, nil
 }
@@ -37,9 +39,11 @@ func processFugueDenyBoolean(
 		return nil, err
 	}
 	result := models.RuleResult{
-		Passed:     !deny,
-		ResourceId: resource.Id,
-		Severity:   metadata.Severity,
+		Passed:            !deny,
+		ResourceId:        resource.Id,
+		ResourceType:      resource.ResourceType,
+		ResourceNamespace: resource.Namespace,
+		Severity:          metadata.Severity,
 	}
 	return []models.RuleResult{result}, nil
 }
@@ -61,10 +65,12 @@ func processFugueAllowString(
 		message = messages[0]
 	}
 	result := models.RuleResult{
-		Passed:     allow,
-		ResourceId: resource.Id,
-		Severity:   metadata.Severity,
-		Message:    message,
+		Passed:            allow,
+		ResourceId:        resource.Id,
+		ResourceType:      resource.ResourceType,
+		ResourceNamespace: resource.Namespace,
+		Severity:          metadata.Severity,
+		Message:           message,
 	}
 	return []models.RuleResult{result}, nil
 }
@@ -85,10 +91,12 @@ func processFugueDenyString(
 		message = messages[0]
 	}
 	result := models.RuleResult{
-		Passed:     !deny,
-		ResourceId: resource.Id,
-		Severity:   metadata.Severity,
-		Message:    message,
+		Passed:            !deny,
+		ResourceId:        resource.Id,
+		ResourceType:      resource.ResourceType,
+		ResourceNamespace: resource.Namespace,
+		Severity:          metadata.Severity,
+		Message:           message,
 	}
 	return []models.RuleResult{result}, nil
 }
@@ -106,11 +114,12 @@ func processFuguePolicyResultSet(
 	results := []models.RuleResult{}
 	for _, p := range policyResults {
 		result := models.RuleResult{
-			Passed:       p.FugueValid,
-			ResourceId:   p.FugueID,
-			Message:      p.Message,
-			Severity:     metadata.Severity,
-			ResourceType: p.FugueResourceType,
+			Passed:            p.FugueValid,
+			ResourceId:        p.FugueID,
+			ResourceType:      p.FugueResourceType,
+			ResourceNamespace: p.FugueResourceNamespace,
+			Message:           p.Message,
+			Severity:          metadata.Severity,
 		}
 		results = append(results, result)
 	}
@@ -133,10 +142,12 @@ func processFugueAllowPolicyResult(
 	results := []models.RuleResult{}
 	for _, r := range policyResults {
 		result := models.RuleResult{
-			Passed:     true,
-			Message:    r.Message,
-			ResourceId: resource.Id,
-			Severity:   metadata.Severity,
+			Passed:            true,
+			Message:           r.Message,
+			ResourceId:        resource.Id,
+			ResourceType:      resource.ResourceType,
+			ResourceNamespace: resource.Namespace,
+			Severity:          metadata.Severity,
 		}
 		results = append(results, result)
 	}
