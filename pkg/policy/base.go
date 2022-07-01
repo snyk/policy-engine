@@ -391,9 +391,10 @@ type policyResult struct {
 	Correlation  string                `json:"correlation"`
 
 	// Backwards compatibility
-	FugueValid        bool   `json:"valid"`
-	FugueID           string `json:"id"`
-	FugueResourceType string `json:"type"`
+	FugueValid             bool   `json:"valid"`
+	FugueID                string `json:"id"`
+	FugueResourceType      string `json:"type"`
+	FugueResourceNamespace string `json:"namespace"`
 }
 
 type resourcesResult struct {
