@@ -3,7 +3,6 @@ module github.com/snyk/policy-engine
 go 1.16
 
 require (
-	github.com/felixge/fgprof v0.9.2
 	github.com/fugue/regula/v2 v2.6.1
 	github.com/golang/mock v1.6.0
 	github.com/hashicorp/hcl/v2 v2.10.0

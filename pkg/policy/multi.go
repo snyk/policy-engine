@@ -51,7 +51,6 @@ func (p *MultiResourcePolicy) Eval(
 		options.RegoOptions,
 		rego.Query(p.judgementRule.query()),
 		rego.ParsedInput(options.InputValue),
-		// rego.Input(options.Input),
 	)
 	builtins := NewBuiltins(options.Input, options.ResourcesResolver)
 	opts = append(opts, builtins.Rego()...)

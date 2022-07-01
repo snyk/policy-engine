@@ -3,6 +3,7 @@ package engine
 import (
 	"context"
 	"fmt"
+	"runtime"
 	"sync"
 	"time"
 
@@ -168,13 +169,14 @@ func (e *Engine) Eval(ctx context.Context, options *EvalOptions) *models.Results
 			e.logger.WithError(err).Error(ctx, "Failed to pre-parse input")
 			continue
 		}
-		options := policy.EvalOptions{
+		policyOpts := policy.EvalOptions{
 			RegoOptions:       regoOptions,
 			Input:             &state,
 			InputValue:        value,
 			ResourcesResolver: e.resourcesResolver,
 		}
 		allRuleResults := []models.RuleResults{}
+		policyChan := make(chan policy.Policy)
 		resultsChan := make(chan policyResults)
 		var wg sync.WaitGroup
 		ruleEvalCounter := e.metrics.Counter(ctx, metrics.RULES_EVALUATED, "", metrics.Labels{
@@ -182,35 +184,50 @@ func (e *Engine) Eval(ctx context.Context, options *EvalOptions) *models.Results
 		})
 		totalEvalStart := time.Now()
 		go func() {
+			numWorkers := options.Workers
+			if numWorkers < 1 {
+				numWorkers = runtime.NumCPU() + 1
+			}
+			e.logger.WithField("workers", numWorkers).Debug(ctx, "Starting workers")
+			for i := 0; i < numWorkers; i++ {
+				wg.Add(1)
+				go func() {
+					defer wg.Done()
+					for {
+						p, ok := <-policyChan
+						if !ok {
+							return
+						}
+						pkg := p.Package()
+						evalStart := time.Now()
+						ruleResults, err := p.Eval(ctx, policyOpts)
+						labels := metrics.Labels{
+							metrics.PACKAGE: pkg,
+							// TODO: Do we need a better way to identify inputs?
+							metrics.INPUT_IDX: fmt.Sprint(idx),
+						}
+						e.metrics.Timer(ctx, metrics.RULE_EVAL_TIME, "", labels).
+							Record(time.Now().Sub(evalStart))
+						for _, r := range ruleResults {
+							e.metrics.Counter(ctx, metrics.RESULTS_PRODUCED, "", labels).
+								Add(float64(len(r.Results)))
+						}
+						resultsChan <- policyResults{
+							pkg:         pkg,
+							err:         err,
+							ruleResults: ruleResults,
+						}
+					}
+				}()
+			}
 			for _, p := range policies {
 				if !p.InputTypeMatches(state.InputType) {
 					continue
 				}
-				wg.Add(1)
-				go func(p policy.Policy) {
-					defer wg.Done()
-					pkg := p.Package()
-					evalStart := time.Now()
-					ruleResults, err := p.Eval(ctx, options)
-					labels := metrics.Labels{
-						metrics.PACKAGE: pkg,
-						// TODO: Do we need a better way to identify inputs?
-						metrics.INPUT_IDX: fmt.Sprint(idx),
-					}
-					e.metrics.Timer(ctx, metrics.RULE_EVAL_TIME, "", labels).
-						Record(time.Now().Sub(evalStart))
-					for _, r := range ruleResults {
-						e.metrics.Counter(ctx, metrics.RESULTS_PRODUCED, "", labels).
-							Add(float64(len(r.Results)))
-					}
-					resultsChan <- policyResults{
-						pkg:         pkg,
-						err:         err,
-						ruleResults: ruleResults,
-					}
-				}(p)
+				policyChan <- p
 				ruleEvalCounter.Inc()
 			}
+			close(policyChan)
 			wg.Wait()
 			close(resultsChan)
 		}()
