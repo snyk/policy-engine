@@ -10,6 +10,7 @@ import (
 	"github.com/open-policy-agent/opa/rego"
 	"github.com/open-policy-agent/opa/storage"
 	"github.com/open-policy-agent/opa/storage/inmem"
+	"github.com/open-policy-agent/opa/util"
 	"github.com/snyk/policy-engine/pkg/data"
 	"github.com/snyk/policy-engine/pkg/logging"
 	"github.com/snyk/policy-engine/pkg/metrics"
@@ -129,7 +130,8 @@ type policyResults struct {
 // EvalOptions contains options for Engine.Eval
 type EvalOptions struct {
 	// Inputs are the State instances that the engine should evaluate.
-	Inputs []models.State
+	Inputs  []models.State
+	Workers int
 }
 
 // Eval evaluates the given states using the rules that the engine was initialized with.
@@ -161,9 +163,15 @@ func (e *Engine) Eval(ctx context.Context, options *EvalOptions) *models.Results
 	}
 	results := []models.Result{}
 	for idx, state := range options.Inputs {
+		value, err := stateToAstValue(&state)
+		if err != nil {
+			e.logger.WithError(err).Error(ctx, "Failed to pre-parse input")
+			continue
+		}
 		options := policy.EvalOptions{
 			RegoOptions:       regoOptions,
 			Input:             &state,
+			InputValue:        value,
 			ResourcesResolver: e.resourcesResolver,
 		}
 		allRuleResults := []models.RuleResults{}
@@ -243,4 +251,18 @@ func (e *Engine) Eval(ctx context.Context, options *EvalOptions) *models.Results
 		FormatVersion: "1.0.0",
 		Results:       results,
 	}
+}
+
+// Pre-parsing the input saves a significant number of cycles for large inputs
+// and multi-resource policies.
+func stateToAstValue(state *models.State) (ast.Value, error) {
+	rawPtr := util.Reference(state)
+
+	// roundtrip through json: this turns slices (e.g. []string, []bool) into
+	// []interface{}, the only array type ast.InterfaceToValue can work with
+	if err := util.RoundTrip(rawPtr); err != nil {
+		return nil, err
+	}
+
+	return ast.InterfaceToValue(*rawPtr)
 }
