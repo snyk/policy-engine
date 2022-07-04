@@ -63,6 +63,9 @@ func (l Location) String() string {
 type DetectOptions struct {
 	// IgnoreExt instructs the detector to ignore file extensions.
 	IgnoreExt bool
+	// VarFiles contains paths to variable files that should be included in the
+	// configurations that the detector parses.
+	VarFiles []string
 }
 
 // Detector implements the visitor part of the visitor pattern for the concrete
