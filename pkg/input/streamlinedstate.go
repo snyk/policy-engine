@@ -13,13 +13,12 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package loader
+package input
 
 import (
 	"fmt"
 	"strings"
 
-	"github.com/snyk/policy-engine/pkg/inputs"
 	"github.com/snyk/policy-engine/pkg/models"
 	"gopkg.in/yaml.v3"
 )
@@ -31,7 +30,7 @@ type streamlinedTfState struct {
 	Resources map[string]map[string]interface{} `yaml:"resources"`
 }
 
-func (t *StreamlinedStateDetector) DetectFile(i InputFile, opts DetectOptions) (IACConfiguration, error) {
+func (t *StreamlinedStateDetector) DetectFile(i *File, opts DetectOptions) (IACConfiguration, error) {
 	if !opts.IgnoreExt && i.Ext() != ".json" {
 		return nil, fmt.Errorf("%w: %v", UnrecognizedFileExtension, i.Ext())
 	}
@@ -77,13 +76,13 @@ func (t *StreamlinedStateDetector) DetectFile(i InputFile, opts DetectOptions) (
 	}
 
 	return &streamlinedStateLoader{
-		path:                i.Path(),
+		path:                i.Path,
 		environmentProvider: environmentProvider,
 		resourcesByType:     resourcesByType,
 	}, nil
 }
 
-func (t *StreamlinedStateDetector) DetectDirectory(i InputDirectory, opts DetectOptions) (IACConfiguration, error) {
+func (t *StreamlinedStateDetector) DetectDirectory(i *Directory, opts DetectOptions) (IACConfiguration, error) {
 	return nil, nil
 }
 
@@ -106,7 +105,7 @@ func (l *streamlinedStateLoader) ToState() models.State {
 		// Note that this is outputting the CloudScan input type, because this type is
 		// intended to be a stand-in for cloud scan until we're able to produce cloud
 		// scan inputs without using the streamlined state format.
-		InputType:           inputs.CloudScan.Name,
+		InputType:           CloudScan.Name,
 		EnvironmentProvider: l.environmentProvider,
 		Resources:           l.resourcesByType,
 	}

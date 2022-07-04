@@ -1,4 +1,4 @@
-package loader
+package input
 
 import (
 	"github.com/snyk/policy-engine/pkg/models"
@@ -6,7 +6,7 @@ import (
 
 // Annotate a report with source location information
 func AnnotateResults(
-	configurations LoadedConfigurations,
+	configurations Loader,
 	results *models.Results,
 ) {
 	for _, inputResult := range results.Results {
@@ -49,7 +49,7 @@ func AnnotateResults(
 }
 
 func annotateRuleResult(
-	configurations LoadedConfigurations,
+	configurations Loader,
 	filepath string,
 	result models.RuleResult,
 ) {
@@ -75,7 +75,7 @@ func annotateRuleResult(
 }
 
 func annotateResourceLocation(
-	configurations LoadedConfigurations,
+	configurations Loader,
 	filepath string,
 	resourceId string,
 	resourceType string,

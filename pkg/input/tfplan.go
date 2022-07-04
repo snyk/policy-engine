@@ -13,14 +13,13 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package loader
+package input
 
 import (
 	"fmt"
 	"sort"
 	"strings"
 
-	"github.com/snyk/policy-engine/pkg/inputs"
 	"github.com/snyk/policy-engine/pkg/interfacetricks"
 	"github.com/snyk/policy-engine/pkg/models"
 	"gopkg.in/yaml.v3"
@@ -28,7 +27,7 @@ import (
 
 type TfPlanDetector struct{}
 
-func (t *TfPlanDetector) DetectFile(i InputFile, opts DetectOptions) (IACConfiguration, error) {
+func (t *TfPlanDetector) DetectFile(i *File, opts DetectOptions) (IACConfiguration, error) {
 	if !opts.IgnoreExt && i.Ext() != ".json" {
 		return nil, fmt.Errorf("%w: %v", UnrecognizedFileExtension, i.Ext())
 	}
@@ -47,12 +46,12 @@ func (t *TfPlanDetector) DetectFile(i InputFile, opts DetectOptions) (IACConfigu
 	}
 
 	return &tfPlan{
-		path: i.Path(),
+		path: i.Path,
 		plan: rawPlan,
 	}, nil
 }
 
-func (t *TfPlanDetector) DetectDirectory(i InputDirectory, opts DetectOptions) (IACConfiguration, error) {
+func (t *TfPlanDetector) DetectDirectory(i *Directory, opts DetectOptions) (IACConfiguration, error) {
 	return nil, nil
 }
 
@@ -71,7 +70,7 @@ func (l *tfPlan) Location(attributePath []interface{}) (LocationStack, error) {
 
 func (l *tfPlan) ToState() models.State {
 	return models.State{
-		InputType:           inputs.TerraformPlan.Name,
+		InputType:           TerraformPlan.Name,
 		EnvironmentProvider: "iac",
 		Meta: map[string]interface{}{
 			"filepath": l.path,
@@ -512,11 +511,11 @@ func (*replaceBoolTopDownWalker) WalkObject(obj map[string]interface{}) (interfa
 }
 
 func (*replaceBoolTopDownWalker) WalkString(s string) (interface{}, bool) {
-    return s, false
+	return s, false
 }
 
 func (w *replaceBoolTopDownWalker) WalkBool(b bool) (interface{}, bool) {
-    return w.replaceBool(b), false
+	return w.replaceBool(b), false
 }
 
 // Terraform plan format 0.2 introduced a change where the references array

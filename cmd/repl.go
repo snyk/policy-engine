@@ -13,8 +13,8 @@ import (
 	"github.com/open-policy-agent/opa/storage/inmem"
 	"github.com/snyk/policy-engine/pkg/data"
 	"github.com/snyk/policy-engine/pkg/engine"
-	"github.com/snyk/policy-engine/pkg/inputs"
-	"github.com/snyk/policy-engine/pkg/loader"
+	"github.com/snyk/policy-engine/pkg/input"
+	"github.com/spf13/afero"
 	"github.com/spf13/cobra"
 )
 
@@ -27,23 +27,26 @@ var replCmd = &cobra.Command{
 		if len(args) > 1 {
 			return fmt.Errorf("Expected at most 1 input")
 		} else if len(args) == 1 {
-			configLoader := loader.LocalConfigurationLoader(loader.LoadPathsOptions{
-				Paths: args,
-				InputTypes: inputs.InputTypes{
-					loader.Auto,
-					loader.StreamlinedState,
-				},
-				NoGitIgnore: false,
-				IgnoreDirs:  false,
+			detector, err := input.DetectorByInputTypes(input.Types{
+				input.Auto,
+				input.StreamlinedState,
 			})
-			loadedConfigs, errs := configLoader()
-			if len(errs) > 0 {
-				for _, err := range errs {
-					fmt.Fprintf(os.Stderr, "Error: %v\n", err)
-				}
-				return fmt.Errorf("Could not load configuration")
+			if err != nil {
+				return err
 			}
-			states := loadedConfigs.ToStates()
+			i, err := input.NewDetectable(afero.OsFs{}, args[0])
+			if err != nil {
+				return err
+			}
+			loader := input.NewLoader(detector)
+			loaded, err := loader.Load(i, input.DetectOptions{})
+			if err != nil {
+				return err
+			}
+			if !loaded {
+				return fmt.Errorf("Unable to find recognized input in %s", args[0])
+			}
+			states := loader.ToStates()
 			if len(states) != 1 {
 				return fmt.Errorf("Expected a single state but got %d", len(states))
 			}

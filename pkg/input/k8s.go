@@ -13,14 +13,13 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package loader
+package input
 
 import (
 	"bytes"
 	"fmt"
 	"io"
 
-	"github.com/snyk/policy-engine/pkg/inputs"
 	"github.com/snyk/policy-engine/pkg/models"
 	"gopkg.in/yaml.v3"
 )
@@ -49,7 +48,7 @@ func splitYAML(data []byte) ([]map[string]interface{}, error) {
 
 type KubernetesDetector struct{}
 
-func (c *KubernetesDetector) DetectFile(i InputFile, opts DetectOptions) (IACConfiguration, error) {
+func (c *KubernetesDetector) DetectFile(i *File, opts DetectOptions) (IACConfiguration, error) {
 	if !opts.IgnoreExt && !validK8sExts[i.Ext()] {
 		return nil, fmt.Errorf("%w: %v", UnrecognizedFileExtension, i.Ext())
 	}
@@ -101,14 +100,14 @@ func (c *KubernetesDetector) DetectFile(i InputFile, opts DetectOptions) (IACCon
 	}
 
 	return &k8sConfiguration{
-		path:      i.Path(),
+		path:      i.Path,
 		content:   content,
 		sources:   sources,
 		resources: resources,
 	}, nil
 }
 
-func (c *KubernetesDetector) DetectDirectory(i InputDirectory, opts DetectOptions) (IACConfiguration, error) {
+func (c *KubernetesDetector) DetectDirectory(i *Directory, opts DetectOptions) (IACConfiguration, error) {
 	return nil, nil
 }
 
@@ -120,7 +119,7 @@ type k8sConfiguration struct {
 }
 
 func (l *k8sConfiguration) ToState() models.State {
-	return toState(inputs.Kubernetes.Name, l.path, l.resources)
+	return toState(Kubernetes.Name, l.path, l.resources)
 }
 
 func (l *k8sConfiguration) Location(path []interface{}) (LocationStack, error) {

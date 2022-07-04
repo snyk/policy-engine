@@ -16,7 +16,7 @@
 // This file contains some utilities to deal with extracting source code
 // information from generic JSON / YAML files.
 
-package loader
+package input
 
 import (
 	"bytes"

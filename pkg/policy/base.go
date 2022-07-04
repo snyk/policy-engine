@@ -8,7 +8,7 @@ import (
 
 	"github.com/open-policy-agent/opa/ast"
 	"github.com/open-policy-agent/opa/rego"
-	"github.com/snyk/policy-engine/pkg/inputs"
+	"github.com/snyk/policy-engine/pkg/input"
 	"github.com/snyk/policy-engine/pkg/logging"
 	"github.com/snyk/policy-engine/pkg/models"
 )
@@ -32,14 +32,14 @@ const multipleResourceType = "MULTIPLE"
 
 // SupportedInputTypes contains all of the input types that this package officially
 // supports.
-var SupportedInputTypes = inputs.InputTypes{
-	inputs.Arm,
-	inputs.CloudFormation,
-	inputs.CloudScan,
-	inputs.Kubernetes,
-	inputs.TerraformHCL,
-	inputs.TerraformPlan,
-	inputs.Terraform,
+var SupportedInputTypes = input.Types{
+	input.Arm,
+	input.CloudFormation,
+	input.CloudScan,
+	input.Kubernetes,
+	input.TerraformHCL,
+	input.TerraformPlan,
+	input.Terraform,
 }
 
 type EvalOptions struct {
@@ -106,12 +106,12 @@ func (i *ruleInfo) hasKey() bool {
 // remediationKeys is a map of input type name to the key that's used in the remediation
 // map in metadata
 var remediationKeys = map[string]string{
-	inputs.Arm.Name:            "arm",
-	inputs.CloudFormation.Name: "cloudformation",
-	inputs.CloudScan.Name:      "console",
-	inputs.Kubernetes.Name:     "k8s",
-	inputs.TerraformHCL.Name:   "terraform",
-	inputs.TerraformPlan.Name:  "terraform",
+	input.Arm.Name:            "arm",
+	input.CloudFormation.Name: "cloudformation",
+	input.CloudScan.Name:      "console",
+	input.Kubernetes.Name:     "k8s",
+	input.TerraformHCL.Name:   "terraform",
+	input.TerraformPlan.Name:  "terraform",
 }
 
 type Metadata struct {
@@ -154,7 +154,7 @@ func (m Metadata) copyToRuleResults(output *models.RuleResults) {
 type BasePolicy struct {
 	pkg              string
 	resourceType     string
-	inputType        *inputs.InputType
+	inputType        *input.Type
 	judgementRule    ruleInfo
 	metadataRule     ruleInfo
 	resourcesRule    ruleInfo
@@ -212,16 +212,16 @@ func NewBasePolicy(moduleSet ModuleSet) (*BasePolicy, error) {
 	if resourceType == "" {
 		resourceType = multipleResourceType
 	}
-	var inputType *inputs.InputType
+	var inputType *input.Type
 	if inputTypeRule.value == "" {
-		inputType = inputs.Terraform
+		inputType = input.Terraform
 	} else {
 		// TODO: This code currently handles unknown input types by creating a new input
 		// type, which is one way to support arbitrary input types. Do we want to
 		// consider this case an error instead?
 		inputType, _ := SupportedInputTypes.FromString(inputTypeRule.value)
 		if inputType == nil {
-			inputType = &inputs.InputType{
+			inputType = &input.Type{
 				Name: inputTypeRule.value,
 			}
 		}

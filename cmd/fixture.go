@@ -3,13 +3,12 @@ package cmd
 import (
 	"encoding/json"
 	"fmt"
-	"os"
 	"path/filepath"
 	"strings"
 
 	"github.com/open-policy-agent/opa/format"
-	"github.com/snyk/policy-engine/pkg/inputs"
-	"github.com/snyk/policy-engine/pkg/loader"
+	"github.com/snyk/policy-engine/pkg/input"
+	"github.com/spf13/afero"
 	"github.com/spf13/cobra"
 )
 
@@ -21,29 +20,30 @@ var fixtureCmd = &cobra.Command{
 	Use:   "fixture",
 	Short: "Generate test fixture",
 	RunE: func(cmd *cobra.Command, args []string) error {
-		configLoader := loader.LocalConfigurationLoader(loader.LoadPathsOptions{
-			Paths: args,
-			InputTypes: inputs.InputTypes{
-				loader.Auto,
-				loader.StreamlinedState,
-			},
-			NoGitIgnore: false,
-			IgnoreDirs:  false,
-		})
-		loadedConfigs, errs := configLoader()
-		if len(errs) > 0 {
-			for _, err := range errs {
-				fmt.Fprintf(os.Stderr, "Error: %v\n", err)
-			}
-			return fmt.Errorf("Could not load configuration")
+		if len(args) != 1 {
+			return fmt.Errorf("Expected a single input but got %d", len(args))
 		}
-
+		detector, err := input.DetectorByInputTypes(input.Types{
+			input.Auto,
+			input.StreamlinedState,
+		})
+		if err != nil {
+			return err
+		}
+		i, err := input.NewDetectable(afero.OsFs{}, args[0])
+		if err != nil {
+			return err
+		}
+		loader := input.NewLoader(detector)
+		loaded, err := loader.Load(i, input.DetectOptions{})
+		if err != nil {
+			return err
+		}
+		if !loaded {
+			return fmt.Errorf("Unable to find recognized input in %s", args[0])
+		}
 		packageName := cmdFixturePackage
 		if packageName == "" {
-			if len(args) != 1 {
-				return fmt.Errorf("Cannot guess package names because multiple inputs are given")
-			}
-
 			normalized := filepath.ToSlash(args[0])
 			normalized = strings.TrimSuffix(normalized, filepath.Ext(normalized))
 			normalized = strings.ReplaceAll(normalized, "-", "_")
@@ -56,11 +56,10 @@ var fixtureCmd = &cobra.Command{
 			packageName = strings.Join(parts, ".")
 		}
 
-		states := loadedConfigs.ToStates()
+		states := loader.ToStates()
 		if len(states) != 1 {
 			return fmt.Errorf("Expected a single state but got %d", len(states))
 		}
-
 		bytes, err := json.MarshalIndent(states[0], "", "  ")
 		if err != nil {
 			return err

@@ -6,12 +6,15 @@ components together.
 
 - [Use as a library](#use-as-a-library)
   - [Parsing IaC configurations](#parsing-iac-configurations)
-    - [`ConfigurationLoader`](#configurationloader)
-      - [`LocalConfigurationLoader`](#localconfigurationloader)
-    - [`LoadedConfigurations`](#loadedconfigurations)
+    - [`Detector`](#detector)
+      - [The `Detectable` interface](#the-detectable-interface)
+      - [Recursing through directory contents](#recursing-through-directory-contents)
+        - [Examples](#examples)
+    - [`Loader`](#loader)
     - [Example](#example)
-      - [Obtaining input types for the InputTypes option](#obtaining-input-types-for-the-inputtypes-option)
+      - [Obtaining input types for the DetectorByInputTypes function](#obtaining-input-types-for-the-detectorbyinputtypes-function)
     - [Error handling](#error-handling)
+  - [Custom resource resolution](#custom-resource-resolution)
   - [Evaluating policies](#evaluating-policies)
     - [`engine.Engine`](#engineengine)
     - [`data.Provider`](#dataprovider)
@@ -19,111 +22,230 @@ components together.
       - [`data.LocalProvider()`](#datalocalprovider)
     - [Example](#example-1)
     - [Error handling](#error-handling-1)
-  - [Custom resource resolution](#custom-resource-resolution)
   - [Source code location and line numbers](#source-code-location-and-line-numbers)
     - [Example](#example-2)
 
 ## Parsing IaC configurations
 
-### `ConfigurationLoader`
+The `input` package provides facilities to detect and load IaC configurations and to
+transform them into the format used by the `engine` package.
 
-The `ConfigurationLoader` concept from the `loader` package is the main entrypoint to
-parsing IaC configurations into the format expected by the policy engine's policy
-evaluation code.
+### `Detector`
 
-#### `LocalConfigurationLoader`
+The `input` package contains several `Detector` implementations that are responsible for
+detecting and parsing IaC configurations. Callers should use the `DetectorByInputTypes`
+function to obtain a `Detector` for some set of input types:
 
-Currently, there is only one implementation of `ConfigurationLoader`, called
-`LocalConfigurationLoader`, and it is used to parse IaC configurations from disk:
+```go
+detector, err := input.DetectorByInputTypes(
+  input.Types{input.Auto},
+)
+if err != nil {
+  return err
+}
+```
 
-### `LoadedConfigurations`
+#### The `Detectable` interface
 
-The `LoadedConfigurations` type is the output of a `ConfigurationLoader`. It contains
-methods to introspect the loaded configurations and transform them into the the policy
-engine input format.
+The input to the detector will be one of the concrete `Detectable` implementations:
+
+```go
+input.File
+input.Directory
+```
+
+You can obtain these types either by instantiating them directly for a specific path,
+like:
+
+```go
+// Note that these types take an afero.Fs: https://github.com/spf13/afero
+f := input.File{
+  Path: "path/to/some_file.json",
+  Fs: afero.OsFs{},
+}
+
+d := input.Directory{
+  Path: "path/to/some_directory",
+  Fs: afero.OsFs{},
+}
+```
+
+There is also a helper which will check whether or not a path points to a directory and
+return the appropriate type:
+
+```go
+d := NewDetectable(afero.OsFs{}, "some/path")
+```
+
+#### Recursing through directory contents
+
+The `input.Directory` type has a `Walk()` method that can be used to recurse through
+its contents. `Walk()` takes a `WalkFunc` function, which is invoked with each
+`input.Detectable` in the directory tree. If `WalkFunc` returns `true`, `Walk` will not
+recurse further in the current path. If `WalkFunc` returns a non-nil `error`, `Walk`
+will halt and bubble up the error.
+
+`WalkFunc` also takes a `depth` argument which can be used to stop recursing after a
+certain depth. `depth` is a 0-based representation of how many levels deep the recursion
+is relative to the initial call, meaning that `depth` will be `0` for the children of
+the directory.
+
+##### Examples
+
+A simple example that uses the output of `loader.Load()` (described below) to not
+recurse into directories that have already been loaded:
+
+```go
+loader := input.NewLoader(detector)
+dir := input.Directory{
+  Path: "some_directory",
+  Fs: afero.OsFs{},
+}
+walkFunc := func(d Detectable, depth int) (bool, error) {
+  // loader.Load returns true if the detectable contained an IaC configuration and was
+  // successfully loaded.
+  return loader.Load(d, input.DetectOptions{})
+}
+if err := dir.Walk(walkFunc); err != nil {
+  // ...
+}
+```
+
+An example that builds on the previous one to stop recursing after a certain depth:
+
+```go
+loader := input.NewLoader(detector)
+dir := input.Directory{
+  Path: "some_directory",
+  Fs: afero.OsFs{},
+}
+walkFunc := func(d Detectable, depth int) (bool, error) {
+  loaded, err := loader.Load(d, input.DetectOptions{})
+  if err != nil {
+    return true, err
+  }
+  return loaded || depth > 3
+}
+if err := dir.Walk(walkFunc); err != nil {
+  // ...
+}
+```
+
+### `Loader`
+
+The `Loader` type is responsible for invoking a detector on some input, storing the
+parsed IaC configuration, and later producing a `[]models.State` with all of its
+configurations for use with the `engine` package.
+
+```go
+loader := input.NewLoader(detector)
+loaded, err := loader.Load(*input.File{
+  Fs: afero.OsFs{},
+  Path: "cloudformation.yaml",
+})
+if err != nil {
+  // ...
+}
+if !loaded {
+  // ...
+}
+states := loaded.ToStates()
+```
 
 ### Example
+
+This example treats all errors as non-fatal and, instead, tracks them in a `map` by
+filepath.
 
 ```go
 package main
 
 import (
   "errors"
+  "fmt"
 
-  "github.com/snyk/policy-engine/pkg/inputs"
-  "github.com/snyk/policy-engine/pkg/loader"
+  "github.com/snyk/policy-engine/pkg/input"
 )
 
-func main() {
-  // Initialize the loader
-  configLoader := loader.LocalConfigurationLoader(loader.LoadPathsOptions{
-    // Paths is a []string that contains paths where the loader should search for IaC
-    // configurations
-    Paths:       args,
-    // InputTypes sets which input types the loader should attempt to parse. The
-    // loader.Auto input type includes all known IaC formats.
-    InputTypes:  inputs.InputTypes{inputType},
-    // By default, this loader will respect .gitignore files that it finds. This loader
-    // searches upwards through parent directories until it finds a .git directory. If
-    // a .git directory is found, it will then search for .gitignore files in any
-    // directories that are both within the repository and contained within the input
-    // paths specified above.
-    // Setting this option to true will disable that behavior.
-    NoGitIgnore: false,
-  })
-
-  // Invoke the loader, returning a LoadedConfigurations struct
-  loadedConfigs, errs := configLoader()
-  for _, err := range errs {
-    // Checking for specific errors
-    switch {
-    case errors.Is(err, loader.NoLoadableInputs):
-      // ...
-    case errors.Is(err, loader.UnrecognizedFileExtension):
-      // ...
-    default:
-      // ...
+func example(paths []string) {
+  // Initialize the detector
+  detector, err := input.DetectorByInputTypes(
+    input.Types{input.Auto},
+  )
+  if err != nil {
+    // ...
+  }
+  loader := input.NewLoader(detector)
+  // Tracking errors by filepath
+  errorsByPath := map[string]error{}
+  // Defining a function to reduce code duplication
+  load := func(d input.Detectable) bool {
+    loaded, err := loader.Load(d, input.DetectOptions{})
+    if err != nil {
+      errorsByPath[d.GetPath()] = err
     }
+    return loaded
+  }
+	fsys := afero.OsFs{}
+  for _, p := range paths {
+		detectable, err := input.NewDetectable(fsys, p)
+    if err != nil {
+      errorsByPath[p] = err
+    }
+    if loaded := load(detectable); loaded {
+      continue
+    }
+    if dir, ok := detectable.(input.Directory); ok {
+      // Our WalkFunc will only traverse three levels deep into the file tree.
+      walkFunc := func(d input.Detectable, depth int) (bool, error) {
+        loaded := load(d)
+        return loaded || depth >= 3, nil
+      }
+      if err := dir.Walk(walkFunc); err != nil {
+        return errorsByPath[p] = err
+      }
+    } else if _, ok := errorsByPath[p]; !ok {
+      // This condition hits if the path:
+      // * points to a file
+      // * was not loaded as an IaC configuration
+      // * does not already have another error associated with it
+      errorsByPath[p] = fmt.Errorf("No recognized input in given file")
+    }
+	}
+  if loader.Count() < 1 {
+    // ...
   }
   // Transform the loaded configurations into a slice of State structs
-  states := loadedConfigs.ToStates()
+  states := loader.ToStates()
   // ...
 }
 ```
 
-#### Obtaining input types for the InputTypes option
+#### Obtaining input types for the DetectorByInputTypes function
 
-The `loader` package has a `SupportedInputTypes` variable that defines which input types
-it can parse. You can use the `loader.SupportedInputTypes.FromString(inputType)` method
+The `input` package has a `SupportedInputTypes` variable that defines which input types
+it can parse. You can use the `input.SupportedInputTypes.FromString(inputType)` method
 to translate a string representation of an input type (for example from CLI arguments
-or a configuration file) into an `InputType` object which can be used in the
-`LoadPathsOptions.InputTypes` field.
+or a configuration file) into an `input.Type` object which can be used with the
+`DetectorByInputTypes` function.
 
 ### Error handling
 
-The errors returned by the `ConfigurationLoader` function can be differentiated with
-either the `errors.Is()` function or the `errors.As()` function (or just a type cast)
-from the [errors standard library package](https://pkg.go.dev/errors). All of these
-errors are defined in [`pkg/loader/errors.go`](../pkg/loader/errors.go) and have
+The errors returned by the `input` package can be differentiated with the `errors.Is()`
+function from the [errors standard library package](https://pkg.go.dev/errors). All of
+these errors are defined in [`pkg/input/errors.go`](../pkg/input/errors.go) and have
 inline documentation.
 
-| Error                        | Differentiated with      |
-| :--------------------------- | :----------------------- |
-| `NoLoadableInputs`           | `errors.Is`              |
-| `UnableToRecognizeInputType` | `errors.Is`              |
-| `FailedToProcessInput`       | `errors.As` or type cast |
-| `UnsupportedInputType`       | `errors.Is`              |
-| `UnableToResolveLocation`    | `errors.Is`              |
-| `UnrecognizedFileExtension`  | `errors.Is`              |
-| `FailedToParseInput`         | `errors.Is`              |
-| `InvalidInput`               | `errors.Is`              |
-| `UnableToReadFile`           | `errors.Is`              |
-| `UnableToReadDir`            | `errors.Is`              |
-| `UnableToReadStdin`          | `errors.Is`              |
-
-**NOTE** that `FailedToProcessInput` will always wrap one of the other errors, so it
-does not need to be handled explicitly unless its `Path` attribute is needed.
-
+| Error                        |
+| :--------------------------- |
+| `UnsupportedInputType`       |
+| `UnableToRecognizeInputType` |
+| `UnableToResolveLocation`    |
+| `UnrecognizedFileExtension`  |
+| `FailedToParseInput`         |
+| `InvalidInput`               |
+| `UnableToReadFile`           |
+| `UnableToReadDir`            |
 ## Custom resource resolution
 
 The library's caller can customize the behavior of the [`snyk.query`
@@ -251,7 +373,7 @@ import "github.com/snyk/policy-engine/pkg/engine"
 func main() {
   ctx := context.Background()
   // ...
-  engine, err := engine.NewEngine(ctx, &engine.EngineOptions{
+  eng, err := engine.NewEngine(ctx, &engine.EngineOptions{
     // Providers contains functions that produce parsed OPA modules or data documents.
     // See above for descriptions of the providers included in this library.
     Providers: providers,
@@ -274,17 +396,17 @@ func main() {
   if err != nil {
     // Checking for specific errors
     switch {
-    case errors.Is(err, loader.FailedToLoadRegoAPI):
+    case errors.Is(err, engine.FailedToLoadRegoAPI):
       // ...
-    case errors.Is(err, loader.FailedToLoadRules):
+    case errors.Is(err, engine.FailedToLoadRules):
       // ...
     default:
       // ...
     }
   }
   // This function returns a *models.Results
-  results := engine.Eval(ctx, &engine.EvalOptions{
-    // Inputs is a []models.State, like the output of the loadedConfigs.ToStates()
+  results := eng.Eval(ctx, &engine.EvalOptions{
+    // Inputs is a []models.State, like the output of the loader.ToStates()
     // described above.
     Inputs: states,
   })
@@ -296,18 +418,18 @@ func main() {
 The errors returned by the `NewEngine` function can be differentiated with the
 `errors.Is()` function from the
 [errors standard library package](https://pkg.go.dev/errors). All of these errors are
-defined in [`pkg/engine/errors.go`](../pkg/loader/errors.go) and have inline
+defined in [`pkg/engine/errors.go`](../pkg/engine/errors.go) and have inline
 documentation.
 
 **NOTE** that `Eval` does not currently return an `error`. Errors that occur during rule
 evaluation will be returned in the `Errors` field of the corresponding `RuleResults`
 model in the output.
 
-| Error                 | Differentiated with |
-| :-------------------- | :------------------ |
-| `FailedToLoadRegoAPI` | `errors.Is`         |
-| `FailedToLoadRules`   | `errors.Is`         |
-| `FailedToCompile`     | `errors.Is`         |
+| Error                 |
+| :-------------------- |
+| `FailedToLoadRegoAPI` |
+| `FailedToLoadRules`   |
+| `FailedToCompile`     |
 
 ## Source code location and line numbers
 
@@ -337,17 +459,17 @@ Building on top of both the ["parsing IaC configurations" example](#example) and
 package main
 
 import (
-    "github.com/snyk/policy-engine/pkg/loader",
+    "github.com/snyk/policy-engine/pkg/input",
     "github.com/snyk/policy-engine/pkg/engine"
 )
 
 func main() {
-    // Code that initializes loadedConfigs and produces results with engine from the
+    // Code that initializes a loader and produces results with engine from the
     // previous examples
     // ... 
 
     // AnnotateResults modifies the results object in-place to add source code locations
     // to resources and properties for supported input types.
-    loader.AnnotateResults(loadedConfigs, results)
+    input.AnnotateResults(loader, results)
 }
 ```

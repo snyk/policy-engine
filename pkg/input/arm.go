@@ -13,7 +13,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package loader
+package input
 
 import (
 	"encoding/json"
@@ -21,7 +21,6 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/snyk/policy-engine/pkg/inputs"
 	"github.com/snyk/policy-engine/pkg/interfacetricks"
 	"github.com/snyk/policy-engine/pkg/models"
 )
@@ -32,7 +31,7 @@ var validArmExts map[string]bool = map[string]bool{
 
 type ArmDetector struct{}
 
-func (c *ArmDetector) DetectFile(i InputFile, opts DetectOptions) (IACConfiguration, error) {
+func (c *ArmDetector) DetectFile(i *File, opts DetectOptions) (IACConfiguration, error) {
 	if !opts.IgnoreExt && !validArmExts[i.Ext()] {
 		return nil, fmt.Errorf("%w: %v", UnrecognizedFileExtension, i.Ext())
 	}
@@ -60,7 +59,7 @@ func (c *ArmDetector) DetectFile(i InputFile, opts DetectOptions) (IACConfigurat
 		discovered[d.name.String()] = d
 	}
 
-	path := i.Path()
+	path := i.Path
 	return &armConfiguration{
 		path:       path,
 		template:   template,
@@ -69,7 +68,7 @@ func (c *ArmDetector) DetectFile(i InputFile, opts DetectOptions) (IACConfigurat
 	}, nil
 }
 
-func (c *ArmDetector) DetectDirectory(i InputDirectory, opts DetectOptions) (IACConfiguration, error) {
+func (c *ArmDetector) DetectDirectory(i *Directory, opts DetectOptions) (IACConfiguration, error) {
 	return nil, nil
 }
 
@@ -99,7 +98,7 @@ func (l *armConfiguration) ToState() models.State {
 	}
 
 	return models.State{
-		InputType:           inputs.Arm.Name,
+		InputType:           Arm.Name,
 		EnvironmentProvider: "iac",
 		Meta: map[string]interface{}{
 			"filepath": l.path,
