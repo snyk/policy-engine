@@ -15,7 +15,8 @@ import (
 )
 
 var (
-	runCmdRules []string
+	runCmdRules   []string
+	runCmdWorkers *int
 )
 
 var runCmd = &cobra.Command{
@@ -81,7 +82,8 @@ var runCmd = &cobra.Command{
 			return err
 		}
 		results := eng.Eval(ctx, &engine.EvalOptions{
-			Inputs: states,
+			Inputs:  states,
+			Workers: *runCmdWorkers,
 		})
 		input.AnnotateResults(loader, results)
 
@@ -96,5 +98,6 @@ var runCmd = &cobra.Command{
 }
 
 func init() {
+	runCmdWorkers = runCmd.PersistentFlags().IntP("workers", "w", 0, "Number of workers. When 0 (the default) will use num CPUs + 1.")
 	runCmd.PersistentFlags().StringSliceVarP(&runCmdRules, "rule", "r", runCmdRules, "Select specific rules")
 }

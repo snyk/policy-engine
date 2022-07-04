@@ -23,6 +23,7 @@ allow(params) = ret {
     "valid": true,
     "id": params.resource.id,
     "type": params.resource._type,
+    "namespace": params.resource._namespace,
     "message": object.get(params, "message", ""),
   }
 }
@@ -40,6 +41,7 @@ deny(params) = ret {
     "valid": false,
     "id": params.resource.id,
     "type": params.resource._type,
+    "namespace": params.resource._namespace,
     "message": object.get(params, "message", ""),
   }
 }
