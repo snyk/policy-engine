@@ -73,7 +73,7 @@ var replCmd = &cobra.Command{
 				data.LocalProvider(path)(ctx, consumer)
 			}
 		}
-		store := inmem.NewFromObject(consumer.Documents)
+		store := inmem.NewFromObject(consumer.Document)
 		txn, err := store.NewTransaction(ctx, storage.TransactionParams{
 			Write: true,
 		})

@@ -74,7 +74,7 @@ func NewEngine(ctx context.Context, options *EngineOptions) (*Engine, error) {
 	m.Timer(ctx, metrics.PROVIDERS_LOAD_TIME, "", metrics.Labels{}).
 		Record(time.Now().Sub(providersStart))
 	logger.WithField(logging.MODULES, len(consumer.Modules)).
-		WithField(logging.DATA_DOCUMENTS, len(consumer.Documents)).
+		WithField(logging.DATA_DOCUMENTS, consumer.NumDocuments).
 		Info(ctx, "Finished consuming providers")
 	tree := ast.NewModuleTree(consumer.Modules)
 	policies := []policy.Policy{}
@@ -107,7 +107,7 @@ func NewEngine(ctx context.Context, options *EngineOptions) (*Engine, error) {
 	m.Counter(ctx, metrics.MODULES_LOADED, "", metrics.Labels{}).
 		Add(float64(len(consumer.Modules)))
 	m.Counter(ctx, metrics.DATA_DOCUMENTS_LOADED, "", metrics.Labels{}).
-		Add(float64(len(consumer.Documents)))
+		Add(float64(consumer.NumDocuments))
 	m.Counter(ctx, metrics.POLICIES_LOADED, "", metrics.Labels{}).
 		Add(float64(len(policies)))
 	return &Engine{
@@ -115,7 +115,7 @@ func NewEngine(ctx context.Context, options *EngineOptions) (*Engine, error) {
 		metrics:           m,
 		compiler:          compiler,
 		policies:          policies,
-		store:             inmem.NewFromObject(consumer.Documents),
+		store:             inmem.NewFromObject(consumer.Document),
 		ruleIDs:           options.RuleIDs,
 		runAllRules:       len(options.RuleIDs) < 1,
 		resourcesResolver: options.ResourcesResolver,
