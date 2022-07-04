@@ -15,8 +15,9 @@ import (
 )
 
 var (
-	runCmdRules []string
-	runCmdCloud *bool
+	runCmdRules   []string
+	runCmdCloud   *bool
+	runCmdWorkers *int
 )
 
 var runCmd = &cobra.Command{
@@ -64,7 +65,8 @@ var runCmd = &cobra.Command{
 		check(err)
 
 		results := eng.Eval(ctx, &engine.EvalOptions{
-			Inputs: states,
+			Inputs:  states,
+			Workers: *runCmdWorkers,
 		})
 
 		loader.AnnotateResults(loadedConfigs, results)
@@ -78,5 +80,6 @@ var runCmd = &cobra.Command{
 
 func init() {
 	runCmdCloud = runCmd.PersistentFlags().Bool("cloud", false, "Causes inputs to be interpreted as runtime state from Snyk Cloud.")
+	runCmdWorkers = runCmd.PersistentFlags().IntP("workers", "w", 0, "Number of workers. When 0 (the default) will use num CPUs + 1.")
 	runCmd.PersistentFlags().StringSliceVarP(&runCmdRules, "rule", "r", runCmdRules, "Select specific rules")
 }
