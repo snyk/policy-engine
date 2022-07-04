@@ -1,0 +1,150 @@
+{
+  "format": "",
+  "format_version": "",
+  "input_type": "tf_state",
+  "environment_provider": "aws",
+  "resources": {
+    "aws_s3_bucket": {
+      "terraform-20220704200619858700000001": {
+        "id": "terraform-20220704200619858700000001",
+        "resource_type": "aws_s3_bucket",
+        "namespace": "aws",
+        "meta": {
+          "tfstate": {
+            "name": "bucket1"
+          }
+        },
+        "attributes": {
+          "acceleration_status": "",
+          "acl": null,
+          "arn": "arn:aws:s3:::terraform-20220704200619858700000001",
+          "bucket": "terraform-20220704200619858700000001",
+          "bucket_domain_name": "terraform-20220704200619858700000001.s3.amazonaws.com",
+          "bucket_prefix": null,
+          "bucket_regional_domain_name": "terraform-20220704200619858700000001.s3.us-west-1.amazonaws.com",
+          "cors_rule": [],
+          "force_destroy": true,
+          "grant": [
+            {
+              "id": "d5c48f20001a6ee7be6d75e69fe2da57d4c273b03ac318bd3d5526018c47ecb5",
+              "permissions": [
+                "FULL_CONTROL"
+              ],
+              "type": "CanonicalUser",
+              "uri": ""
+            }
+          ],
+          "hosted_zone_id": "Z2F56UZL2M1ACD",
+          "id": "terraform-20220704200619858700000001",
+          "lifecycle_rule": [],
+          "logging": [],
+          "object_lock_configuration": [],
+          "object_lock_enabled": false,
+          "policy": "",
+          "region": "us-west-1",
+          "replication_configuration": [],
+          "request_payer": "BucketOwner",
+          "server_side_encryption_configuration": [],
+          "tags": null,
+          "tags_all": {},
+          "versioning": [
+            {
+              "enabled": false,
+              "mfa_delete": false
+            }
+          ],
+          "website": [],
+          "website_domain": null,
+          "website_endpoint": null
+        }
+      }
+    },
+    "aws_s3_bucket_acl": {
+      "terraform-20220704200619858700000001,log-delivery-write": {
+        "id": "terraform-20220704200619858700000001,log-delivery-write",
+        "resource_type": "aws_s3_bucket_acl",
+        "namespace": "aws",
+        "meta": {
+          "tfstate": {
+            "name": "acl1"
+          }
+        },
+        "attributes": {
+          "access_control_policy": [
+            {
+              "grant": [
+                {
+                  "grantee": [
+                    {
+                      "display_name": "",
+                      "email_address": "",
+                      "id": "",
+                      "type": "Group",
+                      "uri": "http://acs.amazonaws.com/groups/s3/LogDelivery"
+                    }
+                  ],
+                  "permission": "READ_ACP"
+                },
+                {
+                  "grantee": [
+                    {
+                      "display_name": "",
+                      "email_address": "",
+                      "id": "",
+                      "type": "Group",
+                      "uri": "http://acs.amazonaws.com/groups/s3/LogDelivery"
+                    }
+                  ],
+                  "permission": "WRITE"
+                },
+                {
+                  "grantee": [
+                    {
+                      "display_name": "jasper",
+                      "email_address": "",
+                      "id": "d5c48f20001a6ee7be6d75e69fe2da57d4c273b03ac318bd3d5526018c47ecb5",
+                      "type": "CanonicalUser",
+                      "uri": ""
+                    }
+                  ],
+                  "permission": "FULL_CONTROL"
+                }
+              ],
+              "owner": [
+                {
+                  "display_name": "jasper",
+                  "id": "d5c48f20001a6ee7be6d75e69fe2da57d4c273b03ac318bd3d5526018c47ecb5"
+                }
+              ]
+            }
+          ],
+          "acl": "log-delivery-write",
+          "bucket": "terraform-20220704200619858700000001",
+          "expected_bucket_owner": "",
+          "id": "terraform-20220704200619858700000001,log-delivery-write"
+        }
+      }
+    },
+    "aws_s3_bucket_logging": {
+      "terraform-20220704200619858700000001": {
+        "id": "terraform-20220704200619858700000001",
+        "resource_type": "aws_s3_bucket_logging",
+        "namespace": "aws",
+        "meta": {
+          "tfstate": {
+            "name": "logging1"
+          }
+        },
+        "attributes": {
+          "bucket": "terraform-20220704200619858700000001",
+          "expected_bucket_owner": "",
+          "id": "terraform-20220704200619858700000001",
+          "target_bucket": "terraform-20220704200619858700000001",
+          "target_grant": [],
+          "target_prefix": "log/"
+        }
+      }
+    }
+  },
+  "scope": null
+}

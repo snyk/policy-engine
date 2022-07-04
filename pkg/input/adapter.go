@@ -47,14 +47,14 @@ func toState(
 }
 
 func groupResourcesByType(
-	resources map[string]models.ResourceState,
+	resources []models.ResourceState,
 ) map[string]map[string]models.ResourceState {
 	byType := map[string]map[string]models.ResourceState{}
-	for key, resource := range resources {
+	for _, resource := range resources {
 		if _, ok := byType[resource.ResourceType]; !ok {
 			byType[resource.ResourceType] = map[string]models.ResourceState{}
 		}
-		byType[resource.ResourceType][key] = resource
+		byType[resource.ResourceType][resource.Id] = resource
 	}
 	return byType
 }
