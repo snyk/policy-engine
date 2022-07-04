@@ -17,6 +17,7 @@ import (
 	"github.com/snyk/policy-engine/pkg/metrics"
 	"github.com/snyk/policy-engine/pkg/models"
 	"github.com/snyk/policy-engine/pkg/policy"
+	"github.com/snyk/policy-engine/pkg/snapshot_testing"
 )
 
 // Engine is responsible for evaluating some States with a given set of rules.
@@ -93,7 +94,11 @@ func NewEngine(ctx context.Context, options *EngineOptions) (*Engine, error) {
 			policies = append(policies, p)
 		}
 	}
-	compiler := ast.NewCompiler().WithCapabilities(policy.Capabilities())
+
+	capabilities := policy.Capabilities()
+	capabilities.Builtins = append(capabilities.Builtins, snapshot_testing.MatchBuiltin)
+
+	compiler := ast.NewCompiler().WithCapabilities(capabilities)
 	compilationStart := time.Now()
 	compiler.Compile(consumer.Modules)
 	m.Timer(ctx, metrics.COMPILATION_TIME, "", metrics.Labels{}).

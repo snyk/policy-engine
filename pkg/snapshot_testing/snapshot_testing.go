@@ -32,7 +32,7 @@ func MatchImpl(updateSnapshots bool) rego.BuiltinDyn {
 		operands []*ast.Term,
 	) (*ast.Term, error) {
 		if len(operands) != 2 {
-			return nil, fmt.Errorf("Expected one argument")
+			return nil, fmt.Errorf("Expected two arguments")
 		}
 
 		val, err := ast.JSON(operands[0].Value)
