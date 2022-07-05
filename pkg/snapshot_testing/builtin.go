@@ -26,7 +26,18 @@ var MatchBuiltin = &ast.Builtin{
 	),
 }
 
-func MatchImpl(updateSnapshots bool) rego.BuiltinDyn {
+// MatchNoopImpl will always return true, and should be used everywhere except
+// for actual testing.
+func MatchNoopImpl() rego.BuiltinDyn {
+	return func(
+		bctx rego.BuiltinContext,
+		operands []*ast.Term,
+	) (*ast.Term, error) {
+		return ast.BooleanTerm(true), nil
+	}
+}
+
+func MatchTestImpl(updateSnapshots bool) rego.BuiltinDyn {
 	return func(
 		bctx rego.BuiltinContext,
 		operands []*ast.Term,
@@ -79,4 +90,16 @@ func MatchImpl(updateSnapshots bool) rego.BuiltinDyn {
 			return ast.BooleanTerm(false), nil
 		}
 	}
+}
+
+// Registers MatchNoopImpl globally.
+func GlobalRegisterNoop() {
+	rego.RegisterBuiltinDyn(
+		&rego.Function{
+			Name:    MatchBuiltin.Name,
+			Decl:    MatchBuiltin.Decl,
+			Memoize: false,
+		},
+		MatchNoopImpl(),
+	)
 }

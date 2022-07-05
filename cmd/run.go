@@ -26,6 +26,7 @@ var runCmd = &cobra.Command{
 	Short: "Policy Engine",
 	RunE: func(cmd *cobra.Command, args []string) error {
 		logger := cmdLogger()
+		snapshot_testing.GlobalRegisterNoop()
 		m := metrics.NewLocalMetrics(logger)
 		selectedRules := map[string]bool{}
 		for _, k := range runCmdRules {
@@ -33,7 +34,6 @@ var runCmd = &cobra.Command{
 		}
 		providers := []data.Provider{
 			data.PureRegoLibProvider(),
-			snapshot_testing.NoopProvider,
 		}
 		for _, path := range rootCmdRegoPaths {
 			if isTgz(path) {

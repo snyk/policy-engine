@@ -65,7 +65,7 @@ var testCmd = &cobra.Command{
 							Decl:    snapshot_testing.MatchBuiltin.Decl,
 							Memoize: false,
 						},
-						snapshot_testing.MatchImpl(cmdTestUpdateSnapshots),
+						snapshot_testing.MatchTestImpl(cmdTestUpdateSnapshots),
 					),
 				},
 			}).

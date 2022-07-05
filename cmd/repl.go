@@ -24,6 +24,7 @@ var replCmd = &cobra.Command{
 	Short: "Policy Engine",
 	RunE: func(cmd *cobra.Command, args []string) error {
 		ctx := context.Background()
+		snapshot_testing.GlobalRegisterNoop()
 		consumer := engine.NewPolicyConsumer()
 		if len(args) > 1 {
 			return fmt.Errorf("Expected at most 1 input")
@@ -61,9 +62,6 @@ var replCmd = &cobra.Command{
 			return err
 		}
 		if err := data.PureRegoLibProvider()(ctx, consumer); err != nil {
-			return err
-		}
-		if err := snapshot_testing.NoopProvider(ctx, consumer); err != nil {
 			return err
 		}
 		for _, path := range rootCmdRegoPaths {
