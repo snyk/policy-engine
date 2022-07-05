@@ -30,35 +30,35 @@ simple policies and gradually adding concepts.
 
 ### Simple policies part 1
 
-[examples/01-simple.rego](examples/01-simple.rego)
+[examples/01-simple.rego](../examples/01-simple.rego)
 
 ### Simple policies part 2: Returning attributes
 
-[examples/02-simple-attributes.rego](examples/02-simple-attributes.rego)
+[examples/02-simple-attributes.rego](../examples/02-simple-attributes.rego)
 
 ### Advanced policies part 1
 
-[examples/03-advanced.rego](examples/03-advanced.rego)
+[examples/03-advanced.rego](../examples/03-advanced.rego)
 
 ### Advanced policies part 2: Adding compliant resource info
 
-[examples/04-advanced-resources.rego](examples/04-advanced-resources.rego)
+[examples/04-advanced-resources.rego](../examples/04-advanced-resources.rego)
 
 ### Advanced policies part 3: Correlating resources
 
-[examples/05-advanced-primary-resource.rego](examples/05-advanced-primary-resource.rego)
+[examples/05-advanced-primary-resource.rego](../examples/05-advanced-primary-resource.rego)
 
 ### Advanced policies part 4: Correlating resources
 
-[examples/06-advanced-correlation.rego](examples/06-advanced-correlation.rego)
+[examples/06-advanced-correlation.rego](../examples/06-advanced-correlation.rego)
 
 ### Advanced policies part 5: Returning attributes
 
-[examples/07-advanced-attributes.rego](examples/07-advanced-attributes.rego)
+[examples/07-advanced-attributes.rego](../examples/07-advanced-attributes.rego)
 
 ### Missing resources
 
-[examples/08-missing.rego](examples/08-missing.rego)
+[examples/08-missing.rego](../examples/08-missing.rego)
 
 ## Testing policies
 
@@ -79,7 +79,7 @@ be used for the test.
 
 This allows us to import and use the fixture in a test:
 
-[examples/tests/advanced-rule-test.rego](examples/tests/advanced-rule-test.rego)
+[examples/tests/advanced-rule-test.rego](../examples/tests/advanced-rule-test.rego)
 
 Running the tests:
 
