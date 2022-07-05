@@ -2,6 +2,7 @@ package data
 
 import (
 	"context"
+	"fmt"
 	"io"
 
 	"github.com/open-policy-agent/opa/ast"
@@ -39,7 +40,7 @@ func documentParser(
 	if err != nil {
 		return err
 	}
-	var document map[string]interface{}
+	var document interface{} // Array or object
 	if err := yaml.Unmarshal(bytes, &document); err != nil {
 		return err
 	}
@@ -49,7 +50,13 @@ func documentParser(
 			prefix[i]: document,
 		}
 	}
-	return consumer.DataDocument(ctx, path, document)
+	// Must be an object at this point to conform to OPA API.
+	switch doc := document.(type) {
+	case map[string]interface{}:
+		return consumer.DataDocument(ctx, path, doc)
+	default:
+		return fmt.Errorf("%s: Root data document needs to be object not array", path)
+	}
 }
 
 var parsersByExtension = map[string]parser{
