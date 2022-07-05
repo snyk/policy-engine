@@ -5,15 +5,19 @@ package hcl_interpreter
 import (
 	"github.com/hashicorp/hcl/v2"
 	"github.com/sirupsen/logrus"
+	"github.com/spf13/afero"
 	"github.com/zclconf/go-cty/cty"
 
 	"github.com/fugue/regula/v2/pkg/terraform/lang"
 	"github.com/fugue/regula/v2/pkg/topsort"
 
+	"github.com/snyk/policy-engine/pkg/hcl_interpreter/funcs"
 	"github.com/snyk/policy-engine/pkg/models"
 )
 
 type Analysis struct {
+	Fs afero.Fs
+
 	// Module metadata
 	Modules map[string]*ModuleMeta
 
@@ -37,6 +41,7 @@ type Analysis struct {
 
 func AnalyzeModuleTree(mtree *ModuleTree) *Analysis {
 	analysis := &Analysis{
+		Fs:                  mtree.fs,
 		Modules:             map[string]*ModuleMeta{},
 		Resources:           map[string]*ResourceMeta{},
 		ResourceExpressions: map[string][]FullName{},
@@ -280,7 +285,7 @@ func (v *Evaluation) evaluate() error {
 			PureOnly: false,
 		}
 		ctx := hcl.EvalContext{
-			Functions: scope.Functions(),
+			Functions: funcs.Override(v.Analysis.Fs, scope),
 			Variables: ValTreeToVariables(vars),
 		}
 

@@ -36,6 +36,7 @@ type ResourceMeta struct {
 
 // We load the entire tree of submodules in one pass.
 type ModuleTree struct {
+	fs             afero.Fs
 	meta           *ModuleMeta
 	config         *hclsyntax.Body // Call to the module, nil if root.
 	module         *configs.Module
@@ -155,7 +156,7 @@ func ParseFiles(
 		}
 	}
 
-	return &ModuleTree{meta, nil, module, variableValues, children}, nil
+	return &ModuleTree{parserFs, meta, nil, module, variableValues, children}, nil
 }
 
 func (mtree *ModuleTree) Warnings() []string {

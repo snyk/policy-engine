@@ -60,8 +60,8 @@ func (t *TfDetector) DetectDirectory(i *Directory, opts DetectOptions) (IACConfi
 		return nil, nil
 	}
 
-	moduleRegister := hcl_interpreter.NewTerraformRegister(i.Path)
-	moduleTree, err := hcl_interpreter.ParseDirectory(moduleRegister, nil, i.Path, opts.VarFiles)
+	moduleRegister := hcl_interpreter.NewTerraformRegister(i.Fs, i.Path)
+	moduleTree, err := hcl_interpreter.ParseDirectory(moduleRegister, i.Fs, i.Path, opts.VarFiles)
 	if err != nil {
 		return nil, fmt.Errorf("%w: %v", FailedToParseInput, err)
 	}

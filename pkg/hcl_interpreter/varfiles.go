@@ -8,10 +8,6 @@ import (
 )
 
 func findVarFiles(fs afero.Fs, dir string) ([]string, error) {
-    if fs == nil {
-        fs = afero.OsFs{}
-    }
-
 	// We want to sort files by basename.  The spec is:
 	//
 	//  -  Environment variables

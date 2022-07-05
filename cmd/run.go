@@ -1,6 +1,8 @@
 package cmd
 
 import (
+	"archive/tar"
+	"compress/gzip"
 	"context"
 	"encoding/json"
 	"fmt"
@@ -12,6 +14,7 @@ import (
 	"github.com/snyk/policy-engine/pkg/metrics"
 	"github.com/snyk/policy-engine/pkg/snapshot_testing"
 	"github.com/spf13/afero"
+	"github.com/spf13/afero/tarfs"
 	"github.com/spf13/cobra"
 )
 
@@ -55,9 +58,27 @@ var runCmd = &cobra.Command{
 		loader := input.NewLoader(detector)
 		fsys := afero.OsFs{}
 		for _, p := range args {
-			detectable, err := input.NewDetectable(fsys, p)
-			if err != nil {
-				return err
+			var detectable input.Detectable
+			if isTgz(p) {
+				f, err := fsys.Open(p)
+				if err != nil {
+					return err
+				}
+				gzf, err := gzip.NewReader(f)
+				if err != nil {
+					return err
+				}
+				fsys := tarfs.New(tar.NewReader(gzf))
+				detectable = &input.Directory{
+					Path: ".",
+					Fs:   fsys,
+				}
+			} else {
+				var err error
+				detectable, err = input.NewDetectable(fsys, p)
+				if err != nil {
+					return err
+				}
 			}
 			loaded, err := loader.Load(detectable, input.DetectOptions{
 				VarFiles: runVarFiles,
