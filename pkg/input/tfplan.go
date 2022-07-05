@@ -395,11 +395,11 @@ func (expr *tfplan_ConfigurationExpression) references(resolve func(string) *str
 }
 
 // Main entry point to convert this to an input state.
-func (plan *tfplan_Plan) resources(resourceNamespace string) map[string]models.ResourceState {
+func (plan *tfplan_Plan) resources(resourceNamespace string) []models.ResourceState {
 	// Calculate outputs
 	resolveGlobally := plan.pointers()
 
-	resources := map[string]models.ResourceState{}
+	resources := []models.ResourceState{}
 	plan.visitResources(func(
 		module string,
 		path string,
@@ -485,13 +485,13 @@ func (plan *tfplan_Plan) resources(resourceNamespace string) map[string]models.R
 			resourceType = pvr.Type
 		}
 
-		resources[id] = models.ResourceState{
+		resources = append(resources, models.ResourceState{
 			Id:           id,
 			ResourceType: resourceType,
 			Namespace:    resourceNamespace,
 			Attributes:   attributes,
 			Meta:         meta,
-		}
+		})
 	})
 
 	return resources

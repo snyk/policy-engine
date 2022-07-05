@@ -2,6 +2,7 @@ package policy
 
 import (
 	"fmt"
+	"strings"
 )
 
 func PolicyFactory(moduleSet ModuleSet) (Policy, error) {
@@ -11,8 +12,9 @@ func PolicyFactory(moduleSet ModuleSet) (Policy, error) {
 	} else if base == nil {
 		return nil, nil
 	}
-	if base.Package() == "data.rules" {
-		return &IaCCustomPolicy{BasePolicy: base}, nil
+	pkg := base.Package()
+	if pkg == "data.rules" || strings.HasPrefix(pkg, "data.schemas.") {
+		return &LegacyIaCPolicy{BasePolicy: base}, nil
 	}
 	if base.resourceType == multipleResourceType {
 		switch base.judgementRule.name {

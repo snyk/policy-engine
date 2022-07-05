@@ -90,11 +90,11 @@ func (l *armConfiguration) ToState() models.State {
 	}
 
 	// Process resources
-	resources := map[string]models.ResourceState{}
-	for k, d := range l.discovered {
+	resources := []models.ResourceState{}
+	for _, d := range l.discovered {
 		resource := d.process(&refResolver)
 		resource.Namespace = l.path
-		resources[k] = resource
+		resources = append(resources, resource)
 	}
 
 	return models.State{
