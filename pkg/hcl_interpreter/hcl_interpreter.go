@@ -297,8 +297,8 @@ func (v *Evaluation) evaluate() error {
 	return nil
 }
 
-func (v *Evaluation) Resources() map[string]models.ResourceState {
-	input := map[string]models.ResourceState{}
+func (v *Evaluation) Resources() []models.ResourceState {
+	resources := []models.ResourceState{}
 
 	for resourceKey, resource := range v.Analysis.Resources {
 		resourceName, err := StringToFullName(resourceKey)
@@ -342,13 +342,13 @@ func (v *Evaluation) Resources() map[string]models.ResourceState {
 		}
 
 		// TODO: Support tags again: PopulateTags(input[resourceKey])
-		input[resourceKey] = models.ResourceState{
+		resources = append(resources, models.ResourceState{
 			Id:           resourceKey,
 			ResourceType: resourceType,
 			Attributes:   attrs,
 			Meta:         meta,
-		}
+		})
 	}
 
-	return input
+	return resources
 }

@@ -85,7 +85,7 @@ func (l *tfstateLoader) Location(attributePath []interface{}) (LocationStack, er
 }
 
 func (l *tfstateLoader) ToState() models.State {
-	resources := map[string]models.ResourceState{}
+	resources := []models.ResourceState{}
 	environmentProvider := ""
 
 	for _, resource := range l.state.Resources {
@@ -120,7 +120,7 @@ func (l *tfstateLoader) ToState() models.State {
 		}
 
 		// Put it all together
-		resources[id] = models.ResourceState{
+		resources = append(resources, models.ResourceState{
 			Id:           id,
 			ResourceType: resource.Type,
 			Namespace:    resourceProvider,
@@ -130,7 +130,7 @@ func (l *tfstateLoader) ToState() models.State {
 					"name": resource.Name,
 				},
 			},
-		}
+		})
 	}
 
 	return models.State{

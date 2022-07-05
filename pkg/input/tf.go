@@ -124,9 +124,8 @@ func (c *HclConfiguration) ToState() models.State {
 	resources := c.evaluation.Resources()
 
 	namespace := c.moduleTree.FilePath()
-	for k, resource := range resources {
-		resource.Namespace = namespace
-		resources[k] = resource
+	for i := range resources {
+		resources[i].Namespace = namespace
 	}
 
 	return models.State{
