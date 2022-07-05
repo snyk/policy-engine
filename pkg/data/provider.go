@@ -10,7 +10,6 @@ import (
 	"io/fs"
 	"os"
 	"path/filepath"
-	"strings"
 
 	embed "github.com/snyk/policy-engine/rego"
 )
@@ -24,13 +23,14 @@ func FSProvider(fsys fs.FS, basePath string) Provider {
 			if d.IsDir() {
 				return nil
 			}
+
 			ext := filepath.Ext(path)
 			if parser, ok := parsersByExtension[ext]; ok {
 				reader, err := fsys.Open(path)
 				if err != nil {
 					return err
 				}
-				if err := parser(ctx, path, reader, consumer); err != nil {
+				if err := parser(ctx, basePath, path, reader, consumer); err != nil {
 					return err
 				}
 			}
@@ -52,19 +52,13 @@ func LocalProvider(root string) Provider {
 				return err
 			}
 			if !d.IsDir() {
-				basePath := strings.TrimPrefix(path, root)
-				if path == root {
-					// If a rego file is passed directly, consider the whole
-					// path, otherwise we'd end up with an empty basePath.
-					basePath = path
-				}
-				ext := filepath.Ext(basePath)
+				ext := filepath.Ext(path)
 				if parser, ok := parsersByExtension[ext]; ok {
 					reader, err := os.Open(path)
 					if err != nil {
 						return err
 					}
-					if err := parser(ctx, basePath, reader, consumer); err != nil {
+					if err := parser(ctx, root, path, reader, consumer); err != nil {
 						return err
 					}
 				}
@@ -99,7 +93,7 @@ func TarGzProvider(reader io.Reader) Provider {
 					if err != nil {
 						return err
 					}
-					if err := parser(ctx, path, tarReader, consumer); err != nil {
+					if err := parser(ctx, "", path, tarReader, consumer); err != nil {
 						return err
 					}
 				}
@@ -113,7 +107,7 @@ func TarGzProvider(reader io.Reader) Provider {
 // in production.
 func PureRegoBuiltinsProvider() Provider {
 	return func(ctx context.Context, consumer Consumer) error {
-		err := regoParser(ctx, "snyk.rego", bytes.NewReader(embed.SnykRego), consumer)
+		err := regoParser(ctx, "", "snyk.rego", bytes.NewReader(embed.SnykRego), consumer)
 		if err != nil {
 			return nil
 		}
@@ -124,7 +118,7 @@ func PureRegoBuiltinsProvider() Provider {
 // Provides the pure rego part of the API.
 func PureRegoLibProvider() Provider {
 	return func(ctx context.Context, consumer Consumer) error {
-		err := regoParser(ctx, "snyk/terraform.rego", bytes.NewReader(embed.SnykTerraformRego), consumer)
+		err := regoParser(ctx, "", "snyk/terraform.rego", bytes.NewReader(embed.SnykTerraformRego), consumer)
 		if err != nil {
 			return nil
 		}

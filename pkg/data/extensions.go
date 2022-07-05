@@ -8,10 +8,11 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
-type parser func(ctx context.Context, path string, reader io.Reader, consumer Consumer) error
+type parser func(ctx context.Context, basePath string, path string, reader io.Reader, consumer Consumer) error
 
 func regoParser(
 	ctx context.Context,
+	basePath string,
 	path string,
 	reader io.Reader,
 	consumer Consumer,
@@ -29,6 +30,7 @@ func regoParser(
 
 func documentParser(
 	ctx context.Context,
+	basePath string,
 	path string,
 	reader io.Reader,
 	consumer Consumer,
@@ -40,6 +42,12 @@ func documentParser(
 	var document map[string]interface{}
 	if err := yaml.Unmarshal(bytes, &document); err != nil {
 		return err
+	}
+	prefix := dataDocumentPrefix(basePath, path)
+	for i := len(prefix) - 1; i >= 0; i-- {
+		document = map[string]interface{}{
+			prefix[i]: document,
+		}
 	}
 	return consumer.DataDocument(ctx, path, document)
 }
