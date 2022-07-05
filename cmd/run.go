@@ -10,6 +10,7 @@ import (
 	"github.com/snyk/policy-engine/pkg/engine"
 	"github.com/snyk/policy-engine/pkg/input"
 	"github.com/snyk/policy-engine/pkg/metrics"
+	"github.com/snyk/policy-engine/pkg/snapshot_testing"
 	"github.com/spf13/afero"
 	"github.com/spf13/cobra"
 )
@@ -25,12 +26,15 @@ var runCmd = &cobra.Command{
 	Short: "Policy Engine",
 	RunE: func(cmd *cobra.Command, args []string) error {
 		logger := cmdLogger()
+		snapshot_testing.GlobalRegisterNoop()
 		m := metrics.NewLocalMetrics(logger)
 		selectedRules := map[string]bool{}
 		for _, k := range runCmdRules {
 			selectedRules[k] = true
 		}
-		providers := []data.Provider{data.PureRegoLibProvider()}
+		providers := []data.Provider{
+			data.PureRegoLibProvider(),
+		}
 		for _, path := range rootCmdRegoPaths {
 			if isTgz(path) {
 				f, err := os.Open(path)

@@ -6,18 +6,21 @@ import (
 	"os"
 
 	"github.com/open-policy-agent/opa/ast"
+	"github.com/open-policy-agent/opa/rego"
 	"github.com/open-policy-agent/opa/storage/inmem"
 	"github.com/open-policy-agent/opa/tester"
 	"github.com/snyk/policy-engine/pkg/data"
 	"github.com/snyk/policy-engine/pkg/engine"
 	"github.com/snyk/policy-engine/pkg/policy"
+	"github.com/snyk/policy-engine/pkg/snapshot_testing"
 	"github.com/spf13/cobra"
 )
 
 const noTestsFoundCode = 2
 
 var (
-	cmdTestFilter string
+	cmdTestFilter          string
+	cmdTestUpdateSnapshots bool
 )
 
 var testCmd = &cobra.Command{
@@ -48,8 +51,24 @@ var testCmd = &cobra.Command{
 		}
 		defer store.Abort(ctx, txn)
 
-		compiler := ast.NewCompiler().WithCapabilities(policy.Capabilities())
+		capabilities := policy.Capabilities()
+		capabilities.Builtins = append(capabilities.Builtins, snapshot_testing.MatchBuiltin)
+
+		compiler := ast.NewCompiler().WithCapabilities(capabilities)
 		ch, err := tester.NewRunner().
+			AddCustomBuiltins([]*tester.Builtin{
+				{
+					Decl: snapshot_testing.MatchBuiltin,
+					Func: rego.FunctionDyn(
+						&rego.Function{
+							Name:    snapshot_testing.MatchBuiltin.Name,
+							Decl:    snapshot_testing.MatchBuiltin.Decl,
+							Memoize: false,
+						},
+						snapshot_testing.MatchTestImpl(cmdTestUpdateSnapshots),
+					),
+				},
+			}).
 			SetCompiler(compiler).
 			SetStore(store).
 			SetModules(consumer.Modules).
@@ -95,4 +114,5 @@ var testCmd = &cobra.Command{
 
 func init() {
 	testCmd.Flags().StringVarP(&cmdTestFilter, "filter", "f", "", "Regular expression to filter tests by.")
+	testCmd.Flags().BoolVar(&cmdTestUpdateSnapshots, "update-snapshots", false, "Updates snapshots used in snapshot_testing.match")
 }

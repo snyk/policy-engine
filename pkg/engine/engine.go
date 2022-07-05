@@ -103,6 +103,7 @@ func NewEngine(ctx context.Context, options *EngineOptions) (*Engine, error) {
 			}
 		}
 	}
+
 	compiler := ast.NewCompiler().WithCapabilities(policy.Capabilities())
 	compilationStart := time.Now()
 	compiler.Compile(consumer.Modules)

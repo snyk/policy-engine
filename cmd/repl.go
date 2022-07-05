@@ -14,6 +14,7 @@ import (
 	"github.com/snyk/policy-engine/pkg/data"
 	"github.com/snyk/policy-engine/pkg/engine"
 	"github.com/snyk/policy-engine/pkg/input"
+	"github.com/snyk/policy-engine/pkg/snapshot_testing"
 	"github.com/spf13/afero"
 	"github.com/spf13/cobra"
 )
@@ -23,6 +24,7 @@ var replCmd = &cobra.Command{
 	Short: "Policy Engine",
 	RunE: func(cmd *cobra.Command, args []string) error {
 		ctx := context.Background()
+		snapshot_testing.GlobalRegisterNoop()
 		consumer := engine.NewPolicyConsumer()
 		if len(args) > 1 {
 			return fmt.Errorf("Expected at most 1 input")

@@ -22,6 +22,7 @@ concepts as well how to test policies.
         - [Examples](#examples)
       - [Without an input](#without-an-input)
         - [Example](#example)
+    - [Using snapshot_testing.match](#using-snapshot-testing-match)
 
 ## Policy syntax tutorial
 
@@ -213,3 +214,34 @@ true
 ]
 > 
 ```
+
+### Using snapshot_testing.match
+
+Policy tests can be tedious to write and maintain.  We currently write the
+expected output of the `deny` and `resources` rules, which can be quite large or
+complex, by hand.  Any time we make updates, for example to reword the message
+returned by a rule, we need to make the same update repeatedly in the expected
+output in our tests.
+
+This is where the `snapshot_testing.match` builtin comes in.  In your
+`*_test.rego` files, you are encouraged to use the following style of tests:
+
+```open-policy-agent
+test_foo {
+    some_variable = ...
+    snyk.test.matches_snapshot(some_variable, "some/file/path.json")
+}
+```
+
+This function will assert that the value of `some_variable` matches the contents
+of the file `some/file/path.json` relative to the file that contains the
+function call.
+
+ *  If the file does not exist or the contents do not match, this function will
+    return `false` and `policy-engine test` with print out the diff.
+ *  If `policy-engine test` is run with the `--update-snapshots` option, this
+    function will update any existing snapshots and create new ones.
+
+The resulting snapshots should be checked in to version control
+This saves a lot of time since now you only need to review the output of
+policies, you don't need to manually write it down.
