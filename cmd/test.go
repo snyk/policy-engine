@@ -114,5 +114,5 @@ var testCmd = &cobra.Command{
 
 func init() {
 	testCmd.Flags().StringVarP(&cmdTestFilter, "filter", "f", "", "Regular expression to filter tests by.")
-	testCmd.Flags().BoolVar(&cmdTestUpdateSnapshots, "update-snapshots", false, "Updates snapshots used in snyk.test.matches_snapshot")
+	testCmd.Flags().BoolVar(&cmdTestUpdateSnapshots, "update-snapshots", false, "Updates snapshots used in snapshot_testing.match")
 }

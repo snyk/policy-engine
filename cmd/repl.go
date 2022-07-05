@@ -14,6 +14,7 @@ import (
 	"github.com/snyk/policy-engine/pkg/data"
 	"github.com/snyk/policy-engine/pkg/engine"
 	"github.com/snyk/policy-engine/pkg/input"
+	"github.com/snyk/policy-engine/pkg/snapshot_testing"
 	"github.com/spf13/afero"
 	"github.com/spf13/cobra"
 )
@@ -60,6 +61,9 @@ var replCmd = &cobra.Command{
 			return err
 		}
 		if err := data.PureRegoLibProvider()(ctx, consumer); err != nil {
+			return err
+		}
+		if err := snapshot_testing.NoopProvider(ctx, consumer); err != nil {
 			return err
 		}
 		for _, path := range rootCmdRegoPaths {
