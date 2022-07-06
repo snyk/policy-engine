@@ -22,7 +22,7 @@ concepts as well how to test policies.
         - [Examples](#examples)
       - [Without an input](#without-an-input)
         - [Example](#example)
-    - [Using snapshot_testing.match](#using-snapshot-testing-match)
+    - [Using snapshot_testing.match](#using-snapshot_testingmatch)
 
 ## Policy syntax tutorial
 
