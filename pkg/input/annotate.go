@@ -17,8 +17,8 @@ func AnnotateResults(
 		}
 
 		// Annotate resources in input state
-		for rid, resources := range inputResult.Input.Resources {
-			for _, resource := range resources {
+		for _, resources := range inputResult.Input.Resources {
+			for rk, resource := range resources {
 				location := annotateResourceLocation(
 					configurations,
 					filepath,
@@ -31,7 +31,7 @@ func AnnotateResults(
 				if len(location) > 0 {
 					resource.Meta["location"] = location
 				}
-				resources[rid] = resource
+				resources[rk] = resource
 			}
 		}
 
