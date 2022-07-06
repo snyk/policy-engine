@@ -1,0 +1,9 @@
+Resources:
+  Foo:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: "foo"
+  Bar:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: "bar"
