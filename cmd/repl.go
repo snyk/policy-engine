@@ -56,7 +56,15 @@ var replCmd = &cobra.Command{
 			if err != nil {
 				return err
 			}
-			consumer.DataDocument(ctx, "repl/input/state.json", replInput)
+			consumer.DataDocument(
+				ctx,
+				"repl/input/state.json",
+				map[string]interface{}{
+					"repl": map[string]interface{}{
+						"input": replInput,
+					},
+				},
+			)
 		}
 		if err := data.PureRegoBuiltinsProvider()(ctx, consumer); err != nil {
 			return err
