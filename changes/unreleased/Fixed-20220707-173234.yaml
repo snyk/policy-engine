@@ -1,3 +1,0 @@
-kind: Fixed
-body: input was not being set in repl
-time: 2022-07-07T17:32:34.668909629+02:00

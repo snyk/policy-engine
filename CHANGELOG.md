@@ -2,6 +2,11 @@
 
 
 
+## v0.1.1 - 2022-07-07
+### Fixed
+* resource ID scrambling bug in annotation step
+* input was not being set in repl
+
 ## v0.1.0 - 2022-07-05
 ### Added
 * allow tests to be filtered by name
