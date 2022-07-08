@@ -70,6 +70,8 @@ var testCmd = &cobra.Command{
 				},
 			}).
 			SetCompiler(compiler).
+			CapturePrintOutput(true).
+			EnableTracing(*rootCmdVerbose).
 			SetStore(store).
 			SetModules(consumer.Modules).
 			Filter(cmdTestFilter).
