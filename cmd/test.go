@@ -78,17 +78,14 @@ var testCmd = &cobra.Command{
 			return err
 		}
 
-		// exit with non-zero when no tests found
-		exitCode := noTestsFoundCode
+		numTestsFound := 0
+		passing := true
 		dup := make(chan *tester.Result)
 		go func() {
 			defer close(dup)
 			for tr := range ch {
-				if tr.Pass() {
-					exitCode = 0
-				} else {
-					exitCode = 1
-				}
+				numTestsFound += 1
+				passing = passing && tr.Pass()
 				dup <- tr
 			}
 		}()
@@ -103,11 +100,15 @@ var testCmd = &cobra.Command{
 			return err
 		}
 
-		if exitCode == noTestsFoundCode {
+		if numTestsFound == 0 {
+			// exit with non-zero when no tests found
 			fmt.Fprintln(reporter.Output, "no test cases found")
+			os.Exit(noTestsFoundCode)
+		} else if passing {
+			os.Exit(0)
+		} else {
+			os.Exit(1)
 		}
-
-		os.Exit(exitCode)
 		return nil
 	},
 }
