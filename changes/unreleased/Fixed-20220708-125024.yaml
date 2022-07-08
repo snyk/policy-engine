@@ -1,3 +1,0 @@
-kind: Fixed
-body: panic when using tfplan on resources with count
-time: 2022-07-08T12:50:24.592669344+02:00
