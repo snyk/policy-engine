@@ -1,7 +1,11 @@
 builds:
-  - env:
-      - CGO_ENABLED=0
-    goos:
-      - linux
-      - windows
-      - darwin
+- env:
+  - CGO_ENABLED=0
+
+  goos:
+  - linux
+  - windows
+  - darwin
+
+  ldflags:
+  - -s -w -X github.com/snyk/policy-engine/cmd.version={{.Version}}
