@@ -2,6 +2,17 @@
 
 
 
+## v0.1.2 - 2022-07-08
+### Fixed
+* enable tracing in test command when -v is given
+* ensure passing tests can't set exit code back to 0
+* panic when using tfplan on resources with count
+
+## v0.1.1 - 2022-07-07
+### Fixed
+* resource ID scrambling bug in annotation step
+* input was not being set in repl
+
 ## v0.1.0 - 2022-07-05
 ### Added
 * allow tests to be filtered by name
