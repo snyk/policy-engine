@@ -1,0 +1,3 @@
+kind: Fixed
+body: ensure passing tests can't set exit code back to 0
+time: 2022-07-08T09:51:21.064582542+02:00
