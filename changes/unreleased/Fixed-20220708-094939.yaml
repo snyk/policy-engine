@@ -1,0 +1,3 @@
+kind: Fixed
+body: enable tracing in test command when -v is given
+time: 2022-07-08T09:49:39.796321134+02:00
