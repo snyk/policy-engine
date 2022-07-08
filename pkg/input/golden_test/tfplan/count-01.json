@@ -1,0 +1,100 @@
+{
+  "format": "",
+  "format_version": "",
+  "input_type": "tf_plan",
+  "environment_provider": "iac",
+  "meta": {
+    "filepath": "golden_test/tfplan/count-01/plan.json"
+  },
+  "resources": {
+    "aws_s3_bucket": {
+      "aws_s3_bucket.foo[0]": {
+        "id": "aws_s3_bucket.foo[0]",
+        "resource_type": "aws_s3_bucket",
+        "namespace": "golden_test/tfplan/count-01/plan.json",
+        "attributes": {
+          "acl": "private",
+          "bucket": "foo-test-0",
+          "bucket_prefix": null,
+          "cors_rule": [],
+          "force_destroy": false,
+          "grant": [],
+          "lifecycle_rule": [],
+          "logging": [],
+          "object_lock_configuration": [],
+          "policy": null,
+          "replication_configuration": [],
+          "server_side_encryption_configuration": [],
+          "tags": null,
+          "website": []
+        }
+      },
+      "aws_s3_bucket.foo[1]": {
+        "id": "aws_s3_bucket.foo[1]",
+        "resource_type": "aws_s3_bucket",
+        "namespace": "golden_test/tfplan/count-01/plan.json",
+        "attributes": {
+          "acl": "private",
+          "bucket": "foo-test-1",
+          "bucket_prefix": null,
+          "cors_rule": [],
+          "force_destroy": false,
+          "grant": [],
+          "lifecycle_rule": [],
+          "logging": [],
+          "object_lock_configuration": [],
+          "policy": null,
+          "replication_configuration": [],
+          "server_side_encryption_configuration": [],
+          "tags": null,
+          "website": []
+        }
+      },
+      "aws_s3_bucket.foo[2]": {
+        "id": "aws_s3_bucket.foo[2]",
+        "resource_type": "aws_s3_bucket",
+        "namespace": "golden_test/tfplan/count-01/plan.json",
+        "attributes": {
+          "acl": "private",
+          "bucket": "foo-test-2",
+          "bucket_prefix": null,
+          "cors_rule": [],
+          "force_destroy": false,
+          "grant": [],
+          "lifecycle_rule": [],
+          "logging": [],
+          "object_lock_configuration": [],
+          "policy": null,
+          "replication_configuration": [],
+          "server_side_encryption_configuration": [],
+          "tags": null,
+          "website": []
+        }
+      },
+      "aws_s3_bucket.foo[3]": {
+        "id": "aws_s3_bucket.foo[3]",
+        "resource_type": "aws_s3_bucket",
+        "namespace": "golden_test/tfplan/count-01/plan.json",
+        "attributes": {
+          "acl": "private",
+          "bucket": "foo-test-3",
+          "bucket_prefix": null,
+          "cors_rule": [],
+          "force_destroy": false,
+          "grant": [],
+          "lifecycle_rule": [],
+          "logging": [],
+          "object_lock_configuration": [],
+          "policy": null,
+          "replication_configuration": [],
+          "server_side_encryption_configuration": [],
+          "tags": null,
+          "website": []
+        }
+      }
+    }
+  },
+  "scope": {
+    "filepath": "golden_test/tfplan/count-01/plan.json"
+  }
+}
