@@ -334,12 +334,20 @@ func (plan *tfplan_Plan) visitResources(
 		resourceChanges[resourceChange.Address] = resourceChange
 	}
 	for k, pvResource := range plannedValueResources {
+		// Resources with a count set will have an address along the likes of
+		// "aws_s3_bucket.foo[3]" but the corresponding configuration resource
+		// will still have an "aws_s3_bucket.foo" address.
+		configurationKey := k
+		if idx := strings.Index(k, "["); idx > 0 {
+			configurationKey = k[:idx]
+		}
+
 		visitResource(
 			modulesByResource[k],
 			k,
 			pvResource,
 			resourceChanges[k],
-			configurationResources[k],
+			configurationResources[configurationKey],
 		)
 	}
 }
@@ -417,63 +425,67 @@ func (plan *tfplan_Plan) resources(resourceNamespace string) []models.ResourceSt
 		}
 
 		// Retain only references that are in AfterUnknown.
-		refs := interfacetricks.Copy(rc.Change.AfterUnknown)
-		refs = interfacetricks.IntersectWith(
-			refs,
-			cr.references(func(variable string) *string {
-				// When resolving references, take the module name into account.
-				qualified := joinDot(module, variable)
-				if result := resolveGlobally(qualified); result != nil {
-					return result
-				} else {
-					return &qualified
-				}
-			}),
-			// Intersect using a function that replaces all the "true"s on the
-			// left hand side (in the AfterUnknown structure) with the
-			// references we found.
-			func(left interface{}, r interface{}) interface{} {
-				// There's a bool in the AfterUnknown so just return the
-				// references if true.
-				if l, ok := left.(bool); ok {
-					if l {
-						return r
+		if rc != nil && cr != nil {
+			refs := interfacetricks.Copy(rc.Change.AfterUnknown)
+			refs = interfacetricks.IntersectWith(
+				refs,
+				cr.references(func(variable string) *string {
+					// When resolving references, take the module name into account.
+					qualified := joinDot(module, variable)
+					if result := resolveGlobally(qualified); result != nil {
+						return result
 					} else {
-						return nil
+						return &qualified
 					}
-				}
+				}),
+				// Intersect using a function that replaces all the "true"s on the
+				// left hand side (in the AfterUnknown structure) with the
+				// references we found.
+				func(left interface{}, r interface{}) interface{} {
+					// There's a bool in the AfterUnknown so just return the
+					// references if true.
+					if l, ok := left.(bool); ok {
+						if l {
+							return r
+						} else {
+							return nil
+						}
+					}
 
-				// There's an array/object of booleans, use interfacetricks
-				// to construct a tree of the same shape but containing
-				// the references rather than "true".
-				return interfacetricks.TopDownWalk(
-					&replaceBoolTopDownWalker{
-						replaceBool: func(b bool) interface{} {
-							if b {
-								return r
-							} else {
-								return nil
-							}
+					// There's an array/object of booleans, use interfacetricks
+					// to construct a tree of the same shape but containing
+					// the references rather than "true".
+					return interfacetricks.TopDownWalk(
+						&replaceBoolTopDownWalker{
+							replaceBool: func(b bool) interface{} {
+								if b {
+									return r
+								} else {
+									return nil
+								}
+							},
 						},
-					},
-					left,
-				)
-			},
-		)
+						left,
+					)
+				},
+			)
 
-		// Merge in references
-		interfacetricks.MergeWith(attributes, refs, func(left interface{}, right interface{}) interface{} {
-			if right == nil {
-				return left
-			} else {
-				return right
-			}
-		})
+			// Merge in references
+			interfacetricks.MergeWith(attributes, refs, func(left interface{}, right interface{}) interface{} {
+				if right == nil {
+					return left
+				} else {
+					return right
+				}
+			})
+		}
 
-		if config, ok := plan.Configuration.ProviderConfig[cr.ProviderConfigKey]; ok {
-			if config.VersionConstraint != "" {
-				meta["terraform"] = map[string]interface{}{
-					"provider_version_constraint": config.VersionConstraint,
+		if cr != nil {
+			if config, ok := plan.Configuration.ProviderConfig[cr.ProviderConfigKey]; ok {
+				if config.VersionConstraint != "" {
+					meta["terraform"] = map[string]interface{}{
+						"provider_version_constraint": config.VersionConstraint,
+					}
 				}
 			}
 		}
