@@ -1,5 +1,9 @@
 package cfn_schemas
 
+import (
+	_ "embed"
+)
+
 type Type int
 
 const (
@@ -20,61 +24,42 @@ type Schema struct {
 	Items      *Schema
 }
 
-// We only need one.
-var unknownSchema = &Schema{Type: Unknown}
+func ResourceTypes() []string {
+	loadCloudformationSchemas()
+	resourceTypes := []string{}
+	for k := range cloudformationSchemas {
+		resourceTypes = append(resourceTypes, k)
+	}
+	return resourceTypes
+}
 
-func (schema schema) convert() *Schema {
-	// Declare definitions first so they can be reused.
-	definitions := map[string]*Schema{}
-	for key := range schema.Definitions {
-		definitions[key] = &Schema{}
+func GetSchema(resourceType string) *Schema {
+	loadCloudformationSchemas()
+	if schema, ok := cloudformationSchemas[resourceType]; ok {
+		return schema.convert()
+	} else {
+		return unknownSchema
+	}
+}
+
+//go:embed CloudformationSchema.zip
+var cloudformationSchemaZip []byte
+
+var cloudformationSchemas map[string]schema = nil
+
+// Loads schemas into loadCloudformationSchemas if necessary.
+func loadCloudformationSchemas() {
+	if cloudformationSchemas != nil {
+		return
 	}
 
-	// Property conversion resolves references in `Definitions`.
-	var convertProperty func(property) *Schema
-	convertProperty = func(prop property) *Schema {
-		if prop.IsRef() {
-			if def, ok := definitions[prop.GetRef()]; ok {
-				return def
-			} else {
-				return unknownSchema
-			}
-		} else {
-			out := Schema{
-				Type:       prop.GetType(),
-				Properties: nil,
-				Items:      nil,
-			}
-			if len(prop.Properties) > 0 {
-				out.Properties = map[string]*Schema{}
-				for k, v := range prop.Properties {
-					out.Properties[k] = convertProperty(v)
-				}
-			}
-			if prop.Items != nil {
-				out.Items = convertProperty(*prop.Items)
-			}
-			return &out
-		}
+	cloudformationSchemas = map[string]schema{}
+	schemas, err := parseSchemasFromZip(cloudformationSchemaZip)
+	if err != nil {
+		panic(err)
 	}
 
-	// Convert definitions.
-	for k, def := range definitions {
-		out := convertProperty(schema.Definitions[k])
-		def.Type = out.Type
-		def.Properties = out.Properties
-		def.Items = out.Items
-	}
-
-    // Convert properties.
-	properties := map[string]*Schema{}
-	for key, prop := range schema.Properties {
-		properties[key] = convertProperty(prop)
-	}
-
-    // Return schema.
-	return &Schema{
-		Type:       Object,
-		Properties: properties,
+	for _, schema := range schemas {
+		cloudformationSchemas[schema.TypeName] = schema
 	}
 }
