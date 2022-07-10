@@ -23,7 +23,7 @@ func Coerce(val interface{}, schema *Schema) interface{} {
 				return n
 			}
 		case Number:
-			if f, err := strconv.ParseFloat(v, 64); err != nil {
+			if f, err := strconv.ParseFloat(v, 64); err == nil {
 				return f
 			}
 		}
