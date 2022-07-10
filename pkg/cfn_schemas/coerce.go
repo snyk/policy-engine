@@ -1,7 +1,9 @@
 package cfn_schemas
 
 import (
+	"fmt"
 	"strconv"
+	"strings"
 )
 
 func Coerce(val interface{}, schema *Schema) interface{} {
@@ -14,10 +16,26 @@ func Coerce(val interface{}, schema *Schema) interface{} {
 		switch schema.Type {
 		case String:
 			return v
+		case Boolean:
+			return strings.ToLower(v) == "true"
 		case Integer:
 			if n, err := strconv.Atoi(v); err == nil {
 				return n
 			}
+		case Number:
+			if f, err := strconv.ParseFloat(v, 64); err != nil {
+				return f
+			}
+		}
+	case int:
+		switch schema.Type {
+		case String:
+			return fmt.Sprintf("%d", v)
+		}
+	case float64:
+		switch schema.Type {
+		case String:
+			return fmt.Sprintf("%f", v)
 		}
 	}
 
