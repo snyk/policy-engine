@@ -1,4 +1,4 @@
-package cfn_schemas
+package schemas
 
 import (
 	_ "embed"
