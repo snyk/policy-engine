@@ -41,6 +41,13 @@ func GetSchema(resourceType string) *Schema {
 	}
 }
 
+// The file CloudformationSchema.zip can be downloaded here:
+// <https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/resource-type-schemas.html>
+//
+// There are little differences from region to region, but none that really
+// impact the property coercion we want to do.  We chose the us-east-2 zip
+// since that region has many features.
+
 //go:embed CloudformationSchema.zip
 var cloudformationSchemaZip []byte
 
