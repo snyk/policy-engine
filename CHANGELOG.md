@@ -2,6 +2,15 @@
 
 
 
+## v0.2.0 - 2022-07-11
+### Added
+* `policy-engine version` subcommand
+* Add consistency check when writing multiple files using --update-snapshots
+* Configurable mock query() implementation for tests
+### Changed
+* `snapshot_testing.match` files are written with a trailing newline
+* cfn loader: embed schemas and coerce values to expected types
+
 ## v0.1.2 - 2022-07-08
 ### Fixed
 * enable tracing in test command when -v is given
