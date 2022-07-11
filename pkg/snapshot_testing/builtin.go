@@ -38,6 +38,18 @@ func MatchNoopImpl() rego.BuiltinDyn {
 }
 
 func MatchTestImpl(updateSnapshots bool) rego.BuiltinDyn {
+	// One footgun that we hand to the users is the ability to specify output
+	// filenames for snapshot testing.  If they have code that looks like:
+	//
+	//     snapshot_testing.match(["foo"], "snapshot.json")
+	//     snapshot_testing.match(["bar"], "snapshot.json")
+	//
+	// we will overwrite the file **twice** when `--update-snapshots` is given,
+	// and the second call will still fail when running the tests.  This is why
+	// save the content of the values we wrote, so we can detect these duplicate
+	// non-idempotent writes and display a nice diff.
+	updatedSnapshots := map[string]string{}
+
 	return func(
 		bctx rego.BuiltinContext,
 		operands []*ast.Term,
@@ -46,17 +58,20 @@ func MatchTestImpl(updateSnapshots bool) rego.BuiltinDyn {
 			return nil, fmt.Errorf("Expected two arguments")
 		}
 
+		// Serialize first argument to JSON
 		val, err := ast.JSON(operands[0].Value)
 		if err != nil {
 			return nil, err
 		}
-
 		actualBytes, err := json.MarshalIndent(val, "", "  ")
 		if err != nil {
 			return nil, err
 		}
+		actualBytes = append(actualBytes, '\n')
 		actual := string(actualBytes)
 
+		// Infer location of snapshot file from second argument and
+		// test source location
 		testPath := bctx.Location.File
 		relativePath, err := builtins.StringOperand(operands[1].Value, 1)
 		if err != nil {
@@ -65,31 +80,60 @@ func MatchTestImpl(updateSnapshots bool) rego.BuiltinDyn {
 		snapshotPath := filepath.Join(filepath.Dir(testPath), string(relativePath))
 
 		if updateSnapshots {
+			// Update snapshot on disk
 			if err := os.MkdirAll(filepath.Dir(snapshotPath), 0755); err != nil {
 				return nil, err
 			}
-
 			if err := os.WriteFile(snapshotPath, actualBytes, 0644); err != nil {
 				return nil, err
 			}
 
-			return ast.BooleanTerm(true), nil
+			// Check for duplicate writes
+			if snapshot, ok := updatedSnapshots[snapshotPath]; ok {
+				return checkAndDisplayDiff(
+					fmt.Sprintf("%s: inconsistent writes to snapshot", bctx.Location.String()),
+					snapshotPath,
+					snapshot,
+					"actual",
+					actual,
+				)
+			} else {
+				updatedSnapshots[snapshotPath] = actual
+				return ast.BooleanTerm(true), nil
+			}
 		} else {
+			// Compare against snapshot on disk
 			expected := ""
 			if bytes, err := os.ReadFile(snapshotPath); err == nil {
 				expected = string(bytes)
 			}
-
-			if actual == expected {
-				return ast.BooleanTerm(true), nil
-			}
-
-			edits := myers.ComputeEdits(span.URIFromPath(snapshotPath), expected, actual)
-			diff := gotextdiff.ToUnified(snapshotPath, testPath, expected, edits)
-			fmt.Fprintf(os.Stderr, "%s", diff)
-			return ast.BooleanTerm(false), nil
+			return checkAndDisplayDiff(
+				fmt.Sprintf("%s: snapshots do not match", bctx.Location.String()),
+				snapshotPath,
+				expected,
+				"actual",
+				actual,
+			)
 		}
 	}
+}
+
+// Check and print diff
+func checkAndDisplayDiff(
+	header string,
+	expectedPath string,
+	expected string,
+	actualPath string,
+	actual string,
+) (*ast.Term, error) {
+	if actual == expected {
+		return ast.BooleanTerm(true), nil
+	}
+
+	edits := myers.ComputeEdits(span.URI(expectedPath), expected, actual)
+	diff := gotextdiff.ToUnified(expectedPath, actualPath, expected, edits)
+	fmt.Fprintf(os.Stderr, "%s:\n%s", header, diff)
+	return ast.BooleanTerm(false), nil
 }
 
 // Registers MatchNoopImpl globally.
