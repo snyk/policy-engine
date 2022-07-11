@@ -7,6 +7,10 @@ import (
 )
 
 func Coerce(val interface{}, schema *Schema) interface{} {
+	if schema == nil || schema.Type == Unknown {
+		return val
+	}
+
 	switch v := val.(type) {
 	case []interface{}:
 		return CoerceArray(v, schema)
