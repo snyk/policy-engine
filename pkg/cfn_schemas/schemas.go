@@ -36,7 +36,7 @@ func ResourceTypes() []string {
 func GetSchema(resourceType string) *Schema {
 	loadCloudformationSchemas()
 	if schema, ok := cloudformationSchemas[resourceType]; ok {
-		return schema.convert()
+		return schema
 	} else {
 		return unknownSchema
 	}
@@ -45,7 +45,7 @@ func GetSchema(resourceType string) *Schema {
 //go:embed CloudformationSchema.zip
 var cloudformationSchemaZip []byte
 
-var cloudformationSchemas map[string]schema = nil
+var cloudformationSchemas map[string]*Schema = nil
 
 // Loads schemas into loadCloudformationSchemas if necessary.
 func loadCloudformationSchemas() {
@@ -53,13 +53,13 @@ func loadCloudformationSchemas() {
 		return
 	}
 
-	cloudformationSchemas = map[string]schema{}
+	cloudformationSchemas = map[string]*Schema{}
 	schemas, err := parseSchemasFromZip(cloudformationSchemaZip)
 	if err != nil {
 		panic(err)
 	}
 
 	for _, schema := range schemas {
-		cloudformationSchemas[schema.TypeName] = schema
+		cloudformationSchemas[schema.TypeName] = schema.convert()
 	}
 }
