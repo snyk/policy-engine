@@ -1,0 +1,3 @@
+kind: Changed
+body: 'cfn loader: embed schemas and coerce values to expected types'
+time: 2022-07-11T14:14:42.970076558+02:00
