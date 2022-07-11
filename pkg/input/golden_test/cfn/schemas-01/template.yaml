@@ -1,0 +1,19 @@
+Resources:
+  Vpc01:
+    Type: AWS::EC2::VPC
+    Properties:
+      CidrBlock: "10.0.0.0/16"
+      EnableDnsHostnames: "true" # string should be a bool
+      Tags:
+      - Key: Group
+        Value: 5  # int should be a string
+  SecurityGroup01:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: 1.2  # number should be a string
+      VpcId: !Ref Vpc01
+      SecurityGroupIngress:
+      - CidrIp: "0.0.0.0/0"
+        FromPort: "22"  # string should be a int
+        ToPort: 22  # int should stay int
+        IpProtocol: "tcp"

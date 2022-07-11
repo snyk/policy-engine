@@ -20,6 +20,7 @@ import (
 	"regexp"
 	"strings"
 
+	"github.com/snyk/policy-engine/pkg/cfn/schemas"
 	"github.com/snyk/policy-engine/pkg/interfacetricks"
 	"github.com/snyk/policy-engine/pkg/models"
 	"gopkg.in/yaml.v3"
@@ -116,8 +117,11 @@ func (tmpl *cfnTemplate) resources() map[string]interface{} {
 
 	resources := map[string]interface{}{}
 	for resourceId, resource := range tmpl.Resources {
+		schema := schemas.GetSchema(resource.Type)
+		properties := schemas.CoerceObject(resource.Properties.Contents, schema)
+
 		object := map[string]interface{}{}
-		for k, attribute := range resource.Properties.Contents {
+		for k, attribute := range properties {
 			object[k] = interfacetricks.TopDownWalk(&resolver, attribute)
 			object["id"] = resourceId
 			object["_type"] = resource.Type
