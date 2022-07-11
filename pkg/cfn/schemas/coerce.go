@@ -7,7 +7,7 @@ import (
 )
 
 func Coerce(val interface{}, schema *Schema) interface{} {
-	if schema == nil || schema.Type == Unknown {
+	if schema == nil {
 		return val
 	}
 
@@ -47,7 +47,7 @@ func Coerce(val interface{}, schema *Schema) interface{} {
 }
 
 func CoerceArray(arr []interface{}, schema *Schema) []interface{} {
-	if schema.Type != Array || schema.Items == nil {
+	if schema == nil || schema.Type != Array || schema.Items == nil {
 		return arr
 	}
 
@@ -59,7 +59,7 @@ func CoerceArray(arr []interface{}, schema *Schema) []interface{} {
 }
 
 func CoerceObject(obj map[string]interface{}, schema *Schema) map[string]interface{} {
-	if schema.Type != Object {
+	if schema == nil || schema.Type != Object {
 		return obj
 	}
 

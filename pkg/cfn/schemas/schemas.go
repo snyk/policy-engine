@@ -7,8 +7,7 @@ import (
 type Type int
 
 const (
-	Unknown Type = iota
-	Boolean
+	Boolean Type = iota
 	Integer
 	Number
 	String
@@ -38,7 +37,7 @@ func GetSchema(resourceType string) *Schema {
 	if schema, ok := cloudformationSchemas[resourceType]; ok {
 		return schema
 	} else {
-		return unknownSchema
+		return nil
 	}
 }
 

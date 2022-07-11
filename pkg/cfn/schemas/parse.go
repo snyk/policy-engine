@@ -29,28 +29,25 @@ func (p property) getRef() string {
 	return strings.TrimPrefix(p.Ref, "#/definitions/")
 }
 
-func (p property) getType() Type {
+func (p property) getType() (Type, bool) {
 	if str, ok := p.Type.(string); ok {
 		switch str {
 		case "boolean":
-			return Boolean
+			return Boolean, true
 		case "integer":
-			return Integer
+			return Integer, true
 		case "number":
-			return Number
+			return Number, true
 		case "string":
-			return String
+			return String, true
 		case "array":
-			return Array
+			return Array, true
 		case "object":
-			return Object
+			return Object, true
 		}
 	}
-	return Unknown
+	return Object, false
 }
-
-// We only need one.
-var unknownSchema = &Schema{Type: Unknown}
 
 // Conversion of schemas as they are in CloudformationSchema.zip to the above
 // type.
@@ -68,13 +65,14 @@ func (schema schema) convert() *Schema {
 			if def, ok := definitions[prop.getRef()]; ok {
 				return def
 			} else {
-				return unknownSchema
+				return nil
 			}
 		} else {
-			out := Schema{
-				Type:       prop.getType(),
-				Properties: nil,
-				Items:      nil,
+			out := Schema{}
+			if ty, ok := prop.getType(); ok {
+				out.Type = ty
+			} else {
+				return nil
 			}
 			if len(prop.Properties) > 0 {
 				out.Properties = map[string]*Schema{}
@@ -91,10 +89,11 @@ func (schema schema) convert() *Schema {
 
 	// Convert definitions.
 	for k, def := range definitions {
-		out := convertProperty(schema.Definitions[k])
-		def.Type = out.Type
-		def.Properties = out.Properties
-		def.Items = out.Items
+		if out := convertProperty(schema.Definitions[k]); out != nil {
+			def.Type = out.Type
+			def.Properties = out.Properties
+			def.Items = out.Items
+		}
 	}
 
 	// Convert properties.
