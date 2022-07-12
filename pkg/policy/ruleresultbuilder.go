@@ -80,18 +80,35 @@ func (builder *ruleResultBuilder) addResourceAttribute(
 }
 
 func (builder *ruleResultBuilder) toRuleResult() models.RuleResult {
+	// Gather resources.  TODO: sort?
 	resources := []*models.RuleResultResource{}
 	for _, resource := range builder.resources {
 		resources = append(resources, resource)
 	}
-	sort.Strings(builder.messages)
+
+	// Gather messages.
+	messages := make([]string, len(builder.messages))
+	copy(messages, builder.messages)
+	sort.Strings(messages)
+
+	// Infer primary resource.
+	resourceId := builder.resourceId
+	resourceNamespace := builder.resourceNamespace
+	resourceType := builder.resourceType
+	if len(resources) == 1 {
+		resource := resources[0]
+		resourceId = resource.Id
+		resourceNamespace = resource.Namespace
+		resourceType = resource.Type
+	}
+
 	return models.RuleResult{
 		Passed:            builder.passed,
 		Ignored:           builder.ignored,
-		Message:           strings.Join(builder.messages, "\n\n"),
-		ResourceId:        builder.resourceId,
-		ResourceNamespace: builder.resourceNamespace,
-		ResourceType:      builder.resourceType,
+		Message:           strings.Join(messages, "\n\n"),
+		ResourceId:        resourceId,
+		ResourceNamespace: resourceNamespace,
+		ResourceType:      resourceType,
 		Remediation:       builder.remediation,
 		Severity:          builder.severity,
 		Context:           builder.context,
