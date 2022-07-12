@@ -19,6 +19,10 @@ import (
 	"github.com/spf13/cobra"
 )
 
+var (
+	cmdReplInit []string
+)
+
 var replCmd = &cobra.Command{
 	Use:   "repl [-d <rules/metadata>...] [input]",
 	Short: "Policy Engine",
@@ -111,6 +115,11 @@ var replCmd = &cobra.Command{
 			"",
 		)
 		r.OneShot(ctx, "strict-builtin-errors")
+		for _, command := range cmdReplInit {
+			if err := r.OneShot(ctx, command); err != nil {
+				return err
+			}
+		}
 		r.Loop(ctx)
 		return nil
 	},
@@ -126,4 +135,8 @@ func jsonMarshalUnmarshal(v interface{}) (map[string]interface{}, error) {
 		}
 		return out, nil
 	}
+}
+
+func init() {
+	replCmd.Flags().StringSliceVarP(&cmdReplInit, "init", "i", nil, "execute Rego statements before starting REPL")
 }
