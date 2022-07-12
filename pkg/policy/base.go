@@ -353,7 +353,7 @@ func (p *BasePolicy) resources(
 			r[correlation].setPrimaryResource(result.PrimaryResource.Key())
 		}
 		for _, attr := range result.Attributes {
-			r[correlation].addResourceAttribute(result.Resource.Key(), attr)
+			r[correlation].addResourceAttribute(result.GetResource().Key(), attr)
 		}
 	}
 	return r, nil
@@ -451,6 +451,16 @@ func (resource *policyResultResource) Key() ResourceKey {
 
 func (resource *policyResultResource) Correlation() string {
 	return resource.Key().Correlation()
+}
+
+func (result resourcesResult) GetResource() *policyResultResource {
+	if result.Resource != nil {
+		return result.Resource
+	} else if result.PrimaryResource != nil {
+		return result.PrimaryResource
+	} else {
+		return nil
+	}
 }
 
 func (result resourcesResult) GetCorrelation() string {
