@@ -74,7 +74,7 @@ func (l ResourcesResolver) Or(r ResourcesResolver) ResourcesResolver {
 		}
 		result.ScopeFound = result.ScopeFound || lresult.ScopeFound
 		result.Resources = append(result.Resources, lresult.Resources...)
-		if result.ScopeFound {
+		if result.ScopeFound && len(result.Resources) > 0 {
 			return result, nil
 		}
 		rresult, err := r(ctx, req)

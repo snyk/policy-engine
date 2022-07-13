@@ -1,0 +1,3 @@
+kind: Changed
+body: 'query(): ResourcesResolver fallthrough on empty'
+time: 2022-07-13T15:10:09.931553+01:00

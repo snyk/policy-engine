@@ -42,6 +42,31 @@ func TestResolveResources_ComposedWithOr_ReturnsResourcesFromFirstMatchingResolv
 	assert.Equal(t, expectedResources, res)
 }
 
+func TestResolveResources_ComposedWithOr_ReturnsResourcesFromFirstMatchingResolver_ThatReturnsNonEmptyResources(t *testing.T) {
+	query := policy.ResourcesQuery{ResourceType: "a-resource-type"}
+	expectedResources := []models.ResourceState{
+		{
+			Id: "some-resource",
+		},
+	}
+	spyResolver := func(ctx context.Context, req policy.ResourcesQuery) (policy.ResourcesResult, error) {
+		assert.Equal(t, req, query)
+		return policy.ResourcesResult{
+			ScopeFound: true,
+			Resources:  expectedResources,
+		}, nil
+	}
+	q := &policy.Query{
+		ResourcesResolver: policy.ResourcesResolver(nonMatchingResolver).
+			Or(emptyResolver).
+			Or(spyResolver).
+			Or(panickyResolver),
+	}
+	res, err := q.ResolveResources(context.Background(), query)
+	require.NoError(t, err)
+	assert.Equal(t, expectedResources, res)
+}
+
 func TestResolveResources_ComposedWithOr_ReturnsErrorFromFirstResolverThatErrors(t *testing.T) {
 	query := policy.ResourcesQuery{ResourceType: "a-resource-type"}
 	spyResolver := func(ctx context.Context, req policy.ResourcesQuery) (policy.ResourcesResult, error) {
@@ -151,4 +176,8 @@ func nonMatchingResolver(ctx context.Context, req policy.ResourcesQuery) (policy
 
 func panickyResolver(ctx context.Context, req policy.ResourcesQuery) (policy.ResourcesResult, error) {
 	panic("this resolver should not have been reached!")
+}
+
+func emptyResolver(ctx context.Context, req policy.ResourcesQuery) (policy.ResourcesResult, error) {
+	return policy.ResourcesResult{ScopeFound: true}, nil
 }
