@@ -313,6 +313,7 @@ used by policies. To use them, policies should `import data.snyk`, like is shown
 The `snyk.resources` function takes in a single resource type string and returns an
 array of [resource objects](#resource-objects) of that type from the current `State`
 being evaluated.
+If no resources of that type are known an empty array is returned.
 
 Internally, the policy engine tracks calls to `snyk.resources` (and
 `snyk.query`) to produce the `resource_types` array in the results output. This
