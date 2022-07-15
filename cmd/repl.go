@@ -82,9 +82,13 @@ var replCmd = &cobra.Command{
 				if err != nil {
 					return err
 				}
-				data.TarGzProvider(f)(ctx, consumer)
+				if err := data.TarGzProvider(f)(ctx, consumer); err != nil {
+					return err
+				}
 			} else {
-				data.LocalProvider(path)(ctx, consumer)
+				if err := data.LocalProvider(path)(ctx, consumer); err != nil {
+					return err
+				}
 			}
 		}
 		store := inmem.NewFromObject(consumer.Document)
