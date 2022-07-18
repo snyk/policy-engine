@@ -143,6 +143,10 @@ func (l *armConfiguration) LoadedFiles() []string {
 	return []string{l.path}
 }
 
+func (l *armConfiguration) Errors() []error {
+	return []error{}
+}
+
 type arm_Template struct {
 	Schema         string         `json:"$schema"`
 	ContentVersion string         `json:"contentVersion"`

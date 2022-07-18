@@ -143,3 +143,7 @@ func (l *k8sConfiguration) Location(path []interface{}) (LocationStack, error) {
 func (l *k8sConfiguration) LoadedFiles() []string {
 	return []string{l.path}
 }
+
+func (l *k8sConfiguration) Errors() []error {
+	return []error{}
+}

@@ -111,6 +111,10 @@ func (l *streamlinedStateLoader) ToState() models.State {
 	}
 }
 
+func (l *streamlinedStateLoader) Errors() []error {
+	return []error{}
+}
+
 func extractString(m map[string]interface{}, key string) string {
 	v, ok := m[key]
 	if !ok {

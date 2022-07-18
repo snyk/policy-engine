@@ -3,6 +3,7 @@ package input
 import (
 	"encoding/json"
 	"fmt"
+	"os"
 	"sort"
 
 	"github.com/snyk/policy-engine/pkg/models"
@@ -110,4 +111,14 @@ func (l *Loader) Location(path string, attributePath []interface{}) (LocationSta
 // Count returns the number of configurations contained in this Loader.
 func (l *Loader) Count() int {
 	return len(l.configurations)
+}
+
+// Errors returns the non-fatal errors associated with each IACConfiguration.
+func (l *Loader) Errors() map[string][]error {
+	errors := map[string][]error{}
+	for k, config := range l.configurations {
+		errors[k] = config.Errors()
+		fmt.Fprintf(os.Stderr, "%d errors for %s\n", len(errors[k]), k)
+	}
+	return errors
 }

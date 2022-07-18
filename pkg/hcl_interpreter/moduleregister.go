@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"path/filepath"
 
-	"github.com/sirupsen/logrus"
 	"github.com/spf13/afero"
 )
 
@@ -40,10 +39,6 @@ func NewTerraformRegister(fsys afero.Fs, dir string) *TerraformModuleRegister {
 		return &registry
 	}
 	json.Unmarshal(bytes, &registry.data)
-	logrus.Debugf("Loaded module register at %s", path)
-	for _, entry := range registry.data.Modules {
-		logrus.Debugf("Module register entry: %s -> %s", entry.Source, entry.Dir)
-	}
 	return &registry
 }
 

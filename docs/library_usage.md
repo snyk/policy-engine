@@ -215,6 +215,10 @@ func example(paths []string) {
   if loader.Count() < 1 {
     // ...
   }
+  // Add any non-fatal errors the loaders encountered
+  for p, errs := range loader.Errors() {
+    errorsByPath[p] = append(errorsByPath[p], errs...)
+  }
   // Transform the loaded configurations into a slice of State structs
   states := loader.ToStates()
   // ...
