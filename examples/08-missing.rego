@@ -13,10 +13,10 @@ metadata := data.rules.snyk_007.metadata
 # Not all cloudtrails are relevant for this validation.  If a specific trail
 # doesn't have this set, it is not necessarily noncompliant: it could be
 # unrelated.  This is why we just grab the relevant ones here.
-global_cloudtrails[cloudtrail_id] = cloudtrail {
-	cloudtrail := snyk.resources("aws_cloudtrail")[cloudtrail_id]
+global_cloudtrails = [cloudtrail |
+	cloudtrail := snyk.resources("aws_cloudtrail")[_]
 	cloudtrail.include_global_service_events == true
-}
+]
 
 # We cannot pass a `resource` to the deny (since we don't have one!).  But we
 # can specify a `resource_type` as metadata, to indicate what sort of resource
