@@ -67,6 +67,12 @@ components:
             type: object
             additionalProperties:
               $ref: '#/components/schemas/ResourceState'
+        scope:
+          type: object
+          description: |
+            Describes the origin of the input, e.g. filepath + branch for IaC files, or
+            account/region for cloud resources
+          additionalProperties: {}
     ResourceState:
       description: The state of a single resource
       type: object
