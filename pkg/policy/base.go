@@ -154,7 +154,7 @@ func (m Metadata) copyToRuleResults(output *models.RuleResults) {
 type BasePolicy struct {
 	pkg              string
 	resourceType     string
-	inputType        *input.Type
+	inputType        input.TypeDefinition
 	judgementRule    ruleInfo
 	metadataRule     ruleInfo
 	resourcesRule    ruleInfo
@@ -212,19 +212,19 @@ func NewBasePolicy(moduleSet ModuleSet) (*BasePolicy, error) {
 	if resourceType == "" {
 		resourceType = multipleResourceType
 	}
-	var inputType *input.Type
-	if inputTypeRule.value == "" {
-		inputType = input.Terraform
-	} else {
+	var inputType input.TypeDefinition
+	if inputTypeRule.value != "" {
 		// TODO: This code currently handles unknown input types by creating a new input
 		// type, which is one way to support arbitrary input types. Do we want to
 		// consider this case an error instead?
-		inputType, _ := SupportedInputTypes.FromString(inputTypeRule.value)
+		inputType, _ = SupportedInputTypes.FromString(inputTypeRule.value)
 		if inputType == nil {
 			inputType = &input.Type{
 				Name: inputTypeRule.value,
 			}
 		}
+	} else {
+		inputType = &input.AnyType{}
 	}
 	return &BasePolicy{
 		pkg:              pkg,
@@ -244,7 +244,7 @@ func (p *BasePolicy) Package() string {
 }
 
 func (p *BasePolicy) InputType() string {
-	return p.inputType.Name
+	return p.inputType.AsString()
 }
 
 func (p *BasePolicy) InputTypeMatches(inputType string) bool {
