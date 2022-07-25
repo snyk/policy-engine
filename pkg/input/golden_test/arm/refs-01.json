@@ -15,7 +15,12 @@
         "attributes": {
           "apiVersion": "2021-02-01",
           "location": "[resourceGroup().location]",
-          "properties": {}
+          "properties": {},
+          "sku": {
+            "name": "B1",
+            "size": "B1",
+            "tier": "Basic"
+          }
         }
       }
     },
@@ -26,6 +31,12 @@
         "namespace": "golden_test/arm/refs-01/template.json",
         "attributes": {
           "apiVersion": "2021-02-01",
+          "dependsOn": [
+            "Microsoft.Web/serverfarms/appServicePlanPortal"
+          ],
+          "identity": {
+            "type": "None"
+          },
           "location": "[resourceGroup().location]",
           "properties": {
             "serverFarmId": "Microsoft.Web/serverfarms/appServicePlanPortal"
@@ -38,6 +49,9 @@
         "namespace": "golden_test/arm/refs-01/template.json",
         "attributes": {
           "apiVersion": "2021-02-01",
+          "dependsOn": [
+            "Microsoft.Web/serverfarms/appServicePlanPortal"
+          ],
           "location": "[resourceGroup().location]",
           "properties": {
             "serverFarmId": "Microsoft.Web/serverfarms/appServicePlanPortal"
@@ -50,6 +64,12 @@
         "namespace": "golden_test/arm/refs-01/template.json",
         "attributes": {
           "apiVersion": "2021-02-01",
+          "dependsOn": [
+            "Microsoft.Web/serverfarms/appServicePlanPortal"
+          ],
+          "identity": {
+            "type": "SystemAssigned"
+          },
           "location": "[resourceGroup().location]",
           "properties": {
             "serverFarmId": "Microsoft.Web/serverfarms/appServicePlanPortal"
