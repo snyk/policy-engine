@@ -1,42 +1,79 @@
 package policy
 
-import "github.com/open-policy-agent/opa/ast"
+import (
+	"github.com/open-policy-agent/opa/ast"
+)
 
 func moduleSetsHelper(
+	path ast.Ref,
+	node *ast.ModuleTreeNode,
+) []ModuleSet {
+	var mods []ModuleSet
+	if len(node.Modules) > 0 {
+		mods = append(mods, ModuleSet{
+			Path:    path,
+			Modules: node.Modules,
+		})
+	}
+	for k, child := range node.Children {
+		nextPath := append(path.Copy(), ast.NewTerm(k))
+		mods = append(mods, moduleSetsHelper(nextPath, child)...)
+	}
+	return mods
+}
+
+// moduleSetsWithPrefix is a recursive function that extracts all ModuleSets under the
+// specified prefix from a ModuleTreeNode.
+func moduleSetsWithPrefix(
 	prefix ast.Ref,
 	node *ast.ModuleTreeNode,
-	traversedPath ast.Ref,
 ) []ModuleSet {
-	if len(prefix) < 1 {
-		var mods []ModuleSet
-		if len(node.Modules) > 0 {
-			mods = append(mods, ModuleSet{
-				Path:    traversedPath,
-				Modules: node.Modules,
-			})
-		}
-		for k, child := range node.Children {
-			nextPath := append(traversedPath, ast.NewTerm(k))
-			mods = append(mods, moduleSetsHelper(prefix, child, nextPath)...)
-		}
-		return mods
-	} else {
-		head := prefix[0]
-		if child, ok := node.Children[head.Value]; ok {
-			nextPath := append(traversedPath, head)
-			return moduleSetsHelper(prefix[1:], child, nextPath)
-		}
+	if parent := treeNodeAt(prefix, node); parent != nil {
+		return moduleSetsHelper(prefix, parent)
 	}
 	return []ModuleSet{}
 }
 
-// ModuleSetsWithPrefix is a recursive function that extracts all ModuleSets under the
-// specified prefix from a ModuleTreeNode.
-func ModuleSetsWithPrefix(
-	prefix ast.Ref,
-	node *ast.ModuleTreeNode,
-) []ModuleSet {
-	return moduleSetsHelper(prefix, node, nil)
+func treeNodeAt(ref ast.Ref, node *ast.ModuleTreeNode) *ast.ModuleTreeNode {
+	curr := node
+	for _, key := range ref {
+		if child, ok := curr.Children[key.Value]; ok {
+			curr = child
+		} else {
+			return nil
+		}
+	}
+	return curr
+}
+
+func ExtractModuleSets(tree *ast.ModuleTreeNode) []ModuleSet {
+	// Current policies, legacy Fugue policies, and legacy IaC custom policies
+	mods := moduleSetsWithPrefix(ast.Ref{
+		ast.DefaultRootDocument,
+		ast.StringTerm("rules"),
+	}, tree)
+
+	// Legacy IaC policies
+	if schemas := treeNodeAt(ast.Ref{
+		ast.DefaultRootDocument,
+		ast.StringTerm("schemas"),
+	}, tree); schemas != nil {
+		for key, child := range schemas.Children {
+			if len(child.Modules) < 1 {
+				continue
+			}
+			mods = append(mods, ModuleSet{
+				Path: ast.Ref{
+					ast.DefaultRootDocument,
+					ast.StringTerm("schemas"),
+					ast.NewTerm(key),
+				},
+				Modules: child.Modules,
+			})
+		}
+	}
+
+	return mods
 }
 
 // TODO support array values?

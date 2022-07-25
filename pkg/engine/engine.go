@@ -19,17 +19,6 @@ import (
 	"github.com/snyk/policy-engine/pkg/policy"
 )
 
-var rulesPrefixes = []ast.Ref{
-	{
-		ast.DefaultRootDocument,
-		ast.StringTerm("rules"),
-	},
-	{
-		ast.DefaultRootDocument,
-		ast.StringTerm("schemas"),
-	},
-}
-
 // Engine is responsible for evaluating some States with a given set of rules.
 type Engine struct {
 	logger            logging.Logger
@@ -89,18 +78,16 @@ func NewEngine(ctx context.Context, options *EngineOptions) (*Engine, error) {
 		Info(ctx, "Finished consuming providers")
 	tree := ast.NewModuleTree(consumer.Modules)
 	policies := []policy.Policy{}
-	for _, prefix := range rulesPrefixes {
-		for _, moduleSet := range policy.ModuleSetsWithPrefix(prefix, tree) {
-			l := logger.WithField(logging.PACKAGE, moduleSet.Path.String())
-			p, err := policy.PolicyFactory(moduleSet)
-			if err != nil {
-				l.WithField(logging.ERROR, err.Error()).
-					Warn(ctx, "Error while parsing policy. It will still be loaded and accessible via data.")
-			} else if p == nil {
-				l.Debug(ctx, "Module did not contain a policy. It will still be loaded and accessible via data.")
-			} else {
-				policies = append(policies, p)
-			}
+	for _, moduleSet := range policy.ExtractModuleSets(tree) {
+		l := logger.WithField(logging.PACKAGE, moduleSet.Path.String())
+		p, err := policy.PolicyFactory(moduleSet)
+		if err != nil {
+			l.WithField(logging.ERROR, err.Error()).
+				Warn(ctx, "Error while parsing policy. It will still be loaded and accessible via data.")
+		} else if p == nil {
+			l.Debug(ctx, "Module did not contain a policy. It will still be loaded and accessible via data.")
+		} else {
+			policies = append(policies, p)
 		}
 	}
 
