@@ -103,9 +103,14 @@ resource_type := "aws_s3_bucket"
 
 ### `input_type`
 
-The `input_type` rule defines defines which input types a rule applies to. There is a
-hierarchy to input types that enables policy authors to write a single policy that 
-applies to multiple types. The current list of valid values for this rule are:
+By default, each policy will be evaluated for all input types. The `input_type` rule can
+be used to limit which input types the policy is evaluated for. This rule is likely to
+be necessary for [missing-resource policies](#missing-resource-policy), but is less of a
+requirement for other policy types.
+
+For policies that do define an `input_type`, there is a hierarchy to input types that
+enables policy authors to still write a single policy that applies to multiple types.
+The current list of valid values for this rule are:
 
 * `tf_hcl` (Terraform HCL)
 * `tf_plan` (Terraform plan file)
@@ -115,8 +120,6 @@ applies to multiple types. The current list of valid values for this rule are:
 * `k8s` (Kubernetes manifest)
 * `arm` (Azure ARM template)
 * `tf` (an aggregate type that includes: `tf_hcl`, `tf_plan`, `tf_state`, and `cloud_scan`)
-
-When `input_type` is unspecified, it defaults to `tf`.
 
 ### `metadata`
 
