@@ -25,7 +25,7 @@ func dataDocumentPrefix(basePath string, path string) []string {
 
 	prefix := []string{}
 	for _, part := range strings.Split(filepath.ToSlash(filepath.Dir(rel)), "/") {
-		if part != "" {
+		if part != "" && part != "." {
 			prefix = append(prefix, part)
 		}
 	}
