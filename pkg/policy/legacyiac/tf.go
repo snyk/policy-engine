@@ -46,86 +46,14 @@ func (i *TfInput) Raw() interface{} {
 	}
 }
 
-func (i *TfInput) parseDataPath(path []interface{}) ParsedMsg {
-	if len(path) < 3 {
-		return ParsedMsg{}
-	}
-	resourceType, ok := path[1].(string)
-	if !ok {
-		return ParsedMsg{}
-	}
-	resourceType = fmt.Sprintf("data.%s", resourceType)
-	resourceID, ok := path[2].(string)
-	if !ok {
-		return ParsedMsg{}
-	}
-	resourceID = fmt.Sprintf("%s.%s", resourceType, resourceID)
-	var attributePath []interface{}
-	if len(path) > 3 {
-		attributePath = path[3:]
-	}
-	return ParsedMsg{
-		ResourceID:   resourceID,
-		ResourceType: resourceType,
-		Path:         attributePath,
-	}
-}
+type tfInputState int
 
-func (i *TfInput) parseResourcePath(path []interface{}) ParsedMsg {
-	if len(path) < 3 {
-		return ParsedMsg{}
-	}
-	resourceType, ok := path[1].(string)
-	if !ok {
-		return ParsedMsg{}
-	}
-	resourceID, ok := path[2].(string)
-	if !ok {
-		return ParsedMsg{}
-	}
-	resourceID = fmt.Sprintf("%s.%s", resourceType, resourceID)
-	var attributePath []interface{}
-	if len(path) > 3 {
-		attributePath = path[3:]
-	}
-	return ParsedMsg{
-		ResourceID:   resourceID,
-		ResourceType: resourceType,
-		Path:         attributePath,
-	}
-}
-
-func (i *TfInput) parseUnknownPath(path []interface{}) ParsedMsg {
-	if len(path) < 2 {
-		return ParsedMsg{}
-	}
-	resourceType, ok := path[0].(string)
-	if !ok {
-		return ParsedMsg{}
-	}
-	resourceID, ok := path[1].(string)
-	if !ok {
-		return ParsedMsg{}
-	}
-	// It's possible for names / types to be duplicated between data and managed
-	// resources, like resource `"aws_s3_bucket" "foo"` and `data "aws_s3_bucket" "foo"`
-	// So this isn't definitive, but it should hopefully be fine in most cases.
-	if dataResources, ok := i.data[resourceType]; ok {
-		if _, ok := dataResources[resourceID]; ok {
-			resourceType = fmt.Sprintf("data.%s", resourceType)
-		}
-	}
-	resourceID = fmt.Sprintf("%s.%s", resourceType, resourceID)
-	var attributePath []interface{}
-	if len(path) > 2 {
-		attributePath = path[2:]
-	}
-	return ParsedMsg{
-		ResourceID:   resourceID,
-		ResourceType: resourceType,
-		Path:         attributePath,
-	}
-}
+const (
+	tfInitial tfInputState = iota
+	tfAfterSection
+	tfAfterResourceType
+	tfAfterResourceID
+)
 
 func (i *TfInput) ParseMsg(msg string) ParsedMsg {
 	// Valid tf messages look like:
@@ -134,20 +62,68 @@ func (i *TfInput) ParseMsg(msg string) ParsedMsg {
 	// 		resource.some_type[some_id].some_property.some_sub_property[0]
 	// 		data.some_type[some_id].some_property.some_sub_property[0]
 	// 		some_type[some_id].some_property.some_sub_property[0]
+	var section string
+	var resourceID string
+	var resourceType string
+	var attributePath []interface{}
+	var state tfInputState
+
 	path := parsePath(msg)
-	if len(path) < 1 {
-		return ParsedMsg{}
+
+	for _, ele := range path {
+		switch state {
+		case tfInitial:
+			if s, ok := ele.(string); ok {
+				switch s {
+				case "resource":
+					section = s
+					state = tfAfterSection
+				case "data":
+					section = s
+					state = tfAfterSection
+				default:
+					resourceType = s
+					state = tfAfterResourceType
+				}
+			}
+		case tfAfterSection:
+			if s, ok := ele.(string); ok {
+				resourceType = s
+				state = tfAfterResourceType
+			}
+		case tfAfterResourceType:
+			if s, ok := ele.(string); ok {
+				resourceID = s
+				state = tfAfterResourceID
+			}
+		case tfAfterResourceID:
+			attributePath = append(attributePath, ele)
+		}
 	}
-	head, ok := path[0].(string)
-	if !ok {
-		return ParsedMsg{}
+
+	if resourceID != "" && resourceType != "" {
+		if section == "" {
+			// Have to look back in the input to figure out if it's a data resource. If
+			// we don't find the resource in data, we'll just treat it like a managed
+			// resource.
+			if t, ok := i.data[resourceType]; ok {
+				if _, ok := t[resourceID]; ok {
+					section = "data"
+				}
+			}
+		}
+
+		if section == "data" {
+			resourceType = fmt.Sprintf("data.%s", resourceType)
+			resourceID = fmt.Sprintf("%s.%s", resourceType, resourceID)
+		} else {
+			resourceID = fmt.Sprintf("%s.%s", resourceType, resourceID)
+		}
 	}
-	switch head {
-	case "resource":
-		return i.parseResourcePath(path)
-	case "data":
-		return i.parseDataPath(path)
-	default:
-		return i.parseUnknownPath(path)
+
+	return ParsedMsg{
+		ResourceID:   resourceID,
+		ResourceType: resourceType,
+		Path:         attributePath,
 	}
 }

@@ -32,46 +32,70 @@ func (i *ArmInput) Raw() interface{} {
 	}
 }
 
+type armInputState int
+
+const (
+	armInitial armInputState = iota
+	armAfterResources
+	armAfterResourceIdx
+)
+
 func (i *ArmInput) ParseMsg(msg string) ParsedMsg {
 	// Valid tf messages look like:
 	//		resources[0]
 	//		resources[0].properties.some_property
 	//		resources[0].properties.some_property.some_sub_property[0]
 	//		resources[0].sku.name
+	// var resourceID string
+	// var resourceType string
+	var resourceIdx int
+	var resourceIdxParsed bool
+	var attributePath []interface{}
+	var state armInputState
+
 	path := parsePath(msg)
-	pathLen := len(path)
+
+	for _, ele := range path {
+		switch state {
+		case armInitial:
+			switch v := ele.(type) {
+			case string:
+				if v == "resources" {
+					state = armAfterResources
+				}
+			case int:
+				resourceIdx = v
+				resourceIdxParsed = true
+				state = armAfterResourceIdx
+			}
+		case armAfterResources:
+			if i, ok := ele.(int); ok {
+				resourceIdx = i
+				resourceIdxParsed = true
+				state = armAfterResourceIdx
+			}
+		case armAfterResourceIdx:
+			attributePath = append(attributePath, ele)
+		}
+	}
+
 	var resourceID string
 	var resourceType string
-	var attributePath []interface{}
-	if pathLen >= 2 {
-		resourceIdx, ok := path[1].(int)
-		if !ok {
-			return ParsedMsg{}
-		}
-		if len(i.resources) <= resourceIdx {
-			return ParsedMsg{}
-		}
+
+	if resourceIdxParsed && len(i.resources) > resourceIdx {
 		resource := i.resources[resourceIdx]
-		n, ok := resource["name"]
-		if !ok {
-			return ParsedMsg{}
+		if n, ok := resource["name"]; ok {
+			if n, ok := n.(string); ok {
+				resourceID = n
+			}
 		}
-		resourceID, ok = n.(string)
-		if !ok {
-			return ParsedMsg{}
-		}
-		t, ok := resource["type"]
-		if !ok {
-			return ParsedMsg{}
-		}
-		resourceType, ok = t.(string)
-		if !ok {
-			return ParsedMsg{}
+		if t, ok := resource["type"]; ok {
+			if t, ok := t.(string); ok {
+				resourceType = t
+			}
 		}
 	}
-	if pathLen >= 3 {
-		attributePath = path[2:]
-	}
+
 	return ParsedMsg{
 		ResourceID:   resourceID,
 		ResourceType: resourceType,
