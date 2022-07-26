@@ -33,6 +33,7 @@ const multipleResourceType = "MULTIPLE"
 // SupportedInputTypes contains all of the input types that this package officially
 // supports.
 var SupportedInputTypes = input.Types{
+	input.Any,
 	input.Arm,
 	input.CloudFormation,
 	input.CloudScan,
