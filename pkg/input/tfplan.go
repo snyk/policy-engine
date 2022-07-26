@@ -82,6 +82,10 @@ func (l *tfPlan) ToState() models.State {
 	}
 }
 
+func (l *tfPlan) Errors() []error {
+	return []error{}
+}
+
 // This (among with other types prefixed with tfplan_) matches the JSON
 // format exactly.
 type tfplan_Plan struct {

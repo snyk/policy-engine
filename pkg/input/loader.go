@@ -111,3 +111,12 @@ func (l *Loader) Location(path string, attributePath []interface{}) (LocationSta
 func (l *Loader) Count() int {
 	return len(l.configurations)
 }
+
+// Errors returns the non-fatal errors associated with each IACConfiguration.
+func (l *Loader) Errors() map[string][]error {
+	errors := map[string][]error{}
+	for k, config := range l.configurations {
+		errors[k] = config.Errors()
+	}
+	return errors
+}

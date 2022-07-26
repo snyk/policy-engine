@@ -9,7 +9,6 @@ import (
 
 	"github.com/hashicorp/hcl/v2"
 	"github.com/hashicorp/hcl/v2/hclsyntax"
-	"github.com/sirupsen/logrus"
 	"github.com/spf13/afero"
 	"github.com/zclconf/go-cty/cty"
 
@@ -42,6 +41,7 @@ type ModuleTree struct {
 	module         *configs.Module
 	variableValues map[string]cty.Value // Variables set
 	children       map[string]*ModuleTree
+	errors         []error // Non-fatal errors encountered during loading
 }
 
 func ParseDirectory(
@@ -112,8 +112,9 @@ func ParseFiles(
 		diags = append(diags, lDiags...)
 	}
 
+	errors := []error{}
 	if diags.HasErrors() {
-		logrus.Warn(diags.Error())
+		errors = append(errors, fmt.Errorf(diags.Error()))
 	}
 	if module == nil {
 		// Only actually throw an error if we don't have a module.  We can
@@ -133,14 +134,12 @@ func ParseFiles(
 						if register := moduleRegister.GetDir(source); register != nil {
 							childDir = *register
 						} else if !moduleIsLocal(source) {
-							logrus.Debugf("Remote submodule missing from registry '%s'", source)
 							meta.MissingRemoteModules = append(
 								meta.MissingRemoteModules,
 								source,
 							)
 							continue
 						}
-						logrus.Debugf("Loading source from %s", childDir)
 
 						child, err := ParseDirectory(moduleRegister, parserFs, childDir, []string{})
 						if err == nil {
@@ -148,7 +147,10 @@ func ParseFiles(
 							child.config = body
 							children[key] = child
 						} else {
-							logrus.Warnf("Error loading submodule '%s': %s", key, err)
+							errors = append(
+								errors,
+								fmt.Errorf("Error loading submodule '%s': %s", key, err),
+							)
 						}
 					}
 				}
@@ -156,11 +158,12 @@ func ParseFiles(
 		}
 	}
 
-	return &ModuleTree{parserFs, meta, nil, module, variableValues, children}, nil
+	return &ModuleTree{parserFs, meta, nil, module, variableValues, children, errors}, nil
 }
 
-func (mtree *ModuleTree) Warnings() []string {
-	warnings := []string{}
+func (mtree *ModuleTree) Errors() []error {
+	errors := make([]error, len(mtree.errors))
+	copy(errors, mtree.errors)
 
 	missingModules := mtree.meta.MissingRemoteModules
 	if len(missingModules) > 0 {
@@ -173,7 +176,7 @@ func (mtree *ModuleTree) Warnings() []string {
 			)
 		}
 
-		warnings = append(warnings, fmt.Sprintf(
+		errors = append(errors, fmt.Errorf(
 			"%s. Run 'terraform init' if you would like to include them in the evaluation: %s",
 			firstSentence,
 			missingModulesList,
@@ -181,10 +184,10 @@ func (mtree *ModuleTree) Warnings() []string {
 	}
 
 	for _, child := range mtree.children {
-		warnings = append(warnings, child.Warnings()...)
+		errors = append(errors, child.Errors()...)
 	}
 
-	return warnings
+	return errors
 }
 
 func (mtree *ModuleTree) FilePath() string {
@@ -315,13 +318,10 @@ func walkResource(
 		v.VisitExpr(name.AddKey("count"), resource.Count)
 	}
 
-	body, ok := resource.Config.(*hclsyntax.Body)
-	if !ok {
-		logrus.Warningf("Missing body for resource %s", name.ToString())
-		return
+	if body, ok := resource.Config.(*hclsyntax.Body); ok {
+		walkBlock(v, name, body)
 	}
 
-	walkBlock(v, name, body)
 	v.LeaveResource()
 }
 

@@ -19,8 +19,6 @@ import (
 	"fmt"
 	"path/filepath"
 
-	"github.com/sirupsen/logrus"
-
 	"github.com/snyk/policy-engine/pkg/hcl_interpreter"
 	"github.com/snyk/policy-engine/pkg/models"
 )
@@ -66,18 +64,13 @@ func (t *TfDetector) DetectDirectory(i *Directory, opts DetectOptions) (IACConfi
 		return nil, fmt.Errorf("%w: %v", FailedToParseInput, err)
 	}
 
-	if moduleTree != nil {
-		for _, warning := range moduleTree.Warnings() {
-			logrus.Warn(warning)
-		}
-	}
-
 	return newHclConfiguration(moduleTree)
 }
 
 type HclConfiguration struct {
 	moduleTree *hcl_interpreter.ModuleTree
 	evaluation *hcl_interpreter.Evaluation
+	resources  map[string]map[string]models.ResourceState
 }
 
 func newHclConfiguration(moduleTree *hcl_interpreter.ModuleTree) (*HclConfiguration, error) {
@@ -87,9 +80,16 @@ func newHclConfiguration(moduleTree *hcl_interpreter.ModuleTree) (*HclConfigurat
 		return nil, err
 	}
 
+	resources := evaluation.Resources()
+	namespace := moduleTree.FilePath()
+	for i := range resources {
+		resources[i].Namespace = namespace
+	}
+
 	return &HclConfiguration{
 		moduleTree: moduleTree,
 		evaluation: evaluation,
+		resources:  groupResourcesByType(resources),
 	}, nil
 }
 
@@ -121,22 +121,22 @@ func (c *HclConfiguration) Location(path []interface{}) (LocationStack, error) {
 }
 
 func (c *HclConfiguration) ToState() models.State {
-	resources := c.evaluation.Resources()
-
-	namespace := c.moduleTree.FilePath()
-	for i := range resources {
-		resources[i].Namespace = namespace
-	}
-
 	return models.State{
 		InputType:           TerraformHCL.Name,
 		EnvironmentProvider: "iac",
 		Meta: map[string]interface{}{
 			"filepath": c.moduleTree.FilePath(),
 		},
-		Resources: groupResourcesByType(resources),
+		Resources: c.resources,
 		Scope: map[string]interface{}{
 			"filepath": c.moduleTree.FilePath(),
 		},
 	}
+}
+
+func (c *HclConfiguration) Errors() []error {
+	errors := []error{}
+	errors = append(errors, c.moduleTree.Errors()...)
+	errors = append(errors, c.evaluation.Errors()...)
+	return errors
 }

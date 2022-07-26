@@ -80,6 +80,10 @@ func (l *tfstateLoader) LoadedFiles() []string {
 	return []string{l.path}
 }
 
+func (l *tfstateLoader) Errors() []error {
+	return []error{}
+}
+
 func (l *tfstateLoader) Location(attributePath []interface{}) (LocationStack, error) {
 	return nil, nil
 }

@@ -33,6 +33,9 @@ type IACConfiguration interface {
 	// If we are working with a resource-based input, the first element of the
 	// attributePath is usually the resource type, and the second one the ID.
 	Location(attributePath []interface{}) (LocationStack, error)
+	// Some files may load but still have errors in them.  You can retrieve
+	// them here.
+	Errors() []error
 }
 
 // Location is a filepath, line and column.

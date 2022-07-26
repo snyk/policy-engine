@@ -172,6 +172,10 @@ func (l *cfnConfiguration) LoadedFiles() []string {
 	return []string{l.path}
 }
 
+func (l *cfnConfiguration) Errors() []error {
+	return []error{}
+}
+
 func decodeMap(node *yaml.Node) (map[string]interface{}, error) {
 	if len(node.Content)%2 != 0 {
 		return nil, fmt.Errorf("Malformed map at line %v, col %v", node.Line, node.Column)

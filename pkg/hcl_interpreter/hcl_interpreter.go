@@ -3,8 +3,8 @@
 package hcl_interpreter
 
 import (
+	"fmt"
 	"github.com/hashicorp/hcl/v2"
-	"github.com/sirupsen/logrus"
 	"github.com/spf13/afero"
 	"github.com/zclconf/go-cty/cty"
 
@@ -37,6 +37,9 @@ type Analysis struct {
 
 	// Visit state: current resource (if any)
 	currentResource *string
+
+	// Any bad keys that we attempted to reference or failed to parse
+	badKeys map[string]struct{}
 }
 
 func AnalyzeModuleTree(mtree *ModuleTree) *Analysis {
@@ -48,6 +51,7 @@ func AnalyzeModuleTree(mtree *ModuleTree) *Analysis {
 		Expressions:         map[string]hcl.Expression{},
 		Blocks:              []FullName{},
 		currentResource:     nil,
+		badKeys:             map[string]struct{}{},
 	}
 	mtree.Walk(analysis)
 	return analysis
@@ -94,7 +98,7 @@ func (v *Analysis) dependencies(name FullName, expr hcl.Expression) []dependency
 	for _, traversal := range expr.Variables() {
 		local, err := TraversalToLocalName(traversal)
 		if err != nil {
-			logrus.Warningf("Skipping dependency with bad key: %s", err)
+			v.badKeys[TraversalToString(traversal)] = struct{}{}
 			continue
 		}
 		full := FullName{Module: name.Module, Local: local}
@@ -171,7 +175,7 @@ func (v *Analysis) order() ([]FullName, error) {
 	for key, expr := range v.Expressions {
 		name, err := StringToFullName(key)
 		if err != nil {
-			logrus.Warningf("Skipping expression with bad key %s: %s", key, err)
+			v.badKeys[key] = struct{}{}
 			continue
 		}
 
@@ -192,7 +196,7 @@ func (v *Analysis) order() ([]FullName, error) {
 	for _, key := range sorted {
 		name, err := StringToFullName(key)
 		if err != nil {
-			logrus.Warningf("Skipping sorted with bad key: %s: %s", key, err)
+			v.badKeys[key] = struct{}{}
 			continue
 		}
 		sortedNames = append(sortedNames, *name)
@@ -203,6 +207,8 @@ func (v *Analysis) order() ([]FullName, error) {
 type Evaluation struct {
 	Analysis *Analysis
 	Modules  map[string]ValTree
+
+	errors []error // Errors encountered during evaluation
 }
 
 func EvaluateAnalysis(analysis *Analysis) (*Evaluation, error) {
@@ -258,7 +264,6 @@ func (v *Evaluation) evaluate() error {
 
 	// Evaluate expressions
 	for _, name := range order {
-		logrus.Debugf("evaluate: %s", name.ToString())
 		expr := v.Analysis.Expressions[name.ToString()]
 		moduleKey := ModuleNameToString(name.Module)
 		moduleMeta := v.Analysis.Modules[moduleKey]
@@ -291,7 +296,7 @@ func (v *Evaluation) evaluate() error {
 
 		val, diags := expr.Value(&ctx)
 		if diags.HasErrors() {
-			logrus.Debugf("evaluate: error: %s", diags)
+			v.errors = append(v.errors, fmt.Errorf("evaluate: error: %s", diags))
 			val = cty.NullVal(val.Type())
 		}
 
@@ -308,7 +313,7 @@ func (v *Evaluation) Resources() []models.ResourceState {
 	for resourceKey, resource := range v.Analysis.Resources {
 		resourceName, err := StringToFullName(resourceKey)
 		if err != nil || resourceName == nil {
-			logrus.Warningf("Skipping resource with bad key %s: %s", resourceKey, err)
+			v.Analysis.badKeys[resourceKey] = struct{}{}
 			continue
 		}
 		module := ModuleNameToString(resourceName.Module)
@@ -335,7 +340,9 @@ func (v *Evaluation) Resources() []models.ResourceState {
 		}
 
 		attrs := map[string]interface{}{}
-		if obj, ok := ValueToInterface(ValTreeToValue(attributes)).(map[string]interface{}); ok {
+		iface, errs := ValueToInterface(ValTreeToValue(attributes))
+		v.errors = append(v.errors, errs...)
+		if obj, ok := iface.(map[string]interface{}); ok {
 			attrs = obj
 		}
 
@@ -356,4 +363,14 @@ func (v *Evaluation) Resources() []models.ResourceState {
 	}
 
 	return resources
+}
+
+// Errors returns the non-fatal errors encountered during evaluation
+func (e *Evaluation) Errors() []error {
+	errors := []error{}
+	for _, badKey := range e.Analysis.badKeys {
+		errors = append(errors, fmt.Errorf("Bad dependency key: %s", badKey))
+	}
+	errors = append(errors, e.errors...)
+	return errors
 }

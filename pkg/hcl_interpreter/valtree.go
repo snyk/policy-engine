@@ -169,10 +169,10 @@ func ValTreeToVariables(tree ValTree) map[string]cty.Value {
 
 // For debugging.
 func PrettyValTree(tree ValTree) string {
-	native := ValueToInterface(ValTreeToValue(tree))
+	native, _ := ValueToInterface(ValTreeToValue(tree))
 	bytes, err := json.MarshalIndent(native, "", "  ")
 	if err != nil {
-		return fmt.Sprintf("Could not ValTree to JSON: %s\n", err)
+		return fmt.Sprintf("Could not convert ValTree to JSON: %s\n", err)
 	}
 	return string(bytes)
 }

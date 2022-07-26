@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"regexp"
 	"strconv"
+	"strings"
 
 	"github.com/hashicorp/hcl/v2"
 	"github.com/zclconf/go-cty/cty"
@@ -12,7 +13,7 @@ import (
 // aws_security_group.example.count
 // aws_security_group.example
 // aws_security_group: { "example" ... }
-// 
+//
 // var.stagename
 // module.child1.aws_s3_bucket.bucket
 //
@@ -170,10 +171,8 @@ func (name FullName) IsBuiltin() bool {
 	return false
 }
 
-
 //   module.child1.my_output ->
 //   module.child1.outputs.my_output
-
 
 // Parses the use of an output (e.g. "module.child.x") to the fully expanded
 // output name (e.g. module.child.output.x")
@@ -275,4 +274,36 @@ func TraversalToLocalName(traversal hcl.Traversal) (LocalName, error) {
 	}
 
 	return parts, nil
+}
+
+func TraversalToString(traversal hcl.Traversal) string {
+	traverserToString := func(traverser hcl.Traverser) string {
+		switch t := traverser.(type) {
+		case hcl.TraverseRoot:
+			return t.Name
+		case hcl.TraverseAttr:
+			return t.Name
+		case hcl.TraverseIndex:
+			val := t.Key
+			if val.IsKnown() {
+				if val.Type() == cty.Number {
+					n := val.AsBigFloat()
+					if n.IsInt() {
+						i, _ := n.Int64()
+						return fmt.Sprintf("[%d]", i)
+					}
+				} else if val.Type() == cty.String {
+					return val.AsString()
+				}
+			}
+		}
+		return "?"
+	}
+
+	parts := make([]string, len(traversal))
+	for i := range traversal {
+		parts[i] = traverserToString(traversal[i])
+	}
+
+	return strings.Join(parts, ".")
 }

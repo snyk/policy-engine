@@ -100,8 +100,13 @@ var runCmd = &cobra.Command{
 				}
 			}
 		}
-		states := loader.ToStates()
 		ctx := context.Background()
+		for path, errs := range loader.Errors() {
+			for _, err := range errs {
+				logger.Warn(ctx, fmt.Sprintf("%s: %s", path, err))
+			}
+		}
+		states := loader.ToStates()
 		eng, err := engine.NewEngine(ctx, &engine.EngineOptions{
 			Providers: providers,
 			RuleIDs:   selectedRules,
