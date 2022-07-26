@@ -154,7 +154,7 @@ func (m Metadata) copyToRuleResults(output *models.RuleResults) {
 type BasePolicy struct {
 	pkg              string
 	resourceType     string
-	inputType        input.TypeDefinition
+	inputType        *input.Type
 	judgementRule    ruleInfo
 	metadataRule     ruleInfo
 	resourcesRule    ruleInfo
@@ -212,7 +212,7 @@ func NewBasePolicy(moduleSet ModuleSet) (*BasePolicy, error) {
 	if resourceType == "" {
 		resourceType = multipleResourceType
 	}
-	var inputType input.TypeDefinition
+	var inputType *input.Type
 	if inputTypeRule.value != "" {
 		// TODO: This code currently handles unknown input types by creating a new input
 		// type, which is one way to support arbitrary input types. Do we want to
@@ -224,7 +224,7 @@ func NewBasePolicy(moduleSet ModuleSet) (*BasePolicy, error) {
 			}
 		}
 	} else {
-		inputType = &input.AnyType{}
+		inputType = input.Any
 	}
 	return &BasePolicy{
 		pkg:              pkg,
@@ -244,7 +244,7 @@ func (p *BasePolicy) Package() string {
 }
 
 func (p *BasePolicy) InputType() string {
-	return p.inputType.AsString()
+	return p.inputType.Name
 }
 
 func (p *BasePolicy) InputTypeMatches(inputType string) bool {

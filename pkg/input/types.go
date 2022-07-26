@@ -5,12 +5,6 @@ import (
 	"strings"
 )
 
-// TypeDefinition is the abstract representation of an input type.
-type TypeDefinition interface {
-	Matches(inputType string) bool
-	AsString() string
-}
-
 // Type represents one or more types of inputs.
 type Type struct {
 	// Name is the primary name for this input type. This is the field to use when input
@@ -35,10 +29,6 @@ func (t *Type) Matches(inputType string) bool {
 		}
 	}
 	return false
-}
-
-func (t *Type) AsString() string {
-	return t.Name
 }
 
 // Types is a slice of Type struct.
@@ -138,6 +128,17 @@ var Auto = &Type{
 	},
 }
 
+// Any is an aggregate type that contains all known input types.
+var Any = &Type{
+	Name: "any",
+	Children: Types{
+		Arm,
+		CloudFormation,
+		Kubernetes,
+		Terraform,
+	},
+}
+
 // SupportedInputTypes contains all of the input types that this package has detectors
 // for.
 var SupportedInputTypes = Types{
@@ -149,15 +150,4 @@ var SupportedInputTypes = Types{
 	TerraformPlan,
 	TerraformState,
 	StreamlinedState,
-}
-
-// AnyType is a special input type definition which will match any other input type
-type AnyType struct{}
-
-func (t *AnyType) Matches(_ string) bool {
-	return true
-}
-
-func (t *AnyType) AsString() string {
-	return "any"
 }
