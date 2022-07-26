@@ -160,10 +160,16 @@ type arm_Resource struct {
 	OtherAttributes map[string]interface{} `json:"-"`
 }
 
-// Type alias to avoid infinite loop
+// Type alias to avoid infinite recursion
 type _arm_Resource arm_Resource
 
 func (r *arm_Resource) UnmarshalJSON(bs []byte) error {
+	// We're using a custom unmarshal function here so that we can support all the
+	// possible resource attributes without explicitly adding them to the
+	// arm_Resource struct. The way this works is that we unmarshal the JSON twice:
+	// first into the arm_Resource struct and second into the OtherAttributes map. By
+	// using an alias for the arm_Resource type, we prevent this function from calling
+	// itself when we unmarshal into the struct.
 	resource := _arm_Resource{}
 	if err := json.Unmarshal(bs, &resource); err != nil {
 		return err
