@@ -1,11 +1,10 @@
-package policy_test
+package policy
 
 import (
 	"sort"
 	"testing"
 
 	"github.com/open-policy-agent/opa/ast"
-	"github.com/snyk/policy-engine/pkg/policy"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -51,7 +50,7 @@ func TestModuleSetsWithPrefix(t *testing.T) {
 	testInputs := []struct {
 		prefix   ast.Ref
 		node     *ast.ModuleTreeNode
-		expected []policy.ModuleSet
+		expected []ModuleSet
 	}{
 		{
 			prefix: ast.Ref{foo},
@@ -75,7 +74,7 @@ func TestModuleSetsWithPrefix(t *testing.T) {
 					},
 				},
 			},
-			expected: []policy.ModuleSet{
+			expected: []ModuleSet{
 				{
 					Path:    ast.Ref{foo},
 					Modules: []*ast.Module{mod1},
@@ -116,7 +115,7 @@ func TestModuleSetsWithPrefix(t *testing.T) {
 					},
 				},
 			},
-			expected: []policy.ModuleSet{
+			expected: []ModuleSet{
 				{
 					Path:    ast.Ref{foo, bar, baz},
 					Modules: []*ast.Module{mod3},
@@ -141,7 +140,7 @@ func TestModuleSetsWithPrefix(t *testing.T) {
 					},
 				},
 			},
-			expected: []policy.ModuleSet{
+			expected: []ModuleSet{
 				{
 					Path:    ast.Ref{foo, bar},
 					Modules: []*ast.Module{mod1, mod2, mod3},
@@ -172,7 +171,7 @@ func TestModuleSetsWithPrefix(t *testing.T) {
 					},
 				},
 			},
-			expected: []policy.ModuleSet{
+			expected: []ModuleSet{
 				{
 					Path:    ast.Ref{bar},
 					Modules: []*ast.Module{mod2},
@@ -190,11 +189,11 @@ func TestModuleSetsWithPrefix(t *testing.T) {
 		{
 			prefix:   ast.Ref{foo, bar},
 			node:     &ast.ModuleTreeNode{},
-			expected: []policy.ModuleSet{},
+			expected: []ModuleSet{},
 		},
 	}
 	for _, input := range testInputs {
-		output := policy.ModuleSetsWithPrefix(input.prefix, input.node)
+		output := moduleSetsWithPrefix(input.prefix, input.node)
 		expected := input.expected
 		sort.Slice(output, func(i, j int) bool {
 			return output[i].Path.String() < output[j].Path.String()
@@ -205,6 +204,195 @@ func TestModuleSetsWithPrefix(t *testing.T) {
 		// There's an assert.ElementsMatch, but the output is way too verbose when the
 		// elements do not match.
 		assert.Equal(t, expected, output)
+	}
+}
+
+func TestExtractModuleSets(t *testing.T) {
+	data := ast.DefaultRootDocument
+	rules := ast.StringTerm("rules")
+	ruleName := ast.StringTerm("some_rule_name")
+	ruleID := ast.StringTerm("RULE_ID")
+	terraform := ast.StringTerm("terraform")
+	schemas := ast.StringTerm("schemas")
+	kubernetes := ast.StringTerm("kubernetes")
+
+	for _, tc := range []struct {
+		name     string
+		node     *ast.ModuleTreeNode
+		expected []ModuleSet
+	}{
+		{
+			name:     "empty tree",
+			node:     &ast.ModuleTreeNode{},
+			expected: []ModuleSet{},
+		},
+		{
+			name: "current policy spec",
+			node: &ast.ModuleTreeNode{
+				Children: map[ast.Value]*ast.ModuleTreeNode{
+					data.Value: {
+						Children: map[ast.Value]*ast.ModuleTreeNode{
+							rules.Value: {
+								Children: map[ast.Value]*ast.ModuleTreeNode{
+									ruleID.Value: {
+										Children: map[ast.Value]*ast.ModuleTreeNode{
+											terraform.Value: {
+												Modules: []*ast.Module{mod1},
+											},
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+			expected: []ModuleSet{
+				{
+					Path:    ast.Ref{data, rules, ruleID, terraform},
+					Modules: []*ast.Module{mod1},
+				},
+			},
+		},
+		{
+			name: "legacy fugue policy spec",
+			node: &ast.ModuleTreeNode{
+				Children: map[ast.Value]*ast.ModuleTreeNode{
+					data.Value: {
+						Children: map[ast.Value]*ast.ModuleTreeNode{
+							rules.Value: {
+								Children: map[ast.Value]*ast.ModuleTreeNode{
+									ruleName.Value: {
+										Modules: []*ast.Module{mod1},
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+			expected: []ModuleSet{
+				{
+					Path:    ast.Ref{data, rules, ruleName},
+					Modules: []*ast.Module{mod1},
+				},
+			},
+		},
+		{
+			name: "legacy iac policy spec",
+			node: &ast.ModuleTreeNode{
+				Children: map[ast.Value]*ast.ModuleTreeNode{
+					data.Value: {
+						Children: map[ast.Value]*ast.ModuleTreeNode{
+							schemas.Value: {
+								Children: map[ast.Value]*ast.ModuleTreeNode{
+									terraform.Value: {
+										Modules: []*ast.Module{mod1},
+										Children: map[ast.Value]*ast.ModuleTreeNode{
+											// This module should not be loaded
+											kubernetes.Value: {
+												Modules: []*ast.Module{mod2},
+											},
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+			expected: []ModuleSet{
+				{
+					Path:    ast.Ref{data, schemas, terraform},
+					Modules: []*ast.Module{mod1},
+				},
+			},
+		},
+		{
+			name: "legacy iac custom policy spec",
+			node: &ast.ModuleTreeNode{
+				Children: map[ast.Value]*ast.ModuleTreeNode{
+					data.Value: {
+						Children: map[ast.Value]*ast.ModuleTreeNode{
+							rules.Value: {
+								Modules: []*ast.Module{mod1},
+							},
+						},
+					},
+				},
+			},
+			expected: []ModuleSet{
+				{
+					Path:    ast.Ref{data, rules},
+					Modules: []*ast.Module{mod1},
+				},
+			},
+		},
+		{
+			name: "all policy specs",
+			node: &ast.ModuleTreeNode{
+				Children: map[ast.Value]*ast.ModuleTreeNode{
+					data.Value: {
+						Children: map[ast.Value]*ast.ModuleTreeNode{
+							rules.Value: {
+								Modules: []*ast.Module{mod1},
+								Children: map[ast.Value]*ast.ModuleTreeNode{
+									ruleID.Value: {
+										Children: map[ast.Value]*ast.ModuleTreeNode{
+											terraform.Value: {
+												Modules: []*ast.Module{mod2},
+											},
+										},
+									},
+									ruleName.Value: {
+										Modules: []*ast.Module{mod3},
+									},
+								},
+							},
+							schemas.Value: {
+								Children: map[ast.Value]*ast.ModuleTreeNode{
+									terraform.Value: {
+										Modules: []*ast.Module{mod4},
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+			expected: []ModuleSet{
+				{
+					Path:    ast.Ref{data, rules},
+					Modules: []*ast.Module{mod1},
+				},
+				{
+					Path:    ast.Ref{data, rules, ruleID, terraform},
+					Modules: []*ast.Module{mod2},
+				},
+				{
+					Path:    ast.Ref{data, rules, ruleName},
+					Modules: []*ast.Module{mod3},
+				},
+				{
+					Path:    ast.Ref{data, schemas, terraform},
+					Modules: []*ast.Module{mod4},
+				},
+			},
+		},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			output := ExtractModuleSets(tc.node)
+			expected := tc.expected
+			sort.Slice(output, func(i, j int) bool {
+				return output[i].Path.String() < output[j].Path.String()
+			})
+			sort.Slice(expected, func(i, j int) bool {
+				return expected[i].Path.String() < expected[j].Path.String()
+			})
+			// There's an assert.ElementsMatch, but the output is way too verbose when the
+			// elements do not match.
+			assert.Equal(t, expected, output)
+		})
 	}
 }
 
@@ -283,7 +471,7 @@ func TestScopeMatches(t *testing.T) {
 		},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
-			matches := policy.ScopeMatches(tc.query, tc.input)
+			matches := ScopeMatches(tc.query, tc.input)
 			assert.Equal(t, tc.expectedMatch, matches)
 		})
 	}

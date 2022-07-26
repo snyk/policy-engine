@@ -3,12 +3,14 @@ package policy
 import (
 	"context"
 	"encoding/json"
-	"strconv"
+	"fmt"
 	"strings"
 
 	"github.com/open-policy-agent/opa/rego"
+	"github.com/snyk/policy-engine/pkg/input"
 	"github.com/snyk/policy-engine/pkg/logging"
 	"github.com/snyk/policy-engine/pkg/models"
+	"github.com/snyk/policy-engine/pkg/policy/legacyiac"
 )
 
 // This file contains code for backwards compatibility with legacy Snyk IaC rules
@@ -25,8 +27,12 @@ func (p *LegacyIaCPolicy) Eval(
 	if logger == nil {
 		logger = logging.DefaultLogger
 	}
-	logger = logger.WithField(logging.POLICY_TYPE, "iac_custom")
-	input := toIaCCustomInput(options.Input)
+	logger = logger.WithField(logging.POLICY_TYPE, "legacy_iac")
+	input, err := legacyIaCInput(options.Input)
+	if err != nil {
+		logger.Error(ctx, "Failed to transform input")
+		return nil, fmt.Errorf("%w: %v", FailedToEvaluateRule, err)
+	}
 	resourceNamespace := ""
 	if filepath, ok := options.Input.Meta["filepath"].(string); ok {
 		resourceNamespace = filepath
@@ -36,7 +42,7 @@ func (p *LegacyIaCPolicy) Eval(
 	opts := append(
 		options.RegoOptions,
 		rego.Query(p.judgementRule.query()),
-		rego.Input(input),
+		rego.Input(input.Raw()),
 	)
 	builtins := NewBuiltins(options.Input, options.ResourcesResolver)
 	opts = append(opts, builtins.Rego()...)
@@ -59,12 +65,12 @@ func (p *LegacyIaCPolicy) Eval(
 			},
 		}, err
 	}
-	return ir.toRuleResults(p.pkg, resourceNamespace, options.Input.InputType), nil
+	return ir.toRuleResults(p.pkg, input, resourceNamespace, options.Input.InputType), nil
 }
 
 type legacyIaCResults []*legacyIaCResult
 
-func (r legacyIaCResults) toRuleResults(pkg string, resourceNamespace string, inputType string) []models.RuleResults {
+func (r legacyIaCResults) toRuleResults(pkg string, input legacyiac.Input, resourceNamespace string, inputType string) []models.RuleResults {
 	resultsByRuleID := map[string]models.RuleResults{}
 	for _, ir := range r {
 		id := ir.PublicID
@@ -78,7 +84,7 @@ func (r legacyIaCResults) toRuleResults(pkg string, resourceNamespace string, in
 				Package_:    pkg,
 			}
 		}
-		ruleResults.Results = append(ruleResults.Results, *ir.toRuleResult(resourceNamespace, inputType))
+		ruleResults.Results = append(ruleResults.Results, *ir.toRuleResult(input, resourceNamespace, inputType))
 		resultsByRuleID[id] = ruleResults
 	}
 	output := make([]models.RuleResults, 0, len(resultsByRuleID))
@@ -119,8 +125,21 @@ type legacyIaCResult struct {
 	References  []string             `json:"references"`
 }
 
-func (r *legacyIaCResult) toRuleResult(resourceNamespace string, inputType string) *models.RuleResult {
-	result := parseMsg(r.Msg, resourceNamespace)
+func (r *legacyIaCResult) toRuleResult(input legacyiac.Input, resourceNamespace string, inputType string) *models.RuleResult {
+	parsedMsg := input.ParseMsg(r.Msg)
+	builder := newRuleResultBuilder()
+	key := ResourceKey{
+		ID:        parsedMsg.ResourceID,
+		Type:      parsedMsg.ResourceType,
+		Namespace: resourceNamespace,
+	}
+	builder.setPrimaryResource(key)
+	if parsedMsg.ResourceID != "" {
+		if len(parsedMsg.Path) > 0 {
+			builder.addResourceAttribute(key, parsedMsg.Path)
+		}
+	}
+	result := builder.toRuleResult()
 	result.Passed = false
 	result.Severity = r.Severity
 
@@ -130,100 +149,18 @@ func (r *legacyIaCResult) toRuleResult(resourceNamespace string, inputType strin
 		result.Remediation = r.Remediation.ByInputType[key]
 	}
 
-	return result
-}
-
-type parseMsgState int
-
-const (
-	initial parseMsgState = iota
-	inInput
-	inResource
-	inResourceType
-	inAttributePath
-)
-
-func parseMsg(msg string, resourceNamespace string) *models.RuleResult {
-	path := []interface{}{}
-	buf := []rune{}
-	var resourceID string
-	var resourceType string
-	var state parseMsgState
-	var inBracket bool
-	consumeBuf := func() {
-		s := string(buf)
-		switch state {
-		case initial:
-			if s == "input" {
-				state = inInput
-			}
-		case inInput:
-			if s == "resource" {
-				state = inResource
-			}
-		case inResource:
-			resourceType = s
-			state = inResourceType
-		case inResourceType:
-			resourceID = s
-			state = inAttributePath
-		case inAttributePath:
-			if s == "" {
-				break
-			}
-			if i, err := strconv.Atoi(s); err == nil {
-				path = append(path, i)
-			} else {
-				path = append(path, s)
-			}
-		}
-		buf = []rune{}
-	}
-	for _, char := range msg {
-		switch char {
-		case '.':
-			if !inBracket {
-				consumeBuf()
-			} else {
-				buf = append(buf, char)
-			}
-		case '[':
-			consumeBuf()
-			inBracket = true
-		case ']':
-			consumeBuf()
-			inBracket = false
-		default:
-			buf = append(buf, char)
-		}
-	}
-	consumeBuf()
-	builder := newRuleResultBuilder()
-	key := ResourceKey{
-		ID:        resourceID,
-		Type:      resourceType,
-		Namespace: resourceNamespace,
-	}
-	builder.setPrimaryResource(key)
-	if resourceID != "" {
-		if len(path) > 0 {
-			builder.addResourceAttribute(key, path)
-		}
-	}
-	result := builder.toRuleResult()
 	return &result
 }
 
-func toIaCCustomInput(state *models.State) map[string]map[string]map[string]interface{} {
-	inputResource := map[string]map[string]interface{}{}
-	for rt, resources := range state.Resources {
-		inputResourceType := map[string]interface{}{}
-		for name, r := range resources {
-			inputResourceType[name] = r.Attributes
-		}
-		inputResource[rt] = inputResourceType
-	}
-	return map[string]map[string]map[string]interface{}{
-		"resource": inputResource,
+func legacyIaCInput(state *models.State) (legacyiac.Input, error) {
+	switch {
+	case input.Terraform.Matches(state.InputType):
+		return legacyiac.NewTfInput(state), nil
+	case input.CloudFormation.Matches(state.InputType):
+		return legacyiac.NewCfnInput(state), nil
+	case input.Arm.Matches(state.InputType):
+		return legacyiac.NewArmInput(state), nil
+	default:
+		return nil, fmt.Errorf("unsupported input type for this type of rule")
 	}
 }
