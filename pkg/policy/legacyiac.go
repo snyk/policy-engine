@@ -27,7 +27,7 @@ func (p *LegacyIaCPolicy) Eval(
 	if logger == nil {
 		logger = logging.DefaultLogger
 	}
-	logger = logger.WithField(logging.POLICY_TYPE, "iac_custom")
+	logger = logger.WithField(logging.POLICY_TYPE, "legacy_iac")
 	input, err := legacyIaCInput(options.Input)
 	if err != nil {
 		logger.Error(ctx, "Failed to transform input")
