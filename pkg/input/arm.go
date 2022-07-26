@@ -151,12 +151,44 @@ type arm_Template struct {
 
 type arm_Resource struct {
 	Type       string                 `json:"type"`
-	ApiVersion string                 `json:"apiVersion"`
 	Name       string                 `json:"name"`
-	Location   string                 `json:"location"`
 	Properties map[string]interface{} `json:"properties"`
 	Tags       map[string]string      `json:"tags"`
 	Resources  []arm_Resource         `json:"resources"`
+	// OtherAttributes is a container for all other attributes that we're not
+	// capturing above.
+	OtherAttributes map[string]interface{} `json:"-"`
+}
+
+// Type alias to avoid infinite recursion
+type _arm_Resource arm_Resource
+
+func (r *arm_Resource) UnmarshalJSON(bs []byte) error {
+	// We're using a custom unmarshal function here so that we can support all the
+	// possible resource attributes without explicitly adding them to the
+	// arm_Resource struct. The way this works is that we unmarshal the JSON twice:
+	// first into the arm_Resource struct and second into the OtherAttributes map. By
+	// using an alias for the arm_Resource type, we prevent this function from calling
+	// itself when we unmarshal into the struct.
+	resource := _arm_Resource{}
+	if err := json.Unmarshal(bs, &resource); err != nil {
+		return err
+	}
+	if err := json.Unmarshal(bs, &resource.OtherAttributes); err != nil {
+		return err
+	}
+
+	// Delete attributes that we've already captured in the parent struct
+	delete(resource.OtherAttributes, "type")
+	delete(resource.OtherAttributes, "name")
+	delete(resource.OtherAttributes, "properties")
+	delete(resource.OtherAttributes, "tags")
+	delete(resource.OtherAttributes, "resources")
+
+	// point r to our parsed resource
+	*r = arm_Resource(resource)
+
+	return nil
 }
 
 // A resource together with its JSON path and name metadata.  This allows us to
@@ -211,19 +243,16 @@ func (d arm_DiscoverResource) process(
 	r := d.resource
 
 	attributes := map[string]interface{}{}
+	for k, attr := range r.OtherAttributes {
+		updated := interfacetricks.TopDownWalk(refResolver, interfacetricks.Copy(attr))
+		attributes[k] = updated
+	}
 	properties := map[string]interface{}{}
 	for k, attr := range r.Properties {
 		updated := interfacetricks.TopDownWalk(refResolver, interfacetricks.Copy(attr))
 		properties[k] = updated
 	}
 	attributes["properties"] = properties
-	if r.ApiVersion != "" {
-		attributes["apiVersion"] = r.ApiVersion
-	}
-	if r.Location != "" {
-		attributes["location"] = r.Location
-	}
-
 	meta := map[string]interface{}{}
 	if parent := d.name.Parent(); parent != nil {
 		armMeta := map[string]interface{}{}

@@ -1,0 +1,55 @@
+{
+  "format": "",
+  "format_version": "",
+  "input_type": "arm",
+  "environment_provider": "iac",
+  "meta": {
+    "filepath": "golden_test/arm/other-attributes/template.json"
+  },
+  "resources": {
+    "Microsoft.AppConfiguration/configurationStores": {
+      "Microsoft.AppConfiguration/configurationStores/arm-608-allowed": {
+        "id": "Microsoft.AppConfiguration/configurationStores/arm-608-allowed",
+        "resource_type": "Microsoft.AppConfiguration/configurationStores",
+        "namespace": "golden_test/arm/other-attributes/template.json",
+        "attributes": {
+          "apiVersion": "2021-03-01-preview",
+          "location": "West Europe",
+          "properties": {
+            "publicNetworkAccess": "Enabled"
+          },
+          "sku": {
+            "name": "Standard"
+          }
+        }
+      },
+      "Microsoft.AppConfiguration/configurationStores/arm-608-default": {
+        "id": "Microsoft.AppConfiguration/configurationStores/arm-608-default",
+        "resource_type": "Microsoft.AppConfiguration/configurationStores",
+        "namespace": "golden_test/arm/other-attributes/template.json",
+        "attributes": {
+          "apiVersion": "2021-03-01-default",
+          "location": "West Europe",
+          "properties": {
+            "publicNetworkAccess": "Enabled"
+          }
+        }
+      },
+      "Microsoft.AppConfiguration/configurationStores/arm-608-denied": {
+        "id": "Microsoft.AppConfiguration/configurationStores/arm-608-denied",
+        "resource_type": "Microsoft.AppConfiguration/configurationStores",
+        "namespace": "golden_test/arm/other-attributes/template.json",
+        "attributes": {
+          "apiVersion": "2021-03-01-preview",
+          "location": "West Europe",
+          "properties": {
+            "publicNetworkAccess": "Enabled"
+          },
+          "sku": {
+            "name": "Free"
+          }
+        }
+      }
+    }
+  }
+}
