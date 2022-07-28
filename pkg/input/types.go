@@ -128,7 +128,19 @@ var Auto = &Type{
 	},
 }
 
-// SupportedInputTypes contains all of the input types that this package supports.
+// Any is an aggregate type that contains all known input types.
+var Any = &Type{
+	Name: "any",
+	Children: Types{
+		Arm,
+		CloudFormation,
+		Kubernetes,
+		Terraform,
+	},
+}
+
+// SupportedInputTypes contains all of the input types that this package has detectors
+// for.
 var SupportedInputTypes = Types{
 	Auto,
 	Arm,

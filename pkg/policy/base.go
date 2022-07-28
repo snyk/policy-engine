@@ -33,6 +33,7 @@ const multipleResourceType = "MULTIPLE"
 // SupportedInputTypes contains all of the input types that this package officially
 // supports.
 var SupportedInputTypes = input.Types{
+	input.Any,
 	input.Arm,
 	input.CloudFormation,
 	input.CloudScan,
@@ -213,18 +214,18 @@ func NewBasePolicy(moduleSet ModuleSet) (*BasePolicy, error) {
 		resourceType = multipleResourceType
 	}
 	var inputType *input.Type
-	if inputTypeRule.value == "" {
-		inputType = input.Terraform
-	} else {
+	if inputTypeRule.value != "" {
 		// TODO: This code currently handles unknown input types by creating a new input
 		// type, which is one way to support arbitrary input types. Do we want to
 		// consider this case an error instead?
-		inputType, _ := SupportedInputTypes.FromString(inputTypeRule.value)
+		inputType, _ = SupportedInputTypes.FromString(inputTypeRule.value)
 		if inputType == nil {
 			inputType = &input.Type{
 				Name: inputTypeRule.value,
 			}
 		}
+	} else {
+		inputType = input.Any
 	}
 	return &BasePolicy{
 		pkg:              pkg,
