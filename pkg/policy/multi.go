@@ -121,6 +121,8 @@ func processMultiDenyPolicyResult(
 		} else {
 			builder = newRuleResultBuilder()
 			builders[correlation] = builder
+			builder.severity = metadata.Severity
+			builder.remediation = defaultRemediation
 		}
 
 		builder.passed = false
