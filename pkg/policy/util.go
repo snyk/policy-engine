@@ -80,7 +80,7 @@ func ExtractModuleSets(tree *ast.ModuleTreeNode) []ModuleSet {
 func ScopeMatches(query map[string]string, input map[string]interface{}) bool {
 	for queryKey, queryVal := range query {
 		inputVal, present := input[queryKey]
-		if present && (queryVal == "" || queryVal == "*") {
+		if present && ((queryVal == "" || queryVal == "*") || (inputVal == "*")) {
 			continue
 		}
 		if queryVal == inputVal {

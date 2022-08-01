@@ -440,6 +440,12 @@ func TestScopeMatches(t *testing.T) {
 			expectedMatch: true,
 		},
 		{
+			name:          "input scope of * matches any present query value",
+			query:         map[string]string{"region": "us-east-1"},
+			input:         map[string]interface{}{"region": "*"},
+			expectedMatch: true,
+		},
+		{
 			name:          "query of empty string matches any present value",
 			query:         map[string]string{"region": ""},
 			input:         map[string]interface{}{"region": "us-east-1"},
