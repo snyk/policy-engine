@@ -44,7 +44,7 @@ func (p *LegacyIaCPolicy) Eval(
 		rego.Query(p.judgementRule.query()),
 		rego.Input(input.Raw()),
 	)
-	builtins := NewBuiltins(options.Input, options.ResourcesResolver)
+	builtins := NewBuiltins(options.Input, options.ResourcesResolver, options.QueryCacheTTL)
 	opts = append(opts, builtins.Rego()...)
 	query, err := rego.New(opts...).PrepareForEval(ctx)
 	if err != nil {

@@ -2,7 +2,10 @@ package policy
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
+	"sync"
+	"time"
 
 	"github.com/open-policy-agent/opa/ast"
 	"github.com/open-policy-agent/opa/rego"
@@ -12,6 +15,16 @@ import (
 
 type Query struct {
 	ResourcesResolver ResourcesResolver
+	cache             *sync.Map
+	cacheTTL          time.Duration
+}
+
+func NewQueryBuiltin(resolver ResourcesResolver, cacheTTL time.Duration) *Query {
+	return &Query{
+		ResourcesResolver: resolver,
+		cache:             &sync.Map{},
+		cacheTTL:          cacheTTL,
+	}
 }
 
 func (*Query) decl() *rego.Function {
@@ -63,12 +76,39 @@ func (q *Query) impl(bctx rego.BuiltinContext, operands []*ast.Term) (*ast.Term,
 }
 
 func (q *Query) ResolveResources(ctx context.Context, query ResourcesQuery) ([]models.ResourceState, error) {
+	cacheKeyBytes, err := json.Marshal(query)
+	if err != nil {
+		return nil, err
+	}
+	cacheKey := string(cacheKeyBytes)
+	cached, ok := q.cache.Load(cacheKey)
+	if ok {
+		cachedEntry := cached.(*queryCacheEntry)
+		if time.Now().Before(cachedEntry.expires) {
+			return cachedEntry.resources.Resources, nil
+		}
+	}
+
 	res, err := q.ResourcesResolver(ctx, query)
 	if err != nil {
 		return nil, fmt.Errorf("error in ResourcesResolver: %s", err)
 	}
+
+	// No point caching resources if we're not going to end up using it
+	if q.cacheTTL > 0 {
+		q.cache.Store(cacheKey, &queryCacheEntry{
+			resources: res,
+			expires:   time.Now().Add(q.cacheTTL),
+		})
+	}
+
 	if res.ScopeFound {
 		return res.Resources, nil
 	}
 	return []models.ResourceState{}, nil
+}
+
+type queryCacheEntry struct {
+	resources ResourcesResult
+	expires   time.Time
 }

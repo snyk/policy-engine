@@ -4,6 +4,7 @@ import (
 	"context"
 	"embed"
 	"fmt"
+	"time"
 
 	"github.com/open-policy-agent/opa/ast"
 	"github.com/open-policy-agent/opa/rego"
@@ -276,7 +277,7 @@ type Builtins struct {
 	funcs            []builtin
 }
 
-func NewBuiltins(input *models.State, resourcesResolver ResourcesResolver) *Builtins {
+func NewBuiltins(input *models.State, resourcesResolver ResourcesResolver, queryCacheTTL time.Duration) *Builtins {
 	// Share the same calledWith map across resource-querying builtins, so that
 	// all queried resources are returned by inputResourceTypes
 	inputResolver := newInputResolver(input)
@@ -289,7 +290,7 @@ func NewBuiltins(input *models.State, resourcesResolver ResourcesResolver) *Buil
 	return &Builtins{
 		resourcesQueried: inputResolver.calledWith,
 		funcs: []builtin{
-			&Query{ResourcesResolver: resolver},
+			NewQueryBuiltin(resolver, queryCacheTTL),
 			&currentInputType{input},
 			&inputResourceTypes{input},
 			resourcesByType,

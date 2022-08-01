@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"strings"
+	"time"
 
 	"github.com/open-policy-agent/opa/ast"
 	"github.com/open-policy-agent/opa/rego"
@@ -49,6 +50,7 @@ type EvalOptions struct {
 	InputValue        ast.Value
 	Logger            logging.Logger
 	ResourcesResolver ResourcesResolver
+	QueryCacheTTL     time.Duration
 }
 
 // Policy is an interface that supports all of the ways we want to interact

@@ -12,7 +12,7 @@ import (
 )
 
 func TestResolveResources_SingleResolver_ReturnsZeroResourcesWhenNoResolversMatch(t *testing.T) {
-	q := &policy.Query{ResourcesResolver: policy.ResourcesResolver(nonMatchingResolver)}
+	q := policy.NewQueryBuiltin(policy.ResourcesResolver(nonMatchingResolver), 0)
 	res, err := q.ResolveResources(context.Background(), policy.ResourcesQuery{})
 	require.NoError(t, err)
 	assert.Empty(t, res)
@@ -32,11 +32,12 @@ func TestResolveResources_ComposedWithOr_ReturnsResourcesFromFirstMatchingResolv
 			Resources:  expectedResources,
 		}, nil
 	}
-	q := &policy.Query{
-		ResourcesResolver: policy.ResourcesResolver(nonMatchingResolver).
+	q := policy.NewQueryBuiltin(
+		policy.ResourcesResolver(nonMatchingResolver).
 			Or(spyResolver).
 			Or(panickyResolver),
-	}
+		0,
+	)
 	res, err := q.ResolveResources(context.Background(), query)
 	require.NoError(t, err)
 	assert.Equal(t, expectedResources, res)
@@ -48,11 +49,12 @@ func TestResolveResources_ComposedWithOr_ReturnsErrorFromFirstResolverThatErrors
 		assert.Equal(t, req, query)
 		return policy.ResourcesResult{}, errors.New("oops")
 	}
-	q := &policy.Query{
-		ResourcesResolver: policy.ResourcesResolver(nonMatchingResolver).
+	q := policy.NewQueryBuiltin(
+		policy.ResourcesResolver(nonMatchingResolver).
 			Or(spyResolver).
 			Or(panickyResolver),
-	}
+		0,
+	)
 	_, err := q.ResolveResources(context.Background(), query)
 	require.EqualError(t, err, "error in ResourcesResolver: oops")
 }
@@ -85,10 +87,11 @@ func TestResolveResources_ComposedWithAnd_ReturnsResourcesFromBothMatchingResolv
 		}, nil
 	}
 
-	q := &policy.Query{
-		ResourcesResolver: policy.ResourcesResolver(spyResolver1).
+	q := policy.NewQueryBuiltin(
+		policy.ResourcesResolver(spyResolver1).
 			And(spyResolver2),
-	}
+		0,
+	)
 	res, err := q.ResolveResources(context.Background(), query)
 	require.NoError(t, err)
 	assert.Equal(t, append(expectedResources1, expectedResources2...), res)
@@ -100,11 +103,12 @@ func TestResolveResources_ComposedWithAnd_ReturnsErrorFromFirstResolverThatError
 		assert.Equal(t, req, query)
 		return policy.ResourcesResult{}, errors.New("oops")
 	}
-	q := &policy.Query{
-		ResourcesResolver: policy.ResourcesResolver(nonMatchingResolver).
+	q := policy.NewQueryBuiltin(
+		policy.ResourcesResolver(nonMatchingResolver).
 			And(spyResolver).
 			And(panickyResolver),
-	}
+		0,
+	)
 	_, err := q.ResolveResources(context.Background(), query)
 	require.EqualError(t, err, "error in ResourcesResolver: oops")
 }
@@ -129,8 +133,8 @@ func TestResolveResources_ComplexChainOfAndsAndOrs(t *testing.T) {
 		}
 	}
 
-	q := &policy.Query{
-		ResourcesResolver: policy.ResourcesResolver(nonMatchingResolver).
+	q := policy.NewQueryBuiltin(
+		policy.ResourcesResolver(nonMatchingResolver).
 			Or(
 				mkstub("some-resource-1").And(
 					policy.ResourcesResolver(nonMatchingResolver).Or(mkstub("some-resource-2")).And(
@@ -139,7 +143,8 @@ func TestResolveResources_ComplexChainOfAndsAndOrs(t *testing.T) {
 				),
 			).
 			Or(panickyResolver),
-	}
+		0,
+	)
 	res, err := q.ResolveResources(context.Background(), query)
 	require.NoError(t, err)
 	assert.Equal(t, expectedResources, res)
