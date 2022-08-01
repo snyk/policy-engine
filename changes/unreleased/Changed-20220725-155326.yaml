@@ -1,4 +1,0 @@
-kind: Changed
-body: Default behavior for `input_type`. After this change, policies that do not define
-  an `input_type` rule will be evaluated for all input types.
-time: 2022-07-25T15:53:26.396475-04:00

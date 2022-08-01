@@ -1,4 +1,0 @@
-kind: Added
-body: Accumulate errors in TF loader instead of printing warnings.  They are available
-  under `loader.Errors()`
-time: 2022-07-18T17:38:38.441524412+02:00

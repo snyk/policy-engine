@@ -2,6 +2,22 @@
 
 
 
+## v0.4.0 - 2022-08-01
+### Added
+* docs: clarify empty array result from snyk.resources
+* Accumulate errors in TF loader instead of printing warnings.  They are available under `loader.Errors()`
+### Changed
+* Default behavior for `input_type`. After this change, policies that do not define an `input_type` rule will be evaluated for all input types.
+### Fixed
+* docs: update example for array result of snyk.resources() 
+* sync models code and swagger
+* Compatibility issues with legacy IaC rules (see #82 for more information)
+* ARM parser to capture all resource attributes
+* Missing severity and remediation on "missing resource" policy results
+* panic from using both Terraform and policy-engine as librarires (see fugue/regula#350)
+### Security
+* Updated OPA to v0.43.0
+
 ## v0.3.0 - 2022-07-12
 ### Added
 * -i flag for repl to run commands on initialization
