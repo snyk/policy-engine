@@ -79,7 +79,7 @@ func (r legacyIaCResults) toRuleResults(pkg string, input legacyiac.Input, resou
 			ruleResults = models.RuleResults{
 				Id:          id,
 				Title:       ir.Title,
-				Description: ir.Issue,                          // TODO: Maybe this should be a combination of both impact and issue?
+				Description: ir.Impact,
 				References:  strings.Join(ir.References, "\n"), // TODO: How do we want to transform these?
 				Package_:    pkg,
 			}
