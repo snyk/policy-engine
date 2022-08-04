@@ -1,0 +1,25 @@
+{
+  "format": "",
+  "format_version": "",
+  "input_type": "cfn",
+  "environment_provider": "iac",
+  "meta": {
+    "filepath": "golden_test/cfn/no-props/template.yaml"
+  },
+  "resources": {
+    "AWS::S3::Bucket": {
+      "CodePipelineArtifactBucket": {
+        "id": "CodePipelineArtifactBucket",
+        "resource_type": "AWS::S3::Bucket",
+        "namespace": "golden_test/cfn/no-props/template.yaml",
+        "attributes": {
+          "_type": "AWS::S3::Bucket",
+          "id": "CodePipelineArtifactBucket"
+        }
+      }
+    }
+  },
+  "scope": {
+    "filepath": "golden_test/cfn/no-props/template.yaml"
+  }
+}

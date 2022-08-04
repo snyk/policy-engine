@@ -1,0 +1,7 @@
+
+AWSTemplateFormatVersion: 2010-09-09
+Description: Fargate Service
+Resources:
+  CodePipelineArtifactBucket:
+    Type: AWS::S3::Bucket
+    DeletionPolicy: Delete

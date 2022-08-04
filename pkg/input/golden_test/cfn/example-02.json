@@ -34,6 +34,26 @@
           "id": "CloudTrailLogging"
         }
       }
+    },
+    "AWS::S3::Bucket": {
+      "LoggingBucket1": {
+        "id": "LoggingBucket1",
+        "resource_type": "AWS::S3::Bucket",
+        "namespace": "golden_test/cfn/example-02/main.yaml",
+        "attributes": {
+          "_type": "AWS::S3::Bucket",
+          "id": "LoggingBucket1"
+        }
+      },
+      "LoggingBucket2": {
+        "id": "LoggingBucket2",
+        "resource_type": "AWS::S3::Bucket",
+        "namespace": "golden_test/cfn/example-02/main.yaml",
+        "attributes": {
+          "_type": "AWS::S3::Bucket",
+          "id": "LoggingBucket2"
+        }
+      }
     }
   },
   "scope": {
