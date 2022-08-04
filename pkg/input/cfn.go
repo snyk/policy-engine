@@ -123,9 +123,9 @@ func (tmpl *cfnTemplate) resources() map[string]interface{} {
 		object := map[string]interface{}{}
 		for k, attribute := range properties {
 			object[k] = interfacetricks.TopDownWalk(&resolver, attribute)
-			object["id"] = resourceId
-			object["_type"] = resource.Type
 		}
+		object["id"] = resourceId
+		object["_type"] = resource.Type
 
 		resources[resourceId] = object
 	}
