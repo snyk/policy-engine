@@ -253,7 +253,7 @@ inline documentation.
 ## Custom resource resolution
 
 The library's caller can customize the behavior of the [`snyk.query`
-builtin](../policy_spec.md#snykqueryquery) using Golang functions injected into
+builtin](policy_spec.md#snykqueryquery) using Golang functions injected into
 EngineOptions. The main use case of this is to fetch resources from places other
 than the input.
 
