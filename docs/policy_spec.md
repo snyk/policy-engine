@@ -373,7 +373,7 @@ type will be returned.
 The library API provides a mechanism to influence the behavior of this builtin,
 and to inject custom resource resolver logic. You can read more about how to add
 custom resource resolvers
-[here](../library_usage.md#custom-resource-resolution).
+[here](library_usage.md#custom-resource-resolution).
 
 A simple query:
 
