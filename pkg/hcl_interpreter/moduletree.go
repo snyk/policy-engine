@@ -320,6 +320,8 @@ func walkResource(
 
 	if body, ok := resource.Config.(*hclsyntax.Body); ok {
 		walkBlock(v, name, body)
+	} else {
+		walkBody(v, name, resource.Config)
 	}
 
 	v.LeaveResource()
@@ -342,6 +344,15 @@ func walkBlock(v Visitor, name FullName, body *hclsyntax.Body) {
 			blockCounter[block.Type] = 1
 		}
 		walkBlock(v, name.AddKey(block.Type).AddIndex(idx), block.Body)
+	}
+}
+
+func walkBody(v Visitor, name FullName, body hcl.Body) {
+	v.VisitBlock(name)
+	attributes, _ := body.JustAttributes()
+
+	for _, attribute := range attributes {
+		v.VisitExpr(name.AddKey(attribute.Name), attribute.Expr)
 	}
 }
 
