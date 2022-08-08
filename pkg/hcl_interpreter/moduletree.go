@@ -4,6 +4,7 @@ package hcl_interpreter
 
 import (
 	"fmt"
+	"os"
 	"path/filepath"
 	"strings"
 
@@ -26,7 +27,8 @@ type ModuleMeta struct {
 type ResourceMeta struct {
 	Data                      bool
 	Type                      string
-	Provider                  string
+	ProviderType              string
+	ProviderName              string
 	ProviderVersionConstraint string
 	Count                     bool
 	Location                  hcl.Range
@@ -250,6 +252,10 @@ func walkModuleTree(v Visitor, moduleName ModuleName, mtree *ModuleTree) {
 	}
 }
 
+func escapeProviderName(providerName string) string {
+    return strings.ReplaceAll(strings.ReplaceAll(providerName, "_", "__"), ".", "_")
+}
+
 func walkModule(v Visitor, moduleName ModuleName, module *configs.Module, variableValues map[string]cty.Value) {
 	name := EmptyFullName(moduleName)
 
@@ -281,6 +287,14 @@ func walkModule(v Visitor, moduleName ModuleName, module *configs.Module, variab
 	for _, output := range module.Outputs {
 		v.VisitExpr(name.AddKey("output").AddKey(output.Name), output.Expr)
 	}
+
+	for providerName, providerConf := range module.ProviderConfigs {
+		if body, ok := providerConf.Config.(*hclsyntax.Body); ok {
+			fmt.Fprintf(os.Stderr, "Adding provider config for %s\n", providerName)
+			providerConfName := name.AddKey("provider").AddKey(escapeProviderName(providerName))
+			walkBlock(v, providerConfName, body)
+		}
+	}
 }
 
 func walkResource(
@@ -298,16 +312,17 @@ func walkResource(
 	haveCount := resource.Count != nil
 
 	resourceMeta := &ResourceMeta{
-		Data:     isDataResource,
-		Provider: resource.Provider.Type,
-		Type:     resource.Type,
-		Location: resource.DeclRange,
-		Count:    haveCount,
-		Body:     resource.Config,
+		Data: isDataResource,
+
+		ProviderType: resource.Provider.Type,
+		Type:         resource.Type,
+		Location:     resource.DeclRange,
+		Count:        haveCount,
+		Body:         resource.Config,
 	}
 
-	providerName := resource.ProviderConfigAddr().LocalName
-	if providerReqs, ok := module.ProviderRequirements.RequiredProviders[providerName]; ok {
+	resourceMeta.ProviderName = escapeProviderName(resource.ProviderConfigAddr().StringCompact())
+	if providerReqs, ok := module.ProviderRequirements.RequiredProviders[resourceMeta.ProviderName]; ok {
 		resourceMeta.ProviderVersionConstraint = providerReqs.Requirement.Required.String()
 	}
 
@@ -326,9 +341,11 @@ func walkResource(
 }
 
 func walkBlock(v Visitor, name FullName, body *hclsyntax.Body) {
+    fmt.Fprintf(os.Stderr, "Walking block %s\n", name.ToString())
 	v.VisitBlock(name)
 
 	for _, attribute := range body.Attributes {
+        fmt.Fprintf(os.Stderr, "Walking expr %s.%s\n", name.ToString(), attribute.Name)
 		v.VisitExpr(name.AddKey(attribute.Name), attribute.Expr)
 	}
 

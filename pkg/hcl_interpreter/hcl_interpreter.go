@@ -7,6 +7,7 @@ import (
 	"github.com/hashicorp/hcl/v2"
 	"github.com/spf13/afero"
 	"github.com/zclconf/go-cty/cty"
+	"os"
 
 	"github.com/fugue/regula/v2/pkg/terraform/lang"
 	"github.com/fugue/regula/v2/pkg/topsort"
@@ -78,6 +79,7 @@ func (v *Analysis) VisitBlock(name FullName) {
 
 func (v *Analysis) VisitExpr(name FullName, expr hcl.Expression) {
 	v.Expressions[name.ToString()] = expr
+	fmt.Fprintf(os.Stderr, "Adding expression %s\n", name.ToString())
 	if v.currentResource != nil {
 		v.ResourceExpressions[*v.currentResource] = append(
 			v.ResourceExpressions[*v.currentResource],
@@ -182,7 +184,10 @@ func (v *Analysis) order() ([]FullName, error) {
 		graph[key] = []string{}
 		for _, dep := range v.dependencies(*name, expr) {
 			if dep.source != nil {
+				fmt.Fprintf(os.Stderr, "%s -> %s\n", key, dep.source.ToString())
 				graph[key] = append(graph[key], dep.source.ToString())
+			} else {
+				fmt.Fprintf(os.Stderr, "NO SOURCE: %s\n", key)
 			}
 		}
 	}
@@ -264,6 +269,7 @@ func (v *Evaluation) evaluate() error {
 
 	// Evaluate expressions
 	for _, name := range order {
+		fmt.Fprintf(os.Stderr, "Evaluating expression %s\n", name.ToString())
 		expr := v.Analysis.Expressions[name.ToString()]
 		moduleKey := ModuleNameToString(name.Module)
 		moduleMeta := v.Analysis.Modules[moduleKey]
@@ -301,6 +307,7 @@ func (v *Evaluation) evaluate() error {
 		}
 
 		singleton := SingletonValTree(name.Local, val)
+		fmt.Fprintf(os.Stderr, "Evaluated expression %s => %v\n", name.ToString(), val)
 		v.Modules[moduleKey] = MergeValTree(v.Modules[moduleKey], singleton)
 	}
 
@@ -346,7 +353,19 @@ func (v *Evaluation) Resources() []models.ResourceState {
 			attrs = obj
 		}
 
+		fmt.Fprintf(os.Stderr, "ProviderName for %s: %s\n", resourceKey, resource.ProviderName)
 		meta := map[string]interface{}{}
+		providerConf := LookupValTree(
+			v.Modules[module],
+			[]interface{}{"provider", resource.ProviderName},
+		)
+		fmt.Fprintf(os.Stderr, "ProviderName for %s: %s\n", resourceKey, PrettyValTree(providerConf))
+		if providerConf != nil {
+			if pc, errs := ValueToInterface(ValTreeToValue(providerConf)); len(errs) == 0 {
+				meta["provider"] = pc
+			}
+		}
+
 		if resource.ProviderVersionConstraint != "" {
 			meta["terraform"] = map[string]interface{}{
 				"provider_version_constraint": resource.ProviderVersionConstraint,
