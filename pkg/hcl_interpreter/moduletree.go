@@ -29,6 +29,7 @@ type ResourceMeta struct {
 	Type                      string
 	ProviderType              string
 	ProviderName              string
+	ProviderKey               string
 	ProviderVersionConstraint string
 	Count                     bool
 	Location                  hcl.Range
@@ -252,8 +253,8 @@ func walkModuleTree(v Visitor, moduleName ModuleName, mtree *ModuleTree) {
 	}
 }
 
-func escapeProviderName(providerName string) string {
-    return strings.ReplaceAll(strings.ReplaceAll(providerName, "_", "__"), ".", "_")
+func providerNameToKey(providerName string) string {
+	return strings.ReplaceAll(strings.ReplaceAll(providerName, "_", "__"), ".", "_")
 }
 
 func walkModule(v Visitor, moduleName ModuleName, module *configs.Module, variableValues map[string]cty.Value) {
@@ -291,7 +292,7 @@ func walkModule(v Visitor, moduleName ModuleName, module *configs.Module, variab
 	for providerName, providerConf := range module.ProviderConfigs {
 		if body, ok := providerConf.Config.(*hclsyntax.Body); ok {
 			fmt.Fprintf(os.Stderr, "Adding provider config for %s\n", providerName)
-			providerConfName := name.AddKey("provider").AddKey(escapeProviderName(providerName))
+			providerConfName := name.AddKey("provider").AddKey(providerNameToKey(providerName))
 			walkBlock(v, providerConfName, body)
 		}
 	}
@@ -321,10 +322,12 @@ func walkResource(
 		Body:         resource.Config,
 	}
 
-	resourceMeta.ProviderName = escapeProviderName(resource.ProviderConfigAddr().StringCompact())
-	if providerReqs, ok := module.ProviderRequirements.RequiredProviders[resourceMeta.ProviderName]; ok {
+	if providerReqs, ok := module.ProviderRequirements.RequiredProviders[resource.ProviderConfigAddr().LocalName]; ok {
 		resourceMeta.ProviderVersionConstraint = providerReqs.Requirement.Required.String()
 	}
+
+	resourceMeta.ProviderName = resource.ProviderConfigAddr().StringCompact()
+	resourceMeta.ProviderKey = providerNameToKey(resourceMeta.ProviderName)
 
 	v.EnterResource(name, resourceMeta)
 
@@ -341,11 +344,11 @@ func walkResource(
 }
 
 func walkBlock(v Visitor, name FullName, body *hclsyntax.Body) {
-    fmt.Fprintf(os.Stderr, "Walking block %s\n", name.ToString())
+	fmt.Fprintf(os.Stderr, "Walking block %s\n", name.ToString())
 	v.VisitBlock(name)
 
 	for _, attribute := range body.Attributes {
-        fmt.Fprintf(os.Stderr, "Walking expr %s.%s\n", name.ToString(), attribute.Name)
+		fmt.Fprintf(os.Stderr, "Walking expr %s.%s\n", name.ToString(), attribute.Name)
 		v.VisitExpr(name.AddKey(attribute.Name), attribute.Expr)
 	}
 

@@ -354,21 +354,36 @@ func (v *Evaluation) Resources() []models.ResourceState {
 		}
 
 		fmt.Fprintf(os.Stderr, "ProviderName for %s: %s\n", resourceKey, resource.ProviderName)
-		meta := map[string]interface{}{}
+		metaTree := EmptyObjectValTree()
 		providerConf := LookupValTree(
 			v.Modules[module],
-			[]interface{}{"provider", resource.ProviderName},
+			[]interface{}{"provider", resource.ProviderKey},
 		)
 		fmt.Fprintf(os.Stderr, "ProviderName for %s: %s\n", resourceKey, PrettyValTree(providerConf))
 		if providerConf != nil {
-			if pc, errs := ValueToInterface(ValTreeToValue(providerConf)); len(errs) == 0 {
-				meta["provider"] = pc
-			}
+			metaTree = MergeValTree(
+				metaTree,
+				SingletonValTree(
+					[]interface{}{"terraform", "provider_config"},
+					ValTreeToValue(providerConf),
+				),
+			)
 		}
 
 		if resource.ProviderVersionConstraint != "" {
-			meta["terraform"] = map[string]interface{}{
-				"provider_version_constraint": resource.ProviderVersionConstraint,
+			metaTree = MergeValTree(
+				metaTree,
+				SingletonValTree(
+					[]interface{}{"terraform", "provider_version_constraint"},
+					cty.StringVal(resource.ProviderVersionConstraint),
+				),
+			)
+		}
+
+		meta := map[string]interface{}{}
+		if metaVal, errs := ValueToInterface(ValTreeToValue(metaTree)); len(errs) == 0 {
+			if metaObj, ok := metaVal.(map[string]interface{}); ok {
+				meta = metaObj
 			}
 		}
 
