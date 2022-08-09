@@ -12,6 +12,13 @@
         "id": "aws_s3_bucket.foo[0]",
         "resource_type": "aws_s3_bucket",
         "namespace": "golden_test/tfplan/count-01/plan.json",
+        "meta": {
+          "terraform": {
+            "provider_config": {
+              "region": "us-east-1"
+            }
+          }
+        },
         "attributes": {
           "acl": "private",
           "bucket": "foo-test-0",
@@ -33,6 +40,13 @@
         "id": "aws_s3_bucket.foo[1]",
         "resource_type": "aws_s3_bucket",
         "namespace": "golden_test/tfplan/count-01/plan.json",
+        "meta": {
+          "terraform": {
+            "provider_config": {
+              "region": "us-east-1"
+            }
+          }
+        },
         "attributes": {
           "acl": "private",
           "bucket": "foo-test-1",
@@ -54,6 +68,13 @@
         "id": "aws_s3_bucket.foo[2]",
         "resource_type": "aws_s3_bucket",
         "namespace": "golden_test/tfplan/count-01/plan.json",
+        "meta": {
+          "terraform": {
+            "provider_config": {
+              "region": "us-east-1"
+            }
+          }
+        },
         "attributes": {
           "acl": "private",
           "bucket": "foo-test-2",
@@ -75,6 +96,13 @@
         "id": "aws_s3_bucket.foo[3]",
         "resource_type": "aws_s3_bucket",
         "namespace": "golden_test/tfplan/count-01/plan.json",
+        "meta": {
+          "terraform": {
+            "provider_config": {
+              "region": "us-east-1"
+            }
+          }
+        },
         "attributes": {
           "acl": "private",
           "bucket": "foo-test-3",

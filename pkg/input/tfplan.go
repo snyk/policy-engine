@@ -128,7 +128,8 @@ type tfplan_Configuration struct {
 }
 
 type tfplan_ProviderConfig struct {
-	VersionConstraint string `yaml:"version_constraint"`
+	VersionConstraint string                                     `yaml:"version_constraint"`
+	Expressions       map[string]*tfplan_ConfigurationExpression `yaml:"expressions"`
 }
 
 type tfplan_ConfigurationModule struct {
@@ -406,6 +407,31 @@ func (expr *tfplan_ConfigurationExpression) references(resolve func(string) *str
 	return nil
 }
 
+// If a configuration expression consists only of constant values, we can try to
+// evaluate it.
+func (expr *tfplan_ConfigurationExpression) evalConstantValue() interface{} {
+	if expr.ConstantValue != nil {
+		return expr.ConstantValue.ConstantValue
+	} else if expr.References != nil {
+		return nil
+	} else if expr.Array != nil {
+		arr := make([]interface{}, len(expr.Array))
+		for i, e := range expr.Array {
+			arr[i] = e.evalConstantValue()
+		}
+		return arr
+	} else if expr.Object != nil {
+		obj := make(map[string]interface{}, len(expr.Object))
+		for k, e := range expr.Object {
+			if cv := e.evalConstantValue(); cv != nil {
+				obj[k] = cv
+			}
+		}
+		return obj
+	}
+	return nil
+}
+
 // Main entry point to convert this to an input state.
 func (plan *tfplan_Plan) resources(resourceNamespace string) []models.ResourceState {
 	// Calculate outputs
@@ -421,7 +447,6 @@ func (plan *tfplan_Plan) resources(resourceNamespace string) []models.ResourceSt
 	) {
 		id := pvr.Address
 		attributes := map[string]interface{}{}
-		meta := map[string]interface{}{}
 
 		// Copy attributes from planned values.
 		for k, attr := range pvr.Values {
@@ -484,14 +509,27 @@ func (plan *tfplan_Plan) resources(resourceNamespace string) []models.ResourceSt
 			})
 		}
 
+		terraform := map[string]interface{}{}
 		if cr != nil {
 			if config, ok := plan.Configuration.ProviderConfig[cr.ProviderConfigKey]; ok {
 				if config.VersionConstraint != "" {
-					meta["terraform"] = map[string]interface{}{
-						"provider_version_constraint": config.VersionConstraint,
+					terraform["provider_version_constraint"] = config.VersionConstraint
+				}
+
+				conf := map[string]interface{}{}
+				for k, ec := range config.Expressions {
+					if ev := ec.evalConstantValue(); ev != nil {
+						conf[k] = ev
 					}
 				}
+				if len(conf) > 0 {
+					terraform["provider_config"] = conf
+				}
 			}
+		}
+		meta := map[string]interface{}{}
+		if len(terraform) > 0 {
+			meta = map[string]interface{}{"terraform": terraform}
 		}
 
 		var resourceType string

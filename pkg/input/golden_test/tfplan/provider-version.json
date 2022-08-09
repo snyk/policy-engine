@@ -14,6 +14,9 @@
         "namespace": "golden_test/tfplan/provider-version/plan.json",
         "meta": {
           "terraform": {
+            "provider_config": {
+              "region": "us-east-1"
+            },
             "provider_version_constraint": "~\u003e 4.0.0"
           }
         },
@@ -36,6 +39,9 @@
         "namespace": "golden_test/tfplan/provider-version/plan.json",
         "meta": {
           "terraform": {
+            "provider_config": {
+              "region": "us-east-1"
+            },
             "provider_version_constraint": "~\u003e 4.0.0"
           }
         },
@@ -51,6 +57,9 @@
         "namespace": "golden_test/tfplan/provider-version/plan.json",
         "meta": {
           "terraform": {
+            "provider_config": {
+              "region": "us-west-1"
+            },
             "provider_version_constraint": "~\u003e 4.0.0"
           }
         },
@@ -68,6 +77,9 @@
         "namespace": "golden_test/tfplan/provider-version/plan.json",
         "meta": {
           "terraform": {
+            "provider_config": {
+              "region": "us-west-1"
+            },
             "provider_version_constraint": "~\u003e 4.0.0"
           }
         },
