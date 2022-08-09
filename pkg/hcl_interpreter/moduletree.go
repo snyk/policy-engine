@@ -4,7 +4,6 @@ package hcl_interpreter
 
 import (
 	"fmt"
-	"os"
 	"path/filepath"
 	"strings"
 
@@ -291,7 +290,6 @@ func walkModule(v Visitor, moduleName ModuleName, module *configs.Module, variab
 
 	for providerName, providerConf := range module.ProviderConfigs {
 		if body, ok := providerConf.Config.(*hclsyntax.Body); ok {
-			fmt.Fprintf(os.Stderr, "Adding provider config for %s\n", providerName)
 			providerConfName := name.AddKey("provider").AddKey(providerNameToKey(providerName))
 			walkBlock(v, providerConfName, body)
 		}
@@ -344,11 +342,9 @@ func walkResource(
 }
 
 func walkBlock(v Visitor, name FullName, body *hclsyntax.Body) {
-	fmt.Fprintf(os.Stderr, "Walking block %s\n", name.ToString())
 	v.VisitBlock(name)
 
 	for _, attribute := range body.Attributes {
-		fmt.Fprintf(os.Stderr, "Walking expr %s.%s\n", name.ToString(), attribute.Name)
 		v.VisitExpr(name.AddKey(attribute.Name), attribute.Expr)
 	}
 
