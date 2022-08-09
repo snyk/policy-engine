@@ -360,7 +360,7 @@ func (v *Evaluation) Resources() []models.ResourceState {
 			[]interface{}{"provider", resource.ProviderKey},
 		)
 		fmt.Fprintf(os.Stderr, "ProviderName for %s: %s\n", resourceKey, PrettyValTree(providerConf))
-		if providerConf != nil {
+		if obj, ok := providerConf.(map[string]interface{}); ok && len(obj) > 0 {
 			metaTree = MergeValTree(
 				metaTree,
 				SingletonValTree(

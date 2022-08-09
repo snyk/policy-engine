@@ -12,6 +12,13 @@
         "id": "aws_s3_bucket.not_working_1",
         "resource_type": "aws_s3_bucket",
         "namespace": "golden_test/tf/count-ref/main.tf",
+        "meta": {
+          "terraform": {
+            "provider_config": {
+              "region": "eu-west-1"
+            }
+          }
+        },
         "attributes": {
           "acl": "private",
           "bucket": "not-working-1-random-string",
@@ -24,6 +31,13 @@
         "id": "aws_s3_bucket_public_access_block.not_working_1_block",
         "resource_type": "aws_s3_bucket_public_access_block",
         "namespace": "golden_test/tf/count-ref/main.tf",
+        "meta": {
+          "terraform": {
+            "provider_config": {
+              "region": "eu-west-1"
+            }
+          }
+        },
         "attributes": {
           "block_public_acls": true,
           "block_public_policy": true,

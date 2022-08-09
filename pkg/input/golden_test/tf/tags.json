@@ -12,6 +12,13 @@
         "id": "aws_autoscaling_group.example",
         "resource_type": "aws_autoscaling_group",
         "namespace": "golden_test/tf/tags/main.tf",
+        "meta": {
+          "terraform": {
+            "provider_config": {
+              "region": "us-west-2"
+            }
+          }
+        },
         "attributes": {
           "availability_zones": [
             "us-east-1a"
@@ -41,6 +48,13 @@
         "id": "aws_launch_template.example",
         "resource_type": "aws_launch_template",
         "namespace": "golden_test/tf/tags/main.tf",
+        "meta": {
+          "terraform": {
+            "provider_config": {
+              "region": "us-west-2"
+            }
+          }
+        },
         "attributes": {
           "image_id": "ami-1a2b3c",
           "instance_type": "t2.micro",
@@ -54,6 +68,13 @@
         "id": "aws_s3_bucket.example",
         "resource_type": "aws_s3_bucket",
         "namespace": "golden_test/tf/tags/main.tf",
+        "meta": {
+          "terraform": {
+            "provider_config": {
+              "region": "us-west-2"
+            }
+          }
+        },
         "attributes": {
           "bucket_prefix": "example",
           "provider": null,

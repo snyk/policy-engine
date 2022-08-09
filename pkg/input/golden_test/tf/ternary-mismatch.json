@@ -12,6 +12,13 @@
         "id": "aws_s3_bucket.bar",
         "resource_type": "aws_s3_bucket",
         "namespace": "golden_test/tf/ternary-mismatch/main.tf",
+        "meta": {
+          "terraform": {
+            "provider_config": {
+              "region": "us-east-1"
+            }
+          }
+        },
         "attributes": {
           "bucket": null
         }
@@ -20,6 +27,13 @@
         "id": "aws_s3_bucket.foo",
         "resource_type": "aws_s3_bucket",
         "namespace": "golden_test/tf/ternary-mismatch/main.tf",
+        "meta": {
+          "terraform": {
+            "provider_config": {
+              "region": "us-east-1"
+            }
+          }
+        },
         "attributes": {
           "bucket": null
         }

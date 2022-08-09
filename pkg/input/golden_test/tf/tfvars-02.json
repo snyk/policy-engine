@@ -12,6 +12,13 @@
         "id": "aws_s3_bucket.bucket",
         "resource_type": "aws_s3_bucket",
         "namespace": "golden_test/tf/tfvars-02",
+        "meta": {
+          "terraform": {
+            "provider_config": {
+              "region": "us-east-1"
+            }
+          }
+        },
         "attributes": {
           "tags": {
             "booly": "yes",
