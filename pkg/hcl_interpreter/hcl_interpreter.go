@@ -347,9 +347,10 @@ func (v *Evaluation) Resources() []models.ResourceState {
 		}
 
 		metaTree := EmptyObjectValTree()
+		providerConfName := ProviderConfigName(resourceName.Module, resource.ProviderName)
 		providerConf := LookupValTree(
 			v.Modules[module],
-			[]interface{}{"provider", resource.ProviderKey},
+			providerConfName.Local,
 		)
 		if obj, ok := providerConf.(map[string]interface{}); ok && len(obj) > 0 {
 			metaTree = MergeValTree(

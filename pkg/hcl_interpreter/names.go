@@ -71,6 +71,11 @@ func EmptyFullName(module ModuleName) FullName {
 	return FullName{module, nil}
 }
 
+func ProviderConfigName(module ModuleName, providerName string) FullName {
+	escaped := strings.ReplaceAll(strings.ReplaceAll(providerName, "_", "__"), ".", "_")
+	return FullName{module, []interface{}{"provider", escaped}}
+}
+
 func takeModulePrefix(parts []Fragment) (*string, []Fragment) {
 	if len(parts) >= 2 {
 		if p1, ok := parts[0].(string); ok && p1 == "module" {

@@ -28,7 +28,6 @@ type ResourceMeta struct {
 	Type                      string
 	ProviderType              string
 	ProviderName              string
-	ProviderKey               string
 	ProviderVersionConstraint string
 	Count                     bool
 	Location                  hcl.Range
@@ -252,10 +251,6 @@ func walkModuleTree(v Visitor, moduleName ModuleName, mtree *ModuleTree) {
 	}
 }
 
-func providerNameToKey(providerName string) string {
-	return strings.ReplaceAll(strings.ReplaceAll(providerName, "_", "__"), ".", "_")
-}
-
 func walkModule(v Visitor, moduleName ModuleName, module *configs.Module, variableValues map[string]cty.Value) {
 	name := EmptyFullName(moduleName)
 
@@ -290,8 +285,7 @@ func walkModule(v Visitor, moduleName ModuleName, module *configs.Module, variab
 
 	for providerName, providerConf := range module.ProviderConfigs {
 		if body, ok := providerConf.Config.(*hclsyntax.Body); ok {
-			providerConfName := name.AddKey("provider").AddKey(providerNameToKey(providerName))
-			walkBlock(v, providerConfName, body)
+			walkBlock(v, ProviderConfigName(moduleName, providerName), body)
 		}
 	}
 }
@@ -310,9 +304,10 @@ func walkResource(
 	name = name.AddKey(resource.Type).AddKey(resource.Name)
 	haveCount := resource.Count != nil
 
+	providerName := resource.ProviderConfigAddr().StringCompact()
 	resourceMeta := &ResourceMeta{
-		Data: isDataResource,
-
+		Data:         isDataResource,
+		ProviderName: providerName,
 		ProviderType: resource.Provider.Type,
 		Type:         resource.Type,
 		Location:     resource.DeclRange,
@@ -323,9 +318,6 @@ func walkResource(
 	if providerReqs, ok := module.ProviderRequirements.RequiredProviders[resource.ProviderConfigAddr().LocalName]; ok {
 		resourceMeta.ProviderVersionConstraint = providerReqs.Requirement.Required.String()
 	}
-
-	resourceMeta.ProviderName = resource.ProviderConfigAddr().StringCompact()
-	resourceMeta.ProviderKey = providerNameToKey(resourceMeta.ProviderName)
 
 	v.EnterResource(name, resourceMeta)
 
