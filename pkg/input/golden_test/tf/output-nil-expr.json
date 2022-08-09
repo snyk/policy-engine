@@ -1,0 +1,13 @@
+{
+  "format": "",
+  "format_version": "",
+  "input_type": "tf_hcl",
+  "environment_provider": "iac",
+  "meta": {
+    "filepath": "golden_test/tf/output-nil-expr/main.tf"
+  },
+  "resources": {},
+  "scope": {
+    "filepath": "golden_test/tf/output-nil-expr/main.tf"
+  }
+}

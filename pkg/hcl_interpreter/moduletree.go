@@ -279,7 +279,9 @@ func walkModule(v Visitor, moduleName ModuleName, module *configs.Module, variab
 	}
 
 	for _, output := range module.Outputs {
-		v.VisitExpr(name.AddKey("output").AddKey(output.Name), output.Expr)
+		if output.Expr != nil {
+			v.VisitExpr(name.AddKey("output").AddKey(output.Name), output.Expr)
+		}
 	}
 }
 
