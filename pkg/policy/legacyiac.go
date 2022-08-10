@@ -31,7 +31,8 @@ func (p *LegacyIaCPolicy) Eval(
 	input, err := legacyIaCInput(options.Input)
 	if err != nil {
 		logger.Error(ctx, "Failed to transform input")
-		return nil, fmt.Errorf("%w: %v", FailedToEvaluateRule, err)
+		err = fmt.Errorf("%w: %v", FailedToEvaluateRule, err)
+		return p.errorOutput(err)
 	}
 	resourceNamespace := ""
 	if filepath, ok := options.Input.Meta["filepath"].(string); ok {
@@ -43,29 +44,35 @@ func (p *LegacyIaCPolicy) Eval(
 		options.RegoOptions,
 		rego.Query(p.judgementRule.query()),
 		rego.Input(input.Raw()),
+		rego.StrictBuiltinErrors(false),
 	)
 	builtins := NewBuiltins(options.Input, options.ResourcesResolver)
 	opts = append(opts, builtins.Rego()...)
 	query, err := rego.New(opts...).PrepareForEval(ctx)
 	if err != nil {
 		logger.Error(ctx, "Failed to prepare for eval")
-		return nil, err
+		return p.errorOutput(err)
 	}
 	resultSet, err := query.Eval(ctx)
 	if err != nil {
 		logger.Error(ctx, "Failed to evaluate query")
-		return nil, err
+		return p.errorOutput(err)
 	}
 	ir := legacyIaCResults{}
 	if err := unmarshalResultSet(resultSet, &ir); err != nil {
 		logger.Error(ctx, "Failed to unmarshal result set")
-		return []models.RuleResults{
-			{
-				Errors: []string{err.Error()},
-			},
-		}, err
+		return p.errorOutput(err)
 	}
 	return ir.toRuleResults(p.pkg, input, resourceNamespace, options.Input.InputType), nil
+}
+
+func (p *LegacyIaCPolicy) errorOutput(err error) ([]models.RuleResults, error) {
+	return []models.RuleResults{
+		{
+			Package_: p.pkg,
+			Errors:   []string{err.Error()},
+		},
+	}, err
 }
 
 type legacyIaCResults []*legacyIaCResult
