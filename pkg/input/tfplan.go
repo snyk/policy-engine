@@ -64,8 +64,8 @@ func (l *tfPlan) LoadedFiles() []string {
 	return []string{l.path}
 }
 
-func (l *tfPlan) Location(attributePath []interface{}) (LocationStack, error) {
-	return nil, nil
+func (l *tfPlan) Location(_ []interface{}) (LocationStack, error) {
+	return []Location{{Path: l.path}}, nil
 }
 
 func (l *tfPlan) ToState() models.State {
