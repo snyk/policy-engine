@@ -30,11 +30,11 @@ func TestParseMetadataReferences(t *testing.T) {
 	meta2 := Metadata{}
 	err = json.Unmarshal([]byte(`{
 	"references": {
-    	"general": [
-    		{
-        		"title": "Some doc",
-        		"url": "https://example.com"
-    		}
+		"general": [
+			{
+				"title": "Some doc",
+				"url": "https://example.com"
+			}
 		]
 	}
 }`), &meta2)
@@ -47,6 +47,47 @@ func TestParseMetadataReferences(t *testing.T) {
 					Title: "Some doc",
 					URL:   "https://example.com",
 				},
+			},
+		},
+	)
+}
+
+// TestReferencesFor tests that we obtain only the expected references.
+func TestReferencesFor(t *testing.T) {
+	meta1 := Metadata{}
+	err := json.Unmarshal([]byte(`{
+	"references": {
+		"general": [
+			{
+				"title": "Some doc",
+				"url": "https://example.com"
+			}
+		],
+		"terraform": [
+			{
+				"title": "Resource: aws_s3_bucket",
+				"url": "https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/s3_bucket"
+			}
+		],
+		"cloudformation": [
+			{
+				"title": "AWS::S3::Bucket",
+				"url": "https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-s3-bucket.html"
+			}
+		]
+	}
+}`), &meta1)
+	assert.NoError(t, err)
+	assert.Equal(t,
+		meta1.ReferencesFor("cfn"),
+		[]MetadataReference{
+			{
+				Title: "Some doc",
+				URL:   "https://example.com",
+			},
+			{
+				Title: "AWS::S3::Bucket",
+				URL:   "https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-s3-bucket.html",
 			},
 		},
 	)
