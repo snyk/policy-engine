@@ -173,12 +173,10 @@ components:
           type: string
           description: The rule description
         references:
-          description: Useful links relating to this rule results, grouped by format
-          type: object
-          additionalProperties:
-            type: array
-            items:
-              $ref: '#/components/schemas/RuleResultsReference'
+          description: Useful links relating to this rule results
+          type: array
+          items:
+            $ref: '#/components/schemas/RuleResultsReference'
         category:
           description: The category of the policy
           type: string

@@ -151,6 +151,23 @@ type MetadataReference struct {
 	Title string `json:"title,omitempty"`
 }
 
+func (m Metadata) ReferencesFor(inputType string) []MetadataReference {
+	references := m.parseMetadataReferences()
+	output := []MetadataReference{}
+
+	if refs, ok := references["general"]; ok {
+		output = append(output, refs...)
+	}
+
+	if key, ok := remediationKeys[inputType]; ok {
+		if refs, ok := references[key]; ok {
+			output = append(output, refs...)
+		}
+	}
+
+	return output
+}
+
 func (m Metadata) parseMetadataReferences() map[string][]MetadataReference {
 	output := map[string][]MetadataReference{}
 	switch references := m.References.(type) {
@@ -200,7 +217,7 @@ func (m Metadata) parseMetadataReferences() map[string][]MetadataReference {
 }
 
 // Propagate static metadata to rule results.
-func (m Metadata) copyToRuleResults(output *models.RuleResults) {
+func (m Metadata) copyToRuleResults(inputType string, output *models.RuleResults) {
 	output.Id = m.ID
 	output.Title = m.Title
 	output.Description = m.Description
@@ -210,16 +227,12 @@ func (m Metadata) copyToRuleResults(output *models.RuleResults) {
 	output.ServiceGroup = m.ServiceGroup
 	output.Controls = m.Controls
 
-	references := m.parseMetadataReferences()
-	output.References = make(map[string][]models.RuleResultsReference, len(references))
-	for k, refs := range references {
-		output.References[k] = make([]models.RuleResultsReference, len(refs))
-		for i, ref := range refs {
-			output.References[k][i] = models.RuleResultsReference{
-				Url:   ref.URL,
-				Title: ref.Title,
-			}
-		}
+	output.References = []models.RuleResultsReference{}
+	for _, ref := range m.ReferencesFor(inputType) {
+		output.References = append(output.References, models.RuleResultsReference{
+			Url:   ref.URL,
+			Title: ref.Title,
+		})
 	}
 }
 

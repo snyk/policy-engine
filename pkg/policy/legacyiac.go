@@ -91,10 +91,8 @@ func (r legacyIaCResults) toRuleResults(pkg string, input legacyiac.Input, resou
 				Id:          id,
 				Title:       ir.Title,
 				Description: ir.Impact,
-				References: map[string][]models.RuleResultsReference{
-					"general": refs,
-				},
-				Package_: pkg,
+				References:  refs,
+				Package_:    pkg,
 			}
 		}
 		ruleResults.Results = append(ruleResults.Results, *ir.toRuleResult(input, resourceNamespace, inputType))

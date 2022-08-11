@@ -17,6 +17,12 @@
             "title": "Some blog post",
             "url": "https://example.com/bucket-naming-conventions"
           }
+        ],
+        "terraform": [
+          {
+            "title": "Resource: aws_s3_bucket",
+            "url": "https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/s3_bucket"
+          }
         ]
     },
     "category": "Best Practices",
