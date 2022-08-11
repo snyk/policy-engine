@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"strings"
 
 	"github.com/open-policy-agent/opa/rego"
 	"github.com/snyk/policy-engine/pkg/input"
@@ -83,12 +82,19 @@ func (r legacyIaCResults) toRuleResults(pkg string, input legacyiac.Input, resou
 		id := ir.PublicID
 		ruleResults, ok := resultsByRuleID[id]
 		if !ok {
+			refs := make([]models.RuleResultsReference, len(ir.References))
+			for i, r := range ir.References {
+				refs[i] = models.RuleResultsReference{Url: r}
+			}
+
 			ruleResults = models.RuleResults{
 				Id:          id,
 				Title:       ir.Title,
 				Description: ir.Impact,
-				References:  strings.Join(ir.References, "\n"), // TODO: How do we want to transform these?
-				Package_:    pkg,
+				References: map[string][]models.RuleResultsReference{
+					"general": refs,
+				},
+				Package_: pkg,
 			}
 		}
 		ruleResults.Results = append(ruleResults.Results, *ir.toRuleResult(input, resourceNamespace, inputType))

@@ -11,7 +11,14 @@
       "cloudformation": "1. Find the corresponding AWS::S3::Bucket resource\n2. ...",
       "terraform": "1. Find the corresponding aws_s3_bucket resource\n2. ..."
     },
-    "references": "[Some blog post](https://example.com/bucket-naming-conventions)",
+    "references": {
+        "general": [
+          {
+            "title": "Some blog post",
+            "url": "https://example.com/bucket-naming-conventions"
+          }
+        ]
+    },
     "category": "Best Practices",
     "labels": [
       "Naming Conventions",

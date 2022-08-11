@@ -18,8 +18,8 @@ type RuleResults struct {
 	Platform []string `json:"platform,omitempty"`
 	// The rule description
 	Description string `json:"description,omitempty"`
-	// A markdown formatted string containing useful links
-	References string `json:"references,omitempty"`
+	// Useful links relating to this rule results, grouped by format
+	References map[string][]RuleResultsReference `json:"references,omitempty"`
 	// The category of the policy
 	Category string `json:"category,omitempty"`
 	// An array of labels (value-less tags) associated with this policy

@@ -173,8 +173,12 @@ components:
           type: string
           description: The rule description
         references:
-          type: string
-          description: A markdown formatted string containing useful links
+          description: Useful links relating to this rule results, grouped by format
+          type: object
+          additionalProperties:
+            type: array
+            items:
+              $ref: '#/components/schemas/RuleResultsReference'
         category:
           description: The category of the policy
           type: string
@@ -315,3 +319,14 @@ components:
               - type: integer
         location:
           $ref: '#/components/schemas/SourceLocation'
+    RuleResultsReference:
+      type: object
+      properties:
+        url:
+          description: Reference to link to
+          type: string
+        title:
+          description: Title for the link
+          type: string
+      required:
+      - url
