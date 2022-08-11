@@ -509,6 +509,7 @@ func (plan *tfplan_Plan) resources(resourceNamespace string) []models.ResourceSt
 			})
 		}
 
+		meta := map[string]interface{}{}
 		terraform := map[string]interface{}{}
 		if cr != nil {
 			if config, ok := plan.Configuration.ProviderConfig[cr.ProviderConfigKey]; ok {
@@ -525,11 +526,14 @@ func (plan *tfplan_Plan) resources(resourceNamespace string) []models.ResourceSt
 				if len(conf) > 0 {
 					terraform["provider_config"] = conf
 				}
+				if region, ok := conf["region"].(string); ok {
+					// Add meta.region if present
+					meta["region"] = region
+				}
 			}
 		}
-		meta := map[string]interface{}{}
 		if len(terraform) > 0 {
-			meta = map[string]interface{}{"terraform": terraform}
+			meta["terraform"] = terraform
 		}
 
 		var resourceType string

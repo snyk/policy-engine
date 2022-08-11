@@ -13,6 +13,7 @@
         "resource_type": "aws_s3_bucket",
         "namespace": "golden_test/tf/null-count/main.tf",
         "meta": {
+          "region": "us-east-1",
           "terraform": {
             "provider_config": {
               "region": "us-east-1"

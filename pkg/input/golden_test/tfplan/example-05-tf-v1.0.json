@@ -13,6 +13,7 @@
         "resource_type": "aws_cloudwatch_log_group",
         "namespace": "golden_test/tfplan/example-05-tf-v1.0/plan.json",
         "meta": {
+          "region": "us-east-1",
           "terraform": {
             "provider_config": {
               "region": "us-east-1"
@@ -41,6 +42,7 @@
         "resource_type": "aws_kms_key",
         "namespace": "golden_test/tfplan/example-05-tf-v1.0/plan.json",
         "meta": {
+          "region": "us-east-1",
           "terraform": {
             "provider_config": {
               "region": "us-east-1"

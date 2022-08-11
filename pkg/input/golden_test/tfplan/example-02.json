@@ -13,6 +13,7 @@
         "resource_type": "aws_iam_policy",
         "namespace": "golden_test/tfplan/example-02/plan.json",
         "meta": {
+          "region": "us-west-2",
           "terraform": {
             "provider_config": {
               "region": "us-west-2"
@@ -34,6 +35,7 @@
         "resource_type": "aws_s3_bucket",
         "namespace": "golden_test/tfplan/example-02/plan.json",
         "meta": {
+          "region": "us-west-2",
           "terraform": {
             "provider_config": {
               "region": "us-west-2"
@@ -63,6 +65,7 @@
         "resource_type": "data.aws_iam_policy_document",
         "namespace": "golden_test/tfplan/example-02/plan.json",
         "meta": {
+          "region": "us-west-2",
           "terraform": {
             "provider_config": {
               "region": "us-west-2"

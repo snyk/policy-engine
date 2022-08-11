@@ -13,6 +13,7 @@
         "resource_type": "aws_autoscaling_group",
         "namespace": "golden_test/tf/tags/main.tf",
         "meta": {
+          "region": "us-west-2",
           "terraform": {
             "provider_config": {
               "region": "us-west-2"
@@ -49,6 +50,7 @@
         "resource_type": "aws_launch_template",
         "namespace": "golden_test/tf/tags/main.tf",
         "meta": {
+          "region": "us-west-2",
           "terraform": {
             "provider_config": {
               "region": "us-west-2"
@@ -69,6 +71,7 @@
         "resource_type": "aws_s3_bucket",
         "namespace": "golden_test/tf/tags/main.tf",
         "meta": {
+          "region": "us-west-2",
           "terraform": {
             "provider_config": {
               "region": "us-west-2"

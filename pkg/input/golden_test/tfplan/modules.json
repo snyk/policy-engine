@@ -13,6 +13,7 @@
         "resource_type": "aws_security_group",
         "namespace": "golden_test/tfplan/modules/plan.json",
         "meta": {
+          "region": "us-east-2",
           "terraform": {
             "provider_config": {
               "region": "us-east-2"
@@ -61,6 +62,7 @@
         "resource_type": "aws_vpc",
         "namespace": "golden_test/tfplan/modules/plan.json",
         "meta": {
+          "region": "us-east-2",
           "terraform": {
             "provider_config": {
               "region": "us-east-2"

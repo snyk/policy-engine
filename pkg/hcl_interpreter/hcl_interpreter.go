@@ -379,6 +379,15 @@ func (v *Evaluation) Resources() []models.ResourceState {
 			}
 		}
 
+		// Add meta.region if present
+		if tfmeta, ok := meta["terraform"].(map[string]interface{}); ok {
+			if pc, ok := tfmeta["provider_config"].(map[string]interface{}); ok {
+				if region, ok := pc["region"].(string); ok {
+					meta["region"] = region
+				}
+			}
+		}
+
 		// TODO: Support tags again: PopulateTags(input[resourceKey])
 		resources = append(resources, models.ResourceState{
 			Id:           resourceKey,
