@@ -1,0 +1,31 @@
+{
+  "format": "",
+  "format_version": "",
+  "input_type": "tf_hcl",
+  "environment_provider": "iac",
+  "meta": {
+    "filepath": "golden_test/tf/sensitive-tfcscm-174/main.tf"
+  },
+  "resources": {
+    "circleci_environment_variable": {
+      "circleci_environment_variable.admin_website_dev": {
+        "id": "circleci_environment_variable.admin_website_dev",
+        "resource_type": "circleci_environment_variable",
+        "namespace": "golden_test/tf/sensitive-tfcscm-174/main.tf",
+        "meta": {
+          "terraform": {
+            "provider_version_constraint": "0.5.1"
+          }
+        },
+        "attributes": {
+          "name": "ADMIN_SERVICE_TOKEN_DEV",
+          "project": "project1",
+          "value": "test"
+        }
+      }
+    }
+  },
+  "scope": {
+    "filepath": "golden_test/tf/sensitive-tfcscm-174/main.tf"
+  }
+}

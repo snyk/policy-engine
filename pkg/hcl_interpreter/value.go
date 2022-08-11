@@ -37,6 +37,11 @@ func ValueToInterface(val cty.Value) (interface{}, []error) {
 		return nil, nil
 	}
 
+	// Work on an unmarked copy if marked to prevent panics.
+	if val.IsMarked() {
+		val, _ = val.Unmark()
+	}
+
 	if val.Type() == cty.Bool {
 		return val.True(), nil
 	} else if val.Type() == cty.Number {
