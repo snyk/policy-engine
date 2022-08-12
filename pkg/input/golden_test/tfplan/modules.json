@@ -12,6 +12,14 @@
         "id": "aws_security_group.parent",
         "resource_type": "aws_security_group",
         "namespace": "golden_test/tfplan/modules/plan.json",
+        "meta": {
+          "region": "us-east-2",
+          "terraform": {
+            "provider_config": {
+              "region": "us-east-2"
+            }
+          }
+        },
         "attributes": {
           "description": "Managed by Terraform",
           "name_prefix": null,
@@ -53,6 +61,14 @@
         "id": "aws_vpc.parent",
         "resource_type": "aws_vpc",
         "namespace": "golden_test/tfplan/modules/plan.json",
+        "meta": {
+          "region": "us-east-2",
+          "terraform": {
+            "provider_config": {
+              "region": "us-east-2"
+            }
+          }
+        },
         "attributes": {
           "assign_generated_ipv6_cidr_block": false,
           "cidr_block": "10.0.0.0/16",

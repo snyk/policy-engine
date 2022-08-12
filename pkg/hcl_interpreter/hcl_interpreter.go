@@ -346,10 +346,45 @@ func (v *Evaluation) Resources() []models.ResourceState {
 			attrs = obj
 		}
 
-		meta := map[string]interface{}{}
+		metaTree := EmptyObjectValTree()
+		providerConfName := ProviderConfigName(resourceName.Module, resource.ProviderName)
+		providerConf := LookupValTree(
+			v.Modules[module],
+			providerConfName.Local,
+		)
+		if obj, ok := providerConf.(map[string]interface{}); ok && len(obj) > 0 {
+			metaTree = MergeValTree(
+				metaTree,
+				SingletonValTree(
+					[]interface{}{"terraform", "provider_config"},
+					ValTreeToValue(providerConf),
+				),
+			)
+		}
+
 		if resource.ProviderVersionConstraint != "" {
-			meta["terraform"] = map[string]interface{}{
-				"provider_version_constraint": resource.ProviderVersionConstraint,
+			metaTree = MergeValTree(
+				metaTree,
+				SingletonValTree(
+					[]interface{}{"terraform", "provider_version_constraint"},
+					cty.StringVal(resource.ProviderVersionConstraint),
+				),
+			)
+		}
+
+		meta := map[string]interface{}{}
+		if metaVal, errs := ValueToInterface(ValTreeToValue(metaTree)); len(errs) == 0 {
+			if metaObj, ok := metaVal.(map[string]interface{}); ok {
+				meta = metaObj
+			}
+		}
+
+		// Add meta.region if present
+		if tfmeta, ok := meta["terraform"].(map[string]interface{}); ok {
+			if pc, ok := tfmeta["provider_config"].(map[string]interface{}); ok {
+				if region, ok := pc["region"].(string); ok {
+					meta["region"] = region
+				}
 			}
 		}
 

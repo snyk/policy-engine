@@ -12,6 +12,14 @@
         "id": "aws_cloudwatch_log_group.fargate-logs",
         "resource_type": "aws_cloudwatch_log_group",
         "namespace": "golden_test/tfplan/example-05-tf-v0.15/plan.json",
+        "meta": {
+          "region": "us-east-1",
+          "terraform": {
+            "provider_config": {
+              "region": "us-east-1"
+            }
+          }
+        },
         "attributes": {
           "kms_key_id": "aws_kms_key.cloudwatch",
           "name": "/ecs/fargate-task-definition",
@@ -33,6 +41,14 @@
         "id": "aws_kms_key.cloudwatch",
         "resource_type": "aws_kms_key",
         "namespace": "golden_test/tfplan/example-05-tf-v0.15/plan.json",
+        "meta": {
+          "region": "us-east-1",
+          "terraform": {
+            "provider_config": {
+              "region": "us-east-1"
+            }
+          }
+        },
         "attributes": {
           "bypass_policy_lockout_safety_check": false,
           "customer_master_key_spec": "SYMMETRIC_DEFAULT",

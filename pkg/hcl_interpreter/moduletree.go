@@ -26,7 +26,8 @@ type ModuleMeta struct {
 type ResourceMeta struct {
 	Data                      bool
 	Type                      string
-	Provider                  string
+	ProviderType              string
+	ProviderName              string
 	ProviderVersionConstraint string
 	Count                     bool
 	Location                  hcl.Range
@@ -283,6 +284,12 @@ func walkModule(v Visitor, moduleName ModuleName, module *configs.Module, variab
 			v.VisitExpr(name.AddKey("output").AddKey(output.Name), output.Expr)
 		}
 	}
+
+	for providerName, providerConf := range module.ProviderConfigs {
+		if body, ok := providerConf.Config.(*hclsyntax.Body); ok {
+			walkBlock(v, ProviderConfigName(moduleName, providerName), body)
+		}
+	}
 }
 
 func walkResource(
@@ -299,17 +306,18 @@ func walkResource(
 	name = name.AddKey(resource.Type).AddKey(resource.Name)
 	haveCount := resource.Count != nil
 
+	providerName := resource.ProviderConfigAddr().StringCompact()
 	resourceMeta := &ResourceMeta{
-		Data:     isDataResource,
-		Provider: resource.Provider.Type,
-		Type:     resource.Type,
-		Location: resource.DeclRange,
-		Count:    haveCount,
-		Body:     resource.Config,
+		Data:         isDataResource,
+		ProviderName: providerName,
+		ProviderType: resource.Provider.Type,
+		Type:         resource.Type,
+		Location:     resource.DeclRange,
+		Count:        haveCount,
+		Body:         resource.Config,
 	}
 
-	providerName := resource.ProviderConfigAddr().LocalName
-	if providerReqs, ok := module.ProviderRequirements.RequiredProviders[providerName]; ok {
+	if providerReqs, ok := module.ProviderRequirements.RequiredProviders[resource.ProviderConfigAddr().LocalName]; ok {
 		resourceMeta.ProviderVersionConstraint = providerReqs.Requirement.Required.String()
 	}
 

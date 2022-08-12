@@ -13,7 +13,11 @@
         "resource_type": "aws_kms_key",
         "namespace": "golden_test/tf/provider-version/main.tf",
         "meta": {
+          "region": "us-east-1",
           "terraform": {
+            "provider_config": {
+              "region": "us-east-1"
+            },
             "provider_version_constraint": "~\u003e 4.0.0"
           }
         },
@@ -29,7 +33,11 @@
         "resource_type": "aws_s3_bucket",
         "namespace": "golden_test/tf/provider-version/main.tf",
         "meta": {
+          "region": "us-east-1",
           "terraform": {
+            "provider_config": {
+              "region": "us-east-1"
+            },
             "provider_version_constraint": "~\u003e 4.0.0"
           }
         },
@@ -40,7 +48,12 @@
         "resource_type": "aws_s3_bucket",
         "namespace": "golden_test/tf/provider-version/main.tf",
         "meta": {
+          "region": "us-west-1",
           "terraform": {
+            "provider_config": {
+              "alias": "west",
+              "region": "us-west-1"
+            },
             "provider_version_constraint": "~\u003e 4.0.0"
           }
         },
@@ -55,7 +68,12 @@
         "resource_type": "aws_s3_bucket_server_side_encryption_configuration",
         "namespace": "golden_test/tf/provider-version/main.tf",
         "meta": {
+          "region": "us-west-1",
           "terraform": {
+            "provider_config": {
+              "alias": "west",
+              "region": "us-west-1"
+            },
             "provider_version_constraint": "~\u003e 4.0.0"
           }
         },

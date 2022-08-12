@@ -12,6 +12,14 @@
         "id": "aws_network_acl.main",
         "resource_type": "aws_network_acl",
         "namespace": "golden_test/tf/nested-vars-rm5823/main.tf",
+        "meta": {
+          "region": "us-east-1",
+          "terraform": {
+            "provider_config": {
+              "region": "us-east-1"
+            }
+          }
+        },
         "attributes": {
           "egress": [
             {
@@ -40,6 +48,14 @@
         "id": "aws_vpc.main",
         "resource_type": "aws_vpc",
         "namespace": "golden_test/tf/nested-vars-rm5823/main.tf",
+        "meta": {
+          "region": "us-east-1",
+          "terraform": {
+            "provider_config": {
+              "region": "us-east-1"
+            }
+          }
+        },
         "attributes": {
           "cidr_block": "10.0.0.0/24"
         }
