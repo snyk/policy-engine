@@ -1,3 +1,0 @@
-kind: Fixed
-body: fix panic for outputs without expressions
-time: 2022-08-09T20:55:58.633356357+02:00
