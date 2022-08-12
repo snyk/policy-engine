@@ -46,7 +46,7 @@ func (p *MultiResourcePolicy) Eval(
 		output.Errors = append(output.Errors, err.Error())
 		return []models.RuleResults{output}, err
 	}
-	metadata.copyToRuleResults(&output)
+	metadata.copyToRuleResults(options.Input.InputType, &output)
 	opts := append(
 		options.RegoOptions,
 		rego.Query(p.judgementRule.query()),

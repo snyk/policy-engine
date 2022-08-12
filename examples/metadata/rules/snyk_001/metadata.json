@@ -11,7 +11,20 @@
       "cloudformation": "1. Find the corresponding AWS::S3::Bucket resource\n2. ...",
       "terraform": "1. Find the corresponding aws_s3_bucket resource\n2. ..."
     },
-    "references": "[Some blog post](https://example.com/bucket-naming-conventions)",
+    "references": {
+        "general": [
+          {
+            "title": "Some blog post",
+            "url": "https://example.com/bucket-naming-conventions"
+          }
+        ],
+        "terraform": [
+          {
+            "title": "Resource: aws_s3_bucket",
+            "url": "https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/s3_bucket"
+          }
+        ]
+    },
     "category": "Best Practices",
     "labels": [
       "Naming Conventions",

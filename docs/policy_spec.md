@@ -139,7 +139,7 @@ to clarify the intent of each field.
 | `description`   | string | A longer description of the policy                                                                               |
 | `platform`      | array  | The platform describes the CSPs or other technology platform (e.g. Docker) that the rule checks for              |
 | `remediation`   | object | [Remediation steps](#remediation) for the issue identified by the policy                                         |
-| `references`    | string | Links to additional information about the issue identified by the policy                                         |
+| `references`    | object | Links to additional information about the issue identified by the policy                                         |
 | `category`      | string | The category of the policy                                                                                       |
 | `labels`        | array  | An array of labels (value-less tags) associated with this policy.                                                |
 | `service_group` | string | The service group of the primary resource associated with this policy (e.g. "EBS", "EC2")                        |
@@ -159,7 +159,20 @@ metadata := {
       "cloudformation": "1. Find the corresponding AWS::S3::Bucket resource\n2. ...",
       "terraform": "1. Find the corresponding aws_s3_bucket resource\n2. ..."
     },
-    "references": "[Some blog post](https://example.com/bucket-naming-conventions)",
+    "references": {
+        "general": [
+          {
+            "title": "Some blog post",
+            "url": "https://example.com/bucket-naming-conventions"
+          }
+        ],
+        "terraform": [
+          {
+            "title": "Resource aws_s3_bucket",
+            "url": "https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/s3_bucket"
+          }
+        ]
+    },
     "category": "Best Practices",
     "labels": [
         "Naming Conventions",

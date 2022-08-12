@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"regexp"
 	"strings"
 
 	"github.com/open-policy-agent/opa/ast"
@@ -116,12 +117,20 @@ var remediationKeys = map[string]string{
 }
 
 type Metadata struct {
-	ID           string                         `json:"id"`
-	Title        string                         `json:"title"`
-	Description  string                         `json:"description"`
-	Platform     []string                       `json:"platform"`
-	Remediation  map[string]string              `json:"remediation"`
-	References   string                         `json:"references"`
+	ID          string            `json:"id"`
+	Title       string            `json:"title"`
+	Description string            `json:"description"`
+	Platform    []string          `json:"platform"`
+	Remediation map[string]string `json:"remediation"`
+	// TODO: The actual type of References should be:
+	//
+	//     map[string][]MetadataReference
+	//
+	// However, we already have some old rules using a markdown format.
+	// Changing the type here causes those rules to fail to load, so we have
+	// some flexible parsing here (parseMetadataReferences) until all the rules
+	// using the markdown format are gone.
+	References   interface{}                    `json:"references"`
 	Category     string                         `json:"category"`
 	Labels       []string                       `json:"labels,omitempty"`
 	ServiceGroup string                         `json:"service_group"`
@@ -137,17 +146,94 @@ func (m Metadata) RemediationFor(inputType string) string {
 	return m.Remediation[key]
 }
 
+type MetadataReference struct {
+	URL   string `json:"url"`
+	Title string `json:"title,omitempty"`
+}
+
+func (m Metadata) ReferencesFor(inputType string) []MetadataReference {
+	references := m.parseMetadataReferences()
+	output := []MetadataReference{}
+
+	if refs, ok := references["general"]; ok {
+		output = append(output, refs...)
+	}
+
+	if key, ok := remediationKeys[inputType]; ok {
+		if refs, ok := references[key]; ok {
+			output = append(output, refs...)
+		}
+	}
+
+	return output
+}
+
+func (m Metadata) parseMetadataReferences() map[string][]MetadataReference {
+	output := map[string][]MetadataReference{}
+	switch references := m.References.(type) {
+	// Reconstruct from format:
+	//
+	//     "references": {
+	//         "general": [
+	//           {
+	//             "title": "Some blog post",
+	//             "url": "https://example.com/bucket-naming-conventions"
+	//           }
+	//         ]
+	//     }
+	case map[string]interface{}:
+		for key, val := range references {
+			out := []MetadataReference{}
+			if val, ok := val.([]interface{}); ok {
+				for _, ref := range val {
+					if val, ok := ref.(map[string]interface{}); ok {
+						if url, ok := val["url"].(string); ok {
+							ref := MetadataReference{URL: url}
+							if title, ok := val["title"].(string); ok {
+								ref.Title = title
+							}
+							out = append(out, ref)
+						}
+					}
+				}
+			}
+			output[key] = out
+		}
+	// Reconstruct from format:
+	//
+	//     "references": "[Some blog post](https://example.com/bucket-naming-conventions)"
+	case string:
+		general := []MetadataReference{}
+		linkPattern := regexp.MustCompile(`\[([^\[]+)\]\((.*)\)`)
+		for _, match := range linkPattern.FindAllStringSubmatch(references, -1) {
+			general = append(general, MetadataReference{
+				URL:   match[2],
+				Title: match[1],
+			})
+		}
+		output["general"] = general
+	}
+	return output
+}
+
 // Propagate static metadata to rule results.
-func (m Metadata) copyToRuleResults(output *models.RuleResults) {
+func (m Metadata) copyToRuleResults(inputType string, output *models.RuleResults) {
 	output.Id = m.ID
 	output.Title = m.Title
 	output.Description = m.Description
 	output.Platform = m.Platform
-	output.References = m.References
 	output.Category = m.Category
 	output.Labels = m.Labels
 	output.ServiceGroup = m.ServiceGroup
 	output.Controls = m.Controls
+
+	output.References = []models.RuleResultsReference{}
+	for _, ref := range m.ReferencesFor(inputType) {
+		output.References = append(output.References, models.RuleResultsReference{
+			Url:   ref.URL,
+			Title: ref.Title,
+		})
+	}
 }
 
 // BasePolicy implements functionality that is shared between different concrete
