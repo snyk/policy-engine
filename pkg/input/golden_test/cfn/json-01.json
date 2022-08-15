@@ -12,6 +12,7 @@
         "id": "Bucket1",
         "resource_type": "AWS::S3::Bucket",
         "namespace": "golden_test/cfn/json-01/cfn.json",
+        "meta": {},
         "attributes": {
           "AccessControl": "Private",
           "_type": "AWS::S3::Bucket",
@@ -22,6 +23,7 @@
         "id": "Bucket2",
         "resource_type": "AWS::S3::Bucket",
         "namespace": "golden_test/cfn/json-01/cfn.json",
+        "meta": {},
         "attributes": {
           "AccessControl": "Private",
           "PublicAccessBlockConfiguration": {

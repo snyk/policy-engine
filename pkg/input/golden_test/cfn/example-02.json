@@ -12,6 +12,7 @@
         "id": "CloudTrailLogging",
         "resource_type": "AWS::CloudTrail::Trail",
         "namespace": "golden_test/cfn/example-02/main.yaml",
+        "meta": {},
         "attributes": {
           "EventSelectors": [
             {
@@ -40,6 +41,7 @@
         "id": "LoggingBucket1",
         "resource_type": "AWS::S3::Bucket",
         "namespace": "golden_test/cfn/example-02/main.yaml",
+        "meta": {},
         "attributes": {
           "_type": "AWS::S3::Bucket",
           "id": "LoggingBucket1"
@@ -49,6 +51,7 @@
         "id": "LoggingBucket2",
         "resource_type": "AWS::S3::Bucket",
         "namespace": "golden_test/cfn/example-02/main.yaml",
+        "meta": {},
         "attributes": {
           "_type": "AWS::S3::Bucket",
           "id": "LoggingBucket2"

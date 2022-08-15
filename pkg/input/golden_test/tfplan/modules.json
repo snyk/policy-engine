@@ -33,6 +33,7 @@
         "id": "module.child1.module.grandchild1.aws_security_group.grandchild",
         "resource_type": "aws_security_group",
         "namespace": "golden_test/tfplan/modules/plan.json",
+        "meta": {},
         "attributes": {
           "description": "Managed by Terraform",
           "name_prefix": null,
@@ -46,6 +47,7 @@
         "id": "module.child2.aws_security_group.child",
         "resource_type": "aws_security_group",
         "namespace": "golden_test/tfplan/modules/plan.json",
+        "meta": {},
         "attributes": {
           "description": "Managed by Terraform",
           "name_prefix": null,
@@ -81,6 +83,7 @@
         "id": "module.child1.aws_vpc.child",
         "resource_type": "aws_vpc",
         "namespace": "golden_test/tfplan/modules/plan.json",
+        "meta": {},
         "attributes": {
           "assign_generated_ipv6_cidr_block": false,
           "cidr_block": "10.0.0.0/16",
@@ -93,6 +96,7 @@
         "id": "module.child1.module.grandchild1.aws_vpc.grandchild",
         "resource_type": "aws_vpc",
         "namespace": "golden_test/tfplan/modules/plan.json",
+        "meta": {},
         "attributes": {
           "assign_generated_ipv6_cidr_block": false,
           "cidr_block": "10.0.0.0/16",
@@ -105,6 +109,7 @@
         "id": "module.child2.aws_vpc.child",
         "resource_type": "aws_vpc",
         "namespace": "golden_test/tfplan/modules/plan.json",
+        "meta": {},
         "attributes": {
           "assign_generated_ipv6_cidr_block": false,
           "cidr_block": "10.0.0.0/16",

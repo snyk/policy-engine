@@ -12,6 +12,7 @@
         "id": "FunctionRole",
         "resource_type": "AWS::IAM::Role",
         "namespace": "golden_test/cfn/intrinsics/main.yaml",
+        "meta": {},
         "attributes": {
           "AssumeRolePolicyDocument": {
             "Statement": [
@@ -39,6 +40,7 @@
         "id": "Function5Alias",
         "resource_type": "AWS::Lambda::Alias",
         "namespace": "golden_test/cfn/intrinsics/main.yaml",
+        "meta": {},
         "attributes": {
           "FunctionName": "Function5",
           "FunctionVersion": "$LATEST",
@@ -51,6 +53,7 @@
         "id": "Function6Alias",
         "resource_type": "AWS::Lambda::Alias",
         "namespace": "golden_test/cfn/intrinsics/main.yaml",
+        "meta": {},
         "attributes": {
           "FunctionName": "Function5",
           "FunctionVersion": "$LATEST",
@@ -65,6 +68,7 @@
         "id": "Function",
         "resource_type": "AWS::Lambda::Function",
         "namespace": "golden_test/cfn/intrinsics/main.yaml",
+        "meta": {},
         "attributes": {
           "Code": {
             "ZipFile": "exports.handler = (event, context) =\u003e {\n  console.log(JSON.stringify(event))\n}\n"
@@ -80,6 +84,7 @@
         "id": "Function2",
         "resource_type": "AWS::Lambda::Function",
         "namespace": "golden_test/cfn/intrinsics/main.yaml",
+        "meta": {},
         "attributes": {
           "Code": {
             "ZipFile": "exports.handler = (event, context) =\u003e {\n  console.log(JSON.stringify(event))\n}\n"
@@ -95,6 +100,7 @@
         "id": "Function3",
         "resource_type": "AWS::Lambda::Function",
         "namespace": "golden_test/cfn/intrinsics/main.yaml",
+        "meta": {},
         "attributes": {
           "Code": {
             "ZipFile": "exports.handler = (event, context) =\u003e {\n  console.log(JSON.stringify(event))\n}\n"
@@ -110,6 +116,7 @@
         "id": "Function4",
         "resource_type": "AWS::Lambda::Function",
         "namespace": "golden_test/cfn/intrinsics/main.yaml",
+        "meta": {},
         "attributes": {
           "Code": {
             "ZipFile": "exports.handler = (event, context) =\u003e {\n  console.log(JSON.stringify(event))\n}\n"
@@ -126,6 +133,7 @@
         "id": "Function5",
         "resource_type": "AWS::Lambda::Function",
         "namespace": "golden_test/cfn/intrinsics/main.yaml",
+        "meta": {},
         "attributes": {
           "Code": {
             "ZipFile": "exports.handler = (event, context) =\u003e {\n  console.log(JSON.stringify(event))\n}\n"
@@ -142,6 +150,7 @@
         "id": "Function6",
         "resource_type": "AWS::Lambda::Function",
         "namespace": "golden_test/cfn/intrinsics/main.yaml",
+        "meta": {},
         "attributes": {
           "Code": {
             "ZipFile": "exports.handler = (event, context) =\u003e {\n  console.log(JSON.stringify(event))\n}\n"
@@ -160,6 +169,7 @@
         "id": "FunctionPermissionByArn",
         "resource_type": "AWS::Lambda::Permission",
         "namespace": "golden_test/cfn/intrinsics/main.yaml",
+        "meta": {},
         "attributes": {
           "Action": "lambda:InvokeFunction",
           "FunctionName": "Function",
@@ -172,6 +182,7 @@
         "id": "FunctionPermissionByHardcodedName",
         "resource_type": "AWS::Lambda::Permission",
         "namespace": "golden_test/cfn/intrinsics/main.yaml",
+        "meta": {},
         "attributes": {
           "Action": "lambda:InvokeFunction",
           "FunctionName": "function4",
@@ -184,6 +195,7 @@
         "id": "FunctionPermissionByHardcodedNameAndAlias",
         "resource_type": "AWS::Lambda::Permission",
         "namespace": "golden_test/cfn/intrinsics/main.yaml",
+        "meta": {},
         "attributes": {
           "Action": "lambda:InvokeFunction",
           "FunctionName": "function5:v1",
@@ -196,6 +208,7 @@
         "id": "FunctionPermissionByNameAndAliasUsingFunctions",
         "resource_type": "AWS::Lambda::Permission",
         "namespace": "golden_test/cfn/intrinsics/main.yaml",
+        "meta": {},
         "attributes": {
           "Action": "lambda:InvokeFunction",
           "FunctionName": "AWS::Region",
@@ -208,6 +221,7 @@
         "id": "FunctionPermissionByPartialArn",
         "resource_type": "AWS::Lambda::Permission",
         "namespace": "golden_test/cfn/intrinsics/main.yaml",
+        "meta": {},
         "attributes": {
           "Action": "lambda:InvokeFunction",
           "FunctionName": [
@@ -223,6 +237,7 @@
         "id": "FunctionPermissionByRef",
         "resource_type": "AWS::Lambda::Permission",
         "namespace": "golden_test/cfn/intrinsics/main.yaml",
+        "meta": {},
         "attributes": {
           "Action": "lambda:InvokeFunction",
           "FunctionName": "Function2",

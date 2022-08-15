@@ -41,6 +41,7 @@ func toState(
 			Attributes:   attrs,
 			Namespace:    filepath,
 			ResourceType: resourceType,
+			Meta:         map[string]interface{}{},
 		}
 	}
 	return state

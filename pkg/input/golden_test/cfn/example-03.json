@@ -12,6 +12,7 @@
         "id": "CloudTrailLogging",
         "resource_type": "AWS::CloudTrail::Trail",
         "namespace": "golden_test/cfn/example-03/main.yaml",
+        "meta": {},
         "attributes": {
           "EventSelectors": [
             {

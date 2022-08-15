@@ -12,6 +12,7 @@
         "id": "Microsoft.AppConfiguration/configurationStores/arm-608-allowed",
         "resource_type": "Microsoft.AppConfiguration/configurationStores",
         "namespace": "golden_test/arm/other-attributes/template.json",
+        "meta": {},
         "attributes": {
           "apiVersion": "2021-03-01-preview",
           "location": "West Europe",
@@ -27,6 +28,7 @@
         "id": "Microsoft.AppConfiguration/configurationStores/arm-608-default",
         "resource_type": "Microsoft.AppConfiguration/configurationStores",
         "namespace": "golden_test/arm/other-attributes/template.json",
+        "meta": {},
         "attributes": {
           "apiVersion": "2021-03-01-default",
           "location": "West Europe",
@@ -39,6 +41,7 @@
         "id": "Microsoft.AppConfiguration/configurationStores/arm-608-denied",
         "resource_type": "Microsoft.AppConfiguration/configurationStores",
         "namespace": "golden_test/arm/other-attributes/template.json",
+        "meta": {},
         "attributes": {
           "apiVersion": "2021-03-01-preview",
           "location": "West Europe",

@@ -12,6 +12,7 @@
         "id": "Bar",
         "resource_type": "AWS::S3::Bucket",
         "namespace": "golden_test/cfn/annotate-01/main.yaml",
+        "meta": {},
         "attributes": {
           "BucketName": "bar",
           "_type": "AWS::S3::Bucket",
@@ -22,6 +23,7 @@
         "id": "Foo",
         "resource_type": "AWS::S3::Bucket",
         "namespace": "golden_test/cfn/annotate-01/main.yaml",
+        "meta": {},
         "attributes": {
           "BucketName": "foo",
           "_type": "AWS::S3::Bucket",

@@ -12,6 +12,7 @@
         "id": "SecurityGroup01",
         "resource_type": "AWS::EC2::SecurityGroup",
         "namespace": "golden_test/cfn/schemas-01/template.yaml",
+        "meta": {},
         "attributes": {
           "GroupDescription": "1.200000",
           "SecurityGroupIngress": [
@@ -33,6 +34,7 @@
         "id": "Vpc01",
         "resource_type": "AWS::EC2::VPC",
         "namespace": "golden_test/cfn/schemas-01/template.yaml",
+        "meta": {},
         "attributes": {
           "CidrBlock": "10.0.0.0/16",
           "EnableDnsHostnames": true,
