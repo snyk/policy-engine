@@ -19,7 +19,7 @@ type ResourceState struct {
 	// Tags applied to the resource. Our goal is to extract tags into a uniform key->value format.
 	Tags map[string]string `json:"tags,omitempty"`
 	// This object is intended to hold any input type-specific or  environment-specific fields, e.g. provider, region, or source location.
-	Meta map[string]interface{} `json:"meta,omitempty"`
+	Meta map[string]interface{} `json:"meta"`
 	// A map of resource attributes.
 	Attributes map[string]interface{} `json:"attributes"`
 }

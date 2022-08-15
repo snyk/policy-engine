@@ -12,6 +12,7 @@
         "id": "kubernetes_pod.multiple_containers",
         "resource_type": "kubernetes_pod",
         "namespace": "golden_test/tf/kubernetes-01/main.tf",
+        "meta": {},
         "attributes": {
           "metadata": [
             {

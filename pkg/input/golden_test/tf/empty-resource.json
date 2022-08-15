@@ -12,6 +12,7 @@
         "id": "data.aws_caller_identity.current",
         "resource_type": "data.aws_caller_identity",
         "namespace": "golden_test/tf/empty-resource/test.tf",
+        "meta": {},
         "attributes": {}
       }
     }

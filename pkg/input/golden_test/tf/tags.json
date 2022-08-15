@@ -92,6 +92,7 @@
         "id": "google_compute_instance.default",
         "resource_type": "google_compute_instance",
         "namespace": "golden_test/tf/tags/main.tf",
+        "meta": {},
         "attributes": {
           "boot_disk": [
             {
@@ -130,6 +131,7 @@
         "id": "google_storage_bucket.example",
         "resource_type": "google_storage_bucket",
         "namespace": "golden_test/tf/tags/main.tf",
+        "meta": {},
         "attributes": {
           "labels": {
             "Stage": "Prod"

@@ -16,6 +16,7 @@
           "Dept": "Finance",
           "Environment": "Production"
         },
+        "meta": {},
         "attributes": {
           "apiVersion": "2018-10-01",
           "location": "switzerlandnorth",

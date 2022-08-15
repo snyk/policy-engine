@@ -12,6 +12,7 @@
         "id": "MyServer",
         "resource_type": "Server",
         "namespace": "golden_test/cfn/params-01/main.yml",
+        "meta": {},
         "attributes": {
           "TheHost": "0.0.0.0",
           "ThePort": 80,

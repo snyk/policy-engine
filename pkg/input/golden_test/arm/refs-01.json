@@ -12,6 +12,7 @@
         "id": "Microsoft.Web/serverfarms/appServicePlanPortal",
         "resource_type": "Microsoft.Web/serverfarms",
         "namespace": "golden_test/arm/refs-01/template.json",
+        "meta": {},
         "attributes": {
           "apiVersion": "2021-02-01",
           "location": "[resourceGroup().location]",
@@ -29,6 +30,7 @@
         "id": "Microsoft.Web/sites/invalidType",
         "resource_type": "Microsoft.Web/sites",
         "namespace": "golden_test/arm/refs-01/template.json",
+        "meta": {},
         "attributes": {
           "apiVersion": "2021-02-01",
           "dependsOn": [
@@ -47,6 +49,7 @@
         "id": "Microsoft.Web/sites/invalidUnset",
         "resource_type": "Microsoft.Web/sites",
         "namespace": "golden_test/arm/refs-01/template.json",
+        "meta": {},
         "attributes": {
           "apiVersion": "2021-02-01",
           "dependsOn": [
@@ -62,6 +65,7 @@
         "id": "Microsoft.Web/sites/valid",
         "resource_type": "Microsoft.Web/sites",
         "namespace": "golden_test/arm/refs-01/template.json",
+        "meta": {},
         "attributes": {
           "apiVersion": "2021-02-01",
           "dependsOn": [

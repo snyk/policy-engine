@@ -12,6 +12,7 @@
         "id": "aws_s3_bucket.trail_bucket",
         "resource_type": "aws_s3_bucket",
         "namespace": "golden_test/tf/file",
+        "meta": {},
         "attributes": {
           "force_destroy": true,
           "tags": null

@@ -16,7 +16,7 @@ type State struct {
 	InputType string `json:"input_type"`
 	// The type of environment that this state was generated from. This value factors into which rules are run for this input.
 	EnvironmentProvider string `json:"environment_provider"`
-	// This object is intended to hold any input type-specific or  environment-specific fields, e.g. account_id or filepath.
+	// This object is intended to hold any input type-specific or environment-specific fields, e.g. account_id or filepath.
 	Meta map[string]interface{} `json:"meta,omitempty"`
 	// Resources is a map of resource type to a map of a unique resource key to a resource object.
 	Resources map[string]map[string]ResourceState `json:"resources"`

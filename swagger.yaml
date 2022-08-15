@@ -56,7 +56,7 @@ components:
         meta:
           type: object
           description: |
-            This object is intended to hold any input type-specific or 
+            This object is intended to hold any input type-specific or
             environment-specific fields, e.g. account_id or filepath.
           additionalProperties: {}
         resources:
@@ -80,6 +80,7 @@ components:
         - id
         - resource_type
         - namespace
+        - meta
         - attributes
       properties:
         id:
