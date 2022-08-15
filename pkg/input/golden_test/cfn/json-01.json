@@ -14,9 +14,7 @@
         "namespace": "golden_test/cfn/json-01/cfn.json",
         "meta": {},
         "attributes": {
-          "AccessControl": "Private",
-          "_type": "AWS::S3::Bucket",
-          "id": "Bucket1"
+          "AccessControl": "Private"
         }
       },
       "Bucket2": {
@@ -30,9 +28,7 @@
             "BlockPublicAcls": true,
             "IgnorePublicAcls": true,
             "RestrictPublicBuckets": true
-          },
-          "_type": "AWS::S3::Bucket",
-          "id": "Bucket2"
+          }
         }
       }
     }

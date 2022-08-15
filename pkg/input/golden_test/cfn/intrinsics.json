@@ -29,9 +29,7 @@
           "ManagedPolicyArns": [
             "arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
           ],
-          "Path": "/",
-          "_type": "AWS::IAM::Role",
-          "id": "FunctionRole"
+          "Path": "/"
         }
       }
     },
@@ -44,9 +42,7 @@
         "attributes": {
           "FunctionName": "Function5",
           "FunctionVersion": "$LATEST",
-          "Name": "v1",
-          "_type": "AWS::Lambda::Alias",
-          "id": "Function5Alias"
+          "Name": "v1"
         }
       },
       "Function6Alias": {
@@ -57,9 +53,7 @@
         "attributes": {
           "FunctionName": "Function5",
           "FunctionVersion": "$LATEST",
-          "Name": "v1",
-          "_type": "AWS::Lambda::Alias",
-          "id": "Function6Alias"
+          "Name": "v1"
         }
       }
     },
@@ -75,9 +69,7 @@
           },
           "Handler": "index.handler",
           "Role": "FunctionRole",
-          "Runtime": "nodejs12.x",
-          "_type": "AWS::Lambda::Function",
-          "id": "Function"
+          "Runtime": "nodejs12.x"
         }
       },
       "Function2": {
@@ -91,9 +83,7 @@
           },
           "Handler": "index.handler",
           "Role": "FunctionRole",
-          "Runtime": "nodejs12.x",
-          "_type": "AWS::Lambda::Function",
-          "id": "Function2"
+          "Runtime": "nodejs12.x"
         }
       },
       "Function3": {
@@ -107,9 +97,7 @@
           },
           "Handler": "index.handler",
           "Role": "FunctionRole",
-          "Runtime": "nodejs12.x",
-          "_type": "AWS::Lambda::Function",
-          "id": "Function3"
+          "Runtime": "nodejs12.x"
         }
       },
       "Function4": {
@@ -124,9 +112,7 @@
           "FunctionName": "function4",
           "Handler": "index.handler",
           "Role": "FunctionRole",
-          "Runtime": "nodejs12.x",
-          "_type": "AWS::Lambda::Function",
-          "id": "Function4"
+          "Runtime": "nodejs12.x"
         }
       },
       "Function5": {
@@ -141,9 +127,7 @@
           "FunctionName": "function5",
           "Handler": "index.handler",
           "Role": "FunctionRole",
-          "Runtime": "nodejs12.x",
-          "_type": "AWS::Lambda::Function",
-          "id": "Function5"
+          "Runtime": "nodejs12.x"
         }
       },
       "Function6": {
@@ -158,9 +142,7 @@
           "FunctionName": "AWS::Region",
           "Handler": "index.handler",
           "Role": "FunctionRole",
-          "Runtime": "nodejs12.x",
-          "_type": "AWS::Lambda::Function",
-          "id": "Function6"
+          "Runtime": "nodejs12.x"
         }
       }
     },
@@ -173,9 +155,7 @@
         "attributes": {
           "Action": "lambda:InvokeFunction",
           "FunctionName": "Function",
-          "Principal": "*",
-          "_type": "AWS::Lambda::Permission",
-          "id": "FunctionPermissionByArn"
+          "Principal": "*"
         }
       },
       "FunctionPermissionByHardcodedName": {
@@ -186,9 +166,7 @@
         "attributes": {
           "Action": "lambda:InvokeFunction",
           "FunctionName": "function4",
-          "Principal": "*",
-          "_type": "AWS::Lambda::Permission",
-          "id": "FunctionPermissionByHardcodedName"
+          "Principal": "*"
         }
       },
       "FunctionPermissionByHardcodedNameAndAlias": {
@@ -199,9 +177,7 @@
         "attributes": {
           "Action": "lambda:InvokeFunction",
           "FunctionName": "function5:v1",
-          "Principal": "*",
-          "_type": "AWS::Lambda::Permission",
-          "id": "FunctionPermissionByHardcodedNameAndAlias"
+          "Principal": "*"
         }
       },
       "FunctionPermissionByNameAndAliasUsingFunctions": {
@@ -212,9 +188,7 @@
         "attributes": {
           "Action": "lambda:InvokeFunction",
           "FunctionName": "AWS::Region",
-          "Principal": "*",
-          "_type": "AWS::Lambda::Permission",
-          "id": "FunctionPermissionByNameAndAliasUsingFunctions"
+          "Principal": "*"
         }
       },
       "FunctionPermissionByPartialArn": {
@@ -228,9 +202,7 @@
             "AWS::AccountId",
             "Function3"
           ],
-          "Principal": "*",
-          "_type": "AWS::Lambda::Permission",
-          "id": "FunctionPermissionByPartialArn"
+          "Principal": "*"
         }
       },
       "FunctionPermissionByRef": {
@@ -241,9 +213,7 @@
         "attributes": {
           "Action": "lambda:InvokeFunction",
           "FunctionName": "Function2",
-          "Principal": "*",
-          "_type": "AWS::Lambda::Permission",
-          "id": "FunctionPermissionByRef"
+          "Principal": "*"
         }
       }
     }

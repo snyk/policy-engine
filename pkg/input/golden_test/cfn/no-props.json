@@ -13,10 +13,7 @@
         "resource_type": "AWS::S3::Bucket",
         "namespace": "golden_test/cfn/no-props/template.yaml",
         "meta": {},
-        "attributes": {
-          "_type": "AWS::S3::Bucket",
-          "id": "CodePipelineArtifactBucket"
-        }
+        "attributes": {}
       }
     }
   },

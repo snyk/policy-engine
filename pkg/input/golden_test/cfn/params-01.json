@@ -15,9 +15,7 @@
         "meta": {},
         "attributes": {
           "TheHost": "0.0.0.0",
-          "ThePort": 80,
-          "_type": "Server",
-          "id": "MyServer"
+          "ThePort": 80
         }
       }
     }

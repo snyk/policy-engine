@@ -14,9 +14,7 @@
         "namespace": "golden_test/cfn/example-01/main.yaml",
         "meta": {},
         "attributes": {
-          "Vpc": "MyVpc",
-          "_type": "SecurityGroupId",
-          "id": "MySecurityGroup"
+          "Vpc": "MyVpc"
         }
       }
     },
@@ -27,9 +25,7 @@
         "namespace": "golden_test/cfn/example-01/main.yaml",
         "meta": {},
         "attributes": {
-          "Name": "bar",
-          "_type": "Vpc",
-          "id": "MyVpc"
+          "Name": "bar"
         }
       }
     }
