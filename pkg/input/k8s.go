@@ -29,23 +29,6 @@ var validK8sExts map[string]bool = map[string]bool{
 	".yml":  true,
 }
 
-func splitYAML(data []byte) ([]map[string]interface{}, error) {
-	dec := yaml.NewDecoder(bytes.NewReader(data))
-	var documents []map[string]interface{}
-	for {
-		var value map[string]interface{}
-		err := dec.Decode(&value)
-		if err == io.EOF {
-			break
-		}
-		if err != nil {
-			return nil, err
-		}
-		documents = append(documents, value)
-	}
-	return documents, nil
-}
-
 type KubernetesDetector struct{}
 
 func (c *KubernetesDetector) DetectFile(i *File, opts DetectOptions) (IACConfiguration, error) {
@@ -65,45 +48,34 @@ func (c *KubernetesDetector) DetectFile(i *File, opts DetectOptions) (IACConfigu
 	}
 
 	// Model each YAML document as a resource
-	resources := map[string]interface{}{}
-	content := map[string]interface{}{
-		"k8s_resource_view_version": "0.0.1",
-		"resources":                 resources,
-	}
+	resources := map[k8s_Key]models.ResourceState{}
 
-	sources := map[string]SourceInfoNode{}
+	sources := map[k8s_Key]SourceInfoNode{}
 	documentSources, err := LoadMultiSourceInfoNode(contents)
 	if err != nil {
 		documentSources = nil // Don't consider source code locations essential.
 	}
 
 	for documentIdx, document := range documents {
-		var name, namespace string
-		kind, ok := document["kind"]
-		if !ok {
-			return nil, fmt.Errorf("%w: input file does not define a kind", InvalidInput)
-		}
-		if metadata, ok := document["metadata"].(map[string]interface{}); ok {
-			name, _ = metadata["name"].(string)
-			namespace, _ = metadata["namespace"].(string)
-		}
-		if name == "" {
-			return nil, fmt.Errorf("%w: input file does not define a name", InvalidInput)
-		}
-		if namespace == "" {
-			namespace = "default"
+		key, err := k8s_parseKey(document)
+		if err != nil {
+			return nil, err
 		}
 
-		resourceId := fmt.Sprintf("%s.%s.%s", kind, namespace, name)
-		resources[resourceId] = document
-		sources[resourceId] = documentSources[documentIdx]
+		sources[key] = documentSources[documentIdx]
+		resources[key] = models.ResourceState{
+			Id:           key.name,
+			Namespace:    key.namespace,
+			ResourceType: key.kind,
+			Meta:         map[string]interface{}{},
+			Attributes:   document,
+		}
 	}
 
-	return &k8sConfiguration{
+	return &k8s_Configuration{
 		path:      i.Path,
-		content:   content,
-		sources:   sources,
 		resources: resources,
+		sources:   sources,
 	}, nil
 }
 
@@ -111,39 +83,118 @@ func (c *KubernetesDetector) DetectDirectory(i *Directory, opts DetectOptions) (
 	return nil, nil
 }
 
-type k8sConfiguration struct {
+type k8s_Configuration struct {
 	path      string
-	content   map[string]interface{}
-	sources   map[string]SourceInfoNode
-	resources map[string]interface{}
+	resources map[k8s_Key]models.ResourceState
+	sources   map[k8s_Key]SourceInfoNode
 }
 
-func (l *k8sConfiguration) ToState() models.State {
-	return toState(Kubernetes.Name, l.path, l.resources)
+func (l *k8s_Configuration) ToState() models.State {
+	resources := []models.ResourceState{}
+	for _, resource := range l.resources {
+		resources = append(resources, resource)
+	}
+	return models.State{
+		InputType:           Kubernetes.Name,
+		EnvironmentProvider: "iac",
+		Meta: map[string]interface{}{
+			"filepath": l.path,
+		},
+		Resources: groupResourcesByType(resources),
+		Scope: map[string]interface{}{
+			"filepath": l.path,
+		},
+	}
 }
 
-func (l *k8sConfiguration) Location(path []interface{}) (LocationStack, error) {
+func (l *k8s_Configuration) Location(path []interface{}) (LocationStack, error) {
+	// Format is {resourceType, resourceId, attributePath...}
+	// TODO: This is clearly not enough for kubernetes, as resources with the
+	// same resourceType and resourceId may belong to a different namespace.
+	// Should we extend the format?  This affects all loaders; and in principle
+	// its a breaking change but I doubt anyone is using this outside of this
+	// repo.
+	if l.sources == nil || len(path) < 2 {
+		return nil, nil
+	}
+
+	resourceType, ok := path[0].(string)
+	if !ok {
+		return nil, fmt.Errorf(
+			"%w: Expected string resource type in path: %v",
+			UnableToResolveLocation,
+			path,
+		)
+	}
+
+	resourceId, ok := path[1].(string)
+	if !ok {
+		return nil, fmt.Errorf(
+			"%w: Expected string resource ID in path: %v",
+			UnableToResolveLocation,
+			path,
+		)
+	}
+
+	// See comment above, we shouldn't have to do a loop.
+	for key, source := range l.sources {
+		if key.name == resourceId && key.kind == resourceType {
+			node, err := source.GetPath(path[2:])
+			line, column := node.Location()
+			return []Location{{Path: l.path, Line: line, Col: column}}, err
+		}
+	}
+
 	return nil, nil
-	/* TODO: Location() is not yet supported for k8s.
-
-	if len(path) < 1 {
-		return nil, nil
-	}
-
-	resourceId := path[0]
-	if resource, ok := l.sources[resourceId]; ok {
-		line, column := resource.Location()
-		return []Location{{Path: l.path, Line: line, Col: column}}, nil
-	} else {
-		return nil, nil
-	}
-	*/
 }
 
-func (l *k8sConfiguration) LoadedFiles() []string {
+func (l *k8s_Configuration) LoadedFiles() []string {
 	return []string{l.path}
 }
 
-func (l *k8sConfiguration) Errors() []error {
+func (l *k8s_Configuration) Errors() []error {
 	return []error{}
+}
+
+func splitYAML(data []byte) ([]map[string]interface{}, error) {
+	dec := yaml.NewDecoder(bytes.NewReader(data))
+	var documents []map[string]interface{}
+	for {
+		var value map[string]interface{}
+		err := dec.Decode(&value)
+		if err == io.EOF {
+			break
+		}
+		if err != nil {
+			return nil, err
+		}
+		documents = append(documents, value)
+	}
+	return documents, nil
+}
+
+func k8s_parseKey(document map[string]interface{}) (k8s_Key, error) {
+	key := k8s_Key{}
+	if kind, ok := document["kind"].(string); ok {
+		key.kind = kind
+	} else {
+		return key, fmt.Errorf("%w: input file does not define a kind", InvalidInput)
+	}
+	if metadata, ok := document["metadata"].(map[string]interface{}); ok {
+		key.name, _ = metadata["name"].(string)
+		key.namespace, _ = metadata["namespace"].(string)
+	}
+	if key.name == "" {
+		return key, fmt.Errorf("%w: input file does not define a name", InvalidInput)
+	}
+	if key.namespace == "" {
+		key.namespace = "default"
+	}
+	return key, nil
+}
+
+type k8s_Key struct {
+	kind      string
+	namespace string
+	name      string
 }

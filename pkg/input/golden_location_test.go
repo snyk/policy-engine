@@ -113,6 +113,20 @@ var goldenLocationTests = []goldenLocationTest{
 			},
 		},
 	},
+	// Kubernetes
+	{
+		directory: "golden_test/k8s/example-01",
+		cases: []goldenLocationTestCase{
+			{
+				path: []interface{}{"Pod", "invalid1", "spec", "containers"},
+				expected: LocationStack{Location{
+					Path: "main.yaml",
+					Line: 8,
+					Col:  3,
+				}},
+			},
+		},
+	},
 	// Terraform
 	{
 		directory: "golden_test/tf/example-terraform-modules",
