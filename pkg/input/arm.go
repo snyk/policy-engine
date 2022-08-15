@@ -108,12 +108,12 @@ func (l *armConfiguration) ToState() models.State {
 }
 
 func (l *armConfiguration) Location(path []interface{}) (LocationStack, error) {
-	// Format is {resourceType, resourceId, attributePath...}
-	if l.source == nil || len(path) < 2 {
+	// Format is {resourceNamespace, resourceType, resourceId, attributePath...}
+	if l.source == nil || len(path) < 3 {
 		return nil, nil
 	}
 
-	resourceId, ok := path[1].(string)
+	resourceId, ok := path[2].(string)
 	if !ok {
 		return nil, fmt.Errorf(
 			"%w: Expected string resource ID in path: %v",
@@ -133,7 +133,7 @@ func (l *armConfiguration) Location(path []interface{}) (LocationStack, error) {
 
 	fullPath := make([]interface{}, len(dr.path))
 	copy(fullPath, dr.path)
-	fullPath = append(fullPath, path[2:]...)
+	fullPath = append(fullPath, path[3:]...)
 	node, err := l.source.GetPath(fullPath)
 	line, column := node.Location()
 	return []Location{{Path: l.path, Line: line, Col: column}}, err

@@ -26,6 +26,7 @@ var goldenLocationTests = []goldenLocationTest{
 		cases: []goldenLocationTestCase{
 			{
 				path: []interface{}{
+					"golden_test/arm/example-01",
 					"Microsoft.Network/virtualNetworks",
 					"Microsoft.Network/virtualNetworks/VNet1",
 					"properties",
@@ -41,6 +42,7 @@ var goldenLocationTests = []goldenLocationTest{
 			},
 			{
 				path: []interface{}{
+					"golden_test/arm/example-01",
 					"Microsoft.Network/virtualNetworks/subnets",
 					"Microsoft.Network/virtualNetworks/VNet1/subnets/Subnet1",
 					"properties",
@@ -54,6 +56,7 @@ var goldenLocationTests = []goldenLocationTest{
 			},
 			{
 				path: []interface{}{
+					"golden_test/arm/example-01",
 					"Microsoft.Network/virtualNetworks/subnets",
 					"Microsoft.Network/virtualNetworks/VNet1/subnets/Subnet2",
 					"properties",
@@ -67,6 +70,7 @@ var goldenLocationTests = []goldenLocationTest{
 			},
 			{
 				path: []interface{}{
+					"golden_test/arm/example-01",
 					"Microsoft.Network/virtualNetworks/subnets",
 					"Microsoft.Network/virtualNetworks/VNet1/subnets/Subnet2",
 				},
@@ -83,7 +87,11 @@ var goldenLocationTests = []goldenLocationTest{
 		directory: "golden_test/cfn/example-01",
 		cases: []goldenLocationTestCase{
 			{
-				path: []interface{}{"Vpc", "MyVpc"},
+				path: []interface{}{
+					"golden_test/cfn/example-01",
+					"Vpc",
+					"MyVpc",
+				},
 				expected: LocationStack{Location{
 					Path: "main.yaml",
 					Line: 6,
@@ -96,7 +104,11 @@ var goldenLocationTests = []goldenLocationTest{
 		directory: "golden_test/cfn/json-01",
 		cases: []goldenLocationTestCase{
 			{
-				path: []interface{}{"AWS::S3::Bucket", "Bucket1"},
+				path: []interface{}{
+					"golden_test/cfn/json-01",
+					"AWS::S3::Bucket",
+					"Bucket1",
+				},
 				expected: LocationStack{Location{
 					Path: "cfn.json",
 					Line: 5,
@@ -104,7 +116,11 @@ var goldenLocationTests = []goldenLocationTest{
 				}},
 			},
 			{
-				path: []interface{}{"AWS::S3::Bucket", "Bucket2"},
+				path: []interface{}{
+					"golden_test/cfn/json-01",
+					"AWS::S3::Bucket",
+					"Bucket2",
+				},
 				expected: LocationStack{Location{
 					Path: "cfn.json",
 					Line: 11,
@@ -118,7 +134,13 @@ var goldenLocationTests = []goldenLocationTest{
 		directory: "golden_test/k8s/example-01",
 		cases: []goldenLocationTestCase{
 			{
-				path: []interface{}{"Pod", "invalid1", "spec", "containers"},
+				path: []interface{}{
+					"default",
+					"Pod",
+					"invalid1",
+					"spec",
+					"containers",
+				},
 				expected: LocationStack{Location{
 					Path: "main.yaml",
 					Line: 8,
@@ -132,7 +154,11 @@ var goldenLocationTests = []goldenLocationTest{
 		directory: "golden_test/tf/example-terraform-modules",
 		cases: []goldenLocationTestCase{
 			{
-				path: []interface{}{"aws_security_group", "aws_security_group.parent"},
+				path: []interface{}{
+					"golden_test/tf/example-terraform-modules",
+					"aws_security_group",
+					"aws_security_group.parent",
+				},
 				expected: LocationStack{
 					{
 						Path: "main.tf",
@@ -142,7 +168,11 @@ var goldenLocationTests = []goldenLocationTest{
 				},
 			},
 			{
-				path: []interface{}{"aws_vpc", "aws_vpc.parent"},
+				path: []interface{}{
+					"golden_test/tf/example-terraform-modules",
+					"aws_vpc",
+					"aws_vpc.parent",
+				},
 				expected: LocationStack{
 					{
 						Path: "main.tf",
@@ -152,7 +182,11 @@ var goldenLocationTests = []goldenLocationTest{
 				},
 			},
 			{
-				path: []interface{}{"aws_vpc", "module.child1.aws_vpc.child"},
+				path: []interface{}{
+					"golden_test/tf/example-terraform-modules",
+					"aws_vpc",
+					"module.child1.aws_vpc.child",
+				},
 				expected: LocationStack{
 					{
 						Path: filepath.Join("child1", "main.tf"),
@@ -167,7 +201,11 @@ var goldenLocationTests = []goldenLocationTest{
 				},
 			},
 			{
-				path: []interface{}{"aws_security_group", "module.child1.module.grandchild1.aws_security_group.grandchild"},
+				path: []interface{}{
+					"golden_test/tf/example-terraform-modules",
+					"aws_security_group",
+					"module.child1.module.grandchild1.aws_security_group.grandchild",
+				},
 				expected: LocationStack{
 					{
 						Path: filepath.Join("child1", "grandchild1", "main.tf"),
@@ -187,7 +225,11 @@ var goldenLocationTests = []goldenLocationTest{
 				},
 			},
 			{
-				path: []interface{}{"aws_vpc", "module.child1.module.grandchild1.aws_vpc.grandchild"},
+				path: []interface{}{
+					"golden_test/tf/example-terraform-modules",
+					"aws_vpc",
+					"module.child1.module.grandchild1.aws_vpc.grandchild",
+				},
 				expected: LocationStack{
 					{
 						Path: filepath.Join("child1", "grandchild1", "main.tf"),
@@ -207,7 +249,11 @@ var goldenLocationTests = []goldenLocationTest{
 				},
 			},
 			{
-				path: []interface{}{"aws_security_group", "module.child2.aws_security_group.child"},
+				path: []interface{}{
+					"golden_test/tf/example-terraform-modules",
+					"aws_security_group",
+					"module.child2.aws_security_group.child",
+				},
 				expected: LocationStack{
 					{
 						Path: filepath.Join("child2", "main.tf"),
@@ -222,7 +268,11 @@ var goldenLocationTests = []goldenLocationTest{
 				},
 			},
 			{
-				path: []interface{}{"aws_vpc", "module.child2.aws_vpc.child"},
+				path: []interface{}{
+					"golden_test/tf/example-terraform-modules",
+					"aws_vpc",
+					"module.child2.aws_vpc.child",
+				},
 				expected: []Location{
 					{
 						Path: filepath.Join("child2", "main.tf"),
@@ -238,6 +288,7 @@ var goldenLocationTests = []goldenLocationTest{
 			},
 			{
 				path: []interface{}{
+					"golden_test/tf/example-terraform-modules",
 					"aws_vpc",
 					"module.child2.aws_vpc.child",
 					"cidr_block",
@@ -262,6 +313,7 @@ var goldenLocationTests = []goldenLocationTest{
 		cases: []goldenLocationTestCase{
 			{
 				path: []interface{}{
+					"main.tf",
 					"kubernetes_pod",
 					"kubernetes_pod.multiple_containers",
 					"spec",
@@ -280,6 +332,7 @@ var goldenLocationTests = []goldenLocationTest{
 			},
 			{
 				path: []interface{}{
+					"main.tf",
 					"kubernetes_pod",
 					"kubernetes_pod.multiple_containers",
 					"spec",

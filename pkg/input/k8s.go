@@ -108,17 +108,21 @@ func (l *k8s_Configuration) ToState() models.State {
 }
 
 func (l *k8s_Configuration) Location(path []interface{}) (LocationStack, error) {
-	// Format is {resourceType, resourceId, attributePath...}
-	// TODO: This is clearly not enough for kubernetes, as resources with the
-	// same resourceType and resourceId may belong to a different namespace.
-	// Should we extend the format?  This affects all loaders; and in principle
-	// its a breaking change but I doubt anyone is using this outside of this
-	// repo.
-	if l.sources == nil || len(path) < 2 {
+	// Format is {resourceNamespace, resourceType, resourceId, attributePath...}
+	if l.sources == nil || len(path) < 3 {
 		return nil, nil
 	}
 
-	resourceType, ok := path[0].(string)
+	resourceNamespace, ok := path[0].(string)
+	if !ok {
+		return nil, fmt.Errorf(
+			"%w: Expected string resource namespace in path: %v",
+			UnableToResolveLocation,
+			path,
+		)
+	}
+
+	resourceType, ok := path[1].(string)
 	if !ok {
 		return nil, fmt.Errorf(
 			"%w: Expected string resource type in path: %v",
@@ -127,7 +131,7 @@ func (l *k8s_Configuration) Location(path []interface{}) (LocationStack, error) 
 		)
 	}
 
-	resourceId, ok := path[1].(string)
+	resourceId, ok := path[2].(string)
 	if !ok {
 		return nil, fmt.Errorf(
 			"%w: Expected string resource ID in path: %v",
@@ -136,16 +140,14 @@ func (l *k8s_Configuration) Location(path []interface{}) (LocationStack, error) 
 		)
 	}
 
-	// See comment above, we shouldn't have to do a loop.
-	for key, source := range l.sources {
-		if key.name == resourceId && key.kind == resourceType {
-			node, err := source.GetPath(path[2:])
-			line, column := node.Location()
-			return []Location{{Path: l.path, Line: line, Col: column}}, err
-		}
+	key := k8s_Key{namespace: resourceNamespace, kind: resourceType, name: resourceId}
+	if source, ok := l.sources[key]; ok {
+		node, err := source.GetPath(path[3:])
+		line, column := node.Location()
+		return []Location{{Path: l.path, Line: line, Col: column}}, err
+	} else {
+		return nil, nil
 	}
-
-	return nil, nil
 }
 
 func (l *k8s_Configuration) LoadedFiles() []string {

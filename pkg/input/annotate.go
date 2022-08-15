@@ -22,8 +22,9 @@ func AnnotateResults(
 				location := annotateResourceLocation(
 					configurations,
 					filepath,
-					resource.Id,
+					resource.Namespace,
 					resource.ResourceType,
+					resource.Id,
 				)
 				if resource.Meta == nil {
 					resource.Meta = map[string]interface{}{}
@@ -57,8 +58,9 @@ func annotateRuleResult(
 		location := annotateResourceLocation(
 			configurations,
 			filepath,
-			resource.Id,
+			resource.Namespace,
 			resource.Type,
+			resource.Id,
 		)
 		resource.Location = location
 
@@ -77,10 +79,11 @@ func annotateRuleResult(
 func annotateResourceLocation(
 	configurations Loader,
 	filepath string,
-	resourceId string,
+	resourceNamespace string,
 	resourceType string,
+	resourceId string,
 ) []models.SourceLocation {
-	resourcePath := []interface{}{resourceType, resourceId}
+	resourcePath := []interface{}{resourceNamespace, resourceType, resourceId}
 	resourceLocs, _ := configurations.Location(filepath, resourcePath)
 	if resourceLocs == nil {
 		return nil
