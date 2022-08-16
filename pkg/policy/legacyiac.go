@@ -51,42 +51,50 @@ func (p *LegacyIaCPolicy) Eval(
 		logger = logging.DefaultLogger
 	}
 	logger = logger.WithField(logging.POLICY_TYPE, "legacy_iac")
-	input, err := legacyIaCInput(options.Input)
+	inputs, err := legacyIaCInput(options.Input)
 	if err != nil {
 		logger.Error(ctx, "Failed to transform input")
 		err = fmt.Errorf("%w: %v", FailedToEvaluateRule, err)
 		return p.errorOutput(err)
 	}
-	resourceNamespace := ""
+	defaultResourceNamespace := ""
 	if filepath, ok := options.Input.Meta["filepath"].(string); ok {
-		resourceNamespace = filepath
+		defaultResourceNamespace = filepath
 	} else {
 		logger.Warn(ctx, "No filepath found in meta, using empty namespace")
 	}
-	opts := append(
-		options.RegoOptions,
-		rego.Query(p.judgementRule.query()),
-		rego.Input(input.Raw()),
-		rego.StrictBuiltinErrors(false),
-	)
-	builtins := NewBuiltins(options.Input, options.ResourcesResolver)
-	opts = append(opts, builtins.Rego()...)
-	query, err := rego.New(opts...).PrepareForEval(ctx)
-	if err != nil {
-		logger.Error(ctx, "Failed to prepare for eval")
-		return p.errorOutput(err)
+	ruleResults := []models.RuleResults{}
+	for _, input := range inputs {
+		raw := input.Raw()
+		opts := append(
+			options.RegoOptions,
+			rego.Query(p.judgementRule.query()),
+			rego.Input(raw),
+			rego.StrictBuiltinErrors(false),
+		)
+		builtins := NewBuiltins(options.Input, options.ResourcesResolver)
+		opts = append(opts, builtins.Rego()...)
+		query, err := rego.New(opts...).PrepareForEval(ctx)
+		if err != nil {
+			logger.Error(ctx, "Failed to prepare for eval")
+			return p.errorOutput(err)
+		}
+		resultSet, err := query.Eval(ctx)
+		if err != nil {
+			logger.Error(ctx, "Failed to evaluate query")
+			return p.errorOutput(err)
+		}
+		lirs := legacyIaCResults{}
+		if err := unmarshalResultSet(resultSet, &lirs); err != nil {
+			logger.Error(ctx, "Failed to unmarshal result set")
+			return p.errorOutput(err)
+		}
+		ruleResults = append(
+			ruleResults,
+			lirs.toRuleResults(p.pkg, input, defaultResourceNamespace, options.Input.InputType)...,
+		)
 	}
-	resultSet, err := query.Eval(ctx)
-	if err != nil {
-		logger.Error(ctx, "Failed to evaluate query")
-		return p.errorOutput(err)
-	}
-	ir := legacyIaCResults{}
-	if err := unmarshalResultSet(resultSet, &ir); err != nil {
-		logger.Error(ctx, "Failed to unmarshal result set")
-		return p.errorOutput(err)
-	}
-	return ir.toRuleResults(p.pkg, input, resourceNamespace, options.Input.InputType), nil
+	return ruleResults, nil
 }
 
 func (p *LegacyIaCPolicy) errorOutput(err error) ([]models.RuleResults, error) {
@@ -100,7 +108,7 @@ func (p *LegacyIaCPolicy) errorOutput(err error) ([]models.RuleResults, error) {
 
 type legacyIaCResults []*legacyIaCResult
 
-func (r legacyIaCResults) toRuleResults(pkg string, input legacyiac.Input, resourceNamespace string, inputType string) []models.RuleResults {
+func (r legacyIaCResults) toRuleResults(pkg string, input legacyiac.Input, defaultResourceNamespace string, inputType string) []models.RuleResults {
 	resultsByRuleID := map[string]models.RuleResults{}
 	for _, ir := range r {
 		id := ir.PublicID
@@ -119,7 +127,7 @@ func (r legacyIaCResults) toRuleResults(pkg string, input legacyiac.Input, resou
 				Package_:    pkg,
 			}
 		}
-		ruleResults.Results = append(ruleResults.Results, *ir.toRuleResult(input, resourceNamespace, inputType))
+		ruleResults.Results = append(ruleResults.Results, *ir.toRuleResult(input, defaultResourceNamespace, inputType))
 		resultsByRuleID[id] = ruleResults
 	}
 	output := make([]models.RuleResults, 0, len(resultsByRuleID))
@@ -160,13 +168,16 @@ type legacyIaCResult struct {
 	References  []string             `json:"references"`
 }
 
-func (r *legacyIaCResult) toRuleResult(input legacyiac.Input, resourceNamespace string, inputType string) *models.RuleResult {
+func (r *legacyIaCResult) toRuleResult(input legacyiac.Input, defaultResourceNamespace string, inputType string) *models.RuleResult {
 	parsedMsg := input.ParseMsg(r.Msg)
 	builder := newRuleResultBuilder()
 	key := ResourceKey{
 		ID:        parsedMsg.ResourceID,
 		Type:      parsedMsg.ResourceType,
-		Namespace: resourceNamespace,
+		Namespace: defaultResourceNamespace,
+	}
+	if parsedMsg.ResourceNamespace != "" {
+		key.Namespace = parsedMsg.ResourceNamespace
 	}
 	builder.setPrimaryResource(key)
 	if parsedMsg.ResourceID != "" {
@@ -187,14 +198,16 @@ func (r *legacyIaCResult) toRuleResult(input legacyiac.Input, resourceNamespace 
 	return &result
 }
 
-func legacyIaCInput(state *models.State) (legacyiac.Input, error) {
+func legacyIaCInput(state *models.State) ([]legacyiac.Input, error) {
 	switch {
 	case input.Terraform.Matches(state.InputType):
-		return legacyiac.NewTfInput(state), nil
+		return []legacyiac.Input{legacyiac.NewTfInput(state)}, nil
 	case input.CloudFormation.Matches(state.InputType):
-		return legacyiac.NewCfnInput(state), nil
+		return []legacyiac.Input{legacyiac.NewCfnInput(state)}, nil
 	case input.Arm.Matches(state.InputType):
-		return legacyiac.NewArmInput(state), nil
+		return []legacyiac.Input{legacyiac.NewArmInput(state)}, nil
+	case input.Kubernetes.Matches(state.InputType):
+		return legacyiac.NewK8sInputs(state), nil
 	default:
 		return nil, fmt.Errorf("unsupported input type for this type of rule")
 	}
