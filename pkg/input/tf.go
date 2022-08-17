@@ -98,17 +98,17 @@ func (c *HclConfiguration) LoadedFiles() []string {
 }
 
 func (c *HclConfiguration) Location(path []interface{}) (LocationStack, error) {
-	// Format is {resourceType, resourceId, attributePath...}
-	if len(path) < 2 {
+	// Format is {resourceNamespace, resourceType, resourceId, attributePath...}
+	if len(path) < 3 {
 		return nil, nil
 	}
 
-	resourceId, ok := path[1].(string)
+	resourceId, ok := path[2].(string)
 	if !ok {
 		return nil, fmt.Errorf("Expected string resource ID in path")
 	}
 
-	ranges := c.evaluation.Location(resourceId, path[2:])
+	ranges := c.evaluation.Location(resourceId, path[3:])
 	locs := LocationStack{}
 	for _, r := range ranges {
 		locs = append(locs, Location{

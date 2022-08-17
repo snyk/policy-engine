@@ -1,0 +1,85 @@
+{
+  "format": "",
+  "format_version": "",
+  "input_type": "k8s",
+  "environment_provider": "iac",
+  "meta": {
+    "filepath": "golden_test/k8s/example-01/main.yaml"
+  },
+  "resources": {
+    "Pod": {
+      "invalid1": {
+        "id": "invalid1",
+        "resource_type": "Pod",
+        "namespace": "default",
+        "meta": {},
+        "attributes": {
+          "apiVersion": "v1",
+          "kind": "Pod",
+          "metadata": {
+            "name": "invalid1"
+          },
+          "spec": {
+            "containers": [
+              {
+                "image": "k8s.gcr.io/pause",
+                "name": "pause1"
+              }
+            ]
+          }
+        }
+      },
+      "invalid2": {
+        "id": "invalid2",
+        "resource_type": "Pod",
+        "namespace": "default",
+        "meta": {},
+        "attributes": {
+          "apiVersion": "v1",
+          "kind": "Pod",
+          "metadata": {
+            "annotations": {
+              "seccomp.security.alpha.kubernetes.io/pod": "foo/default"
+            },
+            "name": "invalid2"
+          },
+          "spec": {
+            "containers": [
+              {
+                "image": "k8s.gcr.io/pause",
+                "name": "pause1"
+              }
+            ]
+          }
+        }
+      },
+      "invalid3": {
+        "id": "invalid3",
+        "resource_type": "Pod",
+        "namespace": "default",
+        "meta": {},
+        "attributes": {
+          "apiVersion": "v1",
+          "kind": "Pod",
+          "metadata": {
+            "annotations": {
+              "seccomp.security.alpha.kubernetes.io/pod": ""
+            },
+            "name": "invalid3"
+          },
+          "spec": {
+            "containers": [
+              {
+                "image": "k8s.gcr.io/pause",
+                "name": "pause1"
+              }
+            ]
+          }
+        }
+      }
+    }
+  },
+  "scope": {
+    "filepath": "golden_test/k8s/example-01/main.yaml"
+  }
+}
