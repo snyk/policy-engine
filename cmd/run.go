@@ -12,6 +12,7 @@ import (
 	"github.com/snyk/policy-engine/pkg/engine"
 	"github.com/snyk/policy-engine/pkg/input"
 	"github.com/snyk/policy-engine/pkg/metrics"
+	"github.com/snyk/policy-engine/pkg/postprocess"
 	"github.com/snyk/policy-engine/pkg/snapshot_testing"
 	"github.com/spf13/afero"
 	"github.com/spf13/afero/tarfs"
@@ -120,7 +121,7 @@ var runCmd = &cobra.Command{
 			Inputs:  states,
 			Workers: *runCmdWorkers,
 		})
-		input.AnnotateResults(loader, results)
+		postprocess.AddSourceLocsToResults(loader, results)
 
 		bytes, err := json.MarshalIndent(results, "  ", "  ")
 		if err != nil {

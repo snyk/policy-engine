@@ -1,20 +1,24 @@
-package input
+package postprocess
 
 import (
 	"testing"
 
-	"github.com/snyk/policy-engine/pkg/models"
 	"github.com/spf13/afero"
 	"github.com/stretchr/testify/assert"
+
+	"github.com/snyk/policy-engine/pkg/input"
+	"github.com/snyk/policy-engine/pkg/models"
 )
 
-func TestAnnotate01(t *testing.T) {
-	detector, err := DetectorByInputTypes(Types{Auto})
+func TestAddResourceToResults01(t *testing.T) {
+	filepath := "source_locs_test/template.yaml"
+
+	detector, err := input.DetectorByInputTypes(input.Types{input.Auto})
 	assert.Nil(t, err)
-	loader := NewLoader(detector)
-	detectable, err := NewDetectable(afero.OsFs{}, "golden_test/cfn/annotate-01/main.yaml")
+	loader := input.NewLoader(detector)
+	detectable, err := input.NewDetectable(afero.OsFs{}, filepath)
 	assert.Nil(t, err)
-	ok, err := loader.Load(detectable, DetectOptions{})
+	ok, err := loader.Load(detectable, input.DetectOptions{})
 	assert.Nil(t, err)
 	assert.True(t, ok)
 
@@ -29,12 +33,12 @@ func TestAnnotate01(t *testing.T) {
 		},
 	}
 
-	AnnotateResults(loader, results)
+	AddSourceLocsToResults(loader, results)
 
 	assert.Equal(t,
 		[]models.SourceLocation{
 			{
-				Filepath: "golden_test/cfn/annotate-01/main.yaml",
+				Filepath: filepath,
 				Line:     2,
 				Column:   3,
 			},
@@ -45,7 +49,7 @@ func TestAnnotate01(t *testing.T) {
 	assert.Equal(t,
 		[]models.SourceLocation{
 			{
-				Filepath: "golden_test/cfn/annotate-01/main.yaml",
+				Filepath: filepath,
 				Line:     6,
 				Column:   3,
 			},

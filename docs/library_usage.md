@@ -437,8 +437,9 @@ model in the output.
 
 ## Source code location and line numbers
 
-The `AnnotateResults` function from the policy engine's `loader` package performs a
-post-processing step that annotates results with source code locations, like:
+The `AddSourceLocs` function from the policy engine's `postprocess` package
+performs a post-processing step that annotates results with source code
+locations, like:
 
 ```json
 {
@@ -465,6 +466,7 @@ package main
 import (
     "github.com/snyk/policy-engine/pkg/input",
     "github.com/snyk/policy-engine/pkg/engine"
+    "github.com/snyk/policy-engine/pkg/postprocess"
 )
 
 func main() {
@@ -472,8 +474,8 @@ func main() {
     // previous examples
     // ... 
 
-    // AnnotateResults modifies the results object in-place to add source code locations
-    // to resources and properties for supported input types.
-    input.AnnotateResults(loader, results)
+    // AddSourceLocsToResults modifies the results object in-place to add source
+    // code locations to resources and properties for supported input types.
+    postprocess.AddSourceLocsToResults(loader, results)
 }
 ```
