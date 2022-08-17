@@ -30,9 +30,7 @@
           ],
           "IsLogging": true,
           "S3BucketName": "LoggingBucket",
-          "TrailName": "cf-fuguetest-trail",
-          "_type": "AWS::CloudTrail::Trail",
-          "id": "CloudTrailLogging"
+          "TrailName": "cf-fuguetest-trail"
         }
       }
     },
@@ -42,20 +40,14 @@
         "resource_type": "AWS::S3::Bucket",
         "namespace": "golden_test/cfn/example-02/main.yaml",
         "meta": {},
-        "attributes": {
-          "_type": "AWS::S3::Bucket",
-          "id": "LoggingBucket1"
-        }
+        "attributes": {}
       },
       "LoggingBucket2": {
         "id": "LoggingBucket2",
         "resource_type": "AWS::S3::Bucket",
         "namespace": "golden_test/cfn/example-02/main.yaml",
         "meta": {},
-        "attributes": {
-          "_type": "AWS::S3::Bucket",
-          "id": "LoggingBucket2"
-        }
+        "attributes": {}
       }
     }
   },

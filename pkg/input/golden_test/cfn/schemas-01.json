@@ -23,9 +23,7 @@
               "ToPort": 22
             }
           ],
-          "VpcId": "Vpc01",
-          "_type": "AWS::EC2::SecurityGroup",
-          "id": "SecurityGroup01"
+          "VpcId": "Vpc01"
         }
       }
     },
@@ -43,9 +41,7 @@
               "Key": "Group",
               "Value": "5"
             }
-          ],
-          "_type": "AWS::EC2::VPC",
-          "id": "Vpc01"
+          ]
         }
       }
     }

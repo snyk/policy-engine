@@ -101,7 +101,7 @@ func (t *cfnMap) UnmarshalYAML(node *yaml.Node) error {
 	return nil
 }
 
-func (tmpl *cfnTemplate) resources() map[string]interface{} {
+func (tmpl *cfnTemplate) resources() map[string]models.ResourceState {
 	parameters := map[string]interface{}{}
 	for k, param := range tmpl.Parameters {
 		if param.Default != nil {
@@ -115,19 +115,20 @@ func (tmpl *cfnTemplate) resources() map[string]interface{} {
 		parameters: parameters,
 	}
 
-	resources := map[string]interface{}{}
+	resources := map[string]models.ResourceState{}
 	for resourceId, resource := range tmpl.Resources {
 		schema := schemas.GetSchema(resource.Type)
 		properties := schemas.CoerceObject(resource.Properties.Contents, schema)
-
-		object := map[string]interface{}{}
-		for k, attribute := range properties {
-			object[k] = interfacetricks.TopDownWalk(&resolver, attribute)
+		for k, prop := range properties {
+			properties[k] = interfacetricks.TopDownWalk(&resolver, prop)
 		}
-		object["id"] = resourceId
-		object["_type"] = resource.Type
 
-		resources[resourceId] = object
+		resources[resourceId] = models.ResourceState{
+			Id:           resourceId,
+			ResourceType: resource.Type,
+			Attributes:   properties,
+			Meta:         map[string]interface{}{},
+		}
 	}
 	return resources
 }
@@ -136,11 +137,27 @@ type cfnConfiguration struct {
 	path      string
 	template  cfnTemplate
 	source    *SourceInfoNode
-	resources map[string]interface{}
+	resources map[string]models.ResourceState
 }
 
 func (l *cfnConfiguration) ToState() models.State {
-	return toState(CloudFormation.Name, l.path, l.resources)
+	resources := []models.ResourceState{}
+	for _, resource := range l.resources {
+		resource.Namespace = l.path
+		resources = append(resources, resource)
+	}
+
+	return models.State{
+		InputType:           CloudFormation.Name,
+		EnvironmentProvider: "iac",
+		Meta: map[string]interface{}{
+			"filepath": l.path,
+		},
+		Resources: groupResourcesByType(resources),
+		Scope: map[string]interface{}{
+			"filepath": l.path,
+		},
+	}
 }
 
 func (l *cfnConfiguration) Location(path []interface{}) (LocationStack, error) {
