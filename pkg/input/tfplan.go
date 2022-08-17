@@ -536,7 +536,11 @@ func (plan *tfplan_Plan) resources(resourceNamespace string) []models.ResourceSt
 			}
 		}
 		if rc != nil {
-			metaTfplan["resource_actions"] = rc.Change.Actions
+			resourceActions := []interface{}{}
+			for _, action := range rc.Change.Actions {
+				resourceActions = append(resourceActions, action)
+			}
+			metaTfplan["resource_actions"] = resourceActions
 		}
 		if len(metaTerraform) > 0 {
 			meta["terraform"] = metaTerraform
