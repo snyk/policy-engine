@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"strings"
 
 	"github.com/open-policy-agent/opa/rego"
 	"github.com/snyk/policy-engine/pkg/input"
@@ -16,6 +17,29 @@ import (
 
 type LegacyIaCPolicy struct {
 	*BasePolicy
+}
+
+func (p *LegacyIaCPolicy) inputType() *input.Type {
+	for _, ele := range strings.Split(p.pkg, ".") {
+		switch ele {
+		case "arm":
+			return input.Arm
+		case "cloudformation":
+			return input.CloudFormation
+		case "kubernetes":
+			return input.Kubernetes
+		case "terraform":
+			return input.Terraform
+		}
+	}
+	return p.BasePolicy.inputType
+}
+
+func (p *LegacyIaCPolicy) InputType() string {
+	return p.inputType().Name
+}
+func (p *LegacyIaCPolicy) InputTypeMatches(inputType string) bool {
+	return p.inputType().Matches(inputType)
 }
 
 func (p *LegacyIaCPolicy) Eval(
