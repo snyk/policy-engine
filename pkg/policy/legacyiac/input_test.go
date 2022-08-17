@@ -61,25 +61,3 @@ func TestParsePath(t *testing.T) {
 		})
 	}
 }
-
-func FuzzParsePath(f *testing.F) {
-	for _, tc := range []string{
-		"resources[0]",
-		"resources[0].properties.some_property",
-		"resource.some_type[some_id].some_property",
-		"input.resource.some_type[some_id].some_property",
-		`resource.some_type["some_id"].some_property`,
-		`resource.some_type['some_id'].some_property`,
-		`resource["some_id.some_other_id"]`,
-		`resource['"some_id.some_other_id"']`,
-		`resource[[some_id][some_other_id]]`,
-		`resource\.some_id`,
-		`"resource\"some_id"`,
-	} {
-		f.Add(tc)
-	}
-
-	f.Fuzz(func(t *testing.T, a string) {
-		parsePath(a)
-	})
-}
