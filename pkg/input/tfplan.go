@@ -119,6 +119,8 @@ type tfplan_ResourceChange struct {
 }
 
 type tfplan_ResourceChangeChange struct {
+	// One of: "create", "no-op", "update", "delete"
+	Actions      []string               `yaml:"actions"`
 	AfterUnknown map[string]interface{} `yaml:"after_unknown"`
 }
 
@@ -510,11 +512,12 @@ func (plan *tfplan_Plan) resources(resourceNamespace string) []models.ResourceSt
 		}
 
 		meta := map[string]interface{}{}
-		terraform := map[string]interface{}{}
+		metaTerraform := map[string]interface{}{}
+		metaTfplan := map[string]interface{}{}
 		if cr != nil {
 			if config, ok := plan.Configuration.ProviderConfig[cr.ProviderConfigKey]; ok {
 				if config.VersionConstraint != "" {
-					terraform["provider_version_constraint"] = config.VersionConstraint
+					metaTerraform["provider_version_constraint"] = config.VersionConstraint
 				}
 
 				conf := map[string]interface{}{}
@@ -524,7 +527,7 @@ func (plan *tfplan_Plan) resources(resourceNamespace string) []models.ResourceSt
 					}
 				}
 				if len(conf) > 0 {
-					terraform["provider_config"] = conf
+					metaTerraform["provider_config"] = conf
 				}
 				if region, ok := conf["region"].(string); ok {
 					// Add meta.region if present
@@ -532,8 +535,14 @@ func (plan *tfplan_Plan) resources(resourceNamespace string) []models.ResourceSt
 				}
 			}
 		}
-		if len(terraform) > 0 {
-			meta["terraform"] = terraform
+		if rc != nil {
+			metaTfplan["resource_actions"] = rc.Change.Actions
+		}
+		if len(metaTerraform) > 0 {
+			meta["terraform"] = metaTerraform
+		}
+		if len(metaTfplan) > 0 {
+			meta["tfplan"] = metaTfplan
 		}
 
 		var resourceType string

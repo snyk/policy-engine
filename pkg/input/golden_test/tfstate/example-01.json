@@ -15,6 +15,11 @@
         "meta": {
           "terraform": {
             "provider_version_constraint": "3.70.0"
+          },
+          "tfplan": {
+            "resource_actions": [
+              "create"
+            ]
           }
         },
         "attributes": {
@@ -47,6 +52,11 @@
         "meta": {
           "terraform": {
             "provider_version_constraint": "3.70.0"
+          },
+          "tfplan": {
+            "resource_actions": [
+              "create"
+            ]
           }
         },
         "attributes": {

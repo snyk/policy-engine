@@ -19,6 +19,11 @@
                 {}
               ]
             }
+          },
+          "tfplan": {
+            "resource_actions": [
+              "create"
+            ]
           }
         },
         "attributes": {
@@ -56,6 +61,11 @@
                 {}
               ]
             }
+          },
+          "tfplan": {
+            "resource_actions": [
+              "create"
+            ]
           }
         },
         "attributes": {
@@ -78,6 +88,11 @@
                 {}
               ]
             }
+          },
+          "tfplan": {
+            "resource_actions": [
+              "create"
+            ]
           }
         },
         "attributes": {

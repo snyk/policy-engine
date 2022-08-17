@@ -18,6 +18,11 @@
             "provider_config": {
               "region": "us-west-2"
             }
+          },
+          "tfplan": {
+            "resource_actions": [
+              "create"
+            ]
           }
         },
         "attributes": {

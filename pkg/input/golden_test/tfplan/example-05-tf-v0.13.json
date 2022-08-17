@@ -18,6 +18,11 @@
             "provider_config": {
               "region": "us-east-1"
             }
+          },
+          "tfplan": {
+            "resource_actions": [
+              "create"
+            ]
           }
         },
         "attributes": {
@@ -47,6 +52,11 @@
             "provider_config": {
               "region": "us-east-1"
             }
+          },
+          "tfplan": {
+            "resource_actions": [
+              "create"
+            ]
           }
         },
         "attributes": {
