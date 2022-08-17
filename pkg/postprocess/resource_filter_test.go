@@ -93,7 +93,9 @@ func TestResourceFilter(t *testing.T) {
 				if resourceActions, ok := tfplanMeta["resource_actions"].([]interface{}); ok {
 					for _, resourceAction := range resourceActions {
 						if str, ok := resourceAction.(string); ok {
-							return str == "create" || str == "update"
+							if str == "create" || str == "update" {
+								return true
+							}
 						}
 					}
 				}
@@ -153,12 +155,6 @@ func TestResourceFilter(t *testing.T) {
 						ResourceType:      "aws_s3_bucket",
 						ResourceNamespace: namespace,
 					},
-					/* {
-						Passed:            false,
-						ResourceId:        "aws_s3_bucket.noop_bucket",
-						ResourceType:      "aws_s3_bucket",
-						ResourceNamespace: namespace,
-					}, */
 				},
 			},
 		},
