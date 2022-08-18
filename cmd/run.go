@@ -121,7 +121,7 @@ var runCmd = &cobra.Command{
 			Inputs:  states,
 			Workers: *runCmdWorkers,
 		})
-		postprocess.AddSourceLocsToResults(loader, results)
+		postprocess.AddSourceLocs(results, loader)
 
 		bytes, err := json.MarshalIndent(results, "  ", "  ")
 		if err != nil {

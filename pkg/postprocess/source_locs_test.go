@@ -33,7 +33,7 @@ func TestAddResourceToResults01(t *testing.T) {
 		},
 	}
 
-	AddSourceLocsToResults(loader, results)
+	AddSourceLocs(results, loader)
 
 	assert.Equal(t,
 		[]models.SourceLocation{

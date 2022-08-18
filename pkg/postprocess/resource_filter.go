@@ -8,6 +8,15 @@ import (
 // Retain only resources that satisfy a given predicate, and filter down results
 // to only retain results that correspond to these resources.
 func ResourceFilter(
+	results *models.Results,
+	predicate func(*models.ResourceState) bool,
+) {
+	for i := range results.Results {
+		resourceFilterResult(&results.Results[i], predicate)
+	}
+}
+
+func resourceFilterResult(
 	result *models.Result,
 	predicate func(*models.ResourceState) bool,
 ) {

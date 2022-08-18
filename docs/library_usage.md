@@ -474,8 +474,8 @@ func main() {
     // previous examples
     // ... 
 
-    // AddSourceLocsToResults modifies the results object in-place to add source
+    // AddSourceLocs modifies the results object in-place to add source
     // code locations to resources and properties for supported input types.
-    postprocess.AddSourceLocsToResults(loader, results)
+    postprocess.AddSourceLocs(results, loader)
 }
 ```

@@ -10,10 +10,10 @@ import (
 
 func TestResourceFilter(t *testing.T) {
 	namespace := "golden_test/tfplan/resource-changes/plan.json"
-	in := models.Result{
+	in := models.Results{Results: []models.Result{{
 		Input: models.State{
 			Resources: map[string]map[string]models.ResourceState{
-				"aws_s3_bucket": map[string]models.ResourceState{
+				"aws_s3_bucket": {
 					"aws_s3_bucket.create_bucket": {
 						Id:           "aws_s3_bucket.create_bucket",
 						ResourceType: "aws_s3_bucket",
@@ -84,7 +84,7 @@ func TestResourceFilter(t *testing.T) {
 				},
 			},
 		},
-	}
+	}}}
 
 	ResourceFilter(
 		&in,
@@ -104,10 +104,10 @@ func TestResourceFilter(t *testing.T) {
 		},
 	)
 
-	expected := models.Result{
+	expected := models.Results{Results: []models.Result{{
 		Input: models.State{
 			Resources: map[string]map[string]models.ResourceState{
-				"aws_s3_bucket": map[string]models.ResourceState{
+				"aws_s3_bucket": {
 					"aws_s3_bucket.create_bucket": {
 						Id:           "aws_s3_bucket.create_bucket",
 						ResourceType: "aws_s3_bucket",
@@ -139,26 +139,24 @@ func TestResourceFilter(t *testing.T) {
 				},
 			},
 		},
-		RuleResults: []models.RuleResults{
-			{
-				Id: "SNYK-ABC-01",
-				Results: []models.RuleResult{
-					{
-						Passed:            false,
-						ResourceId:        "aws_s3_bucket.create_bucket",
-						ResourceType:      "aws_s3_bucket",
-						ResourceNamespace: namespace,
-					},
-					{
-						Passed:            false,
-						ResourceId:        "aws_s3_bucket.update_bucket",
-						ResourceType:      "aws_s3_bucket",
-						ResourceNamespace: namespace,
-					},
+		RuleResults: []models.RuleResults{{
+			Id: "SNYK-ABC-01",
+			Results: []models.RuleResult{
+				{
+					Passed:            false,
+					ResourceId:        "aws_s3_bucket.create_bucket",
+					ResourceType:      "aws_s3_bucket",
+					ResourceNamespace: namespace,
+				},
+				{
+					Passed:            false,
+					ResourceId:        "aws_s3_bucket.update_bucket",
+					ResourceType:      "aws_s3_bucket",
+					ResourceNamespace: namespace,
 				},
 			},
-		},
-	}
+		}},
+	}}}
 
 	assert.Equal(t, in, expected)
 }

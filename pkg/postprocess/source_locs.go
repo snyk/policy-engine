@@ -6,9 +6,9 @@ import (
 )
 
 // Annotate a report with source location information
-func AddSourceLocsToResults(
-	configurations input.Loader,
+func AddSourceLocs(
 	results *models.Results,
+	configurations input.Loader,
 ) {
 	for _, inputResult := range results.Results {
 		// Retrieve the filepath of the input state by looking in the metadata.
