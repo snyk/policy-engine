@@ -44,17 +44,6 @@ func (c *KubernetesDetector) DetectFile(i *File, opts DetectOptions) (IACConfigu
 	if err != nil {
 		return nil, fmt.Errorf("%w: %v", FailedToParseInput, err)
 	}
-	if len(documents) == 0 {
-		return nil, fmt.Errorf("%w: did not contain any valid YAML documents", InvalidInput)
-	}
-	for _, doc := range documents {
-		if !k8s_hasRequiredFields(doc) {
-			return nil, fmt.Errorf("%w: not a valid Kubernetes object", InvalidInput)
-		}
-	}
-
-	// Model each YAML document as a resource
-	resources := map[k8s_Key]models.ResourceState{}
 
 	sources := map[k8s_Key]SourceInfoNode{}
 	documentSources, err := LoadMultiSourceInfoNode(contents)
@@ -62,26 +51,41 @@ func (c *KubernetesDetector) DetectFile(i *File, opts DetectOptions) (IACConfigu
 		documentSources = nil // Don't consider source code locations essential.
 	}
 
+	// Model each YAML document as a resource
+	resources := map[k8s_Key]models.ResourceState{}
+	errors := []error{}
 	for documentIdx, document := range documents {
-		key, err := k8s_parseKey(document)
-		if err != nil {
-			return nil, err
-		}
+		if !k8s_hasRequiredFields(document) {
+			errors = append(
+				errors,
+				fmt.Errorf("%w: invalid Kubernetes document at index %d", InvalidInput, documentIdx),
+			)
+		} else {
+			key, err := k8s_parseKey(document)
+			if err != nil {
+				return nil, err
+			}
 
-		sources[key] = documentSources[documentIdx]
-		resources[key] = models.ResourceState{
-			Id:           key.name,
-			Namespace:    key.namespace,
-			ResourceType: key.kind,
-			Meta:         map[string]interface{}{},
-			Attributes:   document,
+			sources[key] = documentSources[documentIdx]
+			resources[key] = models.ResourceState{
+				Id:           key.name,
+				Namespace:    key.namespace,
+				ResourceType: key.kind,
+				Meta:         map[string]interface{}{},
+				Attributes:   document,
+			}
 		}
+	}
+
+	if len(resources) == 0 {
+		return nil, fmt.Errorf("%w: did not contain any valid YAML documents", InvalidInput)
 	}
 
 	return &k8s_Configuration{
 		path:      i.Path,
 		resources: resources,
 		sources:   sources,
+		errors:    errors,
 	}, nil
 }
 
@@ -93,6 +97,7 @@ type k8s_Configuration struct {
 	path      string
 	resources map[k8s_Key]models.ResourceState
 	sources   map[k8s_Key]SourceInfoNode
+	errors    []error
 }
 
 func (l *k8s_Configuration) ToState() models.State {
@@ -167,7 +172,7 @@ func (l *k8s_Configuration) LoadedFiles() []string {
 }
 
 func (l *k8s_Configuration) Errors() []error {
-	return []error{}
+	return l.errors
 }
 
 func splitYAML(data []byte) ([]map[string]interface{}, error) {
@@ -188,7 +193,7 @@ func splitYAML(data []byte) ([]map[string]interface{}, error) {
 }
 
 func k8s_hasRequiredFields(doc map[string]interface{}) bool {
-	required := []string{"apiVersion", "kind", "metadata", "spec"}
+	required := []string{"apiVersion", "kind"}
 	for _, k := range required {
 		if _, ok := doc[k]; !ok {
 			return false
