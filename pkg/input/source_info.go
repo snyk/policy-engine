@@ -31,6 +31,14 @@ type SourceInfoNode struct {
 	body *yaml.Node
 }
 
+type SourceInfoOptions struct {
+	// Some formats may try to access an array using a string.  This corresponds
+	// to selecting an item in the array, which has a given field (e.g. "key"
+	// or "name") set to this value.  This option allows you to set these fields
+	// if applicable.  They are tried in the order you specify them.
+	ArrayKeyFields []string
+}
+
 func LoadSourceInfoNode(contents []byte) (*SourceInfoNode, error) {
 	multi, err := LoadMultiSourceInfoNode(contents)
 	if err != nil {
@@ -73,7 +81,7 @@ func LoadMultiSourceInfoNode(contents []byte) ([]SourceInfoNode, error) {
 	return nodes, nil
 }
 
-func (node *SourceInfoNode) GetKey(key string) (*SourceInfoNode, error) {
+func (node *SourceInfoNode) getKey(key string) (*SourceInfoNode, error) {
 	if node.body.Kind != yaml.MappingNode {
 		return nil, fmt.Errorf("Expected %s but got %s", prettyKind(yaml.MappingNode), prettyKind(node.body.Kind))
 	}
@@ -87,7 +95,7 @@ func (node *SourceInfoNode) GetKey(key string) (*SourceInfoNode, error) {
 	return nil, fmt.Errorf("Key %s not found", key)
 }
 
-func (node *SourceInfoNode) GetIndex(index int) (*SourceInfoNode, error) {
+func (node *SourceInfoNode) getIndex(index int) (*SourceInfoNode, error) {
 	if node.body.Kind != yaml.SequenceNode {
 		return nil, fmt.Errorf("Expected %s but got %s", prettyKind(yaml.SequenceNode), prettyKind(node.body.Kind))
 	}
@@ -99,8 +107,33 @@ func (node *SourceInfoNode) GetIndex(index int) (*SourceInfoNode, error) {
 	return &SourceInfoNode{body: node.body.Content[index]}, nil
 }
 
+func (node *SourceInfoNode) getArrayKeyField(arrayKeyFields []string, index string) (*SourceInfoNode, error) {
+	if node.body.Kind != yaml.SequenceNode {
+		return nil, fmt.Errorf("Expected %s but got %s", prettyKind(yaml.SequenceNode), prettyKind(node.body.Kind))
+	}
+
+	for _, key := range arrayKeyFields {
+		for _, child := range node.body.Content {
+			if child.Kind == yaml.MappingNode {
+				for i := 0; i+1 < len(child.Content); i += 2 {
+					if child.Content[i].Value == key {
+						if child.Content[i+1].Value == index {
+							return &SourceInfoNode{body: child.Content[i+1]}, nil
+						}
+					}
+				}
+			}
+		}
+	}
+
+	return nil, fmt.Errorf("Key %s not found", index)
+}
+
 // GetPath tries to retrieve a path as far as possible.
-func (node *SourceInfoNode) GetPath(path []interface{}) (*SourceInfoNode, error) {
+func (node *SourceInfoNode) GetPathWithOptions(
+	options SourceInfoOptions,
+	path []interface{},
+) (*SourceInfoNode, error) {
 	if len(path) == 0 {
 		return node, nil
 	}
@@ -111,27 +144,42 @@ func (node *SourceInfoNode) GetPath(path []interface{}) (*SourceInfoNode, error)
 		if !ok {
 			return node, fmt.Errorf("Expected string key")
 		}
-		child, err := node.GetKey(key)
+		child, err := node.getKey(key)
 		if err != nil {
 			return node, err
 		} else {
-			return child.GetPath(path[1:])
+			return child.GetPathWithOptions(options, path[1:])
 		}
 	case yaml.SequenceNode:
 		index, ok := path[0].(int)
 		if !ok {
+			index, ok := path[0].(string)
+			if ok && len(options.ArrayKeyFields) > 0 {
+				child, err := node.getArrayKeyField(options.ArrayKeyFields, index)
+				if err != nil {
+					return node, err
+				} else {
+					return child.GetPathWithOptions(options, path[1:])
+				}
+			}
+
 			return node, fmt.Errorf("Expected int index")
 		}
 
-		child, err := node.GetIndex(index)
+		child, err := node.getIndex(index)
 		if err != nil {
 			return node, err
 		} else {
-			return child.GetPath(path[1:])
+			return child.GetPathWithOptions(options, path[1:])
 		}
 	default:
 		return node, fmt.Errorf("Expected %s or %s at key %s but got %s", prettyKind(yaml.MappingNode), prettyKind(yaml.SequenceNode), path[0], prettyKind(node.body.Kind))
 	}
+}
+
+// GetPath tries to retrieve a path as far as possible.
+func (node *SourceInfoNode) GetPath(path []interface{}) (*SourceInfoNode, error) {
+	return node.GetPathWithOptions(SourceInfoOptions{}, path)
 }
 
 func (node *SourceInfoNode) Location() (int, int) {

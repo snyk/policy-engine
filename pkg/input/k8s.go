@@ -159,7 +159,10 @@ func (l *k8s_Configuration) Location(path []interface{}) (LocationStack, error) 
 
 	key := k8s_Key{namespace: resourceNamespace, kind: resourceType, name: resourceId}
 	if source, ok := l.sources[key]; ok {
-		node, err := source.GetPath(path[3:])
+		node, err := source.GetPathWithOptions(
+			SourceInfoOptions{ArrayKeyFields: []string{"name"}},
+			path[3:],
+		)
 		line, column := node.Location()
 		return []Location{{Path: l.path, Line: line, Col: column}}, err
 	} else {
