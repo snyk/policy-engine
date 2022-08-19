@@ -115,6 +115,10 @@ func (l *streamlinedStateLoader) Errors() []error {
 	return []error{}
 }
 
+func (l *streamlinedStateLoader) Type() *Type {
+	return StreamlinedState
+}
+
 func extractString(m map[string]interface{}, key string) string {
 	v, ok := m[key]
 	if !ok {

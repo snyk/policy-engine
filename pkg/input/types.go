@@ -31,8 +31,40 @@ func (t *Type) Matches(inputType string) bool {
 	return false
 }
 
+// Returns true if this Type instance is exactly equal to other
+func (t *Type) Equals(other *Type) bool {
+	if t == other {
+		return true
+	}
+	if !(t.Name == other.Name) {
+		return false
+	}
+	if !(len(t.Aliases) == len(other.Aliases)) {
+		return false
+	}
+	for idx, a := range t.Aliases {
+		if a != other.Aliases[idx] {
+			return false
+		}
+	}
+	return t.Children.Equals(other.Children)
+}
+
 // Types is a slice of Type struct.
 type Types []*Type
+
+// Returns true if this Types instance is exactly equal to other
+func (t Types) Equals(other Types) bool {
+	if len(t) != len(other) {
+		return false
+	}
+	for idx, a := range t {
+		if !a.Equals(other[idx]) {
+			return false
+		}
+	}
+	return true
+}
 
 // FromString returns the first InputType where either its name or aliases match the
 // given input type string. This method is case-insensitive.

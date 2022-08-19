@@ -86,6 +86,10 @@ func (l *tfPlan) Errors() []error {
 	return []error{}
 }
 
+func (l *tfPlan) Type() *Type {
+	return TerraformPlan
+}
+
 // This (among with other types prefixed with tfplan_) matches the JSON
 // format exactly.
 type tfplan_Plan struct {

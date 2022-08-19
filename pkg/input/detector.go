@@ -36,6 +36,8 @@ type IACConfiguration interface {
 	// Some files may load but still have errors in them.  You can retrieve
 	// them here.
 	Errors() []error
+	// Type returns the *input.Type of this configuration
+	Type() *Type
 }
 
 // Location is a filepath, line and column.

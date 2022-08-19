@@ -140,3 +140,7 @@ func (c *HclConfiguration) Errors() []error {
 	errors = append(errors, c.evaluation.Errors()...)
 	return errors
 }
+
+func (l *HclConfiguration) Type() *Type {
+	return TerraformHCL
+}
