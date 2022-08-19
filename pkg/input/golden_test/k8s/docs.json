@@ -1,0 +1,42 @@
+{
+  "format": "",
+  "format_version": "",
+  "input_type": "k8s",
+  "environment_provider": "iac",
+  "meta": {
+    "filepath": "golden_test/k8s/docs/manifest.yaml"
+  },
+  "resources": {
+    "Pod": {
+      "default.nginx": {
+        "id": "nginx",
+        "resource_type": "Pod",
+        "namespace": "default",
+        "meta": {},
+        "attributes": {
+          "apiVersion": "v1",
+          "kind": "Pod",
+          "metadata": {
+            "name": "nginx"
+          },
+          "spec": {
+            "containers": [
+              {
+                "image": "nginx:1.14.2",
+                "name": "nginx",
+                "ports": [
+                  {
+                    "containerPort": 80
+                  }
+                ]
+              }
+            ]
+          }
+        }
+      }
+    }
+  },
+  "scope": {
+    "filepath": "golden_test/k8s/docs/manifest.yaml"
+  }
+}
