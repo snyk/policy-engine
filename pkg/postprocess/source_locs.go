@@ -1,13 +1,14 @@
-package input
+package postprocess
 
 import (
+	"github.com/snyk/policy-engine/pkg/input"
 	"github.com/snyk/policy-engine/pkg/models"
 )
 
 // Annotate a report with source location information
-func AnnotateResults(
-	configurations Loader,
+func AddSourceLocs(
 	results *models.Results,
+	configurations input.Loader,
 ) {
 	for _, inputResult := range results.Results {
 		// Retrieve the filepath of the input state by looking in the metadata.
@@ -19,7 +20,7 @@ func AnnotateResults(
 		// Annotate resources in input state
 		for _, resources := range inputResult.Input.Resources {
 			for rk, resource := range resources {
-				location := annotateResourceLocation(
+				location := getResourceSourceLoc(
 					configurations,
 					filepath,
 					resource.Namespace,
@@ -39,7 +40,7 @@ func AnnotateResults(
 		// Annotate resources in rule results.
 		for _, ruleResult := range inputResult.RuleResults {
 			for _, result := range ruleResult.Results {
-				annotateRuleResult(
+				addSourceLocsToRuleResult(
 					configurations,
 					filepath,
 					result,
@@ -49,13 +50,13 @@ func AnnotateResults(
 	}
 }
 
-func annotateRuleResult(
-	configurations Loader,
+func addSourceLocsToRuleResult(
+	configurations input.Loader,
 	filepath string,
 	result models.RuleResult,
 ) {
 	for _, resource := range result.Resources {
-		location := annotateResourceLocation(
+		location := getResourceSourceLoc(
 			configurations,
 			filepath,
 			resource.Namespace,
@@ -76,8 +77,8 @@ func annotateRuleResult(
 	}
 }
 
-func annotateResourceLocation(
-	configurations Loader,
+func getResourceSourceLoc(
+	configurations input.Loader,
 	filepath string,
 	resourceNamespace string,
 	resourceType string,
@@ -95,7 +96,7 @@ func annotateResourceLocation(
 	return locations
 }
 
-func toLocation(loc Location) models.SourceLocation {
+func toLocation(loc input.Location) models.SourceLocation {
 	return models.SourceLocation{
 		Filepath: loc.Path,
 		Line:     loc.Line,

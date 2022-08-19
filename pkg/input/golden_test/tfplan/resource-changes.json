@@ -1,0 +1,165 @@
+{
+  "format": "",
+  "format_version": "",
+  "input_type": "tf_plan",
+  "environment_provider": "iac",
+  "meta": {
+    "filepath": "golden_test/tfplan/resource-changes/plan.json"
+  },
+  "resources": {
+    "aws_s3_bucket": {
+      "aws_s3_bucket.create_bucket": {
+        "id": "aws_s3_bucket.create_bucket",
+        "resource_type": "aws_s3_bucket",
+        "namespace": "golden_test/tfplan/resource-changes/plan.json",
+        "meta": {
+          "region": "us-east-1",
+          "terraform": {
+            "provider_config": {
+              "region": "us-east-1"
+            }
+          },
+          "tfplan": {
+            "resource_actions": [
+              "create"
+            ]
+          }
+        },
+        "attributes": {
+          "acl": "private",
+          "bucket_prefix": "create",
+          "force_destroy": false,
+          "tags": null,
+          "timeouts": null
+        }
+      },
+      "aws_s3_bucket.noop_bucket": {
+        "id": "aws_s3_bucket.noop_bucket",
+        "resource_type": "aws_s3_bucket",
+        "namespace": "golden_test/tfplan/resource-changes/plan.json",
+        "meta": {
+          "region": "us-east-1",
+          "terraform": {
+            "provider_config": {
+              "region": "us-east-1"
+            }
+          },
+          "tfplan": {
+            "resource_actions": [
+              "no-op"
+            ]
+          }
+        },
+        "attributes": {
+          "acceleration_status": "",
+          "acl": "private",
+          "arn": "arn:aws:s3:::noop20220817102021848200000001",
+          "bucket": "noop20220817102021848200000001",
+          "bucket_domain_name": "noop20220817102021848200000001.s3.amazonaws.com",
+          "bucket_prefix": "noop",
+          "bucket_regional_domain_name": "noop20220817102021848200000001.s3.amazonaws.com",
+          "cors_rule": [],
+          "force_destroy": false,
+          "grant": [
+            {
+              "id": "d5c48f20001a6ee7be6d75e69fe2da57d4c273b03ac318bd3d5526018c47ecb5",
+              "permissions": [
+                "FULL_CONTROL"
+              ],
+              "type": "CanonicalUser",
+              "uri": ""
+            }
+          ],
+          "hosted_zone_id": "Z3AQBSTGFYJSTF",
+          "id": "noop20220817102021848200000001",
+          "lifecycle_rule": [],
+          "logging": [],
+          "object_lock_configuration": [],
+          "object_lock_enabled": false,
+          "policy": "",
+          "region": "us-east-1",
+          "replication_configuration": [],
+          "request_payer": "BucketOwner",
+          "server_side_encryption_configuration": [],
+          "tags": {},
+          "tags_all": {},
+          "timeouts": null,
+          "versioning": [
+            {
+              "enabled": false,
+              "mfa_delete": false
+            }
+          ],
+          "website": [],
+          "website_domain": null,
+          "website_endpoint": null
+        }
+      },
+      "aws_s3_bucket.update_bucket": {
+        "id": "aws_s3_bucket.update_bucket",
+        "resource_type": "aws_s3_bucket",
+        "namespace": "golden_test/tfplan/resource-changes/plan.json",
+        "meta": {
+          "region": "us-east-1",
+          "terraform": {
+            "provider_config": {
+              "region": "us-east-1"
+            }
+          },
+          "tfplan": {
+            "resource_actions": [
+              "update"
+            ]
+          }
+        },
+        "attributes": {
+          "acceleration_status": "",
+          "acl": "public-read",
+          "arn": "arn:aws:s3:::update20220817101803364800000001",
+          "bucket": "update20220817101803364800000001",
+          "bucket_domain_name": "update20220817101803364800000001.s3.amazonaws.com",
+          "bucket_prefix": "update",
+          "bucket_regional_domain_name": "update20220817101803364800000001.s3.amazonaws.com",
+          "cors_rule": [],
+          "force_destroy": false,
+          "grant": [
+            {
+              "id": "d5c48f20001a6ee7be6d75e69fe2da57d4c273b03ac318bd3d5526018c47ecb5",
+              "permissions": [
+                "FULL_CONTROL"
+              ],
+              "type": "CanonicalUser",
+              "uri": ""
+            }
+          ],
+          "hosted_zone_id": "Z3AQBSTGFYJSTF",
+          "id": "update20220817101803364800000001",
+          "lifecycle_rule": [],
+          "logging": [],
+          "object_lock_configuration": [],
+          "object_lock_enabled": false,
+          "policy": "",
+          "region": "us-east-1",
+          "replication_configuration": [],
+          "request_payer": "BucketOwner",
+          "server_side_encryption_configuration": [],
+          "tags": {},
+          "tags_all": {},
+          "timeouts": null,
+          "versioning": [
+            {
+              "enabled": false,
+              "mfa_delete": false
+            }
+          ],
+          "website": [],
+          "website_domain": null,
+          "website_endpoint": null
+        }
+      }
+    }
+  },
+  "scope": {
+    "filepath": "golden_test/tfplan/resource-changes/plan.json"
+  }
+}

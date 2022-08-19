@@ -19,6 +19,11 @@
               "region": "us-east-1"
             },
             "provider_version_constraint": "~\u003e 4.0.0"
+          },
+          "tfplan": {
+            "resource_actions": [
+              "create"
+            ]
           }
         },
         "attributes": {
@@ -45,6 +50,11 @@
               "region": "us-east-1"
             },
             "provider_version_constraint": "~\u003e 4.0.0"
+          },
+          "tfplan": {
+            "resource_actions": [
+              "create"
+            ]
           }
         },
         "attributes": {
@@ -64,6 +74,11 @@
               "region": "us-west-1"
             },
             "provider_version_constraint": "~\u003e 4.0.0"
+          },
+          "tfplan": {
+            "resource_actions": [
+              "create"
+            ]
           }
         },
         "attributes": {
@@ -85,6 +100,11 @@
               "region": "us-west-1"
             },
             "provider_version_constraint": "~\u003e 4.0.0"
+          },
+          "tfplan": {
+            "resource_actions": [
+              "create"
+            ]
           }
         },
         "attributes": {
