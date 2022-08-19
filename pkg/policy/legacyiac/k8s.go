@@ -2,6 +2,7 @@ package legacyiac
 
 import (
 	"sort"
+	"strings"
 
 	"github.com/snyk/policy-engine/pkg/models"
 )
@@ -55,6 +56,15 @@ func (k *K8sInput) Raw() interface{} {
 
 func (k *K8sInput) ParseMsg(msg string) ParsedMsg {
 	path := parsePath(msg)
+
+	// Some paths may start with "kind.", remove that part.
+	if len(path) > 0 {
+		if resourceType, ok := path[0].(string); ok &&
+			strings.ToLower(resourceType) == strings.ToLower(k.resourceType) {
+			path = path[1:]
+		}
+	}
+
 	return ParsedMsg{
 		ResourceID:        k.resourceId,
 		ResourceType:      k.resourceType,

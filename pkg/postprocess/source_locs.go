@@ -66,7 +66,7 @@ func addSourceLocsToRuleResult(
 		resource.Location = location
 
 		for i := range resource.Attributes {
-			attributePath := []interface{}{resource.Type, resource.Id}
+			attributePath := []interface{}{resource.Namespace, resource.Type, resource.Id}
 			attributePath = append(attributePath, resource.Attributes[i].Path...)
 			location, _ := configurations.Location(filepath, attributePath)
 			if len(location) > 0 {

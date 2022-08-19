@@ -146,6 +146,24 @@ func TestK8sParseMsg(t *testing.T) {
 				Path:              []interface{}{"spec", "containers", 0},
 			},
 		},
+		{
+			msg: "spec.containers[0]",
+			expected: legacyiac.ParsedMsg{
+				ResourceID:        "invalid1",
+				ResourceType:      "Pod",
+				ResourceNamespace: "default",
+				Path:              []interface{}{"spec", "containers", 0},
+			},
+		},
+		{
+			msg: "pod.spec.containers[0]",
+			expected: legacyiac.ParsedMsg{
+				ResourceID:        "invalid1",
+				ResourceType:      "Pod",
+				ResourceNamespace: "default",
+				Path:              []interface{}{"spec", "containers", 0},
+			},
+		},
 	} {
 		t.Run(tc.msg, func(t *testing.T) {
 			output := input.ParseMsg(tc.msg)
