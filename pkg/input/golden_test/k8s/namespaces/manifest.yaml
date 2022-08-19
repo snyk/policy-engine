@@ -1,0 +1,32 @@
+---
+# No namespace
+apiVersion: v1
+kind: Pod
+metadata:
+  name: somepod
+spec:
+  containers:
+    - name: pause1
+      image: k8s.gcr.io/pause
+---
+# Namespace ns0
+apiVersion: v1
+kind: Pod
+metadata:
+  name: somepod
+  namespace: ns0
+spec:
+  containers:
+    - name: pause1
+      image: k8s.gcr.io/pause
+---
+# Namespace ns1
+apiVersion: v1
+kind: Pod
+metadata:
+  name: somepod
+  namespace: ns1
+spec:
+  containers:
+    - name: pause1
+      image: k8s.gcr.io/pause

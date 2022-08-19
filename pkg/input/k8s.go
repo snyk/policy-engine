@@ -96,17 +96,23 @@ type k8s_Configuration struct {
 }
 
 func (l *k8s_Configuration) ToState() models.State {
-	resources := []models.ResourceState{}
+	resourcesByType := map[string]map[string]models.ResourceState{}
 	for _, resource := range l.resources {
-		resources = append(resources, resource)
+		if _, ok := resourcesByType[resource.ResourceType]; !ok {
+			resourcesByType[resource.ResourceType] = map[string]models.ResourceState{}
+		}
+
+		key := fmt.Sprintf("%s.%s", resource.Namespace, resource.Id)
+		resourcesByType[resource.ResourceType][key] = resource
 	}
+
 	return models.State{
 		InputType:           Kubernetes.Name,
 		EnvironmentProvider: "iac",
 		Meta: map[string]interface{}{
 			"filepath": l.path,
 		},
-		Resources: groupResourcesByType(resources),
+		Resources: resourcesByType,
 		Scope: map[string]interface{}{
 			"filepath": l.path,
 		},

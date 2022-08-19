@@ -8,7 +8,7 @@
   },
   "resources": {
     "PodSecurityPolicy": {
-      "psp": {
+      "default.psp": {
         "id": "psp",
         "resource_type": "PodSecurityPolicy",
         "namespace": "default",
