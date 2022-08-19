@@ -147,6 +147,10 @@ func (l *armConfiguration) Errors() []error {
 	return []error{}
 }
 
+func (l *armConfiguration) Type() *Type {
+	return Arm
+}
+
 type arm_Template struct {
 	Schema         string         `json:"$schema"`
 	ContentVersion string         `json:"contentVersion"`

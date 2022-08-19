@@ -193,6 +193,10 @@ func (l *cfnConfiguration) Errors() []error {
 	return []error{}
 }
 
+func (l *cfnConfiguration) Type() *Type {
+	return CloudFormation
+}
+
 func decodeMap(node *yaml.Node) (map[string]interface{}, error) {
 	if len(node.Content)%2 != 0 {
 		return nil, fmt.Errorf("Malformed map at line %v, col %v", node.Line, node.Column)

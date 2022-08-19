@@ -84,6 +84,10 @@ func (l *tfstateLoader) Errors() []error {
 	return []error{}
 }
 
+func (l *tfstateLoader) Type() *Type {
+	return TerraformState
+}
+
 func (l *tfstateLoader) Location(attributePath []interface{}) (LocationStack, error) {
 	return nil, nil
 }

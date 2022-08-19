@@ -175,6 +175,10 @@ func (l *k8s_Configuration) Errors() []error {
 	return l.errors
 }
 
+func (l *k8s_Configuration) Type() *Type {
+	return Kubernetes
+}
+
 func splitYAML(data []byte) ([]map[string]interface{}, error) {
 	dec := yaml.NewDecoder(bytes.NewReader(data))
 	var documents []map[string]interface{}
