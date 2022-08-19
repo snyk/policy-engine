@@ -4,12 +4,12 @@
   "input_type": "k8s",
   "environment_provider": "iac",
   "meta": {
-    "filepath": "golden_test/k8s/example-01/main.yaml"
+    "filepath": "golden_test/k8s/namespaces/manifest.yaml"
   },
   "resources": {
     "Pod": {
-      "default.invalid1": {
-        "id": "invalid1",
+      "default.somepod": {
+        "id": "somepod",
         "resource_type": "Pod",
         "namespace": "default",
         "meta": {},
@@ -17,7 +17,7 @@
           "apiVersion": "v1",
           "kind": "Pod",
           "metadata": {
-            "name": "invalid1"
+            "name": "somepod"
           },
           "spec": {
             "containers": [
@@ -29,19 +29,17 @@
           }
         }
       },
-      "default.invalid2": {
-        "id": "invalid2",
+      "ns0.somepod": {
+        "id": "somepod",
         "resource_type": "Pod",
-        "namespace": "default",
+        "namespace": "ns0",
         "meta": {},
         "attributes": {
           "apiVersion": "v1",
           "kind": "Pod",
           "metadata": {
-            "annotations": {
-              "seccomp.security.alpha.kubernetes.io/pod": "foo/default"
-            },
-            "name": "invalid2"
+            "name": "somepod",
+            "namespace": "ns0"
           },
           "spec": {
             "containers": [
@@ -53,19 +51,17 @@
           }
         }
       },
-      "default.invalid3": {
-        "id": "invalid3",
+      "ns1.somepod": {
+        "id": "somepod",
         "resource_type": "Pod",
-        "namespace": "default",
+        "namespace": "ns1",
         "meta": {},
         "attributes": {
           "apiVersion": "v1",
           "kind": "Pod",
           "metadata": {
-            "annotations": {
-              "seccomp.security.alpha.kubernetes.io/pod": ""
-            },
-            "name": "invalid3"
+            "name": "somepod",
+            "namespace": "ns1"
           },
           "spec": {
             "containers": [
@@ -80,6 +76,6 @@
     }
   },
   "scope": {
-    "filepath": "golden_test/k8s/example-01/main.yaml"
+    "filepath": "golden_test/k8s/namespaces/manifest.yaml"
   }
 }
