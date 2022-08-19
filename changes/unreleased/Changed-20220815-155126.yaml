@@ -1,3 +1,0 @@
-kind: Changed
-body: refactored cfn loader to remove toState() use
-time: 2022-08-15T15:51:26.19551656+02:00

@@ -1,3 +1,0 @@
-kind: Fixed
-body: Fix resource ID collision with namespaces in k8s
-time: 2022-08-18T12:06:38.139221384+02:00

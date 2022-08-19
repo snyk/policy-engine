@@ -1,3 +1,0 @@
-kind: Changed
-body: skip invalid k8s objects rather than failing
-time: 2022-08-19T15:48:34.035045158+02:00
