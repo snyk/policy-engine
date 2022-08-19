@@ -22,8 +22,11 @@ components together.
       - [`data.LocalProvider()`](#datalocalprovider)
     - [Example](#example-1)
     - [Error handling](#error-handling-1)
-  - [Source code location and line numbers](#source-code-location-and-line-numbers)
-    - [Example](#example-2)
+  - [Post-processing](#post-processing)
+    - [Source code location and line numbers](#source-code-location-and-line-numbers)
+      - [Example](#example-2)
+    - [Filtering down resources](#filtering-down-resources)
+      - [Example](#example-3)
 
 ## Parsing IaC configurations
 
@@ -435,7 +438,9 @@ model in the output.
 | `FailedToLoadRules`   |
 | `FailedToCompile`     |
 
-## Source code location and line numbers
+## Post-processing of results
+
+### Source code location and line numbers
 
 The `AddSourceLocs` function from the policy engine's `postprocess` package
 performs a post-processing step that annotates results with source code
@@ -455,7 +460,7 @@ locations, like:
 }
 ```
 
-### Example
+#### Example
 
 Building on top of both the ["parsing IaC configurations" example](#example) and the
 ["evaluating policies" example](#example-1):
@@ -472,10 +477,31 @@ import (
 func main() {
     // Code that initializes a loader and produces results with engine from the
     // previous examples
-    // ... 
+    // ...
 
     // AddSourceLocs modifies the results object in-place to add source
     // code locations to resources and properties for supported input types.
     postprocess.AddSourceLocs(results, loader)
 }
+```
+
+### Filtering down resources
+
+You can use the `ResourceFilter` function `postprocess` to limit the resources
+appearing in the output.  This filters down the resources state in the output
+to only the matching resources.  It also narrows down the rule results to that
+refer to at least one of these matching resources.
+
+#### Example
+
+```go
+var results *models.Results
+// Code to produce the results
+// ...
+postprocess.ResourceFilter(results, func(resource *models.ResourceState) bool {
+	if region, ok := resource.Meta["region"].(string); ok {
+		strings.Contains(region, "us-gov")
+	}
+	return false
+})
 ```
