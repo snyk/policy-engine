@@ -60,7 +60,7 @@ func (c *ArmDetector) DetectFile(i *File, opts DetectOptions) (IACConfiguration,
 	}
 
 	path := i.Path
-	return &armConfiguration{
+	return &ArmConfiguration{
 		path:       path,
 		template:   template,
 		discovered: discovered,
@@ -72,14 +72,14 @@ func (c *ArmDetector) DetectDirectory(i *Directory, opts DetectOptions) (IACConf
 	return nil, nil
 }
 
-type armConfiguration struct {
+type ArmConfiguration struct {
 	path       string
 	template   *arm_Template
 	discovered map[string]arm_DiscoverResource
 	source     *SourceInfoNode
 }
 
-func (l *armConfiguration) ToState() models.State {
+func (l *ArmConfiguration) ToState() models.State {
 	// Set of all existing resources for the resolver.
 	resourceSet := map[string]struct{}{}
 	for id := range l.discovered {
@@ -107,7 +107,7 @@ func (l *armConfiguration) ToState() models.State {
 	}
 }
 
-func (l *armConfiguration) Location(path []interface{}) (LocationStack, error) {
+func (l *ArmConfiguration) Location(path []interface{}) (LocationStack, error) {
 	// Format is {resourceNamespace, resourceType, resourceId, attributePath...}
 	if l.source == nil || len(path) < 3 {
 		return nil, nil
@@ -139,11 +139,11 @@ func (l *armConfiguration) Location(path []interface{}) (LocationStack, error) {
 	return []Location{{Path: l.path, Line: line, Col: column}}, err
 }
 
-func (l *armConfiguration) LoadedFiles() []string {
+func (l *ArmConfiguration) LoadedFiles() []string {
 	return []string{l.path}
 }
 
-func (l *armConfiguration) Errors() []error {
+func (l *ArmConfiguration) Errors() []error {
 	return []error{}
 }
 

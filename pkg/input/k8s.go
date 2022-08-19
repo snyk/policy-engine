@@ -72,7 +72,7 @@ func (c *KubernetesDetector) DetectFile(i *File, opts DetectOptions) (IACConfigu
 		}
 	}
 
-	return &k8s_Configuration{
+	return &K8s_Configuration{
 		path:      i.Path,
 		resources: resources,
 		sources:   sources,
@@ -83,13 +83,13 @@ func (c *KubernetesDetector) DetectDirectory(i *Directory, opts DetectOptions) (
 	return nil, nil
 }
 
-type k8s_Configuration struct {
+type K8s_Configuration struct {
 	path      string
 	resources map[k8s_Key]models.ResourceState
 	sources   map[k8s_Key]SourceInfoNode
 }
 
-func (l *k8s_Configuration) ToState() models.State {
+func (l *K8s_Configuration) ToState() models.State {
 	resourcesByType := map[string]map[string]models.ResourceState{}
 	for _, resource := range l.resources {
 		if _, ok := resourcesByType[resource.ResourceType]; !ok {
@@ -113,7 +113,7 @@ func (l *k8s_Configuration) ToState() models.State {
 	}
 }
 
-func (l *k8s_Configuration) Location(path []interface{}) (LocationStack, error) {
+func (l *K8s_Configuration) Location(path []interface{}) (LocationStack, error) {
 	// Format is {resourceNamespace, resourceType, resourceId, attributePath...}
 	if l.sources == nil || len(path) < 3 {
 		return nil, nil
@@ -156,11 +156,11 @@ func (l *k8s_Configuration) Location(path []interface{}) (LocationStack, error) 
 	}
 }
 
-func (l *k8s_Configuration) LoadedFiles() []string {
+func (l *K8s_Configuration) LoadedFiles() []string {
 	return []string{l.path}
 }
 
-func (l *k8s_Configuration) Errors() []error {
+func (l *K8s_Configuration) Errors() []error {
 	return []error{}
 }
 

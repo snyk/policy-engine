@@ -43,7 +43,7 @@ func (t *TfStateDetector) DetectFile(i *File, opts DetectOptions) (IACConfigurat
 		return nil, fmt.Errorf("%w", InvalidInput)
 	}
 
-	return &tfstateLoader{
+	return &TfstateLoader{
 		path:  i.Path,
 		state: tfstate,
 	}, nil
@@ -53,7 +53,7 @@ func (t *TfStateDetector) DetectDirectory(i *Directory, opts DetectOptions) (IAC
 	return nil, nil
 }
 
-type tfstateLoader struct {
+type TfstateLoader struct {
 	path  string
 	state tfstate_State
 }
@@ -76,19 +76,19 @@ type tfstate_ResourceInstance struct {
 	Attributes map[string]interface{} `yaml:"attributes"`
 }
 
-func (l *tfstateLoader) LoadedFiles() []string {
+func (l *TfstateLoader) LoadedFiles() []string {
 	return []string{l.path}
 }
 
-func (l *tfstateLoader) Errors() []error {
+func (l *TfstateLoader) Errors() []error {
 	return []error{}
 }
 
-func (l *tfstateLoader) Location(attributePath []interface{}) (LocationStack, error) {
+func (l *TfstateLoader) Location(attributePath []interface{}) (LocationStack, error) {
 	return nil, nil
 }
 
-func (l *tfstateLoader) ToState() models.State {
+func (l *TfstateLoader) ToState() models.State {
 	resources := []models.ResourceState{}
 	environmentProvider := ""
 

@@ -58,7 +58,7 @@ func (c *CfnDetector) DetectFile(i *File, opts DetectOptions) (IACConfiguration,
 		source = nil // Don't consider source code locations essential.
 	}
 
-	return &cfnConfiguration{
+	return &CfnConfiguration{
 		path:      path,
 		template:  *template,
 		source:    source,
@@ -133,14 +133,14 @@ func (tmpl *cfnTemplate) resources() map[string]models.ResourceState {
 	return resources
 }
 
-type cfnConfiguration struct {
+type CfnConfiguration struct {
 	path      string
 	template  cfnTemplate
 	source    *SourceInfoNode
 	resources map[string]models.ResourceState
 }
 
-func (l *cfnConfiguration) ToState() models.State {
+func (l *CfnConfiguration) ToState() models.State {
 	resources := []models.ResourceState{}
 	for _, resource := range l.resources {
 		resource.Namespace = l.path
@@ -160,7 +160,7 @@ func (l *cfnConfiguration) ToState() models.State {
 	}
 }
 
-func (l *cfnConfiguration) Location(path []interface{}) (LocationStack, error) {
+func (l *CfnConfiguration) Location(path []interface{}) (LocationStack, error) {
 	// Format is {resourceNamespace, resourceType, resourceId, attributePath...}
 	if l.source == nil || len(path) < 3 {
 		return nil, nil
@@ -185,11 +185,11 @@ func (l *cfnConfiguration) Location(path []interface{}) (LocationStack, error) {
 	return []Location{{Path: l.path, Line: line, Col: column}}, err
 }
 
-func (l *cfnConfiguration) LoadedFiles() []string {
+func (l *CfnConfiguration) LoadedFiles() []string {
 	return []string{l.path}
 }
 
-func (l *cfnConfiguration) Errors() []error {
+func (l *CfnConfiguration) Errors() []error {
 	return []error{}
 }
 

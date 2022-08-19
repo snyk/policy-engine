@@ -45,7 +45,7 @@ func (t *TfPlanDetector) DetectFile(i *File, opts DetectOptions) (IACConfigurati
 		return nil, fmt.Errorf("%w", InvalidInput)
 	}
 
-	return &tfPlan{
+	return &TfPlan{
 		path: i.Path,
 		plan: rawPlan,
 	}, nil
@@ -55,20 +55,20 @@ func (t *TfPlanDetector) DetectDirectory(i *Directory, opts DetectOptions) (IACC
 	return nil, nil
 }
 
-type tfPlan struct {
+type TfPlan struct {
 	path string
 	plan *tfplan_Plan
 }
 
-func (l *tfPlan) LoadedFiles() []string {
+func (l *TfPlan) LoadedFiles() []string {
 	return []string{l.path}
 }
 
-func (l *tfPlan) Location(_ []interface{}) (LocationStack, error) {
+func (l *TfPlan) Location(_ []interface{}) (LocationStack, error) {
 	return []Location{{Path: l.path}}, nil
 }
 
-func (l *tfPlan) ToState() models.State {
+func (l *TfPlan) ToState() models.State {
 	return models.State{
 		InputType:           TerraformPlan.Name,
 		EnvironmentProvider: "iac",
@@ -82,7 +82,7 @@ func (l *tfPlan) ToState() models.State {
 	}
 }
 
-func (l *tfPlan) Errors() []error {
+func (l *TfPlan) Errors() []error {
 	return []error{}
 }
 
