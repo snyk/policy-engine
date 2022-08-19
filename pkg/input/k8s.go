@@ -25,6 +25,7 @@ import (
 )
 
 var validK8sExts map[string]bool = map[string]bool{
+	".json": true,
 	".yaml": true,
 	".yml":  true,
 }
@@ -45,6 +46,11 @@ func (c *KubernetesDetector) DetectFile(i *File, opts DetectOptions) (IACConfigu
 	}
 	if len(documents) == 0 {
 		return nil, fmt.Errorf("%w: did not contain any valid YAML documents", InvalidInput)
+	}
+	for _, doc := range documents {
+		if !k8s_hasRequiredFields(doc) {
+			return nil, fmt.Errorf("%w: not a valid Kubernetes object", InvalidInput)
+		}
 	}
 
 	// Model each YAML document as a resource
@@ -173,6 +179,16 @@ func splitYAML(data []byte) ([]map[string]interface{}, error) {
 		documents = append(documents, value)
 	}
 	return documents, nil
+}
+
+func k8s_hasRequiredFields(doc map[string]interface{}) bool {
+	required := []string{"apiVersion", "kind", "metadata", "spec"}
+	for _, k := range required {
+		if _, ok := doc[k]; !ok {
+			return false
+		}
+	}
+	return true
 }
 
 func k8s_parseKey(document map[string]interface{}) (k8s_Key, error) {
