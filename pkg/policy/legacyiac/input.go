@@ -9,7 +9,9 @@ import (
 type ParsedMsg struct {
 	ResourceID   string
 	ResourceType string
-	Path         []interface{}
+	// Optional, replaced by defaultResourceNamespace if empty
+	ResourceNamespace string
+	Path              []interface{}
 }
 
 type Input interface {
