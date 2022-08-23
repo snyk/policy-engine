@@ -1,5 +1,7 @@
-import os
+#!/usr/bin/env python
+
 import datetime
+import os
 import sys
 
 
@@ -76,6 +78,7 @@ def license_file(path, comment_prefix):
 
 
 ignores = [
+    "pkg/input/golden_test/tf/example-terraform-modules",
     "pkg/internal/terraform",
     "pkg/models",
 ]
@@ -103,4 +106,5 @@ def license_tree(dir):
 license_tree("pkg")
 license_tree("cmd")
 license_tree("rego")
+license_file("main.go", "//")
 license_file("swagger.yaml", "#")
