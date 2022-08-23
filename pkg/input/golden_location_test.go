@@ -1,3 +1,17 @@
+// Copyright 2022 Snyk Ltd
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 package input
 
 import (
@@ -94,7 +108,7 @@ var goldenLocationTests = []goldenLocationTest{
 				},
 				expected: LocationStack{Location{
 					Path: "main.yaml",
-					Line: 6,
+					Line: 20,
 					Col:  3,
 				}},
 			},
@@ -143,7 +157,7 @@ var goldenLocationTests = []goldenLocationTest{
 				},
 				expected: LocationStack{Location{
 					Path: "main.yaml",
-					Line: 8,
+					Line: 22,
 					Col:  3,
 				}},
 			},
@@ -325,7 +339,7 @@ var goldenLocationTests = []goldenLocationTest{
 				expected: LocationStack{
 					{
 						Path: "main.tf",
-						Line: 13,
+						Line: 27,
 						Col:  7,
 					},
 				},
@@ -346,7 +360,7 @@ var goldenLocationTests = []goldenLocationTest{
 				expected: LocationStack{
 					{
 						Path: "main.tf",
-						Line: 42,
+						Line: 56,
 						Col:  9,
 					},
 				},

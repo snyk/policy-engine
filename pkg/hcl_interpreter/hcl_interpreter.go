@@ -1,3 +1,17 @@
+// Copyright 2022 Snyk Ltd
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 // Look in `/pkg/hcl_interpreter/README.md` for an explanation of how this
 // works.
 package hcl_interpreter
@@ -8,11 +22,10 @@ import (
 	"github.com/spf13/afero"
 	"github.com/zclconf/go-cty/cty"
 
-	"github.com/fugue/regula/v2/pkg/terraform/lang"
-	"github.com/fugue/regula/v2/pkg/topsort"
-
 	"github.com/snyk/policy-engine/pkg/hcl_interpreter/funcs"
+	"github.com/snyk/policy-engine/pkg/internal/terraform/lang"
 	"github.com/snyk/policy-engine/pkg/models"
+	"github.com/snyk/policy-engine/pkg/topsort"
 )
 
 type Analysis struct {
