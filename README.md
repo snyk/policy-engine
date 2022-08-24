@@ -23,3 +23,11 @@ set of additional documents are:
   * Contains a tutorial for authoring policies and instructions for writing policy tests
 * [Use as a library](docs/library_usage.md)
   * Describes how to use `policy-engine` as a Go library
+
+## Contributing
+
+Should you wish to make a contribution please open a pull request against this
+repository with a clear description of the change with tests demonstrating
+the functionality. You will also need to agree to the [Contributor
+Agreement](./Contributor-Agreement.md) before the code can be accepted and
+merged.
