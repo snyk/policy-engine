@@ -1,0 +1,155 @@
+{
+  "format_version": "1.1",
+  "terraform_version": "1.2.5",
+  "planned_values": {
+    "root_module": {}
+  },
+  "prior_state": {
+    "format_version": "1.0",
+    "terraform_version": "1.2.5",
+    "values": {
+      "root_module": {
+        "resources": [
+          {
+            "address": "data.aws_iam_policy_document.denied",
+            "mode": "data",
+            "type": "aws_iam_policy_document",
+            "name": "denied",
+            "provider_name": "registry.terraform.io/hashicorp/aws",
+            "schema_version": 0,
+            "values": {
+              "id": "2176800992",
+              "json": "{\n  \"Version\": \"2012-10-17\",\n  \"Statement\": [\n    {\n      \"Sid\": \"\",\n      \"Effect\": \"Allow\",\n      \"Action\": \"sts:AssumeRole\",\n      \"Principal\": {\n        \"AWS\": \"123456789012\"\n      },\n      \"Condition\": {\n        \"StringEquals\": {\n          \"sts:ExternalId\": \"Unique ID Assigned by Example Corp\"\n        }\n      }\n    }\n  ]\n}",
+              "override_json": null,
+              "override_policy_documents": null,
+              "policy_id": null,
+              "source_json": null,
+              "source_policy_documents": null,
+              "statement": [
+                {
+                  "actions": [
+                    "sts:AssumeRole"
+                  ],
+                  "condition": [
+                    {
+                      "test": "StringEquals",
+                      "values": [
+                        "Unique ID Assigned by Example Corp"
+                      ],
+                      "variable": "sts:ExternalId"
+                    }
+                  ],
+                  "effect": "Allow",
+                  "not_actions": [],
+                  "not_principals": [],
+                  "not_resources": [],
+                  "principals": [
+                    {
+                      "identifiers": [
+                        "123456789012"
+                      ],
+                      "type": "AWS"
+                    }
+                  ],
+                  "resources": [],
+                  "sid": ""
+                }
+              ],
+              "version": "2012-10-17"
+            },
+            "sensitive_values": {
+              "statement": [
+                {
+                  "actions": [
+                    false
+                  ],
+                  "condition": [
+                    {
+                      "values": [
+                        false
+                      ]
+                    }
+                  ],
+                  "not_actions": [],
+                  "not_principals": [],
+                  "not_resources": [],
+                  "principals": [
+                    {
+                      "identifiers": [
+                        false
+                      ]
+                    }
+                  ],
+                  "resources": []
+                }
+              ]
+            }
+          }
+        ]
+      }
+    }
+  },
+  "configuration": {
+    "provider_config": {
+      "aws": {
+        "name": "aws",
+        "full_name": "registry.terraform.io/hashicorp/aws",
+        "expressions": {
+          "region": {
+            "constant_value": "eu-west-2"
+          }
+        }
+      }
+    },
+    "root_module": {
+      "resources": [
+        {
+          "address": "data.aws_iam_policy_document.denied",
+          "mode": "data",
+          "type": "aws_iam_policy_document",
+          "name": "denied",
+          "provider_config_key": "aws",
+          "expressions": {
+            "statement": [
+              {
+                "actions": {
+                  "constant_value": [
+                    "sts:AssumeRole"
+                  ]
+                },
+                "condition": [
+                  {
+                    "test": {
+                      "constant_value": "StringEquals"
+                    },
+                    "values": {
+                      "constant_value": [
+                        "Unique ID Assigned by Example Corp"
+                      ]
+                    },
+                    "variable": {
+                      "constant_value": "sts:ExternalId"
+                    }
+                  }
+                ],
+                "principals": [
+                  {
+                    "identifiers": {
+                      "constant_value": [
+                        "123456789012"
+                      ]
+                    },
+                    "type": {
+                      "constant_value": "AWS"
+                    }
+                  }
+                ]
+              }
+            ]
+          },
+          "schema_version": 0
+        }
+      ]
+    }
+  }
+}

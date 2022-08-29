@@ -98,6 +98,7 @@ type tfplan_Plan struct {
 	PlannedValues    *tfplan_PlannedValues    `yaml:"planned_values"`
 	ResourceChanges  []*tfplan_ResourceChange `yaml:"resource_changes"`
 	Configuration    *tfplan_Configuration    `yaml:"configuration"`
+	PriorState       *tfplan_PriorState       `yaml:"prior_state"`
 }
 
 type tfplan_PlannedValues struct {
@@ -165,6 +166,12 @@ type tfplan_ConfigurationExpression struct {
 	References    *tfplan_ConfigurationExpression_References
 	Object        map[string]tfplan_ConfigurationExpression
 	Array         []tfplan_ConfigurationExpression
+}
+
+type tfplan_PriorState struct {
+	FormatVersion    string                `yaml:"format_version"`
+	TerraformVersion string                `yaml:"terraform_version"`
+	Values           *tfplan_PlannedValues `yaml:"values"`
 }
 
 // Override the UnmarshalYAML for tfplan_ConfigurationExpression.  This is a
@@ -239,14 +246,22 @@ type tfplan_ConfigurationExpression_References struct {
 // Helper to iterate through all modules.
 func (plan *tfplan_Plan) visitModules(
 	visitPlannedValuesModule func(string, *tfplan_PlannedValuesModule),
+	visitPriorStateModule func(string, *tfplan_PlannedValuesModule),
 	visitConfigurationModule func(string, *tfplan_ConfigurationModule),
 ) {
 	var walkPlannedValuesModule func(*tfplan_PlannedValuesModule)
+	var walkPriorStateModule func(*tfplan_PlannedValuesModule)
 	var walkConfigurationModule func(string, *tfplan_ConfigurationModule)
 	walkPlannedValuesModule = func(module *tfplan_PlannedValuesModule) {
 		visitPlannedValuesModule(module.Address, module)
 		for _, child := range module.ChildModules {
 			walkPlannedValuesModule(child)
+		}
+	}
+	walkPriorStateModule = func(module *tfplan_PlannedValuesModule) {
+		visitPriorStateModule(module.Address, module)
+		for _, child := range module.ChildModules {
+			walkPriorStateModule(child)
 		}
 	}
 	walkConfigurationModule = func(path string, module *tfplan_ConfigurationModule) {
@@ -257,6 +272,9 @@ func (plan *tfplan_Plan) visitModules(
 		}
 	}
 	walkPlannedValuesModule(plan.PlannedValues.RootModule)
+	if plan.PriorState != nil && plan.PriorState.Values != nil {
+		walkPriorStateModule(plan.PriorState.Values.RootModule)
+	}
 	walkConfigurationModule("", plan.Configuration.RootModule)
 }
 
@@ -273,6 +291,7 @@ func (plan *tfplan_Plan) visitModules(
 func (plan *tfplan_Plan) pointers() func(string) *string {
 	out := map[string]string{}
 	plan.visitModules(
+		func(path string, module *tfplan_PlannedValuesModule) {},
 		func(path string, module *tfplan_PlannedValuesModule) {},
 		func(path string, module *tfplan_ConfigurationModule) {
 			for key, expr := range module.Outputs {
@@ -325,12 +344,19 @@ func (plan *tfplan_Plan) visitResources(
 ) {
 	modulesByResource := map[string]string{}
 	plannedValueResources := map[string]*tfplan_PlannedValuesResource{}
+	priorStateResources := map[string]*tfplan_PlannedValuesResource{}
 	resourceChanges := map[string]*tfplan_ResourceChange{}
 	configurationResources := map[string]*tfplan_ConfigurationResource{}
 	plan.visitModules(
 		func(path string, module *tfplan_PlannedValuesModule) {
 			for _, resource := range module.Resources {
 				plannedValueResources[resource.Address] = resource
+				modulesByResource[resource.Address] = path
+			}
+		},
+		func(path string, module *tfplan_PlannedValuesModule) {
+			for _, resource := range module.Resources {
+				priorStateResources[resource.Address] = resource
 				modulesByResource[resource.Address] = path
 			}
 		},
@@ -344,22 +370,42 @@ func (plan *tfplan_Plan) visitResources(
 	for _, resourceChange := range plan.ResourceChanges {
 		resourceChanges[resourceChange.Address] = resourceChange
 	}
-	for k, pvResource := range plannedValueResources {
-		// Resources with a count set will have an address along the likes of
-		// "aws_s3_bucket.foo[3]" but the corresponding configuration resource
-		// will still have an "aws_s3_bucket.foo" address.
-		configurationKey := k
-		if idx := strings.Index(k, "["); idx > 0 {
-			configurationKey = k[:idx]
-		}
 
+	// Resources with a count set will have an address along the likes of
+	// "aws_s3_bucket.foo[3]" but the corresponding configuration resource
+	// will still have an "aws_s3_bucket.foo" address.
+	configurationKey := func(k string) string {
+		if idx := strings.Index(k, "["); idx > 0 {
+			return k[:idx]
+		} else {
+			return k
+		}
+	}
+
+	for k, pvResource := range plannedValueResources {
 		visitResource(
 			modulesByResource[k],
 			k,
 			pvResource,
 			resourceChanges[k],
-			configurationResources[configurationKey],
+			configurationResources[configurationKey(k)],
 		)
+	}
+
+	// Also consider prior_state data resources.  These have the same format
+	// as planned values.
+	for k, priorStateResource := range priorStateResources {
+		if _, ok := plannedValueResources[k]; !ok {
+			if strings.HasPrefix(k, "data.") {
+				visitResource(
+					modulesByResource[k],
+					k,
+					priorStateResource,
+					resourceChanges[k],
+					configurationResources[configurationKey(k)],
+				)
+			}
+		}
 	}
 }
 

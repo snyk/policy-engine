@@ -1,0 +1,69 @@
+{
+  "format": "",
+  "format_version": "",
+  "input_type": "tf_plan",
+  "environment_provider": "iac",
+  "meta": {
+    "filepath": "golden_test/tfplan/data-01/plan.json"
+  },
+  "resources": {
+    "data.aws_iam_policy_document": {
+      "data.aws_iam_policy_document.denied": {
+        "id": "data.aws_iam_policy_document.denied",
+        "resource_type": "data.aws_iam_policy_document",
+        "namespace": "golden_test/tfplan/data-01/plan.json",
+        "meta": {
+          "region": "eu-west-2",
+          "terraform": {
+            "provider_config": {
+              "region": "eu-west-2"
+            }
+          }
+        },
+        "attributes": {
+          "id": "2176800992",
+          "json": "{\n  \"Version\": \"2012-10-17\",\n  \"Statement\": [\n    {\n      \"Sid\": \"\",\n      \"Effect\": \"Allow\",\n      \"Action\": \"sts:AssumeRole\",\n      \"Principal\": {\n        \"AWS\": \"123456789012\"\n      },\n      \"Condition\": {\n        \"StringEquals\": {\n          \"sts:ExternalId\": \"Unique ID Assigned by Example Corp\"\n        }\n      }\n    }\n  ]\n}",
+          "override_json": null,
+          "override_policy_documents": null,
+          "policy_id": null,
+          "source_json": null,
+          "source_policy_documents": null,
+          "statement": [
+            {
+              "actions": [
+                "sts:AssumeRole"
+              ],
+              "condition": [
+                {
+                  "test": "StringEquals",
+                  "values": [
+                    "Unique ID Assigned by Example Corp"
+                  ],
+                  "variable": "sts:ExternalId"
+                }
+              ],
+              "effect": "Allow",
+              "not_actions": [],
+              "not_principals": [],
+              "not_resources": [],
+              "principals": [
+                {
+                  "identifiers": [
+                    "123456789012"
+                  ],
+                  "type": "AWS"
+                }
+              ],
+              "resources": [],
+              "sid": ""
+            }
+          ],
+          "version": "2012-10-17"
+        }
+      }
+    }
+  },
+  "scope": {
+    "filepath": "golden_test/tfplan/data-01/plan.json"
+  }
+}
