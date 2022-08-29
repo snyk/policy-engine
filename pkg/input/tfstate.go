@@ -66,6 +66,7 @@ type tfstate_State struct {
 }
 
 type tfstate_Resource struct {
+	Mode      string                     `yaml:"mode"`
 	Type      string                     `yaml:"type"`
 	Name      string                     `yaml:"name"`
 	Provider  string                     `yaml:"provider"`
@@ -97,6 +98,12 @@ func (l *tfstateLoader) ToState() models.State {
 	environmentProvider := ""
 
 	for _, resource := range l.state.Resources {
+		// Set resource type
+		resourceType := resource.Type
+		if resource.Mode == "data" {
+			resourceType = "data." + resourceType
+		}
+
 		// Parse env provider
 		if environmentProvider == "" {
 			environmentProvider = strings.SplitN(resource.Type, "_", 2)[0]
@@ -130,7 +137,7 @@ func (l *tfstateLoader) ToState() models.State {
 		// Put it all together
 		resources = append(resources, models.ResourceState{
 			Id:           id,
-			ResourceType: resource.Type,
+			ResourceType: resourceType,
 			Namespace:    resourceProvider,
 			Attributes:   instance.Attributes,
 			Meta: map[string]interface{}{
