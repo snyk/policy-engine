@@ -1,0 +1,61 @@
+{
+  "version": 4,
+  "terraform_version": "1.2.5",
+  "serial": 1,
+  "lineage": "b758616d-ffbd-989d-947b-250c123480fa",
+  "outputs": {},
+  "resources": [
+    {
+      "mode": "data",
+      "type": "aws_iam_policy_document",
+      "name": "denied",
+      "provider": "provider[\"registry.terraform.io/hashicorp/aws\"]",
+      "instances": [
+        {
+          "schema_version": 0,
+          "attributes": {
+            "id": "2176800992",
+            "json": "{\n  \"Version\": \"2012-10-17\",\n  \"Statement\": [\n    {\n      \"Sid\": \"\",\n      \"Effect\": \"Allow\",\n      \"Action\": \"sts:AssumeRole\",\n      \"Principal\": {\n        \"AWS\": \"123456789012\"\n      },\n      \"Condition\": {\n        \"StringEquals\": {\n          \"sts:ExternalId\": \"Unique ID Assigned by Example Corp\"\n        }\n      }\n    }\n  ]\n}",
+            "override_json": null,
+            "override_policy_documents": null,
+            "policy_id": null,
+            "source_json": null,
+            "source_policy_documents": null,
+            "statement": [
+              {
+                "actions": [
+                  "sts:AssumeRole"
+                ],
+                "condition": [
+                  {
+                    "test": "StringEquals",
+                    "values": [
+                      "Unique ID Assigned by Example Corp"
+                    ],
+                    "variable": "sts:ExternalId"
+                  }
+                ],
+                "effect": "Allow",
+                "not_actions": [],
+                "not_principals": [],
+                "not_resources": [],
+                "principals": [
+                  {
+                    "identifiers": [
+                      "123456789012"
+                    ],
+                    "type": "AWS"
+                  }
+                ],
+                "resources": [],
+                "sid": ""
+              }
+            ],
+            "version": "2012-10-17"
+          },
+          "sensitive_attributes": []
+        }
+      ]
+    }
+  ]
+}
