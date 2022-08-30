@@ -6,11 +6,11 @@ This document describes the contract and API for policies that run in the policy
   - [Conventions in this document](#conventions-in-this-document)
     - [Policy vs. rule](#policy-vs-rule)
   - [Policy requirements](#policy-requirements)
+    - [`input_type`](#input_type)
     - [`deny[info]`](#denyinfo)
       - [`info` object properties](#info-object-properties)
   - [Optional rules](#optional-rules)
     - [`resource_type`](#resource_type)
-    - [`input_type`](#input_type)
     - [`metadata`](#metadata)
       - [Supported fields](#supported-fields)
       - [Remediation](#remediation)
@@ -54,12 +54,32 @@ extensively throughout this document) from what Snyk refers to as a rule elsewhe
 1. Policies must be in a sub-package of `rules`. Examples of valid package declarations:
     - `package rules.my_rule`
     - `package rules.snyk_007.tf`
+    
+2. Policies must have an `input_type` set. 
 
-2. Policies must contain a `deny[info]` "judgement rule", where `info` is an object
+3. Policies must contain a `deny[info]` "judgement rule", where `info` is an object
    (which is described in the next section). It's assumed that the `deny[info]` rule
    is written to match failing resources or conditions.
     * The required fields in the `info` object will depend on which
       [archetype](#policy-archetypes) the policy conforms to.
+
+### `input_type`
+
+By default, each policy will be evaluated for all input types. The `input_type` rule can
+be used to limit which input types the policy is evaluated for. It is best practice to specify this rule in all policies. 
+
+There is a hierarchy to input types that enables policy authors to still write a single policy 
+that applies to multiple types.
+The current list of valid values for this rule are:
+
+* `tf_hcl` (Terraform HCL)
+* `tf_plan` (Terraform plan file)
+* `tf_state` (Terraform state file)
+* `cloud_scan` (State produced by Snyk Cloud)
+* `cfn` (Cloudformation template)
+* `k8s` (Kubernetes manifest)
+* `arm` (Azure ARM template)
+* `tf` (an aggregate type that includes: `tf_hcl`, `tf_plan`, `tf_state`, and `cloud_scan`)
 
 ### `deny[info]`
 
@@ -100,26 +120,6 @@ resource_type := "MULTIPLE"
 ```open-policy-agent
 resource_type := "aws_s3_bucket"
 ```
-
-### `input_type`
-
-By default, each policy will be evaluated for all input types. The `input_type` rule can
-be used to limit which input types the policy is evaluated for. This rule is likely to
-be necessary for [missing-resource policies](#missing-resource-policy), but is less of a
-requirement for other policy types.
-
-For policies that do define an `input_type`, there is a hierarchy to input types that
-enables policy authors to still write a single policy that applies to multiple types.
-The current list of valid values for this rule are:
-
-* `tf_hcl` (Terraform HCL)
-* `tf_plan` (Terraform plan file)
-* `tf_state` (Terraform state file)
-* `cloud_scan` (State produced by Snyk Cloud)
-* `cfn` (Cloudformation template)
-* `k8s` (Kubernetes manifest)
-* `arm` (Azure ARM template)
-* `tf` (an aggregate type that includes: `tf_hcl`, `tf_plan`, `tf_state`, and `cloud_scan`)
 
 ### `metadata`
 
