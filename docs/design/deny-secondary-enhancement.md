@@ -80,13 +80,13 @@ that separates:
     "type": "aws_s3_bucket",
     "namespace": "invalid_via_multiple.tf",
     "location": [/*...*/],
-    "failing_attributes": [
+    "failed_attributes": [
       {
         "path": ["grant", 0, "uri"],
         "location": {/*..*/}
       }
     ],
-    "all_attributes": [
+    "tested_attributes": [
       {
         "path": ["grant", 0, "uri"],
         "location": {/*..*/}
@@ -102,13 +102,13 @@ that separates:
       "type": "data.aws_iam_policy_document",
       "namespace": "invalid_via_multiple.tf",
       "location": [/*...*/],
-      "failing_attributes": [
+      "failed_attributes": [
         {
           "path": ["statement", 0, "principals"],
           "location": {/*..*/}
         }
       ],
-      "all_attributes": [
+      "tested_attributes": [
         {
           "path": ["statement", 0, "principals"],
           "location": {/*..*/}
