@@ -140,6 +140,14 @@ func TestK8sParseMsg(t *testing.T) {
 									"name":  "pause1",
 									"image": "k8s.gcr.io/pause",
 								},
+								map[string]interface{}{
+									"name":  "pause2",
+									"image": "k8s.gcr.io/pause",
+								},
+								map[string]interface{}{
+									"name":  "pause3",
+									"image": "k8s.gcr.io/pause",
+								},
 							},
 						},
 					},
@@ -176,6 +184,15 @@ func TestK8sParseMsg(t *testing.T) {
 				ResourceType:      "Pod",
 				ResourceNamespace: "default",
 				Path:              []interface{}{"spec", "containers", 0},
+			},
+		},
+		{
+			msg: "pod.spec.containers[pause2].image",
+			expected: legacyiac.ParsedMsg{
+				ResourceID:        "invalid1",
+				ResourceType:      "Pod",
+				ResourceNamespace: "default",
+				Path:              []interface{}{"spec", "containers", 1, "image"},
 			},
 		},
 	} {

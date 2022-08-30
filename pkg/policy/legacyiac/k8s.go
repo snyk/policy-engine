@@ -79,10 +79,50 @@ func (k *K8sInput) ParseMsg(msg string) ParsedMsg {
 		}
 	}
 
+	rewritePath(path, k.document)
 	return ParsedMsg{
 		ResourceID:        k.resourceId,
 		ResourceType:      k.resourceType,
 		ResourceNamespace: k.resourceNamespace,
 		Path:              path,
+	}
+}
+
+func rewritePath(path []interface{}, document interface{}) {
+	cursor := document
+	for pathIdx := range path {
+		switch parent := cursor.(type) {
+		case map[string]interface{}:
+			switch k := path[pathIdx].(type) {
+			case string:
+				if child, ok := parent[k]; ok {
+					cursor = child
+					continue
+				}
+			}
+		case []interface{}:
+			switch i := path[pathIdx].(type) {
+			case int:
+				if i >= 0 && i < len(parent) {
+					cursor = parent[i]
+					continue
+				}
+			case string:
+				for actual, elem := range parent {
+					if obj, ok := elem.(map[string]interface{}); ok {
+						if name, ok := obj["name"]; ok {
+							if namestr := name.(string); ok && namestr == i {
+								path[pathIdx] = actual
+								cursor = elem
+								continue
+							}
+						}
+					}
+				}
+			}
+		}
+
+		// Stop on type mismatches and non-nested types.
+		return
 	}
 }
