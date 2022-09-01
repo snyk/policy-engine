@@ -1,7 +1,7 @@
 # Use as a library
 
 This document describes each of the main components of the `policy-engine`
-library. See the [`run` command](cmd/run.go) for an end-to-end example that uses the
+library. See the [`run` command](../cmd/run.go) for an end-to-end example that uses the
 components together.
 
 - [Use as a library](#use-as-a-library)
