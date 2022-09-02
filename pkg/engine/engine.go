@@ -282,6 +282,35 @@ func (e *Engine) Eval(ctx context.Context, options *EvalOptions) *models.Results
 	}
 }
 
+type MetadataResult struct {
+	Package  string          `json:"package"`
+	Metadata policy.Metadata `json:"metadata"`
+	Error    string          `json:"error,omitempty"`
+}
+
+// Metadata returns the metadata of all Policies that have been loaded into this
+// Engine instance.
+func (e *Engine) Metadata(ctx context.Context) []MetadataResult {
+	opts := []func(*rego.Rego){
+		rego.Compiler(e.compiler),
+		rego.Store(e.store),
+	}
+	metadata := make([]MetadataResult, len(e.policies))
+	for idx, p := range e.policies {
+		m, err := p.Metadata(ctx, opts)
+		result := MetadataResult{
+			Package: p.Package(),
+		}
+		if err != nil {
+			result.Error = err.Error()
+		} else {
+			result.Metadata = m
+		}
+		metadata[idx] = result
+	}
+	return metadata
+}
+
 // Pre-parsing the input saves a significant number of cycles for large inputs
 // and multi-resource policies.
 func stateToAstValue(state *models.State) (ast.Value, error) {
