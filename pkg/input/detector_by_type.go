@@ -38,8 +38,6 @@ func detectorByInputType(inputType *Type) (Detector, error) {
 		return &TfDetector{}, nil
 	case TerraformState.Name:
 		return &TfStateDetector{}, nil
-	case StreamlinedState.Name:
-		return &StreamlinedStateDetector{}, nil
 	case Kubernetes.Name:
 		return &KubernetesDetector{}, nil
 	case Arm.Name:
@@ -61,8 +59,8 @@ func DetectorByInputTypes(inputTypes Types) (Detector, error) {
 	for _, i := range inputTypes {
 		inputTypesSet[i.Name] = true
 	}
-	if inputTypesSet[Auto.Name] && !inputTypesSet[StreamlinedState.Name] {
-		// Auto includes all other detector types besides streamlined state
+	if inputTypesSet[Auto.Name] {
+		// Auto includes all other detector types
 		return detectorByInputType(Auto)
 	}
 	detectors := []Detector{}

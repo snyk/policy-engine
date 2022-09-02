@@ -141,13 +141,6 @@ var TerraformState = &Type{
 	Aliases: []string{"tf-state"},
 }
 
-// StreamlinedState is a temporary addition until we're able to completely replace the
-// old streamlined state format.
-var StreamlinedState = &Type{
-	Name:    "streamlined_state",
-	Aliases: []string{"streamlined-state"},
-}
-
 // Terraform is an aggregate input type that encompasses all input types that contain
 // Terraform resource types.
 var Terraform = &Type{
@@ -195,5 +188,4 @@ var SupportedInputTypes = Types{
 	TerraformHCL,
 	TerraformPlan,
 	TerraformState,
-	StreamlinedState,
 }

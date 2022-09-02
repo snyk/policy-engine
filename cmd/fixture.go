@@ -37,10 +37,7 @@ var fixtureCmd = &cobra.Command{
 		if len(args) != 1 {
 			return fmt.Errorf("Expected a single input but got %d", len(args))
 		}
-		detector, err := input.DetectorByInputTypes(input.Types{
-			input.Auto,
-			input.StreamlinedState,
-		})
+		detector, err := input.DetectorByInputTypes(input.Types{input.Auto})
 		if err != nil {
 			return err
 		}
