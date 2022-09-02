@@ -59,8 +59,8 @@ objects:
 ```open-policy-agent
 deny[info] {
 	deployment := deployments[_]
-  container := deployment.containers[idx]
-  is_invalid(container)
+	container := deployment.containers[idx]
+	is_invalid(container)
 
 	info := {
 		"resource": deployment,
@@ -70,14 +70,14 @@ deny[info] {
 }
 
 resources[info] {
-  deployment := deployments[_]
-  container := deployment.containers[idx]
+	deployment := deployments[_]
+	container := deployment.containers[idx]
 
-  info := {
-    "resource": deployment
-    "result_tag": sprintf("container[%s]", container.name),
-    "attributes": [["containers", idx]],
-  }
+	info := {
+		"resource": deployment
+		"result_tag": sprintf("container[%s]", container.name),
+		"attributes": [["containers", idx]],
+	}
 }
 ```
 
