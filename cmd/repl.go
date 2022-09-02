@@ -47,10 +47,7 @@ var replCmd = &cobra.Command{
 		if len(args) > 1 {
 			return fmt.Errorf("Expected at most 1 input")
 		} else if len(args) == 1 {
-			detector, err := input.DetectorByInputTypes(input.Types{
-				input.Auto,
-				input.StreamlinedState,
-			})
+			detector, err := input.DetectorByInputTypes(input.Types{input.Auto})
 			if err != nil {
 				return err
 			}
