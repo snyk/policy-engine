@@ -97,4 +97,5 @@ func init() {
 	rootCmd.AddCommand(fixtureCmd)
 	rootCmd.AddCommand(replCmd)
 	rootCmd.AddCommand(versionCmd)
+	rootCmd.AddCommand(metadataCmd)
 }
