@@ -2,6 +2,23 @@
 
 
 
+## v0.7.0 - 2022-09-02
+### Added
+* Apache V2 licensing
+* contributor guidelines
+* Proposal for enhancement to deny rules for secondary resources
+* method to extract all policy metadata
+### Changed
+* use license notice rather than full text in LICENSE
+* Convert legacy iac k8s messages to OPA style paths
+* Documentation for policies
+### Removed
+* markdown-style references in metadata
+* deprecated `tf_runtime` / `streamlined_state` input type
+### Fixed
+* support data resources in tfplan and tfstate loaders
+* LICENSE formatting
+
 ## v0.6.0 - 2022-08-19
 ### Added
 * k8s manifest loader

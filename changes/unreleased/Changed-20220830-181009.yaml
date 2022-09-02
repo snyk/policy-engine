@@ -1,3 +1,0 @@
-kind: Changed
-body: Convert legacy iac k8s messages to OPA style paths
-time: 2022-08-30T18:10:09.164317458+02:00

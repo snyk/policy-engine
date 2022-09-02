@@ -1,3 +1,0 @@
-kind: Fixed
-body: support data resources in tfplan and tfstate loaders
-time: 2022-08-29T15:18:47.087354131+02:00
