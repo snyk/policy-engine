@@ -35,14 +35,13 @@ import (
 
 // Engine is responsible for evaluating some States with a given set of rules.
 type Engine struct {
-	logger            logging.Logger
-	metrics           metrics.Metrics
-	policies          []policy.Policy
-	compiler          *ast.Compiler
-	store             storage.Store
-	ruleIDs           map[string]bool
-	runAllRules       bool
-	resourcesResolver policy.ResourcesResolver
+	logger      logging.Logger
+	metrics     metrics.Metrics
+	policies    []policy.Policy
+	compiler    *ast.Compiler
+	store       storage.Store
+	ruleIDs     map[string]bool
+	runAllRules bool
 }
 
 // EngineOptions contains options for initializing an Engine instance
@@ -56,10 +55,6 @@ type EngineOptions struct {
 	Logger logging.Logger
 	// Metrics is an optional instance of the metrics.Metrics interface
 	Metrics metrics.Metrics
-	// ResourceResolver is a function that returns a resource state for the given
-	// ResourceRequest.
-	// Multiple ResourcesResolvers can be composed with And() and Or().
-	ResourcesResolver policy.ResourcesResolver
 }
 
 // NewEngine constructs a new Engine instance.
@@ -123,14 +118,13 @@ func NewEngine(ctx context.Context, options *EngineOptions) (*Engine, error) {
 	m.Counter(ctx, metrics.POLICIES_LOADED, "", metrics.Labels{}).
 		Add(float64(len(policies)))
 	return &Engine{
-		logger:            logger,
-		metrics:           m,
-		compiler:          compiler,
-		policies:          policies,
-		store:             inmem.NewFromObject(consumer.Document),
-		ruleIDs:           options.RuleIDs,
-		runAllRules:       len(options.RuleIDs) < 1,
-		resourcesResolver: options.ResourcesResolver,
+		logger:      logger,
+		metrics:     m,
+		compiler:    compiler,
+		policies:    policies,
+		store:       inmem.NewFromObject(consumer.Document),
+		ruleIDs:     options.RuleIDs,
+		runAllRules: len(options.RuleIDs) < 1,
 	}, nil
 }
 
@@ -145,6 +139,10 @@ type EvalOptions struct {
 	// Inputs are the State instances that the engine should evaluate.
 	Inputs  []models.State
 	Workers int
+	// ResourceResolver is a function that returns a resource state for the given
+	// ResourceRequest.
+	// Multiple ResourcesResolvers can be composed with And() and Or().
+	ResourcesResolver policy.ResourcesResolver
 }
 
 // Eval evaluates the given states using the rules that the engine was initialized with.
@@ -185,7 +183,7 @@ func (e *Engine) Eval(ctx context.Context, options *EvalOptions) *models.Results
 			RegoOptions:       regoOptions,
 			Input:             &state,
 			InputValue:        value,
-			ResourcesResolver: e.resourcesResolver,
+			ResourcesResolver: options.ResourcesResolver,
 		}
 		allRuleResults := []models.RuleResults{}
 		policyChan := make(chan policy.Policy)

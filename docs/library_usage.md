@@ -287,10 +287,13 @@ func getCloudResources(ctx context.Context, query policy.ResourcesQuery) (policy
 
 ```
 
-Then, they can inject that into the engine's resolver chain:
+Then, they can inject that into the engine's resolver chain at evaluation time:
 
 ```go
   engine, err := upe.NewEngine(ctx, &upe.EngineOptions{
+    ...
+  })
+  results := engine.Eval(ctx, &engine.EvalOptions{
     ...
     ResourcesResolver: policy.ResourcesResolver(getCloudResources),
   })
