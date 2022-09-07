@@ -27,6 +27,8 @@ components together.
       - [Example](#example-2)
     - [Filtering down resources](#filtering-down-resources)
       - [Example](#example-3)
+    - [Applying custom severities](#applying-custom-severities)
+      - [Example](#example-4)
 
 ## Parsing IaC configurations
 
@@ -490,7 +492,7 @@ func main() {
 
 ### Filtering down resources
 
-You can use the `ResourceFilter` function `postprocess` to limit the resources
+You can use the `ResourceFilter` function from `postprocess` to limit the resources
 appearing in the output.  This filters down the resources state in the output
 to only the matching resources.  It also narrows down the rule results to that
 refer to at least one of these matching resources.
@@ -506,5 +508,23 @@ postprocess.ResourceFilter(results, func(resource *models.ResourceState) bool {
 		strings.Contains(region, "us-gov")
 	}
 	return false
+})
+```
+
+### Applying custom severities
+
+You can use the `ApplyCustomSeverities` function from `postprocess` to overwrite
+the severities for certain rules.  Setting any severity to `"None"` removes that
+rule from the output.
+
+#### Example
+
+```go
+var results *models.Results
+// Code to produce the results
+// ...
+postprocess.ApplyCustomSeverities(results, map[string]string{
+	"SNYK-CC-00097": "Low",
+	"SNYK-CC-TF-10": "None",
 })
 ```

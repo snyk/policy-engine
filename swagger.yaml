@@ -265,10 +265,11 @@ components:
           type: string
           description: The severity of this rule result
           enum:
-            - Low
-            - Medium
-            - High
-            - Critical
+            - critical
+            - high
+            - medium
+            - low
+            - informational
         context:
           type: object
           description: An arbitrary key-value map that a rule can return in its result.
