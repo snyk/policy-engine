@@ -145,10 +145,11 @@ func processMultiDenyPolicyResult(
 			builder.resourceType = result.ResourceType
 		}
 
-		if result.Resource != nil {
-			builder.addResource(result.Resource.Key())
+		if resource := result.GetResource(); resource != nil {
+			resourceKey := resource.Key()
+			builder.addResource(resourceKey)
 			for _, attr := range result.Attributes {
-				builder.addResourceAttribute(result.Resource.Key(), attr)
+				builder.addResourceAttribute(resourceKey, attr)
 			}
 		}
 		if result.Remediation != "" {

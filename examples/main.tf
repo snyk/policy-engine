@@ -38,6 +38,20 @@ resource "aws_s3_bucket" "bucket3" {
   }
 }
 
+resource "aws_s3_bucket" "aes_bucket" {
+  bucket = "i-use-aes-encryption"
+}
+
+resource "aws_s3_bucket_server_side_encryption_configuration" "aes_bucket" {
+  bucket = aws_s3_bucket.aes_bucket.bucket
+
+  rule {
+    apply_server_side_encryption_by_default {
+      sse_algorithm     = "AES256"
+    }
+  }
+}
+
 resource "aws_cloudtrail" "cloudtrail1" {
   name                          = "cloudtrail1"
   s3_bucket_name                = aws_s3_bucket.bucket1.id
