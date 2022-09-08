@@ -145,6 +145,10 @@ func processMultiDenyPolicyResult(
 			builder.resourceType = result.ResourceType
 		}
 
+		if result.PrimaryResource != nil {
+			builder.setPrimaryResource(result.PrimaryResource.Key())
+		}
+
 		if resource := result.GetResource(); resource != nil {
 			resourceKey := resource.Key()
 			builder.addResource(resourceKey)
