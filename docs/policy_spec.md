@@ -9,6 +9,7 @@ This document describes the contract and API for policies that run in the policy
     - [`input_type`](#input_type)
     - [`deny[info]`](#denyinfo)
       - [`info` object properties](#info-object-properties)
+        - [`primary_resource` vs `resource`](#primary_resource-vs-resource)
   - [Optional rules](#optional-rules)
     - [`resource_type`](#resource_type)
     - [`metadata`](#metadata)
@@ -88,15 +89,63 @@ The current list of valid values for this rule are:
 This table lists each supported property of the `info` object along with which policy
 archetypes would use it.
 
-| Field           |  Type  | Description                                                    | Single-resource | Multi-resource | Missing-resource |
-| :-------------- | :----: | :------------------------------------------------------------- | :-------------: | :------------: | :--------------: |
-| `resource`      | object | A [resource object](#resource-objects)                         |                 |       ✓        |                  |
-| `message`       | string | A message that is specific to this result                      |        ✓        |       ✓        |        ✓         |
-| `resource_type` | string | The type of resource that is missing                           |                 |                |        ✓         |
-| `remediation`   | string | Remediation steps for the issue identified by this `deny` rule |        ✓        |       ✓        |        ✓         |
-| `severity`      | string | The severity of the issue identified by this `deny` rule       |        ✓        |       ✓        |        ✓         |
-| `attributes`    | array  | An array of [attribute paths](#attribute-paths)                |        ✓        |       ✓        |                  |
-| `correlation`   | string | A manually-specified [correlation ID](#correlation-ids)        |                 |       ✓        |        ✓         |
+| Field              |  Type  | Description                                                                        | Single-resource | Multi-resource | Missing-resource |
+| :----------------- | :----: | :--------------------------------------------------------------------------------- | :-------------: | :------------: | :--------------: |
+| `primary_resource` | object | The primary [resource object](#resource-objects) associated with the `deny` result |                 |       ✓        |                  |
+| `resource`         | object | The [resource object](#resource-objects) that caused the `deny` result             |                 |       ✓        |                  |
+| `message`          | string | A message that is specific to this result                                          |        ✓        |       ✓        |        ✓         |
+| `resource_type`    | string | The type of resource that is missing                                               |                 |                |        ✓         |
+| `remediation`      | string | Remediation steps for the issue identified by this `deny` rule                     |        ✓        |       ✓        |        ✓         |
+| `severity`         | string | The severity of the issue identified by this `deny` rule                           |        ✓        |       ✓        |        ✓         |
+| `attributes`       | array  | An array of [attribute paths](#attribute-paths)                                    |        ✓        |       ✓        |                  |
+| `correlation`      | string | A manually-specified [correlation ID](#correlation-ids)                            |                 |       ✓        |        ✓         |
+
+##### `primary_resource` vs `resource`
+
+The `resource` attribute can either communicate _what_ is invalid or _why_
+another resource is invalid. `attributes` always communicate the reason for the
+result and are always assumed to belong to `resource`.
+
+For example:
+
+```open-policy-agent
+deny[info] {
+  # ...
+  info := {
+    "resource": some_s3_bucket,
+    "attributes": [["some", "attribute", "path"]],
+  }
+}
+```
+
+Can be interpreted as saying:
+
+> `some_s3_bucket` is invalid, because of its attribute `some.attribute.path`.
+
+Whereas in another example where both `primary_resource` and `resource` are
+specified:
+
+```open-policy-agent
+deny[info] {
+  # ...
+  info := {
+    "primary_resource": some_s3_bucket,
+    "resource": an_s3_bucket_policy,
+    "attributes": [["policy", "statement", "path"]],
+  }
+}
+```
+
+Can be interpreted as saying:
+
+> `some_s3_bucket` is invalid, because of the `policy.statement.path` attribute
+> of `an_s3_bucket_policy`.
+
+So, when only `resource` is specified, it is also assumed to be the primary
+resource of that result. Alternatively, the primary resource can be explicitly
+specified with the `primary_resource` attribute. If you only specify the
+`primary_resource` attribute and not the `resource` attribute, it has the same
+effect as only setting the `resource` attribute.
 
 ## Optional rules
 
