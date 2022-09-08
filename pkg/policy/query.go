@@ -17,6 +17,7 @@ package policy
 import (
 	"context"
 	"fmt"
+	"os"
 
 	"github.com/open-policy-agent/opa/ast"
 	"github.com/open-policy-agent/opa/rego"
@@ -37,6 +38,7 @@ func (*Query) decl() *rego.Function {
 }
 
 func (q *Query) impl(bctx rego.BuiltinContext, operands []*ast.Term) (*ast.Term, error) {
+	fmt.Fprintf(os.Stderr, "Query...\n")
 	scopeOpaObj, err := builtins.ObjectOperand(operands[0].Value, 0)
 	if err != nil {
 		return nil, err
@@ -67,13 +69,19 @@ func (q *Query) impl(bctx rego.BuiltinContext, operands []*ast.Term) (*ast.Term,
 		return nil, err
 	}
 
+	fmt.Fprintf(os.Stderr, "regoResources...\n")
 	regoResources := resourceStatesToRegoInputs(resources)
 
-	val, err := ast.InterfaceToValue(regoResources)
+	if v, err := ast.InterfaceToValue(regoResources); err != nil {
+    	fmt.Fprintf(os.Stderr, "ValuePointerSet...\n")
+    	ValuePointerSet(v)
+	}
+	term, err := WoopsInterfaceToTerm(regoResources)
 	if err != nil {
 		return nil, err
 	}
-	return ast.NewTerm(val), nil
+	fmt.Fprintf(os.Stderr, "Returning term with location %v...\n", term.Location)
+	return term, nil
 }
 
 func (q *Query) ResolveResources(ctx context.Context, query ResourcesQuery) ([]models.ResourceState, error) {

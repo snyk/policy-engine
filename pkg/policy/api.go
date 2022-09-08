@@ -18,6 +18,7 @@ import (
 	"context"
 	"embed"
 	"fmt"
+	"os"
 
 	"github.com/open-policy-agent/opa/ast"
 	"github.com/open-policy-agent/opa/rego"
@@ -197,6 +198,7 @@ func (r *resourcesByType) impl(
 	bctx rego.BuiltinContext,
 	operands []*ast.Term,
 ) (*ast.Term, error) {
+    fmt.Fprintf(os.Stderr, "resourcesByType Impl...\n")
 	if len(operands) != 2 {
 		return nil, fmt.Errorf("Expected one argument")
 	}
@@ -216,6 +218,8 @@ func (r *resourcesByType) impl(
 		return nil, err
 	}
 	r.calledWith[rt] = true
+	fmt.Fprintf(os.Stderr, "ValuePointerSet...\n")
+	ValuePointerSet(val)
 	return ast.NewTerm(val), nil
 }
 
@@ -235,8 +239,8 @@ func resourceStateToRegoInput(resource models.ResourceState) map[string]interfac
 	return obj
 }
 
-func resourceStatesToRegoInputs(resources []models.ResourceState) []map[string]interface{} {
-	ret := make([]map[string]interface{}, len(resources))
+func resourceStatesToRegoInputs(resources []models.ResourceState) []interface{} {
+	ret := make([]interface{}, len(resources))
 	for i, resource := range resources {
 		ret[i] = resourceStateToRegoInput(resource)
 	}
