@@ -523,7 +523,7 @@ rule from the output.
 var results *models.Results
 // Code to produce the results
 // ...
-postprocess.ApplyCustomSeverities(results, map[string]string{
+postprocess.ApplyCustomSeverities(results, postprocess.CustomSeverities{
 	"SNYK-CC-00097": "Low",
 	"SNYK-CC-TF-10": "None",
 })

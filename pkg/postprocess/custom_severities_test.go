@@ -50,7 +50,7 @@ func TestApplyCustomSeverities(t *testing.T) {
 			},
 		},
 	}}}
-	customSeverities := map[string]string{
+	customSeverities := CustomSeverities{
 		"SNYK-ABC-01": "None",
 		"SNYK-ABC-02": "Low",
 	}

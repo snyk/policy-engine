@@ -20,13 +20,15 @@ import (
 	"github.com/snyk/policy-engine/pkg/models"
 )
 
+type CustomSeverities map[string]string
+
 // Override severities in the results with custom severities passed in.
 // Severities are stored by rule ID.
 // Setting severity of a rule ID to "none" effectively removes that
 // rule from the results.
 func ApplyCustomSeverities(
 	results *models.Results,
-	customSeverities map[string]string,
+	customSeverities CustomSeverities,
 ) {
 	for i := range results.Results {
 		updatedRuleResults := []models.RuleResults{}
