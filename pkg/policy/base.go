@@ -141,6 +141,7 @@ type Metadata struct {
 	ServiceGroup string                         `json:"service_group"`
 	Controls     map[string]map[string][]string `json:"controls"`
 	Severity     string                         `json:"severity"`
+	Product      []string                       `json:"product"`
 }
 
 func (m Metadata) RemediationFor(inputType string) string {
