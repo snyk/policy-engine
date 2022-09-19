@@ -426,13 +426,14 @@ type policyResultResource struct {
 
 // This struct represents the common return format for the policy engine policies.
 type policyResult struct {
-	Message      string                `json:"message"`
-	Resource     *policyResultResource `json:"resource"`
-	ResourceType string                `json:"resource_type"`
-	Remediation  string                `json:"remediation"`
-	Severity     string                `json:"severity"`
-	Attributes   [][]interface{}       `json:"attributes"`
-	Correlation  string                `json:"correlation"`
+	Message         string                `json:"message"`
+	Resource        *policyResultResource `json:"resource"`
+	PrimaryResource *policyResultResource `json:"primary_resource"`
+	ResourceType    string                `json:"resource_type"`
+	Remediation     string                `json:"remediation"`
+	Severity        string                `json:"severity"`
+	Attributes      [][]interface{}       `json:"attributes"`
+	Correlation     string                `json:"correlation"`
 
 	// Backwards compatibility
 	FugueValid             bool   `json:"valid"`
@@ -463,9 +464,21 @@ func RuleResultResourceKey(r models.RuleResultResource) ResourceKey {
 	}
 }
 
+func (result policyResult) GetResource() *policyResultResource {
+	if result.Resource != nil {
+		return result.Resource
+	} else if result.PrimaryResource != nil {
+		return result.PrimaryResource
+	} else {
+		return nil
+	}
+}
+
 func (result policyResult) GetCorrelation() string {
 	if result.Correlation != "" {
 		return result.Correlation
+	} else if result.PrimaryResource != nil {
+		return result.PrimaryResource.Correlation()
 	} else if result.Resource != nil {
 		return result.Resource.Correlation()
 	} else {

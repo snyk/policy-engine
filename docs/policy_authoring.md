@@ -15,6 +15,7 @@ concepts as well how to test policies.
     - [Advanced policies part 4: Correlating resources](#advanced-policies-part-4-correlating-resources)
     - [Advanced policies part 5: Returning attributes](#advanced-policies-part-5-returning-attributes)
     - [Missing resources](#missing-resources)
+    - [Using `deny` with a secondary resource](#using-deny-with-a-secondary-resource)
   - [Testing policies](#testing-policies)
     - [Creating and using test fixtures](#creating-and-using-test-fixtures)
     - [Using the REPL](#using-the-repl)
@@ -60,6 +61,10 @@ simple policies and gradually adding concepts.
 ### Missing resources
 
 [examples/08-missing.rego](../examples/08-missing.rego)
+
+### Using `deny` with a secondary resource
+
+[examples/08-missing.rego](../examples/09-secondary-resource-deny.rego)
 
 ## Testing policies
 
