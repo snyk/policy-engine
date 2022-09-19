@@ -194,6 +194,7 @@ to clarify the intent of each field.
 | `service_group` | string | The service group of the primary resource associated with this policy (e.g. "EBS", "EC2")                        |
 | `controls`      | object | A map of rule set ID to a map of versions to a list of control IDs                                               |
 | `severity`      | string | The severity of the issue identified by this policy                                                              |
+| `product`       | array  | An array of the products this policy supports                                                                    |
 
 Example with all fields populated:
 
