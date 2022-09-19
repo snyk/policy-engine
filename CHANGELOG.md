@@ -2,6 +2,13 @@
 
 
 
+## v0.8.0 - 2022-09-19
+### Added
+* Rego API support for secondary resource denies
+* postprocess.ApplyCustomSeverities
+### Changed
+* BREAKING: move ResourcesResolver chain to eval time
+
 ## v0.7.0 - 2022-09-02
 ### Added
 * Apache V2 licensing
