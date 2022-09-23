@@ -28,6 +28,7 @@ import (
 type ruleResultBuilder struct {
 	passed            bool
 	ignored           bool
+	isMissingResource bool
 	messages          []string
 	resourceId        string
 	resourceNamespace string
@@ -42,6 +43,12 @@ func newRuleResultBuilder() *ruleResultBuilder {
 	return &ruleResultBuilder{
 		resources: map[ResourceKey]*models.RuleResultResource{},
 	}
+}
+
+func (builder *ruleResultBuilder) setMissingResourceType(resourceType string) *ruleResultBuilder {
+	builder.resourceType = resourceType
+	builder.isMissingResource = true
+	return builder
 }
 
 func (builder *ruleResultBuilder) setPrimaryResource(key ResourceKey) *ruleResultBuilder {
@@ -109,7 +116,9 @@ func (builder *ruleResultBuilder) toRuleResult() models.RuleResult {
 	resourceId := builder.resourceId
 	resourceNamespace := builder.resourceNamespace
 	resourceType := builder.resourceType
-	if len(resources) == 1 {
+	// Infer the primary resource automatically is there is only one resource, but
+	// skip this step for "missing resource"-type rules.
+	if !builder.isMissingResource && len(resources) == 1 {
 		resource := resources[0]
 		resourceId = resource.Id
 		resourceNamespace = resource.Namespace

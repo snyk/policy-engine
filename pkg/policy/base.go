@@ -382,13 +382,12 @@ func (p *BasePolicy) resources(
 		return r, err
 	}
 	for _, result := range results {
-		if result.Resource == nil && result.PrimaryResource == nil {
-			continue
-		}
-
 		correlation := result.GetCorrelation()
 		if _, ok := r[correlation]; !ok {
 			r[correlation] = newRuleResultBuilder()
+		}
+		if result.ResourceType != "" {
+			r[correlation].setMissingResourceType(result.ResourceType)
 		}
 		if result.Resource != nil {
 			r[correlation].addResource(result.Resource.Key())
@@ -448,6 +447,7 @@ type resourcesResult struct {
 	PrimaryResource *policyResultResource `json:"primary_resource"`
 	Attributes      [][]interface{}       `json:"attributes"`
 	Correlation     string                `json:"correlation"`
+	ResourceType    string                `json:"resource_type"`
 }
 
 // Helper for unique resource identifiers, meant to be used as key in a `map`.
@@ -478,6 +478,8 @@ func (result policyResult) GetResource() *policyResultResource {
 func (result policyResult) GetCorrelation() string {
 	if result.Correlation != "" {
 		return result.Correlation
+	} else if result.ResourceType != "" {
+		return result.ResourceType
 	} else if result.PrimaryResource != nil {
 		return result.PrimaryResource.Correlation()
 	} else if result.Resource != nil {
@@ -523,6 +525,8 @@ func (result resourcesResult) GetResource() *policyResultResource {
 func (result resourcesResult) GetCorrelation() string {
 	if result.Correlation != "" {
 		return result.Correlation
+	} else if result.ResourceType != "" {
+		return result.ResourceType
 	} else if result.PrimaryResource != nil {
 		return result.PrimaryResource.Correlation()
 	} else if result.Resource != nil {
