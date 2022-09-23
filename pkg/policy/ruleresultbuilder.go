@@ -116,6 +116,8 @@ func (builder *ruleResultBuilder) toRuleResult() models.RuleResult {
 	resourceId := builder.resourceId
 	resourceNamespace := builder.resourceNamespace
 	resourceType := builder.resourceType
+	// Infer the primary resource automatically is there is only one resource, but
+	// skip this step for "missing resource"-type rules.
 	if !builder.isMissingResource && len(resources) == 1 {
 		resource := resources[0]
 		resourceId = resource.Id
