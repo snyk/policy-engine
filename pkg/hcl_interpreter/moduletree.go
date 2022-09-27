@@ -52,7 +52,7 @@ type ResourceMeta struct {
 type ModuleTree struct {
 	fs             afero.Fs
 	meta           *ModuleMeta
-	config         *hclsyntax.Body // Call to the module, nil if root.
+	config         hcl.Body // Call to the module, nil if root.
 	module         *configs.Module
 	variableValues map[string]cty.Value // Variables set
 	children       map[string]*ModuleTree
@@ -159,7 +159,7 @@ func ParseFiles(
 						child, err := ParseDirectory(moduleRegister, parserFs, childDir, []string{})
 						if err == nil {
 							child.meta.Location = &moduleCall.SourceAddrRange
-							child.config = body
+							child.config = moduleCall.Config
 							children[key] = child
 						} else {
 							errors = append(
@@ -259,7 +259,7 @@ func walkModuleTree(v Visitor, moduleName ModuleName, mtree *ModuleTree) {
 
 		// TODO: This is not good.  We end up walking child2 as it were child2.
 		configName := FullName{moduleName, LocalName{"input", key}}
-		walkBlock(v, configName, child.config)
+		walkBody(v, configName, child.config)
 
 		walkModuleTree(v, childModuleName, child)
 	}
@@ -300,9 +300,7 @@ func walkModule(v Visitor, moduleName ModuleName, module *configs.Module, variab
 	}
 
 	for providerName, providerConf := range module.ProviderConfigs {
-		if body, ok := providerConf.Config.(*hclsyntax.Body); ok {
-			walkBlock(v, ProviderConfigName(moduleName, providerName), body)
-		}
+		walkBody(v, ProviderConfigName(moduleName, providerName), providerConf.Config)
 	}
 }
 
@@ -342,11 +340,27 @@ func walkResource(
 		v.VisitExpr(name.AddKey("count"), resource.Count)
 	}
 
-	if body, ok := resource.Config.(*hclsyntax.Body); ok {
-		walkBlock(v, name, body)
-	}
+	walkBody(v, name, resource.Config)
 
 	v.LeaveResource()
+}
+
+func walkBody(v Visitor, name FullName, body hcl.Body) {
+	switch b := body.(type) {
+	case *hclsyntax.Body:
+		walkBlock(v, name, b)
+	default:
+		walkJustAttributes(v, name, body)
+	}
+}
+
+func walkJustAttributes(v Visitor, name FullName, body hcl.Body) {
+	v.VisitBlock(name)
+
+	attributes, _ := body.JustAttributes()
+	for _, attribute := range attributes {
+		v.VisitExpr(name.AddKey(attribute.Name), attribute.Expr)
+	}
 }
 
 func walkBlock(v Visitor, name FullName, body *hclsyntax.Body) {

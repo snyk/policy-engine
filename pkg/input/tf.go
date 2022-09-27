@@ -18,6 +18,7 @@ package input
 import (
 	"fmt"
 	"path/filepath"
+	"strings"
 
 	"github.com/snyk/policy-engine/pkg/hcl_interpreter"
 	"github.com/snyk/policy-engine/pkg/models"
@@ -30,7 +31,7 @@ import (
 type TfDetector struct{}
 
 func (t *TfDetector) DetectFile(i *File, opts DetectOptions) (IACConfiguration, error) {
-	if !opts.IgnoreExt && i.Ext() != ".tf" {
+	if !opts.IgnoreExt && !hasTerraformExt(i.Path) {
 		return nil, fmt.Errorf("%w: %v", UnrecognizedFileExtension, i.Ext())
 	}
 	dir := filepath.Dir(i.Path)
@@ -50,7 +51,7 @@ func (t *TfDetector) DetectDirectory(i *Directory, opts DetectOptions) (IACConfi
 		return nil, err
 	}
 	for _, child := range children {
-		if c, ok := child.(*File); ok && c.Ext() == ".tf" {
+		if c, ok := child.(*File); ok && hasTerraformExt(c.Path) {
 			tfExists = true
 		}
 	}
@@ -143,4 +144,8 @@ func (c *HclConfiguration) Errors() []error {
 
 func (l *HclConfiguration) Type() *Type {
 	return TerraformHCL
+}
+
+func hasTerraformExt(path string) bool {
+	return strings.HasSuffix(path, ".tf") || strings.HasSuffix(path, ".tf.json")
 }
