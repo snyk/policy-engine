@@ -1,0 +1,32 @@
+{
+  "format": "",
+  "format_version": "",
+  "input_type": "tf_hcl",
+  "environment_provider": "iac",
+  "meta": {
+    "filepath": "golden_test/tf/tfjson/main.tf.json"
+  },
+  "resources": {
+    "aws_s3_bucket": {
+      "aws_s3_bucket.foo": {
+        "id": "aws_s3_bucket.foo",
+        "resource_type": "aws_s3_bucket",
+        "namespace": "golden_test/tf/tfjson/main.tf.json",
+        "meta": {
+          "region": "us-east-1",
+          "terraform": {
+            "provider_config": {
+              "region": "us-east-1"
+            }
+          }
+        },
+        "attributes": {
+          "bucket": "foo"
+        }
+      }
+    }
+  },
+  "scope": {
+    "filepath": "golden_test/tf/tfjson/main.tf.json"
+  }
+}
