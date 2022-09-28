@@ -5,8 +5,8 @@
   "environment_provider": "aws",
   "resources": {
     "aws_s3_bucket": {
-      "terraform-20220704200619858700000001": {
-        "id": "terraform-20220704200619858700000001",
+      "aws_s3_bucket.bucket1": {
+        "id": "aws_s3_bucket.bucket1",
         "resource_type": "aws_s3_bucket",
         "namespace": "aws",
         "meta": {
@@ -60,8 +60,8 @@
       }
     },
     "aws_s3_bucket_acl": {
-      "terraform-20220704200619858700000001,log-delivery-write": {
-        "id": "terraform-20220704200619858700000001,log-delivery-write",
+      "aws_s3_bucket_acl.acl1": {
+        "id": "aws_s3_bucket_acl.acl1",
         "resource_type": "aws_s3_bucket_acl",
         "namespace": "aws",
         "meta": {
@@ -126,8 +126,8 @@
       }
     },
     "aws_s3_bucket_logging": {
-      "terraform-20220704200619858700000001": {
-        "id": "terraform-20220704200619858700000001",
+      "aws_s3_bucket_logging.logging1": {
+        "id": "aws_s3_bucket_logging.logging1",
         "resource_type": "aws_s3_bucket_logging",
         "namespace": "aws",
         "meta": {
