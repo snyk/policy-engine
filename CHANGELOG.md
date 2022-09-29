@@ -2,6 +2,18 @@
 
 
 
+## v0.9.0 - 2022-09-29
+### Added
+* proposal to add result_tag to policy result identity
+* new `product` metadata field
+* support for .tf.json Terraform source code files
+### Fixed
+* Primary resource interpretation for missing-resource policies
+* resource .id in repl/test
+* duplicate resource IDs in tfstate
+### Security
+* Bump OPA to v0.44.0
+
 ## v0.8.0 - 2022-09-19
 ### Added
 * Rego API support for secondary resource denies
