@@ -5,8 +5,8 @@
   "environment_provider": "aws",
   "resources": {
     "data.aws_iam_policy_document": {
-      "2176800992": {
-        "id": "2176800992",
+      "data.aws_iam_policy_document.denied": {
+        "id": "data.aws_iam_policy_document.denied",
         "resource_type": "data.aws_iam_policy_document",
         "namespace": "aws",
         "meta": {

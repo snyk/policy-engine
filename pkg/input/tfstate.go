@@ -104,6 +104,12 @@ func (l *tfstateLoader) ToState() models.State {
 			resourceType = "data." + resourceType
 		}
 
+		resourceName := resource.Name
+		resourceID := strings.Join([]string{
+			resourceType,
+			resourceName,
+		}, ".")
+
 		// Parse env provider
 		if environmentProvider == "" {
 			environmentProvider = strings.SplitN(resource.Type, "_", 2)[0]
@@ -118,25 +124,14 @@ func (l *tfstateLoader) ToState() models.State {
 		}
 
 		// Ensure attributes are available
-		if len(resource.Instances) < 0 {
+		if len(resource.Instances) < 1 {
 			continue
 		}
 		instance := resource.Instances[0]
 
-		// Parse ID
-		id := ""
-		if val, ok := instance.Attributes["id"]; ok {
-			if v, ok := val.(string); ok {
-				id = v
-			}
-		}
-		if id == "" {
-			continue
-		}
-
 		// Put it all together
 		resources = append(resources, models.ResourceState{
-			Id:           id,
+			Id:           resourceID,
 			ResourceType: resourceType,
 			Namespace:    resourceProvider,
 			Attributes:   instance.Attributes,
