@@ -117,6 +117,7 @@ var builtinDeclarations = map[string]*types.Function{
 				types.NewObject(
 					[]*types.StaticProperty{
 						types.NewStaticProperty("id", types.S),
+						types.NewStaticProperty("_id", types.S),
 						types.NewStaticProperty("_type", types.S),
 						types.NewStaticProperty("_namespace", types.S),
 					},
@@ -221,16 +222,26 @@ func (r *resourcesByType) impl(
 
 func resourceStateToRegoInput(resource models.ResourceState) map[string]interface{} {
 	obj := map[string]interface{}{}
-	for k, attr := range resource.Attributes {
-		obj[k] = attr
-	}
 	obj["id"] = resource.Id
+	obj["_id"] = resource.Id
 	obj["_type"] = resource.ResourceType
 	obj["_namespace"] = resource.Namespace
 	if resource.Meta == nil {
 		obj["_meta"] = map[string]interface{}{}
 	} else {
 		obj["_meta"] = resource.Meta
+	}
+	for k, attr := range resource.Attributes {
+		// If we have a non-null, non-blank ID from the resource, we should
+		// retain that value. Otherwise, we should keep the logical ID that
+		// we've already set.
+		if k == "id" {
+			if id, ok := attr.(string); ok && id != "" {
+				obj[k] = attr
+			}
+		} else {
+			obj[k] = attr
+		}
 	}
 	return obj
 }
