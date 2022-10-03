@@ -17,11 +17,15 @@ package policy
 import (
 	"context"
 	"fmt"
+	"os"
 	"sort"
 
+	"github.com/open-policy-agent/opa/ast"
 	"github.com/open-policy-agent/opa/rego"
+
 	"github.com/snyk/policy-engine/pkg/logging"
 	"github.com/snyk/policy-engine/pkg/models"
+	"github.com/snyk/policy-engine/pkg/opa"
 )
 
 // ProcessSingleResultSet functions extract RuleResult models from the ResultSet of
@@ -57,6 +61,7 @@ func (p *SingleResourcePolicy) Eval(
 	output := models.RuleResults{}
 	output.Package_ = p.pkg
 
+	tracer := opa.NewDummyExecutionTracer()
 	metadata, err := p.Metadata(ctx, options.RegoOptions)
 	if err != nil {
 		logger.Error(ctx, "Failed to query metadata")
@@ -65,7 +70,6 @@ func (p *SingleResourcePolicy) Eval(
 		return []models.RuleResults{output}, err
 	}
 	metadata.copyToRuleResults(options.Input.InputType, &output)
-
 	opts := append(
 		options.RegoOptions,
 		rego.Query(p.judgementRule.query()),
@@ -91,8 +95,20 @@ func (p *SingleResourcePolicy) Eval(
 		for _, rk := range resourceKeys {
 			resource := resources[rk]
 			logger := logger.WithField(logging.RESOURCE_ID, resource.Id)
-			inputDoc := resourceStateToRegoInput(resource)
-			resultSet, err := query.Eval(ctx, rego.EvalInput(inputDoc))
+			inputDoc, err := ast.InterfaceToValue(resourceStateToRegoInput(resource))
+			if err != nil {
+				logger.Error(ctx, "Failed to represent resource as input")
+				err = fmt.Errorf("%w '%s': %v", FailedToEvaluateResource, resource.Id, err)
+				output.Errors = append(output.Errors, err.Error())
+				return []models.RuleResults{output}, err
+			}
+			if err = tracer.DecorateValue(inputDoc); err != nil {
+				logger.Error(ctx, "Failed to decorate input value with attributes")
+				err = fmt.Errorf("%w '%s': %v", FailedToEvaluateResource, resource.Id, err)
+				output.Errors = append(output.Errors, err.Error())
+				return []models.RuleResults{output}, err
+			}
+			resultSet, err := query.Eval(ctx, rego.EvalQueryTracer(tracer), rego.EvalParsedInput(inputDoc))
 			if err != nil {
 				logger.Error(ctx, "Failed to evaluate rule for resource")
 				err = fmt.Errorf("%w '%s': %v", FailedToEvaluateResource, resource.Id, err)
@@ -105,6 +121,9 @@ func (p *SingleResourcePolicy) Eval(
 				metadata,
 				defaultRemediation,
 			)
+			for _, path := range tracer.Flush() {
+				fmt.Fprintf(os.Stderr, "Touched %v\n", path)
+			}
 			if err != nil {
 				logger.Error(ctx, "Failed to process results")
 				err = fmt.Errorf("%w: %v", FailedToProcessResults, err)
