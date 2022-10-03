@@ -25,7 +25,6 @@ __physical_or_logical_id(resource) = ret {
 resources(resource_type) = ret {
 	ret := [obj |
 		resource := input.resources[resource_type][_]
-		# id := object.get(resource.attributes, "id", resource.id)
 		obj := object.union(
 			resource.attributes,
 			{
