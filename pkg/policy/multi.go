@@ -17,6 +17,7 @@ package policy
 import (
 	"context"
 	"fmt"
+	"sort"
 
 	"github.com/open-policy-agent/opa/rego"
 	"github.com/snyk/policy-engine/pkg/logging"
@@ -164,9 +165,15 @@ func processMultiDenyPolicyResult(
 		}
 	}
 
-	results := []models.RuleResult{}
-	for _, builder := range builders {
-		results = append(results, builder.toRuleResult())
+	// Ensure deterministic ordering of results.
+	results := make([]models.RuleResult, len(builders))
+	correlations := []string{}
+	for correlation := range builders {
+		correlations = append(correlations, correlation)
+	}
+	sort.Strings(correlations)
+	for i, correlation := range correlations {
+		results[i] = builders[correlation].toRuleResult()
 	}
 	return results, nil
 }

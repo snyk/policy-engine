@@ -17,14 +17,12 @@ package input
 
 import (
 	"encoding/json"
-	"io/ioutil"
-	"os"
 	"path/filepath"
 	"testing"
 
 	"github.com/spf13/afero"
 
-	"github.com/stretchr/testify/assert"
+	"github.com/snyk/policy-engine/test/utils"
 )
 
 type goldenTest struct {
@@ -72,13 +70,6 @@ func LoadDirOrContents(t *testing.T, dir Directory, detector Detector) IACConfig
 }
 
 func TestGolden(t *testing.T) {
-	fixTests := false
-	for _, arg := range os.Args {
-		if arg == "golden-test-fix" {
-			fixTests = true
-		}
-	}
-
 	goldenTests, err := listGoldenTests()
 	if err != nil {
 		t.Fatal(err)
@@ -103,21 +94,7 @@ func TestGolden(t *testing.T) {
 				t.Fatal(err)
 			}
 
-			expectedBytes := []byte{}
-			if _, err := os.Stat(entry.expected); err == nil {
-				expectedBytes, _ = ioutil.ReadFile(entry.expected)
-				if err != nil {
-					t.Fatal(err)
-				}
-			}
-
-			actual := string(actualBytes)
-			expected := string(expectedBytes)
-			assert.Equal(t, expected, actual)
-
-			if fixTests {
-				ioutil.WriteFile(entry.expected, actualBytes, 0644)
-			}
+			utils.GoldenTest(t, entry.expected, actualBytes)
 		})
 	}
 }
