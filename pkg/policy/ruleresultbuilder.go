@@ -101,10 +101,17 @@ func (builder *ruleResultBuilder) addResourceAttribute(
 }
 
 func (builder *ruleResultBuilder) toRuleResult() models.RuleResult {
-	// Gather resources.  TODO: sort?
+	// Gather resources.
+	resourceKeys := []ResourceKey{}
+	for k := range builder.resources {
+		resourceKeys = append(resourceKeys, k)
+	}
+	sort.Slice(resourceKeys, func(i, j int) bool {
+		return resourceKeys[i].Less(resourceKeys[j])
+	})
 	resources := []*models.RuleResultResource{}
-	for _, resource := range builder.resources {
-		resources = append(resources, resource)
+	for _, k := range resourceKeys {
+		resources = append(resources, builder.resources[k])
 	}
 
 	// Gather messages.

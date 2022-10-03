@@ -18,6 +18,7 @@ import (
 	"context"
 	"embed"
 	"fmt"
+	"sort"
 
 	"github.com/open-policy-agent/opa/ast"
 	"github.com/open-policy-agent/opa/rego"
@@ -324,5 +325,6 @@ func (b *Builtins) ResourceTypes() []string {
 	for rt := range b.resourcesQueried {
 		rts = append(rts, rt)
 	}
+	sort.Strings(rts)
 	return rts
 }

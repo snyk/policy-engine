@@ -496,6 +496,22 @@ func (k ResourceKey) Correlation() string {
 	return fmt.Sprintf("%s$%s$%s", escape(k.Namespace), escape(k.Type), escape(k.ID))
 }
 
+func (l ResourceKey) Less(r ResourceKey) bool {
+	if l.Namespace == r.Namespace {
+		if l.Type == r.Type {
+			if l.ID == r.ID {
+				return false
+			} else {
+				return l.ID < r.ID
+			}
+		} else {
+			return l.Type < r.Type
+		}
+	} else {
+		return l.Namespace < r.Namespace
+	}
+}
+
 func (resource *policyResultResource) Key() ResourceKey {
 	// NOTE: Why is 'ResourceType' a seperate thing from 'policyResultResource'?
 	// The idea is that the latter represents all the data that can be

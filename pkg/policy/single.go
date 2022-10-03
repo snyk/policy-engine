@@ -17,6 +17,7 @@ package policy
 import (
 	"context"
 	"fmt"
+	"sort"
 
 	"github.com/open-policy-agent/opa/rego"
 	"github.com/snyk/policy-engine/pkg/logging"
@@ -79,9 +80,16 @@ func (p *SingleResourcePolicy) Eval(
 	ruleResults := []models.RuleResult{}
 	rt := p.resourceType
 	output.ResourceTypes = []string{rt}
+	defaultRemediation := metadata.RemediationFor(options.Input.InputType)
 	if resources, ok := options.Input.Resources[rt]; ok {
-		defaultRemediation := metadata.RemediationFor(options.Input.InputType)
-		for _, resource := range resources {
+		// Sort resources to produce deterministic output in all cases.
+		resourceKeys := []string{}
+		for k := range resources {
+			resourceKeys = append(resourceKeys, k)
+		}
+		sort.Strings(resourceKeys)
+		for _, rk := range resourceKeys {
+			resource := resources[rk]
 			logger := logger.WithField(logging.RESOURCE_ID, resource.Id)
 			inputDoc := resourceStateToRegoInput(resource)
 			resultSet, err := query.Eval(ctx, rego.EvalInput(inputDoc))

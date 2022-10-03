@@ -18,6 +18,7 @@ import (
 	"context"
 	"fmt"
 	"runtime"
+	"sort"
 	"sync"
 	"time"
 
@@ -265,6 +266,12 @@ func (e *Engine) Eval(ctx context.Context, options *EvalOptions) *models.Results
 				break
 			}
 		}
+
+		// Ensure deterministic output.
+		sort.Slice(allRuleResults, func(i, j int) bool {
+			return allRuleResults[i].Package_ < allRuleResults[j].Package_
+		})
+
 		e.metrics.Timer(ctx, metrics.TOTAL_RULE_EVAL_TIME, "", metrics.Labels{
 			metrics.INPUT_IDX: fmt.Sprint(idx),
 		}).Record(time.Now().Sub(totalEvalStart))
@@ -293,8 +300,17 @@ func (e *Engine) Metadata(ctx context.Context) []MetadataResult {
 		rego.Compiler(e.compiler),
 		rego.Store(e.store),
 	}
-	metadata := make([]MetadataResult, len(e.policies))
-	for idx, p := range e.policies {
+
+	// Ensure a consistent ordering for policies to make our output
+	// deterministic.
+	policies := make([]policy.Policy, len(e.policies))
+	copy(policies, e.policies)
+	sort.Slice(policies, func(i, j int) bool {
+		return policies[i].Package() < policies[j].Package()
+	})
+
+	metadata := make([]MetadataResult, len(policies))
+	for idx, p := range policies {
 		m, err := p.Metadata(ctx, opts)
 		result := MetadataResult{
 			Package: p.Package(),
