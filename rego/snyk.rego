@@ -14,13 +14,22 @@
 
 package snyk
 
+__physical_or_logical_id(resource) = ret {
+	is_string(resource.attributes.id)
+	not resource.attributes.id == ""
+	ret := resource.attributes.id
+} else = ret {
+	ret := resource.id
+}
+
 resources(resource_type) = ret {
 	ret := [obj |
 		resource := input.resources[resource_type][_]
 		obj := object.union(
 			resource.attributes,
 			{
-				"id": resource.id,
+				"id": __physical_or_logical_id(resource),
+				"_id": resource.id,
 				"_type": resource_type,
 				"_namespace": resource.namespace,
 				"_meta": object.get(resource, "meta", {}),

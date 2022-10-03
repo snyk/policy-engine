@@ -410,6 +410,7 @@ $ ./policy-engine repl examples/main.tf
     "_provider": "aws",
     "_tags": {},
     "_type": "aws_cloudtrail",
+    "_id": "aws_cloudtrail.cloudtrail1",
     "id": "aws_cloudtrail.cloudtrail1",
     "include_global_service_events": true,
     "name": "cloudtrail1",
@@ -630,6 +631,7 @@ would become the following resource object:
   "_provider": "aws",
   "_tags": {},
   "_type": "aws_cloudtrail",
+  "_id": "aws_cloudtrail.cloudtrail1",
   "id": "aws_cloudtrail.cloudtrail1",
   "include_global_service_events": true,
   "name": "cloudtrail1",
@@ -638,8 +640,17 @@ would become the following resource object:
 }
 ```
 
-In general, policies will not need to interact with the added properties apart from
-`id`, which can be useful wherever a resource identifier is needed.
+Policy Engine adds two ID fields to the resource object that policies can use in
+their assertions:
+
+* `_id`: this will always contain the "logical ID" of the resource
+  * In IaC, logical IDs are typically how resources are referenced in the source
+    code.
+  * The example above demonstrates a logical ID from Terraform
+* `id`: this will contain the resource's `id` attribute if: it exists, it is
+  non-null, and it is non-blank. Otherwise, it will contain the logical ID.
+  * This flexibility can be helpful for writing assertions that work with both
+    IaC and deployed resources.
 
 #### Obtaining resource objects
 
