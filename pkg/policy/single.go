@@ -19,12 +19,11 @@ import (
 	"fmt"
 	"sort"
 
-	"github.com/open-policy-agent/opa/ast"
 	"github.com/open-policy-agent/opa/rego"
 
 	"github.com/snyk/policy-engine/pkg/logging"
 	"github.com/snyk/policy-engine/pkg/models"
-	"github.com/snyk/policy-engine/pkg/opa"
+	"github.com/snyk/policy-engine/pkg/policy/inferattributes"
 )
 
 // ProcessSingleResultSet functions extract RuleResult models from the ResultSet of
@@ -60,7 +59,7 @@ func (p *SingleResourcePolicy) Eval(
 	output := models.RuleResults{}
 	output.Package_ = p.pkg
 
-	tracer := opa.NewInputPathsTracer()
+	tracer := inferattributes.NewTracer()
 	metadata, err := p.Metadata(ctx, options.RegoOptions)
 	if err != nil {
 		logger.Error(ctx, "Failed to query metadata")
@@ -94,15 +93,9 @@ func (p *SingleResourcePolicy) Eval(
 		for _, rk := range resourceKeys {
 			resource := resources[rk]
 			logger := logger.WithField(logging.RESOURCE_ID, resource.Id)
-			inputDoc, err := ast.InterfaceToValue(resourceStateToRegoInput(resource))
+			inputDoc, err := resourceStateToRegoInput(resource)
 			if err != nil {
 				logger.Error(ctx, "Failed to represent resource as input")
-				err = fmt.Errorf("%w '%s': %v", FailedToEvaluateResource, resource.Id, err)
-				output.Errors = append(output.Errors, err.Error())
-				return []models.RuleResults{output}, err
-			}
-			if err = tracer.DecorateValue(inputDoc); err != nil {
-				logger.Error(ctx, "Failed to decorate input value with attributes")
 				err = fmt.Errorf("%w '%s': %v", FailedToEvaluateResource, resource.Id, err)
 				output.Errors = append(output.Errors, err.Error())
 				return []models.RuleResults{output}, err
@@ -122,20 +115,7 @@ func (p *SingleResourcePolicy) Eval(
 			)
 
 			// Fill in paths inferred using the tracer.
-			inputPaths := tracer.Flush()
-			for _, rr := range ruleResult {
-				for _, r := range rr.Resources {
-					if len(r.Attributes) == 0 {
-						r.Attributes = make([]models.RuleResultResourceAttribute, len(inputPaths))
-						for i := range inputPaths {
-							r.Attributes[i] = models.RuleResultResourceAttribute{
-								Path: inputPaths[i],
-							}
-						}
-
-					}
-				}
-			}
+			tracer.InferAttributes(ruleResult)
 
 			if err != nil {
 				logger.Error(ctx, "Failed to process results")
