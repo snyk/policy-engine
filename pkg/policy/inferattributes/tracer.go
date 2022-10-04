@@ -17,7 +17,6 @@ package inferattributes
 import (
 	"encoding/json"
 	"fmt"
-	"os"
 	"strings"
 
 	"github.com/open-policy-agent/opa/topdown"
@@ -59,7 +58,6 @@ func (t *Tracer) TraceEvent(event topdown.Event) {
 	if event.Op == topdown.UnifyOp {
 		if expr, ok := event.Node.(*ast.Expr); ok {
 			if terms, ok := expr.Terms.([]*ast.Term); ok && len(terms) == 3 {
-				fmt.Fprintf(os.Stderr, "TraceUnify: %s = %s\n", terms[1].String(), terms[2].String())
 				t.coverTerm(event.Plug(terms[1]))
 				t.coverTerm(event.Plug(terms[2]))
 			}
@@ -68,12 +66,6 @@ func (t *Tracer) TraceEvent(event topdown.Event) {
 	if event.Op == topdown.EvalOp {
 		if expr, ok := event.Node.(*ast.Expr); ok {
 			if terms, ok := expr.Terms.([]*ast.Term); ok && len(terms) > 0 {
-				if expr.IsEquality() {
-					lhs := event.Plug(terms[1])
-					rhs := event.Plug(terms[2])
-					fmt.Fprintf(os.Stderr, "TraceEquality: %s = %s\n", lhs.String(), rhs.String())
-				}
-
 				if ref, ok := terms[0].Value.(ast.Ref); ok {
 					if _, ok := ast.BuiltinMap[ref.String()]; ok {
 						operands := make([]*ast.Term, len(terms)-1)
@@ -86,7 +78,6 @@ func (t *Tracer) TraceEvent(event topdown.Event) {
 							strs[i] = fmt.Sprintf(term.String())
 						}
 
-						fmt.Fprintf(os.Stderr, "TraceEval: %s(%s)\n", terms[0].String(), strings.Join(strs, ", "))
 						for _, term := range operands {
 							t.coverTerm(term)
 						}
@@ -95,12 +86,6 @@ func (t *Tracer) TraceEvent(event topdown.Event) {
 			}
 		}
 	}
-}
-
-func (t *Tracer) flush() [][]interface{} {
-    list := t.pathSet.List()
-    t.pathSet = newPathSet()
-	return list
 }
 
 func encodePath(path []interface{}) (string, error) {
@@ -133,7 +118,6 @@ func DecorateValue(prefix []interface{}, top ast.Value) error {
 		if err != nil {
 			return err
 		}
-		fmt.Fprintf(os.Stderr, "Decorated with %s\n", encoded)
 		term.Location = &location.Location{File: encoded}
 		return decorateValue(term.Value)
 	}

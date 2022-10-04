@@ -30,30 +30,28 @@ func DecorateResource(resource models.ResourceState, value ast.Value) {
 	DecorateValue(prefix, value)
 }
 
-func (tracer *Tracer) flushByResource() map[[3]string][][]interface{} {
-	byResource := map[[3]string][][]interface{}{}
-	inputPaths := tracer.flush()
-	for _, inputPath := range inputPaths {
+func (tracer *Tracer) byResource() map[[3]string][][]interface{} {
+	resources := map[[3]string][][]interface{}{}
+	for _, inputPath := range tracer.pathSet.List() {
 		if len(inputPath) >= 3 {
 			if resourceNamespace, ok := inputPath[0].(string); ok {
 				if resourceType, ok := inputPath[1].(string); ok {
 					if resourceId, ok := inputPath[2].(string); ok {
 						key := [3]string{resourceNamespace, resourceType, resourceId}
-						if _, ok := byResource[key]; !ok {
-							byResource[key] = [][]interface{}{}
+						if _, ok := resources[key]; !ok {
+							resources[key] = [][]interface{}{}
 						}
-						byResource[key] = append(byResource[key], inputPath[3:])
+						resources[key] = append(resources[key], inputPath[3:])
 					}
 				}
 			}
 		}
 	}
-	return byResource
+	return resources
 }
 
 func (tracer *Tracer) InferAttributes(ruleResult []models.RuleResult) {
-	// Fill in paths inferred using the tracer.
-	byResource := tracer.flushByResource()
+	resources := tracer.byResource()
 	for _, rr := range ruleResult {
 		for _, r := range rr.Resources {
 			if len(r.Attributes) == 0 {
@@ -62,7 +60,7 @@ func (tracer *Tracer) InferAttributes(ruleResult []models.RuleResult) {
 					r.Type,
 					r.Id,
 				}
-				if paths, ok := byResource[key]; ok {
+				if paths, ok := resources[key]; ok {
 					r.Attributes = make([]models.RuleResultResourceAttribute, len(paths))
 					for i := range paths {
 						r.Attributes[i] = models.RuleResultResourceAttribute{
