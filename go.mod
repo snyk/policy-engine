@@ -12,7 +12,6 @@ require (
 	github.com/coreos/go-systemd v0.0.0-20191104093116-d3cd4ed1dbcf // indirect
 	github.com/coreos/pkg v0.0.0-20180928190104-399ea9e2e55f
 	github.com/fatih/color v1.13.0 // indirect
-	github.com/google/go-cmp v0.5.8 // indirect
 	github.com/google/uuid v1.3.0
 	github.com/hashicorp/errwrap v1.1.0
 	github.com/hashicorp/go-cleanhttp v0.5.2
@@ -39,7 +38,6 @@ require (
 	github.com/spf13/afero v1.8.2
 	github.com/spf13/cobra v1.5.0
 	github.com/stretchr/testify v1.8.0
-	github.com/vektah/gqlparser/v2 v2.4.6 // indirect
 	github.com/zclconf/go-cty v1.10.0
 	github.com/zclconf/go-cty-yaml v1.0.2
 	golang.org/x/crypto v0.0.0-20220525230936-793ad666bf5e
@@ -50,4 +48,4 @@ require (
 	gopkg.in/yaml.v3 v3.0.1
 )
 
-replace github.com/open-policy-agent/opa => ../opa
+replace github.com/open-policy-agent/opa v0.44.0 => github.com/jaspervdj/opa v0.40.1-0.20221004153720-e5617946277c
