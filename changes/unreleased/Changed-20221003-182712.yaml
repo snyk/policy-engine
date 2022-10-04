@@ -1,3 +1,0 @@
-kind: Changed
-body: ensure all arrays in output are deterministically sorted
-time: 2022-10-03T18:27:12.211280871+02:00

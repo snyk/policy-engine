@@ -1,4 +1,0 @@
-kind: Added
-body: _id attribute that always contains logical ID and retain physical ID when defined
-  in the id attribute
-time: 2022-09-30T10:52:18.374808-04:00
