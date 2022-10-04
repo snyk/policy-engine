@@ -17,7 +17,6 @@ package policy
 import (
 	"context"
 	"fmt"
-	"os"
 	"sort"
 
 	"github.com/open-policy-agent/opa/ast"
@@ -61,7 +60,7 @@ func (p *SingleResourcePolicy) Eval(
 	output := models.RuleResults{}
 	output.Package_ = p.pkg
 
-	tracer := opa.NewDummyExecutionTracer()
+	tracer := opa.NewInputPathsTracer()
 	metadata, err := p.Metadata(ctx, options.RegoOptions)
 	if err != nil {
 		logger.Error(ctx, "Failed to query metadata")
@@ -121,9 +120,23 @@ func (p *SingleResourcePolicy) Eval(
 				metadata,
 				defaultRemediation,
 			)
-			for _, path := range tracer.Flush() {
-				fmt.Fprintf(os.Stderr, "Touched %v\n", path)
+
+			// Fill in paths inferred using the tracer.
+			inputPaths := tracer.Flush()
+			for _, rr := range ruleResult {
+				for _, r := range rr.Resources {
+					if len(r.Attributes) == 0 {
+						r.Attributes = make([]models.RuleResultResourceAttribute, len(inputPaths))
+						for i := range inputPaths {
+							r.Attributes[i] = models.RuleResultResourceAttribute{
+								Path: inputPaths[i],
+							}
+						}
+
+					}
+				}
 			}
+
 			if err != nil {
 				logger.Error(ctx, "Failed to process results")
 				err = fmt.Errorf("%w: %v", FailedToProcessResults, err)

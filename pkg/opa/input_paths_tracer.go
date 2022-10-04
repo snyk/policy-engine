@@ -11,17 +11,19 @@ import (
 	"github.com/open-policy-agent/opa/ast/location"
 )
 
-type DummyExecutionTracer struct {
+type InputPaths = [][]interface{}
+
+type InputPathsTracer struct {
 	pathSet *pathSet
 }
 
-func NewDummyExecutionTracer() *DummyExecutionTracer {
-	return &DummyExecutionTracer{
+func NewInputPathsTracer() *InputPathsTracer {
+	return &InputPathsTracer{
 		pathSet: newPathSet(),
 	}
 }
 
-func (t *DummyExecutionTracer) term(term *ast.Term) {
+func (t *InputPathsTracer) coverTerm(term *ast.Term) {
 	if term != nil && term.IsGround() {
 		if term.Location != nil {
 			if encoded := t.decodePath(term.Location.File); encoded != nil {
@@ -31,23 +33,23 @@ func (t *DummyExecutionTracer) term(term *ast.Term) {
 	}
 }
 
-func (t *DummyExecutionTracer) Config() topdown.TraceConfig {
+func (t *InputPathsTracer) Config() topdown.TraceConfig {
 	return topdown.TraceConfig{
 		PlugLocalVars: false,
 	}
 }
 
-func (t *DummyExecutionTracer) Enabled() bool {
+func (t *InputPathsTracer) Enabled() bool {
 	return true
 }
 
-func (t *DummyExecutionTracer) TraceEvent(event topdown.Event) {
+func (t *InputPathsTracer) TraceEvent(event topdown.Event) {
 	if event.Op == topdown.UnifyOp {
 		if expr, ok := event.Node.(*ast.Expr); ok {
 			if terms, ok := expr.Terms.([]*ast.Term); ok && len(terms) == 3 {
 				fmt.Fprintf(os.Stderr, "TraceUnify: %s = %s\n", terms[1].String(), terms[2].String())
-				t.term(event.Plug(terms[1]))
-				t.term(event.Plug(terms[2]))
+				t.coverTerm(event.Plug(terms[1]))
+				t.coverTerm(event.Plug(terms[2]))
 			}
 		}
 	}
@@ -74,7 +76,7 @@ func (t *DummyExecutionTracer) TraceEvent(event topdown.Event) {
 
 						fmt.Fprintf(os.Stderr, "TraceEval: %s(%s)\n", terms[0].String(), strings.Join(strs, ", "))
 						for _, term := range operands {
-							t.term(term)
+							t.coverTerm(term)
 						}
 					}
 				}
@@ -83,7 +85,7 @@ func (t *DummyExecutionTracer) TraceEvent(event topdown.Event) {
 	}
 }
 
-func (t *DummyExecutionTracer) DecorateValue(top ast.Value) error {
+func (t *InputPathsTracer) DecorateValue(top ast.Value) error {
 	path := []interface{}{}
 	var decorateValue func(ast.Value) error
 	var decorateTerm func(*ast.Term) error
@@ -122,13 +124,13 @@ func (t *DummyExecutionTracer) DecorateValue(top ast.Value) error {
 	return decorateValue(top)
 }
 
-func (t *DummyExecutionTracer) Flush() [][]interface{} {
+func (t *InputPathsTracer) Flush() [][]interface{} {
     list := t.pathSet.List()
     t.pathSet = newPathSet()
 	return list
 }
 
-func (t *DummyExecutionTracer) encodePath(path []interface{}) (string, error) {
+func (t *InputPathsTracer) encodePath(path []interface{}) (string, error) {
 	bytes, err := json.Marshal(path)
 	if err != nil {
 		return "", err
@@ -136,7 +138,7 @@ func (t *DummyExecutionTracer) encodePath(path []interface{}) (string, error) {
 	return "path:" + string(bytes), nil
 }
 
-func (t *DummyExecutionTracer) decodePath(encoded string) []interface{} {
+func (t *InputPathsTracer) decodePath(encoded string) []interface{} {
 	if !strings.HasPrefix(encoded, "path:") {
 		return nil
 	}
