@@ -210,11 +210,11 @@ func (r *resourcesByType) impl(
 	ret := [][2]*ast.Term{}
 	if resources, ok := r.input.Resources[rt]; ok {
 		for resourceKey, resource := range resources {
-    		val, err := resourceStateToRegoInput(resource)
-    		if err != nil {
-        		return nil, err
-    		}
-    		ret = append(ret, [2]*ast.Term{ast.StringTerm(resourceKey), ast.NewTerm(val)})
+			val, err := resourceStateToRegoInput(resource)
+			if err != nil {
+				return nil, err
+			}
+			ret = append(ret, [2]*ast.Term{ast.StringTerm(resourceKey), ast.NewTerm(val)})
 		}
 	}
 	term := ast.ObjectTerm(ret...)
@@ -237,7 +237,7 @@ func resourceStateToRegoInput(resource models.ResourceState) (ast.Value, error) 
 	}
 	val, err := ast.InterfaceToValue(obj)
 	if err != nil {
-    	return nil, err
+		return nil, err
 	}
 	inferattributes.DecorateResource(resource, val)
 	return val, nil
@@ -248,7 +248,7 @@ func resourceStatesToRegoInputs(resources []models.ResourceState) ([]*ast.Term, 
 	for i, resource := range resources {
 		val, err := resourceStateToRegoInput(resource)
 		if err != nil {
-    		return nil, err
+			return nil, err
 		}
 		ret[i] = ast.NewTerm(val)
 	}
