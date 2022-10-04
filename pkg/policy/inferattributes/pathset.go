@@ -14,11 +14,6 @@
 
 package inferattributes
 
-import (
-	"fmt"
-	"os"
-)
-
 type pathSet struct {
 	intKeys    map[int]*pathSet
 	stringKeys map[string]*pathSet
@@ -56,8 +51,6 @@ func (ps *pathSet) Add(path []interface{}) {
 		ps.addInt(int(k), path[1:])
 	case string:
 		ps.addString(k, path[1:])
-	default:
-		fmt.Fprintf(os.Stderr, "uncovered: %t\n", k)
 	}
 }
 
