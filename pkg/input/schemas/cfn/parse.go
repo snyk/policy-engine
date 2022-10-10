@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package schemas
+package cfn
 
 import (
 	"archive/zip"
@@ -20,6 +20,8 @@ import (
 	"encoding/json"
 	"io/ioutil"
 	"strings"
+
+	"github.com/snyk/policy-engine/pkg/input/schemas"
 )
 
 type schema struct {
@@ -43,38 +45,38 @@ func (p property) getRef() string {
 	return strings.TrimPrefix(p.Ref, "#/definitions/")
 }
 
-func (p property) getType() (Type, bool) {
+func (p property) getType() (schemas.Type, bool) {
 	if str, ok := p.Type.(string); ok {
 		switch str {
 		case "boolean":
-			return Boolean, true
+			return schemas.Bool, true
 		case "integer":
-			return Integer, true
+			return schemas.Int, true
 		case "number":
-			return Number, true
+			return schemas.Float, true
 		case "string":
-			return String, true
+			return schemas.String, true
 		case "array":
-			return Array, true
+			return schemas.Array, true
 		case "object":
-			return Object, true
+			return schemas.Object, true
 		}
 	}
-	return Object, false
+	return schemas.Object, false
 }
 
 // Conversion of schemas as they are in CloudformationSchema.zip to the above
 // type.
-func (schema schema) convert() *Schema {
+func (schema schema) convert() *schemas.Schema {
 	// Declare definitions first so they can be reused.
-	definitions := map[string]*Schema{}
+	definitions := map[string]*schemas.Schema{}
 	for key := range schema.Definitions {
-		definitions[key] = &Schema{}
+		definitions[key] = &schemas.Schema{}
 	}
 
 	// Property conversion resolves references in `Definitions`.
-	var convertProperty func(property) *Schema
-	convertProperty = func(prop property) *Schema {
+	var convertProperty func(property) *schemas.Schema
+	convertProperty = func(prop property) *schemas.Schema {
 		if prop.isRef() {
 			if def, ok := definitions[prop.getRef()]; ok {
 				return def
@@ -82,14 +84,14 @@ func (schema schema) convert() *Schema {
 				return nil
 			}
 		} else {
-			out := Schema{}
+			out := schemas.Schema{}
 			if ty, ok := prop.getType(); ok {
 				out.Type = ty
 			} else {
 				return nil
 			}
 			if len(prop.Properties) > 0 {
-				out.Properties = map[string]*Schema{}
+				out.Properties = map[string]*schemas.Schema{}
 				for k, v := range prop.Properties {
 					out.Properties[k] = convertProperty(v)
 				}
@@ -111,14 +113,14 @@ func (schema schema) convert() *Schema {
 	}
 
 	// Convert properties.
-	properties := map[string]*Schema{}
+	properties := map[string]*schemas.Schema{}
 	for key, prop := range schema.Properties {
 		properties[key] = convertProperty(prop)
 	}
 
 	// Return schema.
-	return &Schema{
-		Type:       Object,
+	return &schemas.Schema{
+		Type:       schemas.Object,
 		Properties: properties,
 	}
 }

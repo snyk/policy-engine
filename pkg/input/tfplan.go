@@ -20,6 +20,8 @@ import (
 	"sort"
 	"strings"
 
+	"github.com/snyk/policy-engine/pkg/input/schemas"
+	tfschemas "github.com/snyk/policy-engine/pkg/input/schemas/tf"
 	"github.com/snyk/policy-engine/pkg/interfacetricks"
 	"github.com/snyk/policy-engine/pkg/models"
 	"gopkg.in/yaml.v3"
@@ -605,6 +607,8 @@ func (plan *tfplan_Plan) resources(resourceNamespace string) []models.ResourceSt
 		} else {
 			resourceType = pvr.Type
 		}
+
+		attributes = schemas.ApplyObject(attributes, tfschemas.GetSchema(resourceType))
 
 		resources = append(resources, models.ResourceState{
 			Id:           id,

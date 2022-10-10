@@ -12,30 +12,13 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package schemas
+package cfn
 
 import (
 	_ "embed"
+
+	"github.com/snyk/policy-engine/pkg/input/schemas"
 )
-
-type Type int
-
-const (
-	Boolean Type = iota
-	Integer
-	Number
-	String
-	Array
-	Object
-)
-
-// A Schema correponds to a resource or a subtree of a resource.
-// They may contain infinite loops.
-type Schema struct {
-	Type       Type
-	Properties map[string]*Schema
-	Items      *Schema
-}
 
 func ResourceTypes() []string {
 	loadCloudformationSchemas()
@@ -46,7 +29,7 @@ func ResourceTypes() []string {
 	return resourceTypes
 }
 
-func GetSchema(resourceType string) *Schema {
+func GetSchema(resourceType string) *schemas.Schema {
 	loadCloudformationSchemas()
 	if schema, ok := cloudformationSchemas[resourceType]; ok {
 		return schema
@@ -65,7 +48,7 @@ func GetSchema(resourceType string) *Schema {
 //go:embed CloudformationSchema.zip
 var cloudformationSchemaZip []byte
 
-var cloudformationSchemas map[string]*Schema = nil
+var cloudformationSchemas map[string]*schemas.Schema = nil
 
 // Loads schemas into loadCloudformationSchemas if necessary.
 func loadCloudformationSchemas() {
@@ -73,7 +56,7 @@ func loadCloudformationSchemas() {
 		return
 	}
 
-	cloudformationSchemas = map[string]*Schema{}
+	cloudformationSchemas = map[string]*schemas.Schema{}
 	schemas, err := parseSchemasFromZip(cloudformationSchemaZip)
 	if err != nil {
 		panic(err)
