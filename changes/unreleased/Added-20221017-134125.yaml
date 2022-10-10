@@ -1,0 +1,3 @@
+kind: Added
+body: use terraform schemas to coerce values to expected types in tf and tfplan loaders
+time: 2022-10-17T13:41:25.137788659+02:00

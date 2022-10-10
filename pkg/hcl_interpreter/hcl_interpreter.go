@@ -24,6 +24,8 @@ import (
 
 	"github.com/snyk/policy-engine/pkg/hcl_interpreter/funcs"
 	"github.com/snyk/policy-engine/pkg/internal/terraform/lang"
+	tfschemas "github.com/snyk/policy-engine/pkg/input/schemas/tf"
+	"github.com/snyk/policy-engine/pkg/input/schemas"
 	"github.com/snyk/policy-engine/pkg/models"
 	"github.com/snyk/policy-engine/pkg/topsort"
 )
@@ -400,6 +402,8 @@ func (v *Evaluation) Resources() []models.ResourceState {
 				}
 			}
 		}
+
+		attrs = schemas.ApplyObject(attrs, tfschemas.GetSchema(resourceType))
 
 		// TODO: Support tags again: PopulateTags(input[resourceKey])
 		resources = append(resources, models.ResourceState{
