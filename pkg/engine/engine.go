@@ -185,6 +185,7 @@ func (e *Engine) Eval(ctx context.Context, options *EvalOptions) *models.Results
 			Input:             &state,
 			InputValue:        value,
 			ResourcesResolver: options.ResourcesResolver,
+			Logger:            e.logger,
 		}
 		allRuleResults := []models.RuleResults{}
 		policyChan := make(chan policy.Policy)
