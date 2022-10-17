@@ -2,6 +2,12 @@
 
 
 
+## v0.10.0 - 2022-10-04
+### Added
+* _id attribute that always contains logical ID and retain physical ID when defined in the id attribute
+### Changed
+* ensure all arrays in output are deterministically sorted
+
 ## v0.9.0 - 2022-09-29
 ### Added
 * proposal to add result_tag to policy result identity

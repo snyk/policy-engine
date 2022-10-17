@@ -68,7 +68,10 @@ var testCmd = &cobra.Command{
 		capabilities := policy.Capabilities()
 		capabilities.Builtins = append(capabilities.Builtins, snapshot_testing.MatchBuiltin)
 
-		compiler := ast.NewCompiler().WithCapabilities(capabilities)
+		compiler := ast.NewCompiler().
+			WithCapabilities(capabilities).
+			WithEnablePrintStatements(true)
+
 		ch, err := tester.NewRunner().
 			AddCustomBuiltins([]*tester.Builtin{
 				{
@@ -84,7 +87,6 @@ var testCmd = &cobra.Command{
 				},
 			}).
 			SetCompiler(compiler).
-			CapturePrintOutput(true).
 			EnableTracing(*rootCmdVerbose).
 			SetStore(store).
 			SetModules(consumer.Modules).
