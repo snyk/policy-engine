@@ -15,6 +15,8 @@
 package inferattributes
 
 import (
+	"os"
+
 	"github.com/open-policy-agent/opa/ast"
 
 	"github.com/snyk/policy-engine/pkg/models"
@@ -54,7 +56,11 @@ func (tracer *Tracer) InferAttributes(ruleResult []models.RuleResult) {
 	resources := tracer.byResource()
 	for _, rr := range ruleResult {
 		for _, r := range rr.Resources {
-			if len(r.Attributes) == 0 {
+			// FIXME: Remove POLICY_ENGINE_FORCE_INFER_ATTRIBUTES, or move this
+			// to a flag, this only serves for the comparison with existing
+			// attributes.
+			forceInferAttributes := os.Getenv("POLICY_ENGINE_FORCE_INFER_ATTRIBUTES") == "true"
+			if len(r.Attributes) == 0 || forceInferAttributes {
 				key := [3]string{
 					r.Namespace,
 					r.Type,
