@@ -34,6 +34,16 @@ func DecorateResource(resource models.ResourceState, value ast.Value) {
 
 func (tracer *Tracer) byResource() map[[3]string][][]interface{} {
 	resources := map[[3]string][][]interface{}{}
+
+	// Do not include paths starting with these fields.
+	mask1 := map[string]struct{}{
+		"id":         struct{}{},
+		"_id":        struct{}{},
+		"_meta":      struct{}{},
+		"_namespace": struct{}{},
+		"_type":      struct{}{},
+	}
+
 	for _, inputPath := range tracer.pathSet.List() {
 		if len(inputPath) >= 3 {
 			if resourceNamespace, ok := inputPath[0].(string); ok {
@@ -43,7 +53,18 @@ func (tracer *Tracer) byResource() map[[3]string][][]interface{} {
 						if _, ok := resources[key]; !ok {
 							resources[key] = [][]interface{}{}
 						}
-						resources[key] = append(resources[key], inputPath[3:])
+						attribute := inputPath[3:]
+
+						// Mask out certain attributes.
+						if len(attribute) > 0 {
+							if start, ok := attribute[0].(string); ok {
+								if _, ok := mask1[start]; ok {
+									continue
+								}
+							}
+						}
+
+						resources[key] = append(resources[key], attribute)
 					}
 				}
 			}
