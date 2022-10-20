@@ -1,3 +1,0 @@
-kind: Added
-body: use terraform schemas to scrub sensitive fields in tf and tfplan loaders
-time: 2022-10-13T16:41:44.258511565+02:00

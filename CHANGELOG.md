@@ -2,6 +2,15 @@
 
 
 
+## v0.11.0 - 2022-10-20
+### Added
+* use terraform schemas to scrub sensitive fields in tf and tfplan loaders
+* use terraform schemas to coerce values to expected types in tf and tfplan loaders
+### Fixed
+* Enable `print()` statements in the `test` command
+* Use the configured Engine logger when evaluating policies
+* Return a FailedToParseInput error if an HCL evaluation fails
+
 ## v0.10.0 - 2022-10-04
 ### Added
 * _id attribute that always contains logical ID and retain physical ID when defined in the id attribute

@@ -1,3 +1,0 @@
-kind: Fixed
-body: Return a FailedToParseInput error if an HCL evaluation fails
-time: 2022-10-19T14:43:50.888984+02:00
