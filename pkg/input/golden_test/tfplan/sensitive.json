@@ -1,0 +1,68 @@
+{
+  "format": "",
+  "format_version": "",
+  "input_type": "tf_plan",
+  "environment_provider": "iac",
+  "meta": {
+    "filepath": "golden_test/tfplan/sensitive/plan.json"
+  },
+  "resources": {
+    "aws_db_instance": {
+      "aws_db_instance.default": {
+        "id": "aws_db_instance.default",
+        "resource_type": "aws_db_instance",
+        "namespace": "golden_test/tfplan/sensitive/plan.json",
+        "meta": {
+          "region": "us-east-1",
+          "terraform": {
+            "provider_config": {
+              "region": "us-east-1"
+            }
+          },
+          "tfplan": {
+            "resource_actions": [
+              "create"
+            ]
+          }
+        },
+        "attributes": {
+          "allocated_storage": 10,
+          "allow_major_version_upgrade": null,
+          "auto_minor_version_upgrade": true,
+          "copy_tags_to_snapshot": false,
+          "customer_owned_ip_enabled": null,
+          "db_name": "mydb",
+          "delete_automated_backups": true,
+          "deletion_protection": null,
+          "domain": null,
+          "domain_iam_role_name": null,
+          "enabled_cloudwatch_logs_exports": null,
+          "engine": "mysql",
+          "engine_version": "5.7",
+          "final_snapshot_identifier": null,
+          "iam_database_authentication_enabled": null,
+          "instance_class": "db.t3.micro",
+          "iops": null,
+          "max_allocated_storage": null,
+          "monitoring_interval": 0,
+          "parameter_group_name": "default.mysql5.7",
+          "password": "******",
+          "performance_insights_enabled": false,
+          "publicly_accessible": false,
+          "replicate_source_db": null,
+          "restore_to_point_in_time": [],
+          "s3_import": [],
+          "security_group_names": null,
+          "skip_final_snapshot": true,
+          "storage_encrypted": null,
+          "tags": null,
+          "timeouts": null,
+          "username": "foo"
+        }
+      }
+    }
+  },
+  "scope": {
+    "filepath": "golden_test/tfplan/sensitive/plan.json"
+  }
+}

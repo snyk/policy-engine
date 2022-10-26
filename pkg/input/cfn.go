@@ -20,7 +20,8 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/snyk/policy-engine/pkg/cfn/schemas"
+	schemas "github.com/snyk/policy-engine/pkg/input/schemas"
+	cfnschemas "github.com/snyk/policy-engine/pkg/input/schemas/cfn"
 	"github.com/snyk/policy-engine/pkg/interfacetricks"
 	"github.com/snyk/policy-engine/pkg/models"
 	"gopkg.in/yaml.v3"
@@ -117,8 +118,8 @@ func (tmpl *cfnTemplate) resources() map[string]models.ResourceState {
 
 	resources := map[string]models.ResourceState{}
 	for resourceId, resource := range tmpl.Resources {
-		schema := schemas.GetSchema(resource.Type)
-		properties := schemas.CoerceObject(resource.Properties.Contents, schema)
+		schema := cfnschemas.GetSchema(resource.Type)
+		properties := schemas.ApplyObject(resource.Properties.Contents, schema)
 		for k, prop := range properties {
 			properties[k] = interfacetricks.TopDownWalk(&resolver, prop)
 		}

@@ -78,7 +78,7 @@ func newHclConfiguration(moduleTree *hcl_interpreter.ModuleTree) (*HclConfigurat
 	analysis := hcl_interpreter.AnalyzeModuleTree(moduleTree)
 	evaluation, err := hcl_interpreter.EvaluateAnalysis(analysis)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("%w: %v", FailedToParseInput, err)
 	}
 
 	resources := evaluation.Resources()
