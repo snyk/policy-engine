@@ -909,16 +909,6 @@
                     "attributes": [
                       {
                         "path": [
-                          "id"
-                        ],
-                        "location": {
-                          "filepath": "../examples/main.tf",
-                          "line": 41,
-                          "column": 1
-                        }
-                      },
-                      {
-                        "path": [
                           "bucket"
                         ],
                         "location": {
@@ -977,16 +967,6 @@
                     "attributes": [
                       {
                         "path": [
-                          "id"
-                        ],
-                        "location": {
-                          "filepath": "../examples/main.tf",
-                          "line": 5,
-                          "column": 1
-                        }
-                      },
-                      {
-                        "path": [
                           "bucket"
                         ],
                         "location": {
@@ -1018,16 +998,6 @@
                       }
                     ],
                     "attributes": [
-                      {
-                        "path": [
-                          "id"
-                        ],
-                        "location": {
-                          "filepath": "../examples/main.tf",
-                          "line": 9,
-                          "column": 1
-                        }
-                      },
                       {
                         "path": [
                           "bucket"
@@ -1085,16 +1055,6 @@
                       }
                     ],
                     "attributes": [
-                      {
-                        "path": [
-                          "id"
-                        ],
-                        "location": {
-                          "filepath": "../examples/main.tf",
-                          "line": 29,
-                          "column": 1
-                        }
-                      },
                       {
                         "path": [
                           "bucket"
@@ -1155,16 +1115,6 @@
                     "attributes": [
                       {
                         "path": [
-                          "id"
-                        ],
-                        "location": {
-                          "filepath": "../examples/main.tf",
-                          "line": 41,
-                          "column": 1
-                        }
-                      },
-                      {
-                        "path": [
                           "bucket"
                         ],
                         "location": {
@@ -1223,16 +1173,6 @@
                     "attributes": [
                       {
                         "path": [
-                          "id"
-                        ],
-                        "location": {
-                          "filepath": "../examples/main.tf",
-                          "line": 5,
-                          "column": 1
-                        }
-                      },
-                      {
-                        "path": [
                           "bucket"
                         ],
                         "location": {
@@ -1264,16 +1204,6 @@
                       }
                     ],
                     "attributes": [
-                      {
-                        "path": [
-                          "id"
-                        ],
-                        "location": {
-                          "filepath": "../examples/main.tf",
-                          "line": 9,
-                          "column": 1
-                        }
-                      },
                       {
                         "path": [
                           "bucket"
@@ -1331,16 +1261,6 @@
                       }
                     ],
                     "attributes": [
-                      {
-                        "path": [
-                          "id"
-                        ],
-                        "location": {
-                          "filepath": "../examples/main.tf",
-                          "line": 29,
-                          "column": 1
-                        }
-                      },
                       {
                         "path": [
                           "bucket"
@@ -1514,16 +1434,6 @@
                           "line": 42,
                           "column": 3
                         }
-                      },
-                      {
-                        "path": [
-                          "id"
-                        ],
-                        "location": {
-                          "filepath": "../examples/main.tf",
-                          "line": 41,
-                          "column": 1
-                        }
                       }
                     ]
                   },
@@ -1583,16 +1493,6 @@
                           "filepath": "../examples/main.tf",
                           "line": 10,
                           "column": 3
-                        }
-                      },
-                      {
-                        "path": [
-                          "id"
-                        ],
-                        "location": {
-                          "filepath": "../examples/main.tf",
-                          "line": 9,
-                          "column": 1
                         }
                       }
                     ]
