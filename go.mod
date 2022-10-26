@@ -47,5 +47,3 @@ require (
 	golang.org/x/text v0.4.0
 	gopkg.in/yaml.v3 v3.0.1
 )
-
-replace github.com/open-policy-agent/opa v0.44.0 => github.com/jaspervdj/opa v0.40.1-0.20221004153720-e5617946277c
