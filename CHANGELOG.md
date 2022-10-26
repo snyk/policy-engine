@@ -2,6 +2,10 @@
 
 
 
+## v0.12.0 - 2022-10-26
+### Added
+* infer resource attributes automatically if not present
+
 ## v0.11.0 - 2022-10-20
 ### Added
 * use terraform schemas to scrub sensitive fields in tf and tfplan loaders
