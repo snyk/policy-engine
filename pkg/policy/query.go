@@ -67,13 +67,12 @@ func (q *Query) impl(bctx rego.BuiltinContext, operands []*ast.Term) (*ast.Term,
 		return nil, err
 	}
 
-	regoResources := resourceStatesToRegoInputs(resources)
-
-	val, err := ast.InterfaceToValue(regoResources)
+	regoResources, err := resourceStatesToRegoInputs(resources)
 	if err != nil {
 		return nil, err
 	}
-	return ast.NewTerm(val), nil
+
+	return ast.ArrayTerm(regoResources...), nil
 }
 
 func (q *Query) ResolveResources(ctx context.Context, query ResourcesQuery) ([]models.ResourceState, error) {

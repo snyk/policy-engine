@@ -22,6 +22,7 @@ import (
 	"github.com/open-policy-agent/opa/rego"
 	"github.com/snyk/policy-engine/pkg/logging"
 	"github.com/snyk/policy-engine/pkg/models"
+	"github.com/snyk/policy-engine/pkg/policy/inferattributes"
 )
 
 // ProcessSingleResultSet functions extract RuleResult models from the ResultSet of
@@ -76,7 +77,8 @@ func (p *MultiResourcePolicy) Eval(
 		output.Errors = append(output.Errors, err.Error())
 		return []models.RuleResults{output}, err
 	}
-	resultSet, err := query.Eval(ctx)
+	tracer := inferattributes.NewTracer()
+	resultSet, err := query.Eval(ctx, rego.EvalQueryTracer(tracer))
 	if err != nil {
 		logger.Error(ctx, "Failed to evaluate rule")
 		err = fmt.Errorf("%w: %v", FailedToEvaluateRule, err)
@@ -103,6 +105,7 @@ func (p *MultiResourcePolicy) Eval(
 		output.Errors = append(output.Errors, err.Error())
 		return []models.RuleResults{output}, err
 	}
+	tracer.InferAttributes(ruleResults)
 	output.ResourceTypes = builtins.ResourceTypes()
 	output.Results = ruleResults
 	return []models.RuleResults{output}, nil

@@ -397,6 +397,18 @@
                         "line": 41,
                         "column": 1
                       }
+                    ],
+                    "attributes": [
+                      {
+                        "path": [
+                          "bucket"
+                        ],
+                        "location": {
+                          "filepath": "../examples/main.tf",
+                          "line": 42,
+                          "column": 3
+                        }
+                      }
                     ]
                   }
                 ]
@@ -421,6 +433,18 @@
                         "line": 5,
                         "column": 1
                       }
+                    ],
+                    "attributes": [
+                      {
+                        "path": [
+                          "bucket"
+                        ],
+                        "location": {
+                          "filepath": "../examples/main.tf",
+                          "line": 6,
+                          "column": 3
+                        }
+                      }
                     ]
                   }
                 ]
@@ -442,6 +466,18 @@
                         "filepath": "../examples/main.tf",
                         "line": 9,
                         "column": 1
+                      }
+                    ],
+                    "attributes": [
+                      {
+                        "path": [
+                          "bucket"
+                        ],
+                        "location": {
+                          "filepath": "../examples/main.tf",
+                          "line": 10,
+                          "column": 3
+                        }
                       }
                     ]
                   }
@@ -466,6 +502,18 @@
                         "filepath": "../examples/main.tf",
                         "line": 29,
                         "column": 1
+                      }
+                    ],
+                    "attributes": [
+                      {
+                        "path": [
+                          "bucket"
+                        ],
+                        "location": {
+                          "filepath": "../examples/main.tf",
+                          "line": 30,
+                          "column": 3
+                        }
                       }
                     ]
                   }
@@ -495,6 +543,18 @@
                         "filepath": "../examples/main.tf",
                         "line": 41,
                         "column": 1
+                      }
+                    ],
+                    "attributes": [
+                      {
+                        "path": [
+                          "bucket"
+                        ],
+                        "location": {
+                          "filepath": "../examples/main.tf",
+                          "line": 42,
+                          "column": 3
+                        }
                       }
                     ]
                   }
@@ -550,6 +610,18 @@
                         "filepath": "../examples/main.tf",
                         "line": 9,
                         "column": 1
+                      }
+                    ],
+                    "attributes": [
+                      {
+                        "path": [
+                          "bucket"
+                        ],
+                        "location": {
+                          "filepath": "../examples/main.tf",
+                          "line": 10,
+                          "column": 3
+                        }
                       }
                     ]
                   }
@@ -615,6 +687,18 @@
                         "line": 5,
                         "column": 1
                       }
+                    ],
+                    "attributes": [
+                      {
+                        "path": [
+                          "bucket"
+                        ],
+                        "location": {
+                          "filepath": "../examples/main.tf",
+                          "line": 6,
+                          "column": 3
+                        }
+                      }
                     ]
                   }
                 ]
@@ -636,6 +720,18 @@
                         "filepath": "../examples/main.tf",
                         "line": 29,
                         "column": 1
+                      }
+                    ],
+                    "attributes": [
+                      {
+                        "path": [
+                          "bucket"
+                        ],
+                        "location": {
+                          "filepath": "../examples/main.tf",
+                          "line": 30,
+                          "column": 3
+                        }
                       }
                     ]
                   }
@@ -666,6 +762,18 @@
                         "line": 41,
                         "column": 1
                       }
+                    ],
+                    "attributes": [
+                      {
+                        "path": [
+                          "bucket"
+                        ],
+                        "location": {
+                          "filepath": "../examples/main.tf",
+                          "line": 42,
+                          "column": 3
+                        }
+                      }
                     ]
                   }
                 ]
@@ -688,6 +796,18 @@
                         "line": 5,
                         "column": 1
                       }
+                    ],
+                    "attributes": [
+                      {
+                        "path": [
+                          "bucket"
+                        ],
+                        "location": {
+                          "filepath": "../examples/main.tf",
+                          "line": 6,
+                          "column": 3
+                        }
+                      }
                     ]
                   }
                 ]
@@ -708,6 +828,18 @@
                         "filepath": "../examples/main.tf",
                         "line": 9,
                         "column": 1
+                      }
+                    ],
+                    "attributes": [
+                      {
+                        "path": [
+                          "bucket"
+                        ],
+                        "location": {
+                          "filepath": "../examples/main.tf",
+                          "line": 10,
+                          "column": 3
+                        }
                       }
                     ]
                   }
@@ -730,6 +862,18 @@
                         "filepath": "../examples/main.tf",
                         "line": 29,
                         "column": 1
+                      }
+                    ],
+                    "attributes": [
+                      {
+                        "path": [
+                          "bucket"
+                        ],
+                        "location": {
+                          "filepath": "../examples/main.tf",
+                          "line": 30,
+                          "column": 3
+                        }
                       }
                     ]
                   }
@@ -761,6 +905,18 @@
                         "line": 41,
                         "column": 1
                       }
+                    ],
+                    "attributes": [
+                      {
+                        "path": [
+                          "bucket"
+                        ],
+                        "location": {
+                          "filepath": "../examples/main.tf",
+                          "line": 42,
+                          "column": 3
+                        }
+                      }
                     ]
                   },
                   {
@@ -772,6 +928,18 @@
                         "filepath": "../examples/main.tf",
                         "line": 45,
                         "column": 1
+                      }
+                    ],
+                    "attributes": [
+                      {
+                        "path": [
+                          "bucket"
+                        ],
+                        "location": {
+                          "filepath": "../examples/main.tf",
+                          "line": 46,
+                          "column": 3
+                        }
                       }
                     ]
                   }
@@ -795,6 +963,18 @@
                         "line": 5,
                         "column": 1
                       }
+                    ],
+                    "attributes": [
+                      {
+                        "path": [
+                          "bucket"
+                        ],
+                        "location": {
+                          "filepath": "../examples/main.tf",
+                          "line": 6,
+                          "column": 3
+                        }
+                      }
                     ]
                   }
                 ]
@@ -816,6 +996,18 @@
                         "line": 9,
                         "column": 1
                       }
+                    ],
+                    "attributes": [
+                      {
+                        "path": [
+                          "bucket"
+                        ],
+                        "location": {
+                          "filepath": "../examples/main.tf",
+                          "line": 10,
+                          "column": 3
+                        }
+                      }
                     ]
                   },
                   {
@@ -827,6 +1019,18 @@
                         "filepath": "../examples/main.tf",
                         "line": 13,
                         "column": 1
+                      }
+                    ],
+                    "attributes": [
+                      {
+                        "path": [
+                          "bucket"
+                        ],
+                        "location": {
+                          "filepath": "../examples/main.tf",
+                          "line": 14,
+                          "column": 3
+                        }
                       }
                     ]
                   }
@@ -848,6 +1052,34 @@
                         "filepath": "../examples/main.tf",
                         "line": 29,
                         "column": 1
+                      }
+                    ],
+                    "attributes": [
+                      {
+                        "path": [
+                          "bucket"
+                        ],
+                        "location": {
+                          "filepath": "../examples/main.tf",
+                          "line": 30,
+                          "column": 3
+                        }
+                      },
+                      {
+                        "path": [
+                          "server_side_encryption_configuration",
+                          0,
+                          "rule",
+                          0,
+                          "apply_server_side_encryption_by_default",
+                          0,
+                          "sse_algorithm"
+                        ],
+                        "location": {
+                          "filepath": "../examples/main.tf",
+                          "line": 35,
+                          "column": 9
+                        }
                       }
                     ]
                   }
@@ -879,6 +1111,18 @@
                         "line": 41,
                         "column": 1
                       }
+                    ],
+                    "attributes": [
+                      {
+                        "path": [
+                          "bucket"
+                        ],
+                        "location": {
+                          "filepath": "../examples/main.tf",
+                          "line": 42,
+                          "column": 3
+                        }
+                      }
                     ]
                   },
                   {
@@ -890,6 +1134,18 @@
                         "filepath": "../examples/main.tf",
                         "line": 45,
                         "column": 1
+                      }
+                    ],
+                    "attributes": [
+                      {
+                        "path": [
+                          "bucket"
+                        ],
+                        "location": {
+                          "filepath": "../examples/main.tf",
+                          "line": 46,
+                          "column": 3
+                        }
                       }
                     ]
                   }
@@ -913,6 +1169,18 @@
                         "line": 5,
                         "column": 1
                       }
+                    ],
+                    "attributes": [
+                      {
+                        "path": [
+                          "bucket"
+                        ],
+                        "location": {
+                          "filepath": "../examples/main.tf",
+                          "line": 6,
+                          "column": 3
+                        }
+                      }
                     ]
                   }
                 ]
@@ -934,6 +1202,18 @@
                         "line": 9,
                         "column": 1
                       }
+                    ],
+                    "attributes": [
+                      {
+                        "path": [
+                          "bucket"
+                        ],
+                        "location": {
+                          "filepath": "../examples/main.tf",
+                          "line": 10,
+                          "column": 3
+                        }
+                      }
                     ]
                   },
                   {
@@ -945,6 +1225,18 @@
                         "filepath": "../examples/main.tf",
                         "line": 13,
                         "column": 1
+                      }
+                    ],
+                    "attributes": [
+                      {
+                        "path": [
+                          "bucket"
+                        ],
+                        "location": {
+                          "filepath": "../examples/main.tf",
+                          "line": 14,
+                          "column": 3
+                        }
                       }
                     ]
                   }
@@ -966,6 +1258,34 @@
                         "filepath": "../examples/main.tf",
                         "line": 29,
                         "column": 1
+                      }
+                    ],
+                    "attributes": [
+                      {
+                        "path": [
+                          "bucket"
+                        ],
+                        "location": {
+                          "filepath": "../examples/main.tf",
+                          "line": 30,
+                          "column": 3
+                        }
+                      },
+                      {
+                        "path": [
+                          "server_side_encryption_configuration",
+                          0,
+                          "rule",
+                          0,
+                          "apply_server_side_encryption_by_default",
+                          0,
+                          "sse_algorithm"
+                        ],
+                        "location": {
+                          "filepath": "../examples/main.tf",
+                          "line": 35,
+                          "column": 9
+                        }
                       }
                     ]
                   }
@@ -1061,6 +1381,18 @@
                         "line": 55,
                         "column": 1
                       }
+                    ],
+                    "attributes": [
+                      {
+                        "path": [
+                          "include_global_service_events"
+                        ],
+                        "location": {
+                          "filepath": "../examples/main.tf",
+                          "line": 59,
+                          "column": 3
+                        }
+                      }
                     ]
                   }
                 ]
@@ -1090,6 +1422,18 @@
                         "filepath": "../examples/main.tf",
                         "line": 41,
                         "column": 1
+                      }
+                    ],
+                    "attributes": [
+                      {
+                        "path": [
+                          "bucket"
+                        ],
+                        "location": {
+                          "filepath": "../examples/main.tf",
+                          "line": 42,
+                          "column": 3
+                        }
                       }
                     ]
                   },
@@ -1138,6 +1482,18 @@
                         "filepath": "../examples/main.tf",
                         "line": 9,
                         "column": 1
+                      }
+                    ],
+                    "attributes": [
+                      {
+                        "path": [
+                          "bucket"
+                        ],
+                        "location": {
+                          "filepath": "../examples/main.tf",
+                          "line": 10,
+                          "column": 3
+                        }
                       }
                     ]
                   },
