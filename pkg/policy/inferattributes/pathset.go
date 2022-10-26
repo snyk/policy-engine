@@ -14,6 +14,10 @@
 
 package inferattributes
 
+import (
+	"sort"
+)
+
 type pathSet struct {
 	intKeys    map[int]*pathSet
 	stringKeys map[string]*pathSet
@@ -56,24 +60,45 @@ func (ps *pathSet) Add(path []interface{}) {
 
 func (ps *pathSet) List() [][]interface{} {
 	paths := [][]interface{}{}
-	for i, child := range ps.intKeys {
-		for _, childPath := range child.List() {
+
+	// Sort int keys for consistent ordering
+	intKeys := []int{}
+	for i := range ps.intKeys {
+		intKeys = append(intKeys, i)
+	}
+	sort.Ints(intKeys)
+
+	// Recursively add children
+	for _, k := range intKeys {
+		for _, childPath := range ps.intKeys[k].List() {
 			path := make([]interface{}, len(childPath)+1)
-			path[0] = i
+			path[0] = k
 			copy(path[1:], childPath)
 			paths = append(paths, path)
 		}
 	}
-	for i, child := range ps.stringKeys {
-		for _, childPath := range child.List() {
+
+	// Sort string keys for consistent ordering
+	stringKeys := []string{}
+	for i := range ps.stringKeys {
+		stringKeys = append(stringKeys, i)
+	}
+	sort.Strings(stringKeys)
+
+	// Recursively add children
+	for _, k := range stringKeys {
+		for _, childPath := range ps.stringKeys[k].List() {
 			path := make([]interface{}, len(childPath)+1)
-			path[0] = i
+			path[0] = k
 			copy(path[1:], childPath)
 			paths = append(paths, path)
 		}
 	}
+
+	// Add this node except when we added children
 	if len(paths) <= 0 {
 		paths = append(paths, []interface{}{})
 	}
+
 	return paths
 }
