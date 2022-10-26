@@ -22,6 +22,8 @@ import (
 	"github.com/snyk/policy-engine/pkg/models"
 )
 
+// DecorateResource is a helper that sets up DecorateValue in a way that we
+// will be able to tell which resource the values belonged to.
 func DecorateResource(resource models.ResourceState, value ast.Value) {
 	prefix := []interface{}{
 		resource.Namespace,
@@ -32,6 +34,9 @@ func DecorateResource(resource models.ResourceState, value ast.Value) {
 	DecorateValue(prefix, value)
 }
 
+// byResource extracts the accessed attributes from the underlying pathset.
+//
+// It groups the resources per resource key (namespace, resource type, id).
 func (tracer *Tracer) byResource() map[[3]string][][]interface{} {
 	resources := map[[3]string][][]interface{}{}
 
@@ -73,13 +78,16 @@ func (tracer *Tracer) byResource() map[[3]string][][]interface{} {
 	return resources
 }
 
+// InferAttributes decorates the given rule results with any attribtes that
+// have been accessed; using the resource identifiers to correlate them.
 func (tracer *Tracer) InferAttributes(ruleResult []models.RuleResult) {
 	resources := tracer.byResource()
 	for _, rr := range ruleResult {
 		for _, r := range rr.Resources {
-			// FIXME: Remove POLICY_ENGINE_FORCE_INFER_ATTRIBUTES, or move this
-			// to a flag, this only serves for the comparison with existing
-			// attributes.
+			// FIXME: This is a bit of technical debt, but I think it is worth
+			// leaving in for now as it allows developers to compare the
+			// inferred attributes with the explicit ones without changing the
+			// rego code.
 			forceInferAttributes := os.Getenv("POLICY_ENGINE_FORCE_INFER_ATTRIBUTES") == "true"
 			if len(r.Attributes) == 0 || forceInferAttributes {
 				key := [3]string{

@@ -16,12 +16,11 @@ package inferattributes
 
 import (
 	"encoding/json"
-	"fmt"
 	"strings"
 
-	"github.com/open-policy-agent/opa/topdown"
 	"github.com/open-policy-agent/opa/ast"
 	"github.com/open-policy-agent/opa/ast/location"
+	"github.com/open-policy-agent/opa/topdown"
 )
 
 type Tracer struct {
@@ -34,6 +33,8 @@ func NewTracer() *Tracer {
 	}
 }
 
+// coverTerm checks if a Term was decorated using DecorateValue, and if so,
+// adds it to the pathSet of accessed attributes.
 func (t *Tracer) coverTerm(term *ast.Term) {
 	if term != nil && term.IsGround() {
 		if term.Location != nil {
@@ -68,18 +69,8 @@ func (t *Tracer) TraceEvent(event topdown.Event) {
 			if terms, ok := expr.Terms.([]*ast.Term); ok && len(terms) > 0 {
 				if ref, ok := terms[0].Value.(ast.Ref); ok {
 					if _, ok := ast.BuiltinMap[ref.String()]; ok {
-						operands := make([]*ast.Term, len(terms)-1)
-						for i, term := range terms[1:] {
-							operands[i] = event.Plug(term)
-						}
-
-						strs := make([]string, len(operands))
-						for i, term := range operands {
-							strs[i] = fmt.Sprintf(term.String())
-						}
-
-						for _, term := range operands {
-							t.coverTerm(term)
+						for _, term := range terms[1:] {
+							t.coverTerm(event.Plug(term))
 						}
 					}
 				}
@@ -108,6 +99,9 @@ func decodePath(encoded string) []interface{} {
 	return path
 }
 
+// DecorateValue stores meta-information about where the values originated
+// from inside the Location attribute of the corresponding terms.  This will
+// allow us to deduce which terms were used in coverTerm.
 func DecorateValue(prefix []interface{}, top ast.Value) error {
 	path := make([]interface{}, len(prefix))
 	copy(path, prefix)

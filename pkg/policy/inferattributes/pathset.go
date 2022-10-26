@@ -18,6 +18,11 @@ import (
 	"sort"
 )
 
+// pathSet is a trie with either strings or ints as keys.  This allows us
+// to represent accessed attributes in a compact way, sharing the prefixes
+// for when multiple properties inside a deeply nested structure are
+// accessed.  Storing this as a trie also allows us to filter out duplicates
+// and overlapping attributes more easily.
 type pathSet struct {
 	intKeys    map[int]*pathSet
 	stringKeys map[string]*pathSet
@@ -58,6 +63,7 @@ func (ps *pathSet) Add(path []interface{}) {
 	}
 }
 
+// List converts the pathSet trie to a list of attributes.
 func (ps *pathSet) List() [][]interface{} {
 	paths := [][]interface{}{}
 

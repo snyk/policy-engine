@@ -69,7 +69,7 @@ func (q *Query) impl(bctx rego.BuiltinContext, operands []*ast.Term) (*ast.Term,
 
 	regoResources, err := resourceStatesToRegoInputs(resources)
 	if err != nil {
-    	return nil, err
+		return nil, err
 	}
 
 	return ast.ArrayTerm(regoResources...), nil
