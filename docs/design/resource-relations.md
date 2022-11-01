@@ -2,7 +2,7 @@
 
 When writing a policy, it is common to correlate resources to one another.
 
-This is typically done by either by building objects:
+This is typically done either by building objects:
 
 ```rego
 topic_policies_by_topic := ret {
