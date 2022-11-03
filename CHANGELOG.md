@@ -2,6 +2,10 @@
 
 
 
+## v0.12.1 - 2022-11-03
+### Fixed
+* mismatch between resource_id in rule results and Resource.ID
+
 ## v0.12.0 - 2022-10-26
 ### Added
 * infer resource attributes automatically if not present
