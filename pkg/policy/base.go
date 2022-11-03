@@ -419,7 +419,7 @@ func unmarshalResultSet(resultSet rego.ResultSet, v interface{}) error {
 }
 
 type policyResultResource struct {
-	ID           string `json:"id"`
+	ID           string `json:"_id"`
 	ResourceType string `json:"_type"`
 	Namespace    string `json:"_namespace"`
 }
