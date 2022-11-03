@@ -37,8 +37,10 @@ correctly that it seems.  Here are some common problems:
     `id`).  It is tricky to write and debug this in Rego and ensure that the
     query still benefits from [comprehension indexing].
 
-4.  **Duplication**: these rules often get duplicated across rules which is not
-    great since, as demonstrated above, they can actually be tricky to write.
+4.  **Duplication**: these rules often get duplicated across rules, or within the
+    same rule.  This is not great since, as demonstrated above, they can
+    actually be tricky to write.  Having a single place for them speeds up
+    policy development.
 
 This proposal lays out better way for dealing with this.
 
@@ -106,7 +108,10 @@ the policy engine authors implement these objects in each rule causes some
 problems.
 
 Instead, we'll ask the policy authors for a declarative description of the
-relationships between objects.  This is what that looks like:
+relationships between objects.  This is done by placing objects describing
+the relationships in the `data.snyk.relations.relations` set.
+
+This is what that looks like:
 
 ```
 package relations
@@ -146,7 +151,7 @@ to relate.
 relations[info] {
 ```
 
-We use an incremental definition for the `relations` rule so it can extended
+We use an incremental definition for the `relations` rule so it can be extended
 from multiple files.
 
 ```rego
@@ -155,6 +160,7 @@ from multiple files.
 ```
 
 The `"name"` is required and determines the middle element of the triple.
+See also [naming relationships](#naming-relationships)
 
 ```rego
 		"keys": {
@@ -181,6 +187,27 @@ FIXME: structure this writing.  In addition to `keys`, we could support
 	b.id == l.bucket
 ],
 ```
+
+### Naming Relationships
+
+Part of the advantage in adopting this proposal originate from converging
+towards a common format for relationships.  An important part of that is
+establishing a convention for naming relationships, so they are predictable,
+easy to understand and don't conflict.
+
+There are three rules:
+
+1.  If a resource type is meaningless on its own and always meant to be attached
+    to a primary resource, you can use the name of that resource type.
+    Example: `aws_s3_bucket_server_side_encryption_configuration`.
+
+2.  If resource type X refers to resource type Y using some attribute A,
+    use some variation of `X_A`, possibly dropping `id` or `name` from A if it
+    makes sense.  Example: `aws_cloudtrail` refers to `aws_s3_bucket` using the
+    attribute `s3_bucket_name`, so we use `aws_cloudtrail_s3_bucket`.
+
+3.  If none of the above apply, use something that follows the convention of
+    `<resource_type>_<attribute_name>` in spirit.
 
 ## Benefits
 
