@@ -67,6 +67,8 @@ important to determine compliance:
 
     (my_security_group, "allows_ingress_from", my_other_security_group)
 
+This is not a new idea -- it is heavily inspired by [RDF stores].
+
 ## Querying the Resource Graph
 
 In policies, we're interested in asking which resources relate to one another.
@@ -221,3 +223,4 @@ This proposal has three distinct benefits:
     hand-rolled version of this.
 
 [comprehension indexing]: https://www.openpolicyagent.org/docs/latest/policy-performance/#comprehension-indexing
+[RDF stores]: https://en.wikipedia.org/wiki/Triplestore
