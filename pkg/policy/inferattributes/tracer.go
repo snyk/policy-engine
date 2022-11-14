@@ -36,9 +36,42 @@ func NewTracer() *Tracer {
 // coverTerm checks if a Term was decorated using DecorateValue, and if so,
 // adds it to the pathSet of accessed attributes.
 func (t *Tracer) coverTerm(term *ast.Term) {
-	if term != nil && term.IsGround() {
-		if term.Location != nil {
-			if encoded := decodePath(term.Location.File); encoded != nil {
+	if term != nil {
+		if encoded := extractPath(term); encoded != nil {
+			t.pathSet.Add(encoded)
+		} else if ref, ok := term.Value.(ast.Ref); ok {
+			var encoded []interface{}
+			var lastEncodedIdx int
+			// Loop through elements of the ref to find the last instance of an
+			// encoded path
+			for idx, ele := range ref {
+				if p := extractPath(ele); p != nil {
+					encoded = p
+					lastEncodedIdx = idx
+				} else {
+					break
+				}
+			}
+			if encoded != nil {
+				// If we found an encoded path in the ref, then we'll attempt to
+				// build out the rest of the path that the rule was trying to
+				// access.
+			tailLoop:
+				for _, ele := range ref[lastEncodedIdx+1:] {
+					if !ele.IsGround() {
+						break
+					}
+					if v, err := ast.JSON(ele.Value); err == nil {
+						switch v.(type) {
+						case string, int:
+							encoded = append(encoded, v)
+						default:
+							break tailLoop
+						}
+					} else {
+						break
+					}
+				}
 				t.pathSet.Add(encoded)
 			}
 		}
@@ -56,27 +89,50 @@ func (t *Tracer) Enabled() bool {
 }
 
 func (t *Tracer) TraceEvent(event topdown.Event) {
-	if event.Op == topdown.UnifyOp {
-		if expr, ok := event.Node.(*ast.Expr); ok {
-			if terms, ok := expr.Terms.([]*ast.Term); ok && len(terms) == 3 {
-				t.coverTerm(event.Plug(terms[1]))
-				t.coverTerm(event.Plug(terms[2]))
-			}
+	switch event.Op {
+	case topdown.UnifyOp:
+		t.traceUnify(event)
+	case topdown.EvalOp:
+		t.traceEval(event)
+	}
+}
+
+func (t *Tracer) traceUnify(event topdown.Event) {
+	if expr, ok := event.Node.(*ast.Expr); ok {
+		operands := expr.Operands()
+		if len(operands) == 2 {
+			t.coverTerm(event.Plug(operands[0]))
+			t.coverTerm(event.Plug(operands[1]))
 		}
 	}
-	if event.Op == topdown.EvalOp {
-		if expr, ok := event.Node.(*ast.Expr); ok {
-			if terms, ok := expr.Terms.([]*ast.Term); ok && len(terms) > 0 {
-				if ref, ok := terms[0].Value.(ast.Ref); ok {
-					if _, ok := ast.BuiltinMap[ref.String()]; ok {
-						for _, term := range terms[1:] {
-							t.coverTerm(event.Plug(term))
-						}
-					}
+}
+
+func (t *Tracer) traceEval(event topdown.Event) {
+	if expr, ok := event.Node.(*ast.Expr); ok {
+		switch terms := expr.Terms.(type) {
+		case []*ast.Term:
+			if len(terms) < 1 {
+				break
+			}
+			operator := terms[0]
+			if _, ok := ast.BuiltinMap[operator.String()]; ok {
+				for _, term := range terms[1:] {
+					t.coverTerm(event.Plug(term))
 				}
 			}
+		case *ast.Term:
+			t.coverTerm(event.Plug(terms))
 		}
 	}
+}
+
+func extractPath(term *ast.Term) []interface{} {
+	if term.Location != nil {
+		if encoded := decodePath(term.Location.File); encoded != nil {
+			return encoded
+		}
+	}
+	return nil
 }
 
 func encodePath(path []interface{}) (string, error) {
@@ -102,7 +158,7 @@ func decodePath(encoded string) []interface{} {
 // DecorateValue stores meta-information about where the values originated
 // from inside the Location attribute of the corresponding terms.  This will
 // allow us to deduce which terms were used in coverTerm.
-func DecorateValue(prefix []interface{}, top ast.Value) error {
+func DecorateTerm(prefix []interface{}, top *ast.Term) error {
 	path := make([]interface{}, len(prefix))
 	copy(path, prefix)
 	var decorateValue func(ast.Value) error
@@ -138,5 +194,5 @@ func DecorateValue(prefix []interface{}, top ast.Value) error {
 		}
 		return nil
 	}
-	return decorateValue(top)
+	return decorateTerm(top)
 }
