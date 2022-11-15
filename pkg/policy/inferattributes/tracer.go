@@ -36,44 +36,45 @@ func NewTracer() *Tracer {
 // coverTerm checks if a Term was decorated using DecorateValue, and if so,
 // adds it to the pathSet of accessed attributes.
 func (t *Tracer) coverTerm(term *ast.Term) {
-	if term != nil {
-		if encoded := extractPath(term); encoded != nil {
-			t.pathSet.Add(encoded)
-		} else if ref, ok := term.Value.(ast.Ref); ok {
-			var encoded []interface{}
-			var lastEncodedIdx int
-			// Loop through elements of the ref to find the last instance of an
-			// encoded path
-			for idx, ele := range ref {
-				if p := extractPath(ele); p != nil {
-					encoded = p
-					lastEncodedIdx = idx
+	if term == nil {
+		return
+	}
+	if encoded := extractPath(term); encoded != nil {
+		t.pathSet.Add(encoded)
+	} else if ref, ok := term.Value.(ast.Ref); ok {
+		var encoded []interface{}
+		var lastEncodedIdx int
+		// Loop through elements of the ref to find the last instance of an
+		// encoded path
+		for idx, ele := range ref {
+			if p := extractPath(ele); p != nil {
+				encoded = p
+				lastEncodedIdx = idx
+			} else {
+				break
+			}
+		}
+		if encoded != nil {
+			// If we found an encoded path in the ref, then we'll attempt to
+			// build out the rest of the path that the rule was trying to
+			// access.
+		refLoop:
+			for _, ele := range ref[lastEncodedIdx+1:] {
+				if !ele.IsGround() {
+					break
+				}
+				if v, err := ast.JSON(ele.Value); err == nil {
+					switch v.(type) {
+					case string, int:
+						encoded = append(encoded, v)
+					default:
+						break refLoop
+					}
 				} else {
 					break
 				}
 			}
-			if encoded != nil {
-				// If we found an encoded path in the ref, then we'll attempt to
-				// build out the rest of the path that the rule was trying to
-				// access.
-			tailLoop:
-				for _, ele := range ref[lastEncodedIdx+1:] {
-					if !ele.IsGround() {
-						break
-					}
-					if v, err := ast.JSON(ele.Value); err == nil {
-						switch v.(type) {
-						case string, int:
-							encoded = append(encoded, v)
-						default:
-							break tailLoop
-						}
-					} else {
-						break
-					}
-				}
-				t.pathSet.Add(encoded)
-			}
+			t.pathSet.Add(encoded)
 		}
 	}
 }
