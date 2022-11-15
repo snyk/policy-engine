@@ -2,6 +2,10 @@
 
 
 
+## v0.12.2 - 2022-11-15
+### Added
+* support for unset attributes and single-term expressions to attribute tracer
+
 ## v0.12.1 - 2022-11-03
 ### Fixed
 * mismatch between resource_id in rule results and Resource.ID
