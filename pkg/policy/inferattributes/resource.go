@@ -22,16 +22,16 @@ import (
 	"github.com/snyk/policy-engine/pkg/models"
 )
 
-// DecorateResource is a helper that sets up DecorateValue in a way that we
+// DecorateResource is a helper that sets up DecorateTerm in a way that we
 // will be able to tell which resource the values belonged to.
-func DecorateResource(resource models.ResourceState, value ast.Value) {
+func DecorateResource(resource models.ResourceState, term *ast.Term) {
 	prefix := []interface{}{
 		resource.Namespace,
 		resource.ResourceType,
 		resource.Id,
 	}
 
-	DecorateValue(prefix, value)
+	DecorateTerm(prefix, term)
 }
 
 // byResource extracts the accessed attributes from the underlying pathset.
@@ -42,11 +42,11 @@ func (tracer *Tracer) byResource() map[[3]string][][]interface{} {
 
 	// Do not include paths starting with these fields.
 	mask1 := map[string]struct{}{
-		"id":         struct{}{},
-		"_id":        struct{}{},
-		"_meta":      struct{}{},
-		"_namespace": struct{}{},
-		"_type":      struct{}{},
+		"id":         {},
+		"_id":        {},
+		"_meta":      {},
+		"_namespace": {},
+		"_type":      {},
 	}
 
 	for _, inputPath := range tracer.pathSet.List() {
@@ -67,9 +67,8 @@ func (tracer *Tracer) byResource() map[[3]string][][]interface{} {
 									continue
 								}
 							}
+							resources[key] = append(resources[key], attribute)
 						}
-
-						resources[key] = append(resources[key], attribute)
 					}
 				}
 			}
@@ -78,7 +77,7 @@ func (tracer *Tracer) byResource() map[[3]string][][]interface{} {
 	return resources
 }
 
-// InferAttributes decorates the given rule results with any attribtes that
+// InferAttributes decorates the given rule results with any attributes that
 // have been accessed; using the resource identifiers to correlate them.
 func (tracer *Tracer) InferAttributes(ruleResult []models.RuleResult) {
 	resources := tracer.byResource()

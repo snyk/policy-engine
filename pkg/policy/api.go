@@ -211,11 +211,11 @@ func (r *resourcesByType) impl(
 	ret := [][2]*ast.Term{}
 	if resources, ok := r.input.Resources[rt]; ok {
 		for resourceKey, resource := range resources {
-			val, err := resourceStateToRegoInput(resource)
+			resource, err := resourceStateToRegoInput(resource)
 			if err != nil {
 				return nil, err
 			}
-			ret = append(ret, [2]*ast.Term{ast.StringTerm(resourceKey), ast.NewTerm(val)})
+			ret = append(ret, [2]*ast.Term{ast.StringTerm(resourceKey), resource})
 		}
 	}
 	term := ast.ObjectTerm(ret...)
@@ -223,7 +223,7 @@ func (r *resourcesByType) impl(
 	return term, nil
 }
 
-func resourceStateToRegoInput(resource models.ResourceState) (ast.Value, error) {
+func resourceStateToRegoInput(resource models.ResourceState) (*ast.Term, error) {
 	obj := map[string]interface{}{}
 	obj["id"] = resource.Id
 	obj["_id"] = resource.Id
@@ -250,18 +250,19 @@ func resourceStateToRegoInput(resource models.ResourceState) (ast.Value, error) 
 	if err != nil {
 		return nil, err
 	}
-	inferattributes.DecorateResource(resource, val)
-	return val, nil
+	term := ast.NewTerm(val)
+	inferattributes.DecorateResource(resource, term)
+	return term, nil
 }
 
 func resourceStatesToRegoInputs(resources []models.ResourceState) ([]*ast.Term, error) {
 	ret := make([]*ast.Term, len(resources))
 	for i, resource := range resources {
-		val, err := resourceStateToRegoInput(resource)
+		term, err := resourceStateToRegoInput(resource)
 		if err != nil {
 			return nil, err
 		}
-		ret[i] = ast.NewTerm(val)
+		ret[i] = term
 	}
 	return ret, nil
 }

@@ -100,7 +100,10 @@ func (p *SingleResourcePolicy) Eval(
 				output.Errors = append(output.Errors, err.Error())
 				return []models.RuleResults{output}, err
 			}
-			resultSet, err := query.Eval(ctx, rego.EvalQueryTracer(tracer), rego.EvalParsedInput(inputDoc))
+			// TODO: We need a different strategy for unset properties in single-resource rules. The
+			// problem is that we lose the top-level location on the term. We might be able to use
+			// the fact that the term references `input` instead.
+			resultSet, err := query.Eval(ctx, rego.EvalQueryTracer(tracer), rego.EvalParsedInput(inputDoc.Value))
 			if err != nil {
 				logger.Error(ctx, "Failed to evaluate rule for resource")
 				err = fmt.Errorf("%w '%s': %v", FailedToEvaluateResource, resource.Id, err)
