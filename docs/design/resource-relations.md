@@ -211,6 +211,16 @@ There are three rules:
 3.  If none of the above apply, use something that follows the convention of
     `<resource_type>_<attribute_name>` in spirit.
 
+### Listing relationships
+
+One can get a list of defined relationships by using regular OPA queries.  The
+following example lists all relationships by name:
+
+```
+policy-engine -d rego
+> {i.name | data.relations.relations[i]}
+```
+
 ## Benefits
 
 This proposal has three distinct benefits:
