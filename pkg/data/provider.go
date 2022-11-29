@@ -121,20 +121,17 @@ func TarGzProvider(reader io.Reader) Provider {
 // in production.
 func PureRegoBuiltinsProvider() Provider {
 	return func(ctx context.Context, consumer Consumer) error {
-		err := regoParser(ctx, "", "snyk.rego", bytes.NewReader(embed.SnykRego), consumer)
-		if err != nil {
-			return nil
-		}
-		return nil
+		return regoParser(ctx, "", "snyk.rego", bytes.NewReader(embed.SnykRego), consumer)
 	}
 }
 
 // Provides the pure rego part of the API.
 func PureRegoLibProvider() Provider {
 	return func(ctx context.Context, consumer Consumer) error {
-		err := regoParser(ctx, "", "snyk/terraform.rego", bytes.NewReader(embed.SnykTerraformRego), consumer)
-		if err != nil {
-			return nil
+		for path, rego := range embed.SnykLib {
+			if err := regoParser(ctx, "", path, bytes.NewReader(rego), consumer); err != nil {
+				return err
+			}
 		}
 		return nil
 	}
