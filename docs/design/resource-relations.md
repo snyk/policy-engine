@@ -83,20 +83,20 @@ left blank:
 In Rego, this is implemented by the `snyk.relates("relation_name", resource)`
 function:
 
-    ```rego
-    cloudtrail := snyk.resources("aws_cloudtrail")[_]
-    bucket := snyk.relates(cloudtrail, "logs_to_bucket")[_]
-    ```
+```rego
+cloudtrail := snyk.resources("aws_cloudtrail")[_]
+bucket := snyk.relates(cloudtrail, "logs_to_bucket")[_]
+```
 
 By having a common model, we can also provide the backward relation.  That way
 policy authors can pick whichever is more useful in their policy.  In addition
 to `relates`, a policy author can use `back_relates` to look for the
 corresponding triple `(?, "logs_to_bucket", bucket)`:
 
-    ```rego
-    bucket := snyk.resources("aws_s3_bucket")[_]
-    cloudtrail := snyk.back_relates("logs_to_bucket", bucket)[_]
-    ```
+```rego
+bucket := snyk.resources("aws_s3_bucket")[_]
+cloudtrail := snyk.back_relates("logs_to_bucket", bucket)[_]
+```
 
 ## Building the Resource Graph
 
@@ -115,7 +115,7 @@ the relationships in the `data.snyk.relations.relations` set.
 
 This is what that looks like:
 
-```
+```rego
 package relations
 
 import data.snyk
