@@ -111,7 +111,7 @@ problems.
 
 Instead, we'll ask the policy authors for a declarative description of the
 relationships between objects.  This is done by placing objects describing
-the relationships in the `data.snyk.relations.relations` set.
+the relationships in the `data.relations.relations` set.
 
 This is what that looks like:
 
@@ -179,8 +179,15 @@ be done by setting `keys`. `left` and `right` must be set to pairs of resources
 together with their keys -- a list comprehension is usually useful to implement
 this.
 
-FIXME: structure this writing.  In addition to `keys`, we could support
-`explicit` relating as a catch-all:
+### Non-key joins
+
+In our example, we used `keys` to correlate resources.  In general, we recommend
+using `keys`, since it is fast and can handle multiple keys or fields per
+resource.
+
+We can add support for other joins as well.  In particular, it seems nice to at
+least support `explicit` joins as well (called this way since the user gives an
+"explicit" list of pairs of resources to be joined).
 
 ```rego
 "explicit": [[b, l] |
@@ -189,6 +196,11 @@ FIXME: structure this writing.  In addition to `keys`, we could support
 	b.id == l.bucket
 ],
 ```
+
+This is very flexible (since any Rego code can be used to build the list of
+pairs) but is somewhat similar to the ad-hoc way we used to do joins.
+Hence, we do not recommend this as it can lead to the performance or correctness
+issues discussed in earlier in this document.
 
 ### Naming Relationships
 
