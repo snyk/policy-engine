@@ -1,6 +1,6 @@
 package snyk.internal.relations
 
-make_resource_key(resource) := ret {
+make_resource_key(resource) = ret {
 	ret := [resource._namespace, resource._type, resource._id]
 }
 
