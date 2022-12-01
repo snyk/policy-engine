@@ -244,5 +244,22 @@ This proposal has three distinct benefits:
     is useful to other components -- for example the Viz currently has a
     hand-rolled version of this.
 
+## Performance considerations
+
+**Memory**:
+
+ -  The resources are represented as objects in the OPA runtime "heap".  Our
+    additional tables store additional pointers to these objects, not additional
+    objects.
+
+ -  Most resource attributes do not map out relations.  In this sense, we
+    can think of this is as only a change in constant factors rather than
+    complexity.
+
+**Time**:
+
+ -  The key-based queries are carefully written to make use of
+    [comprehension indexing].  A test for this is included.
+
 [comprehension indexing]: https://www.openpolicyagent.org/docs/latest/policy-performance/#comprehension-indexing
 [RDF stores]: https://en.wikipedia.org/wiki/Triplestore
