@@ -55,11 +55,13 @@ forward_keys := {idx: right_resources |
 
 forward_explicit := {idx: right_resources |
 	relation := data.relations.relations[_]
-	[left_resource, _] := relation.explicit[_]
+	pairs := object.get(relation, "explicit", [])
+	[left_resource, _] := pairs[_]
 	idx := [relation.name, make_resource_key(left_resource)]
 	right_resources := {right_resource |
 		relation := data.relations.relations[_]
-		[l, right_resource] := relation.explicit[_]
+		pairs := object.get(relation, "explicit", [])
+		[l, right_resource] := pairs[_]
 		idx == [relation.name, make_resource_key(l)]
 	}
 }
