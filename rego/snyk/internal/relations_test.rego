@@ -6,11 +6,19 @@ check_relations {
 	bucket_1 := snyk.resources("bucket")[_]
 	bucket_1.id == "bucket_1"
 
-	settings := snyk.relates(bucket_1, "bucket_settings")
-	count(settings) == 1
+	settings_1 := snyk.relates(bucket_1, "bucket_settings")
+	count(settings_1) == 1
 
-	logging := snyk.relates(bucket_1, "bucket_logging")
-	count(logging) == 1
+	settings_1_bucket := snyk.back_relates("bucket_settings", settings_1[_])
+	count(settings_1_bucket) == 1
+	settings_1_bucket[_] == bucket_1
+
+	logging_1 := snyk.relates(bucket_1, "bucket_logging")
+	count(logging_1) == 1
+
+	logging_1_bucket := snyk.back_relates("bucket_logging", logging_1[_])
+	count(logging_1_bucket) == 1
+	logging_1_bucket[_] == bucket_1
 }
 
 test_relations {
