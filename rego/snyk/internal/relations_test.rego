@@ -5,8 +5,10 @@ import data.snyk
 check_relations {
 	bucket_1 := snyk.resources("bucket")[_]
 	bucket_1.id == "bucket_1"
-	rels := snyk.relates(bucket_1, "bucket_settings")
-	count(rels) == 1
+	settings := snyk.relates(bucket_1, "bucket_settings")
+	count(settings) == 1
+	logging := snyk.relates(bucket_1, "bucket_logging")
+	count(logging) == 1
 }
 
 test_relations {
@@ -22,6 +24,12 @@ test_relations {
 			"bucket_settings": {"bucket_settings_1": {
 				"id": "bucket_settings_1",
 				"type": "bucket_settings",
+				"namespace": "ns",
+				"attributes": {"bucket": "bucket_1"},
+			}},
+			"bucket_logging": {"bucket_logging_1": {
+				"id": "bucket_logging_1",
+				"type": "bucket_logging",
 				"namespace": "ns",
 				"attributes": {"bucket": "bucket_1"},
 			}},

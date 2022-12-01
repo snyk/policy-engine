@@ -44,11 +44,31 @@ forward_right_foreign_keys := {idx: ret |
 }
 
 # NOTE: comprehension idx not strictly necessary here.
-forward := {idx: right_resources |
-	[name, _] := idx
+forward_keys := {idx: right_resources |
 	keys := forward_left_foreign_keys[idx]
 	right_resources := [right_resource |
 		k := keys[_]
+		[name, _] := idx
 		right_resource := forward_right_foreign_keys[[name, k]][_]
 	]
+}
+
+forward_explicit := {idx: right_resources |
+	relation := data.relations.relations[_]
+	[left_resource, _] := relation.explicit[_]
+	idx := [relation.name, make_resource_key(left_resource)]
+	right_resources := {right_resource |
+		relation := data.relations.relations[_]
+		[l, right_resource] := relation.explicit[_]
+		idx == [relation.name, make_resource_key(l)]
+	}
+}
+
+forward := {idx: right_resources |
+	idxs := {k | _ := forward_keys[k]} | {k | _ := forward_explicit[k]}
+	idx := idxs[_]
+	right_resources := array.concat(
+		[r | r := forward_keys[idx][_]],
+		[r | r := forward_explicit[idx][_]],
+	)
 }

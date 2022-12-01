@@ -15,3 +15,18 @@ relations[info] {
 		},
 	}
 }
+
+# Relations for unit tests.
+relations[info] {
+	# Only include these relations when this input flag is specified as a safety
+	# measure.
+	input.snyk_relations_test
+	info := {
+		"name": "bucket_logging",
+		"explicit": [[b, l] |
+			b := snyk.resources("bucket")[_]
+			l := snyk.resources("bucket_logging")[_]
+			l.bucket == b.id
+		],
+	}
+}
