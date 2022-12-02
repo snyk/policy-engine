@@ -30,3 +30,21 @@ relations[info] {
 		],
 	}
 }
+
+# Relations for unit tests.
+relations[info] {
+	# Only include these relations when this input flag is specified as a safety
+	# measure.
+	input.snyk_relations_test
+	info := {
+		"name": "bucket_acl",
+		"keys": {
+			"left": [[b, k] |
+				b := snyk.resources("bucket")[_]
+				attr := {"id", "bucket"}[_]
+				k := b[attr]
+			],
+			"right": [[l, l.bucket] | l := snyk.resources("bucket_acl")[_]],
+		},
+	}
+}
