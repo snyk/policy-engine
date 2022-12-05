@@ -41,8 +41,7 @@ relations[info] {
 		"keys": {
 			"left": [[b, k] |
 				b := snyk.resources("bucket")[_]
-				attr := {"id", "bucket"}[_]
-				k := b[attr]
+				k := b[{"id", "bucket"}[_]]
 			],
 			"right": [[l, l.bucket] | l := snyk.resources("bucket_acl")[_]],
 		},

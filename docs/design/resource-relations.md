@@ -27,15 +27,20 @@ correctly that it seems.  Here are some common problems:
 
 1.  **Performance**: by using a function like `matches_bucket_or_id`, we often
     need to test each bucket against each other resource, resulting in O(n^2)
-    performance which is problematic on big accounts.
+    performance which is problematic on big Cloud environments.  At Fugue, rules
+    timing out because of this reason was a common occurrence once `n` is around
+    a few thousand.
 
 2.  **Robustness**: writing the join as an object is also problematic.  The
     evaluation for the rule `topic_policies_by_topic` will crash if `policy.arn`
-    is the same for different policies (e.g. if it is `null` or `""`).
+    is the same for different policies (e.g. if it is `null` or `""`).  The
+    `null` or `""` case is likely to happen when we fail to evaluate some part
+    of an IaC configuration.
 
 3.  **Correctness**: we often want to use multiple attributes (e.g. `arn` and
-    `id`).  It is tricky to write and debug this in Rego and ensure that the
-    query still benefits from [comprehension indexing].
+    `id`).  It is quite tricky to write and debug this in Rego and ensure that
+    the query still benefits from [comprehension indexing].  This optimisation
+    is absolutely essential in avoiding the O(n^2) problem.
 
 4.  **Duplication**: these rules often get duplicated across rules, or within the
     same rule.  This is not great since, as demonstrated above, they can
@@ -51,7 +56,8 @@ to establish a common model for these rather than doing them ad-hoc in rules
 and libraries.
 
 The resource graph has resources as nodes, and **labeled**, **directed** edges.
-We can represent it as a list of `(resource, relation, resource)` triples:
+We can represent it as a list of `(resource, relation, resource)` triples.  Some
+examples:
 
     (my_cloudtrail, "logs_to_bucket",               my_bucket)
     (my_bucket,     "has_encryption_configuration", my_bucket_encryption_configuration)
@@ -71,9 +77,12 @@ This is not a new idea -- it is heavily inspired by [RDF stores].
 
 ## Querying the Resource Graph
 
+Now that we've established the idea of having a "graph of relations", let's see
+what it looks like for policies to use this.
+
 In policies, we're interested in asking which resources relate to one another.
-This can be useful to determine compliance, and to write the `resources[info]`
-rule.
+This can be useful both to determine compliance, as well as writing the
+`resources[info]` rule.
 
 We can think of queries to the resource graph as triplets with one resource
 left blank:
@@ -88,21 +97,25 @@ cloudtrail := snyk.resources("aws_cloudtrail")[_]
 bucket := snyk.relates(cloudtrail, "logs_to_bucket")[_]
 ```
 
-By having a common model, we can also provide the backward relation.  That way
-policy authors can pick whichever is more useful in their policy.  In addition
-to `relates`, a policy author can use `back_relates` to look for the
-corresponding triple `(?, "logs_to_bucket", bucket)`:
+By virtue of having a common model and having this implemented in a library, we
+can also provide the backward relation.  That way policy authors can pick
+whichever is more useful in their policy.  In addition to `relates`, a policy
+author can use `back_relates` to look for the corresponding triple
+`(?, "logs_to_bucket", bucket)`:
 
 ```rego
 bucket := snyk.resources("aws_s3_bucket")[_]
 cloudtrail := snyk.back_relates("logs_to_bucket", bucket)[_]
 ```
 
+Note the reverse order of the arguments which feels more natural to the author
+of this proposal but is up for discussion.
+
 ## Building the Resource Graph
 
 We've explained what the resource graph model is, and how to query it, but in
-the end it's just a model -- the implementation is different, as storing triples
-would degrade performance.
+the end it's just a model -- the implementation is different, as literally
+storing triples would result in horrible performance.
 
 In practice, we want to use objects that store the the corresponding resources
 in a way that we can access them cheaply.  But as we've explained before, having
@@ -113,7 +126,7 @@ Instead, we'll ask the policy authors for a declarative description of the
 relationships between objects.  This is done by placing objects describing
 the relationships in the `data.relations.relations` set.
 
-This is what that looks like:
+This is an example of what that looks like:
 
 ```rego
 package relations
@@ -124,8 +137,12 @@ relations[info] {
 	info := {
 		"name": "logging",
 		"keys": {
-			"left": [[b, b.id] | b := snyk.resources("aws_s3_bucket")[_]],
-			"right": [[l, l.bucket] | l := snyk.resources("aws_s3_bucket_logging")[_]],
+			"right": [[logging, logging.bucket] | logging := snyk.resources("aws_s3_bucket_logging")[_]],
+			"left": [[bucket, k] |
+				bucket := snyk.resources("bucket")[_]
+				attr := {"id", "bucket"}[_]
+				k := bucket[attr]
+			],
 		},
 	}
 }
@@ -166,34 +183,42 @@ See also [naming relationships](#naming-relationships)
 
 ```rego
 		"keys": {
-			"left": [[b, b.id] | b := snyk.resources("aws_s3_bucket")[_]],
-			"right": [[l, l.bucket] | l := snyk.resources("aws_s3_bucket_logging")[_]],
+			"right": [[logging, logging.bucket] |
+				logging := snyk.resources("aws_s3_bucket_logging")[_]
+			],
+			"left": [[bucket, k] |
+				bucket := snyk.resources("bucket")[_]
+				attr := {"id", "bucket"}[_]
+				k := bucket[attr]
+			],
 		},
 	}
 }
 ```
 
 We can think of several ways to do the join in a declarative way.  By far the
-most common is matching some set of attributes across the resources.  This can
-be done by setting `keys`. `left` and `right` must be set to pairs of resources
-together with their keys -- a list comprehension is usually useful to implement
-this.
+most common is matching some set of attributes across the resources.  This
+can be done by setting `keys`. `left` and `right` must be set to **pairs of
+[resource, key]** -- a list comprehension is usually useful to implement
+this.  Note that resources may appear multiple time in this list of pairs, with
+different keys.  This is illustrated in `left` above, where we want to extract
+two attributes.
 
 ### Non-key joins
 
 In our example, we used `keys` to correlate resources.  In general, we recommend
-using `keys`, since it is fast and can handle multiple keys or fields per
-resource.
+using `keys` in all cases, since it is fast and can handle multiple keys or
+fields per resource.
 
-We can add support for other joins as well.  In particular, it seems nice to at
-least support `explicit` joins as well (called this way since the user gives an
-"explicit" list of pairs of resources to be joined).
+We can, if necessary, add support for other joins as well.  In particular, it
+seems nice to at least support `explicit` joins as well (called this way since
+the user gives an "explicit" list of pairs of resources to be joined).
 
 ```rego
-"explicit": [[b, l] |
-	b := snyk.resources("aws_s3_bucket")[_]
-	l := snyk.resources("aws_s3_bucket_logging")[_]
-	b.id == l.bucket
+"explicit": [[bucket, logging] |
+	bucket := snyk.resources("aws_s3_bucket")[_]
+	logging := snyk.resources("aws_s3_bucket_logging")[_]
+	bucket.id == logging.bucket
 ],
 ```
 

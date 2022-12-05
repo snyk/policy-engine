@@ -38,10 +38,10 @@ test_relations {
 }
 
 mock_input_relations := ret {
-	num_buckets := 2000
-	num_bucket_settings := 2000 # Keyed and fast
-	num_bucket_logging := 200 # Explicit and slow
-	num_bucket_acl := 200
+	num_buckets := 1000
+	num_bucket_settings := 1000 # Keyed and fast
+	num_bucket_logging := 10 # Explicit and slow
+	num_bucket_acl := 10
 
 	buckets := {id: r |
 		i := numbers.range(1, num_buckets)[_]
