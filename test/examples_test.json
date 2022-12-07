@@ -1372,6 +1372,242 @@
                 ]
               }
             ],
+            "package": "data.rules.snyk_005b.tf"
+          },
+          {
+            "resource_types": [
+              "aws_s3_bucket",
+              "aws_s3_bucket_server_side_encryption_configuration"
+            ],
+            "results": [
+              {
+                "passed": true,
+                "ignored": false,
+                "resource_id": "aws_s3_bucket.aes_bucket",
+                "resource_namespace": "../examples/main.tf",
+                "resource_type": "aws_s3_bucket",
+                "resources": [
+                  {
+                    "id": "aws_s3_bucket.aes_bucket",
+                    "type": "aws_s3_bucket",
+                    "namespace": "../examples/main.tf",
+                    "location": [
+                      {
+                        "filepath": "../examples/main.tf",
+                        "line": 41,
+                        "column": 1
+                      }
+                    ],
+                    "attributes": [
+                      {
+                        "path": [
+                          "bucket"
+                        ],
+                        "location": {
+                          "filepath": "../examples/main.tf",
+                          "line": 42,
+                          "column": 3
+                        }
+                      },
+                      {
+                        "path": [
+                          "server_side_encryption_configuration"
+                        ],
+                        "location": {
+                          "filepath": "../examples/main.tf",
+                          "line": 41,
+                          "column": 1
+                        }
+                      }
+                    ]
+                  },
+                  {
+                    "id": "aws_s3_bucket_server_side_encryption_configuration.aes_bucket",
+                    "type": "aws_s3_bucket_server_side_encryption_configuration",
+                    "namespace": "../examples/main.tf",
+                    "location": [
+                      {
+                        "filepath": "../examples/main.tf",
+                        "line": 45,
+                        "column": 1
+                      }
+                    ],
+                    "attributes": [
+                      {
+                        "path": [
+                          "bucket"
+                        ],
+                        "location": {
+                          "filepath": "../examples/main.tf",
+                          "line": 46,
+                          "column": 3
+                        }
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "passed": false,
+                "ignored": false,
+                "message": "Bucket does not specify encryption",
+                "resource_id": "aws_s3_bucket.bucket1",
+                "resource_namespace": "../examples/main.tf",
+                "resource_type": "aws_s3_bucket",
+                "resources": [
+                  {
+                    "id": "aws_s3_bucket.bucket1",
+                    "type": "aws_s3_bucket",
+                    "namespace": "../examples/main.tf",
+                    "location": [
+                      {
+                        "filepath": "../examples/main.tf",
+                        "line": 5,
+                        "column": 1
+                      }
+                    ],
+                    "attributes": [
+                      {
+                        "path": [
+                          "bucket"
+                        ],
+                        "location": {
+                          "filepath": "../examples/main.tf",
+                          "line": 6,
+                          "column": 3
+                        }
+                      },
+                      {
+                        "path": [
+                          "server_side_encryption_configuration"
+                        ],
+                        "location": {
+                          "filepath": "../examples/main.tf",
+                          "line": 5,
+                          "column": 1
+                        }
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "passed": true,
+                "ignored": false,
+                "resource_id": "aws_s3_bucket.bucket2",
+                "resource_namespace": "../examples/main.tf",
+                "resource_type": "aws_s3_bucket",
+                "resources": [
+                  {
+                    "id": "aws_s3_bucket.bucket2",
+                    "type": "aws_s3_bucket",
+                    "namespace": "../examples/main.tf",
+                    "location": [
+                      {
+                        "filepath": "../examples/main.tf",
+                        "line": 9,
+                        "column": 1
+                      }
+                    ],
+                    "attributes": [
+                      {
+                        "path": [
+                          "bucket"
+                        ],
+                        "location": {
+                          "filepath": "../examples/main.tf",
+                          "line": 10,
+                          "column": 3
+                        }
+                      },
+                      {
+                        "path": [
+                          "server_side_encryption_configuration"
+                        ],
+                        "location": {
+                          "filepath": "../examples/main.tf",
+                          "line": 9,
+                          "column": 1
+                        }
+                      }
+                    ]
+                  },
+                  {
+                    "id": "aws_s3_bucket_server_side_encryption_configuration.bucket2",
+                    "type": "aws_s3_bucket_server_side_encryption_configuration",
+                    "namespace": "../examples/main.tf",
+                    "location": [
+                      {
+                        "filepath": "../examples/main.tf",
+                        "line": 13,
+                        "column": 1
+                      }
+                    ],
+                    "attributes": [
+                      {
+                        "path": [
+                          "bucket"
+                        ],
+                        "location": {
+                          "filepath": "../examples/main.tf",
+                          "line": 14,
+                          "column": 3
+                        }
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "passed": true,
+                "ignored": false,
+                "resource_id": "aws_s3_bucket.bucket3",
+                "resource_namespace": "../examples/main.tf",
+                "resource_type": "aws_s3_bucket",
+                "resources": [
+                  {
+                    "id": "aws_s3_bucket.bucket3",
+                    "type": "aws_s3_bucket",
+                    "namespace": "../examples/main.tf",
+                    "location": [
+                      {
+                        "filepath": "../examples/main.tf",
+                        "line": 29,
+                        "column": 1
+                      }
+                    ],
+                    "attributes": [
+                      {
+                        "path": [
+                          "bucket"
+                        ],
+                        "location": {
+                          "filepath": "../examples/main.tf",
+                          "line": 30,
+                          "column": 3
+                        }
+                      },
+                      {
+                        "path": [
+                          "server_side_encryption_configuration",
+                          0,
+                          "rule",
+                          0,
+                          "apply_server_side_encryption_by_default",
+                          0,
+                          "sse_algorithm"
+                        ],
+                        "location": {
+                          "filepath": "../examples/main.tf",
+                          "line": 35,
+                          "column": 9
+                        }
+                      }
+                    ]
+                  }
+                ]
+              }
+            ],
             "package": "data.rules.snyk_006.tf"
           },
           {
