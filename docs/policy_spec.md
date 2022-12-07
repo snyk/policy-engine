@@ -30,11 +30,14 @@ This document describes the contract and API for policies that run in the policy
     - [`snyk.resources(<resource type>)`](#snykresourcesresource-type)
       - [Example `snyk.resources` call and output](#example-snykresources-call-and-output)
     - [`snyk.query(<query>)`](#snykqueryquery)
+    - [`snyk.relates(<resource>, <relation name>)`](#snykrelatesresource-relation-name)
+      - [`snyk.back_relates(<relation name>, <resource>`](#snykback_relatesrelation-name-resource)
     - [`snyk.input_resource_types`](#snykinput_resource_types)
       - [Example snyk.input_resource_types usage](#example-snykinput_resource_types-usage)
     - [`snyk.input_type`](#snykinput_type)
       - [Example `snyk.input_type` usage](#example-snykinput_type-usage)
     - [`snyk.terraform.resource_provider_version_constraint(<resource>, <constraint>)`](#snykterraformresource_provider_version_constraintresource-constraint)
+  - [Resource relations specification](#resource-relations-specification)
   - [Types reference](#types-reference)
     - [State object](#state-object)
     - [Resource objects](#resource-objects)
@@ -496,6 +499,22 @@ wishes, which is backed by the same implemenation as `snyk.query()`, but should
 never trigger the custom resolver chain, since the most permissive scope is
 always used.
 
+### `snyk.relates(<resource>, <relation name>)`
+
+`snyk.relates` returns a list of right resources that match the given left
+resource and relationship name.
+
+For more info, see:
+
+ -  [This example](../examples/05-advanced-resource-relations.rego)
+ -  [The resource relations design](design/resource-relations.md)
+ -  [Resource relations specification](#resource-relations-specification)
+
+#### `snyk.back_relates(<relation name>, <resource>)`
+
+`snyk.back_relates` is the inverse of `snyk.relates`, and returns a list of left
+resources that match the given right resource and relationship name.
+
 ### `snyk.input_resource_types`
 
 `snyk.input_resource_types` is a `set` of all resource types in the input. This can be
@@ -589,6 +608,38 @@ terraform {
 So this function checks if the version constraint specified in the argument
 is _compatible_ with all the requirements.  This means that if there are
 no requirements, this function will always return `true`.
+
+## Resource relations specification
+
+This is only a brief specification, to better understand this, see:
+
+ -  [This example](../examples/relations.rego)
+ -  [The resource relations design](design/resource-relations.md)
+
+Relationships are defined in separate files and must extend the
+`data.relations.relations` set:
+
+```rego
+package relations
+
+import data.snyk
+
+relations[info] {
+	info := {
+		...
+	}
+}
+```
+
+`info` has the following properties:
+
+| Field       |  Type  | Description                                                                 |
+| :---------- | :----: | :-------------------------------------------------------------------------- |
+| `name`      | string | Name for the relationship                                                   |
+| `keys`      | object | An object with `left` and `right` arrays containing `[resource, key]` pairs |
+| `explicit`  | array  | An explicit of list of `[left, right]` resource pairs.                      |
+
+`name` is required, and one of `keys` and `explicit` must be specified.
 
 ## Types reference
 

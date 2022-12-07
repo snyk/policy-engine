@@ -50,6 +50,10 @@ simple policies and gradually adding concepts.
 
 [examples/05-advanced-primary-resource.rego](../examples/05-advanced-primary-resource.rego)
 
+### Advanced policies part 3b: Resource relations
+
+[examples/05-advanced-resource-relations.rego](../examples/05-advanced-resource-relations.rego)
+
 ### Advanced policies part 4: Correlating resources
 
 [examples/06-advanced-correlation.rego](../examples/06-advanced-correlation.rego)
