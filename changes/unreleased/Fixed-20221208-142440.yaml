@@ -1,0 +1,3 @@
+kind: Fixed
+body: respect -v flag in test reporter
+time: 2022-12-08T14:24:40.846956707+01:00

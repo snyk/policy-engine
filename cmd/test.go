@@ -111,7 +111,7 @@ var testCmd = &cobra.Command{
 		reporter := tester.PrettyReporter{
 			Output:      os.Stdout,
 			FailureLine: true,
-			Verbose:     true,
+			Verbose:     *rootCmdVerbose,
 		}
 
 		if err := reporter.Report(dup); err != nil {
