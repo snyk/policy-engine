@@ -29,6 +29,11 @@ check_relations {
 		count(acl_bucket_acl) == 1
 		acl_bucket_acl[_] == acl
 	}
+
+	# Check that we return empty arrays when appropriate.
+	non_existing_relation := snyk.relates(bucket_1, "bucket_foobar")
+	is_array(non_existing_relation)
+	count(non_existing_relation) == 0
 }
 
 test_relations {
