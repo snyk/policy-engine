@@ -98,4 +98,5 @@ func init() {
 	rootCmd.AddCommand(replCmd)
 	rootCmd.AddCommand(versionCmd)
 	rootCmd.AddCommand(metadataCmd)
+	rootCmd.AddCommand(nanovizCommand)
 }

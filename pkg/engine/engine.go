@@ -326,6 +326,14 @@ func (e *Engine) Metadata(ctx context.Context) []MetadataResult {
 	return metadata
 }
 
+type ResourceRelation struct {
+	Name string
+}
+
+func (e *Engine) ResourceRelations(ctx context.Context) []ResourceRelation {
+	return []ResourceRelation{}
+}
+
 // Pre-parsing the input saves a significant number of cycles for large inputs
 // and multi-resource policies.
 func stateToAstValue(state *models.State) (ast.Value, error) {
