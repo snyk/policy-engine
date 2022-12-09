@@ -1,5 +1,7 @@
 package snyk.internal.relations
 
+import data.snyk
+
 make_resource_key(resource) = ret {
 	ret := [resource._namespace, resource._type, resource._id]
 }
@@ -117,13 +119,24 @@ backward := {idx: left_resources |
 }
 
 # Exports relations in a format that is easier to parse from Go.
-export := {relation_name: relation |
+export_relations := {relation_name: relation |
 	_ := forward[key]
 	[relation_name, _] = key
-	relation := {left_key: right_keys |
+	relation := [info |
 		right_resources := forward[k]
 		k[0] == relation_name
 		left_key := k[1]
 		right_keys := [make_resource_key(r) | r := right_resources[_]]
-	}
+		info := {"left_key": left_key, "right_keys": right_keys}
+	]
+}
+
+export_resources := [make_resource_key(resource) |
+	snyk.input_resource_types[ty]
+	resource := snyk.resources(ty)[_]
+]
+
+export := {
+	"relations": export_relations,
+	"resources": export_resources,
 }

@@ -44,11 +44,7 @@ func resourceFilterResult(
 		for inResourceId, inResource := range inResources {
 			if predicate(&inResource) {
 				outResources[inResourceId] = inResource
-				keys[policy.ResourceKey{
-					Namespace: inResource.Namespace,
-					Type:      inResource.ResourceType,
-					ID:        inResource.Id,
-				}] = struct{}{}
+				keys[policy.ResourceStateKey(&inResource)] = struct{}{}
 			}
 		}
 		if len(outResources) > 0 {
@@ -80,19 +76,11 @@ func ruleResultResourceKeys(result models.RuleResult) map[policy.ResourceKey]str
 	keys := map[policy.ResourceKey]struct{}{}
 
 	if result.ResourceId != "" {
-		keys[policy.ResourceKey{
-			Namespace: result.ResourceNamespace,
-			Type:      result.ResourceType,
-			ID:        result.ResourceId,
-		}] = struct{}{}
+		keys[policy.RuleResultPrimaryResourceKey(&result)] = struct{}{}
 	}
 
 	for _, resource := range result.Resources {
-		keys[policy.ResourceKey{
-			Namespace: resource.Namespace,
-			Type:      resource.Type,
-			ID:        resource.Id,
-		}] = struct{}{}
+		keys[policy.RuleResultResourceKey(resource)] = struct{}{}
 	}
 
 	return keys

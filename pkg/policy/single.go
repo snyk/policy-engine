@@ -147,11 +147,7 @@ func processSingleDenyPolicyResult(
 		return processFugueDenyString(resultSet, resource, metadata)
 	}
 	results := []models.RuleResult{}
-	resourceKey := ResourceKey{
-		ID:        resource.Id,
-		Type:      resource.ResourceType,
-		Namespace: resource.Namespace,
-	}
+	resourceKey := ResourceStateKey(resource)
 	for _, r := range policyResults {
 		result := newRuleResultBuilder()
 		result.setPrimaryResource(resourceKey)

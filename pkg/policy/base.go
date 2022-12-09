@@ -457,7 +457,25 @@ type ResourceKey struct {
 	ID        string
 }
 
-func RuleResultResourceKey(r models.RuleResultResource) ResourceKey {
+func ResourceStateKey(resource *models.ResourceState) ResourceKey {
+	return ResourceKey{
+		Namespace: resource.Namespace,
+		Type:      resource.ResourceType,
+		ID:        resource.Id,
+	}
+}
+
+// RuleResultPrimaryResourceKey returns the ResourceKey of the primary resource
+// associated with this rule result.
+func RuleResultPrimaryResourceKey(r *models.RuleResult) ResourceKey {
+	return ResourceKey{
+		Namespace: r.ResourceNamespace,
+		Type:      r.ResourceType,
+		ID:        r.ResourceId,
+	}
+}
+
+func RuleResultResourceKey(r *models.RuleResultResource) ResourceKey {
 	return ResourceKey{
 		Namespace: r.Namespace,
 		Type:      r.Type,

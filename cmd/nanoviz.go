@@ -25,6 +25,7 @@ import (
 	"github.com/snyk/policy-engine/pkg/data"
 	"github.com/snyk/policy-engine/pkg/engine"
 	"github.com/snyk/policy-engine/pkg/input"
+	"github.com/snyk/policy-engine/pkg/policy"
 	"github.com/snyk/policy-engine/pkg/snapshot_testing"
 	"github.com/spf13/afero"
 	"github.com/spf13/cobra"
@@ -89,9 +90,6 @@ var nanovizCommand = &cobra.Command{
 		}
 		store := inmem.NewFromObject(consumer.Document)
 
-		// NOTE: we could save some "bandwidth" by only grabbing the right keys
-		// from the forward table rather than the whole resources by using a
-		// slightly more complex query.
 		regoOpts := []func(*rego.Rego){
 			rego.Store(store),
 			rego.ParsedInput(parsedInput),
@@ -102,27 +100,82 @@ var nanovizCommand = &cobra.Command{
 		}
 
 		resultSet, err := rego.New(regoOpts...).Eval(ctx)
-		fmt.Fprintf(os.Stderr, "%v\n", resultSet)
+		if err != nil {
+			return err
+		}
+		relations, err := parseRelations(resultSet)
+		if err != nil {
+			return err
+		}
 
+		for lk, l := range relations {
+			fmt.Fprintf(os.Stderr, "%v\n", lk)
+			for name, rks := range l {
+				for _, rk := range rks {
+					fmt.Fprintf(os.Stderr, "- %s %v\n", name, rk)
+				}
+			}
+		}
 		return nil
 	},
 }
 
-type relationsExport map[string]relationsExportRelation
-type relationsExportRelation map[[3]string][]([][3]string)
+type Relations map[policy.ResourceKey]ResourceRelations
 
-// unmarshalResultSet is a small utility function to extract the correct types out of
+type ResourceRelations map[string][]policy.ResourceKey
+
+// parseRelations is a small utility function to extract the correct types out of
 // a ResultSet.
-func unmarshalResultSet(resultSet rego.ResultSet, v interface{}) error {
+func parseRelations(resultSet rego.ResultSet) (Relations, error) {
+	// this mirrors the shape of the 'data.snyk.internal.relations.export' query
+	type relationsExportRelation struct {
+		LeftKey   [3]string   `json:"left_key"`
+		RightKeys [][3]string `json:"right_keys"`
+	}
+	type relationsExport struct {
+		Relations map[string][]relationsExportRelation `json:"relations"`
+		Resources [][3]string                          `json:"resources"`
+	}
+
+	parseKey := func(k [3]string) policy.ResourceKey {
+		return policy.ResourceKey{
+			Namespace: k[0],
+			Type:      k[1],
+			ID:        k[2],
+		}
+	}
+
 	if len(resultSet) < 1 {
-		return nil
+		return nil, fmt.Errorf("No results for query")
 	}
 	if len(resultSet[0].Expressions) < 1 {
-		return nil
+		return nil, fmt.Errorf("No result expression found")
 	}
 	data, err := json.Marshal(resultSet[0].Expressions[0].Value)
 	if err != nil {
-		return err
+		return nil, err
 	}
-	return json.Unmarshal(data, v)
+	fmt.Fprintf(os.Stderr, "%s\n", string(data))
+	export := relationsExport{}
+	if err := json.Unmarshal(data, &export); err != nil {
+		return nil, err
+	}
+
+	relations := Relations{}
+	for _, resource := range export.Resources {
+		relations[parseKey(resource)] = ResourceRelations{}
+	}
+	for name, rels := range export.Relations {
+		for _, rel := range rels {
+			leftKey := parseKey(rel.LeftKey)
+			for _, rightKey := range rel.RightKeys {
+				relations[leftKey][name] = append(
+					relations[leftKey][name],
+					parseKey(rightKey),
+				)
+			}
+		}
+	}
+
+	return relations, nil
 }
