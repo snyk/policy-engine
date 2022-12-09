@@ -19,6 +19,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
+	"strings"
 
 	"github.com/open-policy-agent/opa/rego"
 	"github.com/open-policy-agent/opa/storage/inmem"
@@ -108,14 +109,7 @@ var nanovizCommand = &cobra.Command{
 			return err
 		}
 
-		for lk, l := range relations {
-			fmt.Fprintf(os.Stderr, "%v\n", lk)
-			for name, rks := range l {
-				for _, rk := range rks {
-					fmt.Fprintf(os.Stderr, "- %s %v\n", name, rk)
-				}
-			}
-		}
+		fmt.Fprintf(os.Stdout, ToDot(relations))
 		return nil
 	},
 }
@@ -155,7 +149,6 @@ func parseRelations(resultSet rego.ResultSet) (Relations, error) {
 	if err != nil {
 		return nil, err
 	}
-	fmt.Fprintf(os.Stderr, "%s\n", string(data))
 	export := relationsExport{}
 	if err := json.Unmarshal(data, &export); err != nil {
 		return nil, err
@@ -178,4 +171,33 @@ func parseRelations(resultSet rego.ResultSet) (Relations, error) {
 	}
 
 	return relations, nil
+}
+
+func ToDot(relations Relations) string {
+	nodeNames := map[policy.ResourceKey]string{}
+	freshNodeName := 0
+	for resource := range relations {
+		nodeNames[resource] = fmt.Sprintf("node_%d", freshNodeName)
+		freshNodeName += 1
+	}
+	var sb strings.Builder
+	fmt.Fprintf(&sb, "digraph nanoviz {\n")
+	for resource := range relations {
+		fmt.Fprintf(&sb, "%s [label=\"%s\"];\n", nodeNames[resource], resource.ID)
+	}
+	for resource, rels := range relations {
+		for name, rights := range rels {
+			for _, right := range rights {
+				fmt.Fprintf(
+					&sb,
+					"%s -> %s [label=\"%s\"];\n",
+					nodeNames[resource],
+					nodeNames[right],
+					name,
+				)
+			}
+		}
+	}
+	fmt.Fprintf(&sb, "}\n")
+	return sb.String()
 }
