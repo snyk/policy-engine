@@ -115,3 +115,15 @@ backward := {idx: left_resources |
 		[r | r := backward_explicit[idx][_]],
 	)
 }
+
+# Exports relations in a format that is easier to parse from Go.
+export := {relation_name: relation |
+	_ := forward[key]
+	[relation_name, _] = key
+	relation := {left_key: right_keys |
+		right_resources := forward[k]
+		k[0] == relation_name
+		left_key := k[1]
+		right_keys := [make_resource_key(r) | r := right_resources[_]]
+	}
+}

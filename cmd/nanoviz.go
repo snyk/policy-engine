@@ -16,10 +16,11 @@ package cmd
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"os"
 
-	"github.com/open-policy-agent/opa/storage"
+	"github.com/open-policy-agent/opa/rego"
 	"github.com/open-policy-agent/opa/storage/inmem"
 	"github.com/snyk/policy-engine/pkg/data"
 	"github.com/snyk/policy-engine/pkg/engine"
@@ -38,28 +39,33 @@ var nanovizCommand = &cobra.Command{
 		consumer := engine.NewPolicyConsumer()
 		if len(args) > 1 {
 			return fmt.Errorf("Expected at most 1 input")
-		} else if len(args) == 1 {
-			detector, err := input.DetectorByInputTypes(input.Types{input.Auto})
-			if err != nil {
-				return err
-			}
-			i, err := input.NewDetectable(afero.OsFs{}, args[0])
-			if err != nil {
-				return err
-			}
-			loader := input.NewLoader(detector)
-			loaded, err := loader.Load(i, input.DetectOptions{})
-			if err != nil {
-				return err
-			}
-			if !loaded {
-				return fmt.Errorf("Unable to find recognized input in %s", args[0])
-			}
-			states := loader.ToStates()
-			if len(states) != 1 {
-				return fmt.Errorf("Expected a single state but got %d", len(states))
-			}
 		}
+
+		detector, err := input.DetectorByInputTypes(input.Types{input.Auto})
+		if err != nil {
+			return err
+		}
+		i, err := input.NewDetectable(afero.OsFs{}, args[0])
+		if err != nil {
+			return err
+		}
+		loader := input.NewLoader(detector)
+		loaded, err := loader.Load(i, input.DetectOptions{})
+		if err != nil {
+			return err
+		}
+		if !loaded {
+			return fmt.Errorf("Unable to find recognized input in %s", args[0])
+		}
+		states := loader.ToStates()
+		if len(states) != 1 {
+			return fmt.Errorf("Expected a single state but got %d", len(states))
+		}
+		parsedInput, err := engine.StateToParsedInput(&states[0])
+		if err != nil {
+			return err
+		}
+
 		if err := data.PureRegoBuiltinsProvider()(ctx, consumer); err != nil {
 			return err
 		}
@@ -82,19 +88,41 @@ var nanovizCommand = &cobra.Command{
 			}
 		}
 		store := inmem.NewFromObject(consumer.Document)
-		txn, err := store.NewTransaction(ctx, storage.TransactionParams{
-			Write: true,
-		})
-		if err != nil {
-			return err
+
+		// NOTE: we could save some "bandwidth" by only grabbing the right keys
+		// from the forward table rather than the whole resources by using a
+		// slightly more complex query.
+		regoOpts := []func(*rego.Rego){
+			rego.Store(store),
+			rego.ParsedInput(parsedInput),
+			rego.Query("data.snyk.internal.relations.export"),
 		}
-		for p, m := range consumer.Modules {
-			store.UpsertPolicy(ctx, txn, p, []byte(m.String()))
+		for _, m := range consumer.Modules {
+			regoOpts = append(regoOpts, rego.ParsedModule(m))
 		}
-		if err = store.Commit(ctx, txn); err != nil {
-			return err
-		}
+
+		resultSet, err := rego.New(regoOpts...).Eval(ctx)
+		fmt.Fprintf(os.Stderr, "%v\n", resultSet)
 
 		return nil
 	},
+}
+
+type relationsExport map[string]relationsExportRelation
+type relationsExportRelation map[[3]string][]([][3]string)
+
+// unmarshalResultSet is a small utility function to extract the correct types out of
+// a ResultSet.
+func unmarshalResultSet(resultSet rego.ResultSet, v interface{}) error {
+	if len(resultSet) < 1 {
+		return nil
+	}
+	if len(resultSet[0].Expressions) < 1 {
+		return nil
+	}
+	data, err := json.Marshal(resultSet[0].Expressions[0].Value)
+	if err != nil {
+		return err
+	}
+	return json.Unmarshal(data, v)
 }

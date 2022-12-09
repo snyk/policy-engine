@@ -175,7 +175,7 @@ func (e *Engine) Eval(ctx context.Context, options *EvalOptions) *models.Results
 	}
 	results := []models.Result{}
 	for idx, state := range options.Inputs {
-		value, err := stateToAstValue(&state)
+		value, err := StateToParsedInput(&state)
 		if err != nil {
 			e.logger.WithError(err).Error(ctx, "Failed to pre-parse input")
 			continue
@@ -326,17 +326,9 @@ func (e *Engine) Metadata(ctx context.Context) []MetadataResult {
 	return metadata
 }
 
-type ResourceRelation struct {
-	Name string
-}
-
-func (e *Engine) ResourceRelations(ctx context.Context) []ResourceRelation {
-	return []ResourceRelation{}
-}
-
 // Pre-parsing the input saves a significant number of cycles for large inputs
 // and multi-resource policies.
-func stateToAstValue(state *models.State) (ast.Value, error) {
+func StateToParsedInput(state *models.State) (ast.Value, error) {
 	rawPtr := util.Reference(state)
 
 	// roundtrip through json: this turns slices (e.g. []string, []bool) into
