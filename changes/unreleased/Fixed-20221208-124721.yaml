@@ -1,3 +1,0 @@
-kind: Fixed
-body: return empty arrays from snyk.(back_)relates if nothing found
-time: 2022-12-08T12:47:21.923834921+01:00
