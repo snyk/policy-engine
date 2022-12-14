@@ -15,9 +15,13 @@
 package main
 
 import (
+	"os"
+
 	"github.com/snyk/policy-engine/cmd"
 )
 
 func main() {
-	cmd.Execute()
+	if err := cmd.Execute(); err != nil {
+		os.Exit(2)
+	}
 }

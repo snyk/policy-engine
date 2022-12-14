@@ -2,6 +2,13 @@
 
 
 
+## v0.13.0 - 2022-12-13
+### Added
+* resource relationships
+### Fixed
+* return empty arrays from snyk.(back_)relates if nothing found
+* respect -v flag in test reporter
+
 ## v0.12.2 - 2022-11-15
 ### Added
 * support for unset attributes and single-term expressions to attribute tracer
