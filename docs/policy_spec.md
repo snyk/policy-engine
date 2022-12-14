@@ -195,7 +195,7 @@ to clarify the intent of each field.
 | `category`      | string | The category of the policy                                                                                       |
 | `labels`        | array  | An array of labels (value-less tags) associated with this policy.                                                |
 | `service_group` | string | The service group of the primary resource associated with this policy (e.g. "EBS", "EC2")                        |
-| `controls`      | object | A map of rule set ID to a map of versions to a list of control IDs                                               |
+| `controls`      | array  | An array of control IDs to map to a compliance control                                                           |
 | `severity`      | string | The severity of the issue identified by this policy                                                              |
 | `product`       | array  | An array of the products this policy supports                                                                    |
 

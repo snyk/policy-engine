@@ -364,17 +364,10 @@
               "Pet Peeves"
             ],
             "service_group": "S3",
-            "controls": {
-              "CIS-AWS": {
-                "v1.3.0": [
-                  "5.1",
-                  "5.2"
-                ],
-                "v1.4.0": [
-                  "6.7"
-                ]
-              }
-            },
+            "controls": [
+              "CIS-AWS_v1.3.0_5.1",
+              "CIS-AWS_v1.3.0_5.2"
+            ],
             "resource_types": [
               "aws_s3_bucket"
             ],

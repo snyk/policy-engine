@@ -139,7 +139,7 @@ type Metadata struct {
 	Category     string                         `json:"category"`
 	Labels       []string                       `json:"labels,omitempty"`
 	ServiceGroup string                         `json:"service_group"`
-	Controls     map[string]map[string][]string `json:"controls"`
+	Controls     []string                       `json:"controls"`
 	Severity     string                         `json:"severity"`
 	Product      []string                       `json:"product"`
 }
