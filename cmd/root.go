@@ -49,11 +49,7 @@ var rootCmd = &cobra.Command{
 }
 
 func Execute() error {
-	err := rootCmd.Execute()
-	if err != nil {
-		os.Exit(2)
-	}
-	return nil
+	return rootCmd.Execute()
 }
 
 func cmdLogger() logging.Logger {
