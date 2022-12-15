@@ -21,7 +21,7 @@ import (
 
 	"github.com/open-policy-agent/opa/rego"
 	"github.com/snyk/policy-engine/pkg/logging"
-	"github.com/snyk/policy-engine/pkg/models"
+	models "github.com/snyk/policy-engine/pkg/models/latest"
 	"github.com/snyk/policy-engine/pkg/policy/inferattributes"
 )
 

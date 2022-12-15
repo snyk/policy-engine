@@ -25,7 +25,7 @@ import (
 	"github.com/open-policy-agent/opa/topdown/builtins"
 	"github.com/open-policy-agent/opa/types"
 	"github.com/snyk/policy-engine/pkg/data"
-	"github.com/snyk/policy-engine/pkg/models"
+	models "github.com/snyk/policy-engine/pkg/models/latest"
 	"github.com/snyk/policy-engine/pkg/policy/inferattributes"
 )
 

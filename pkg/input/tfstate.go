@@ -20,8 +20,9 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/snyk/policy-engine/pkg/models"
 	"gopkg.in/yaml.v3"
+
+	models "github.com/snyk/policy-engine/pkg/models/latest"
 )
 
 type TfStateDetector struct{}

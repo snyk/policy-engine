@@ -19,7 +19,7 @@ import (
 
 	"github.com/open-policy-agent/opa/ast"
 
-	"github.com/snyk/policy-engine/pkg/models"
+	models "github.com/snyk/policy-engine/pkg/models/latest"
 )
 
 // DecorateResource is a helper that sets up DecorateTerm in a way that we

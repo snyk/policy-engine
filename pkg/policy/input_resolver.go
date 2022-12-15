@@ -17,7 +17,7 @@ package policy
 import (
 	"context"
 
-	"github.com/snyk/policy-engine/pkg/models"
+	models "github.com/snyk/policy-engine/pkg/models/latest"
 )
 
 type inputResolver struct {

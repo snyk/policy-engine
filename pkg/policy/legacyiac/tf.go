@@ -18,7 +18,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/snyk/policy-engine/pkg/models"
+	models "github.com/snyk/policy-engine/pkg/models/latest"
 )
 
 type TfInput struct {

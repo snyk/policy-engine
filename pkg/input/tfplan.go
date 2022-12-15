@@ -23,7 +23,7 @@ import (
 	"github.com/snyk/policy-engine/pkg/input/schemas"
 	tfschemas "github.com/snyk/policy-engine/pkg/input/schemas/tf"
 	"github.com/snyk/policy-engine/pkg/interfacetricks"
-	"github.com/snyk/policy-engine/pkg/models"
+	models "github.com/snyk/policy-engine/pkg/models/latest"
 	"gopkg.in/yaml.v3"
 )
 

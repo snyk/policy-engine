@@ -14,7 +14,7 @@
 
 package input
 
-import "github.com/snyk/policy-engine/pkg/models"
+import models "github.com/snyk/policy-engine/pkg/models/latest"
 
 func groupResourcesByType(
 	resources []models.ResourceState,

@@ -15,7 +15,7 @@
 package legacyiac
 
 import (
-	"github.com/snyk/policy-engine/pkg/models"
+	models "github.com/snyk/policy-engine/pkg/models/latest"
 )
 
 type ArmInput struct {

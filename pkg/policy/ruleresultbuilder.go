@@ -19,7 +19,7 @@ import (
 	"strings"
 
 	"github.com/snyk/policy-engine/pkg/interfacetricks"
-	"github.com/snyk/policy-engine/pkg/models"
+	models "github.com/snyk/policy-engine/pkg/models/latest"
 )
 
 // Helper for constructing results.  Takes care of grouping resources by

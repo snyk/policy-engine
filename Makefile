@@ -1,4 +1,4 @@
-MODELS_DIR="pkg/models"
+MODELS_DIR="pkg/models/latest"
 
 demo:
 	go build
@@ -25,8 +25,8 @@ swagger:
 		-i swagger.yaml \
 		-l go \
 		-o $(MODELS_DIR) \
-		--model-package models \
-		-D packageName=models
+		--model-package latest \
+		-D packageName=latest
 	sed -i.bak \
 		-e 's/Object/interface\{\}/g' \
 		-e 's/OneOfRuleResultResourceAttributePathItems/interface\{\}/g' \

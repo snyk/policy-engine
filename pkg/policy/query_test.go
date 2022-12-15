@@ -19,7 +19,7 @@ import (
 	"errors"
 	"testing"
 
-	"github.com/snyk/policy-engine/pkg/models"
+	models "github.com/snyk/policy-engine/pkg/models/latest"
 	"github.com/snyk/policy-engine/pkg/policy"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"

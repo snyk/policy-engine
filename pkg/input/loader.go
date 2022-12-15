@@ -19,7 +19,7 @@ import (
 	"fmt"
 	"sort"
 
-	"github.com/snyk/policy-engine/pkg/models"
+	models "github.com/snyk/policy-engine/pkg/models/latest"
 )
 
 type cachedLocation struct {

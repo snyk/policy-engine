@@ -21,7 +21,7 @@ import (
 	"strings"
 
 	"github.com/snyk/policy-engine/pkg/hcl_interpreter"
-	"github.com/snyk/policy-engine/pkg/models"
+	models "github.com/snyk/policy-engine/pkg/models/latest"
 )
 
 // This is the loader that supports reading files and directories of HCL (.tf)

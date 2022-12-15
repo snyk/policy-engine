@@ -16,7 +16,7 @@ package postprocess
 
 import (
 	"github.com/snyk/policy-engine/pkg/input"
-	"github.com/snyk/policy-engine/pkg/models"
+	models "github.com/snyk/policy-engine/pkg/models/latest"
 )
 
 // Annotate a report with source location information

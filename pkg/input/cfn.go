@@ -23,7 +23,7 @@ import (
 	schemas "github.com/snyk/policy-engine/pkg/input/schemas"
 	cfnschemas "github.com/snyk/policy-engine/pkg/input/schemas/cfn"
 	"github.com/snyk/policy-engine/pkg/interfacetricks"
-	"github.com/snyk/policy-engine/pkg/models"
+	models "github.com/snyk/policy-engine/pkg/models/latest"
 	"gopkg.in/yaml.v3"
 )
 

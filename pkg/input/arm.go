@@ -22,7 +22,7 @@ import (
 	"strings"
 
 	"github.com/snyk/policy-engine/pkg/interfacetricks"
-	"github.com/snyk/policy-engine/pkg/models"
+	models "github.com/snyk/policy-engine/pkg/models/latest"
 )
 
 var validArmExts map[string]bool = map[string]bool{

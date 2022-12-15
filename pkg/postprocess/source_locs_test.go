@@ -21,7 +21,7 @@ import (
 	"github.com/stretchr/testify/assert"
 
 	"github.com/snyk/policy-engine/pkg/input"
-	"github.com/snyk/policy-engine/pkg/models"
+	models "github.com/snyk/policy-engine/pkg/models/latest"
 )
 
 func TestAddResourceToResults01(t *testing.T) {

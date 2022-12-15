@@ -20,7 +20,7 @@ import (
 	"fmt"
 	"io"
 
-	"github.com/snyk/policy-engine/pkg/models"
+	models "github.com/snyk/policy-engine/pkg/models/latest"
 	"gopkg.in/yaml.v3"
 )
 

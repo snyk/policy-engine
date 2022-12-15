@@ -17,7 +17,7 @@ package postprocess
 import (
 	"strings"
 
-	"github.com/snyk/policy-engine/pkg/models"
+	models "github.com/snyk/policy-engine/pkg/models/latest"
 )
 
 type CustomSeverities map[string]string

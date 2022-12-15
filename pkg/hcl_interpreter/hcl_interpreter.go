@@ -23,10 +23,10 @@ import (
 	"github.com/zclconf/go-cty/cty"
 
 	"github.com/snyk/policy-engine/pkg/hcl_interpreter/funcs"
-	"github.com/snyk/policy-engine/pkg/internal/terraform/lang"
-	tfschemas "github.com/snyk/policy-engine/pkg/input/schemas/tf"
 	"github.com/snyk/policy-engine/pkg/input/schemas"
-	"github.com/snyk/policy-engine/pkg/models"
+	tfschemas "github.com/snyk/policy-engine/pkg/input/schemas/tf"
+	"github.com/snyk/policy-engine/pkg/internal/terraform/lang"
+	models "github.com/snyk/policy-engine/pkg/models/latest"
 	"github.com/snyk/policy-engine/pkg/topsort"
 )
 
