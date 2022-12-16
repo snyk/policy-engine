@@ -6,11 +6,13 @@ import (
 	"sort"
 )
 
-type compat_controls struct {
-	controls []string
+// Compatibility type to unmarshal controls in the old (map-based) as well
+// as the new (array-based) format.
+type ControlsParser struct {
+	Controls []string
 }
 
-func (r *compat_controls) UnmarshalJSON(data []byte) error {
+func (r *ControlsParser) UnmarshalJSON(data []byte) error {
 	old := map[string]map[string][]string{}
 	controls := []string{}
 	if err := json.Unmarshal(data, &old); err == nil {
@@ -32,36 +34,34 @@ func (r *compat_controls) UnmarshalJSON(data []byte) error {
 				}
 			}
 		}
-		r.controls = controls
+		r.Controls = controls
 		return nil
 	} else {
 		if err := json.Unmarshal(data, &controls); err != nil {
 			return err
 		} else {
-			r.controls = controls
+			r.Controls = controls
 			return nil
 		}
 	}
 }
 
-type compat_ruleResults struct {
-	Id            string                 `json:"id,omitempty"`
-	Title         string                 `json:"title,omitempty"`
-	Platform      []string               `json:"platform,omitempty"`
-	Description   string                 `json:"description,omitempty"`
-	References    []RuleResultsReference `json:"references,omitempty"`
-	Category      string                 `json:"category,omitempty"`
-	Labels        []string               `json:"labels,omitempty"`
-	ServiceGroup  string                 `json:"service_group,omitempty"`
-	Controls      compat_controls        `json:"controls"`
-	ResourceTypes []string               `json:"resource_types,omitempty"`
-	Results       []RuleResult           `json:"results"`
-	Errors        []string               `json:"errors,omitempty"`
-	Package_      string                 `json:"package,omitempty"`
-}
-
 func (r *RuleResults) UnmarshalJSON(data []byte) error {
-	compat := compat_ruleResults{}
+	compat := struct {
+		Id            string                 `json:"id,omitempty"`
+		Title         string                 `json:"title,omitempty"`
+		Platform      []string               `json:"platform,omitempty"`
+		Description   string                 `json:"description,omitempty"`
+		References    []RuleResultsReference `json:"references,omitempty"`
+		Category      string                 `json:"category,omitempty"`
+		Labels        []string               `json:"labels,omitempty"`
+		ServiceGroup  string                 `json:"service_group,omitempty"`
+		Controls      ControlsParser         `json:"controls"`
+		ResourceTypes []string               `json:"resource_types,omitempty"`
+		Results       []RuleResult           `json:"results"`
+		Errors        []string               `json:"errors,omitempty"`
+		Package_      string                 `json:"package,omitempty"`
+	}{}
 	if err := json.Unmarshal(data, &compat); err != nil {
 		return err
 	}
@@ -73,7 +73,7 @@ func (r *RuleResults) UnmarshalJSON(data []byte) error {
 	r.Category = compat.Category
 	r.Labels = compat.Labels
 	r.ServiceGroup = compat.ServiceGroup
-	r.Controls = compat.Controls.controls
+	r.Controls = compat.Controls.Controls
 	r.ResourceTypes = compat.ResourceTypes
 	r.Results = compat.Results
 	r.Errors = compat.Errors
