@@ -1,9 +1,10 @@
 {
     "metadata": {
-        "description": "This is rule 7",
-        "controls": [
-            "Simpsons_v1.0.0_Homer",
-            "Simpsons_v1.0.0_Marge"
-        ]
+        "description": "This is rule 7, it uses an old control format",
+        "controls": {
+            "Simpsons": {
+                "v1.0.0": ["Homer", "Marge"]
+            }
+        }
     }
 }

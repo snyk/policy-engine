@@ -1669,7 +1669,7 @@
             "package": "data.rules.snyk_007.tf"
           },
           {
-            "description": "This is rule 7",
+            "description": "This is rule 7, it uses an old control format",
             "controls": [
               "Simpsons_v1.0.0_Homer",
               "Simpsons_v1.0.0_Marge"
