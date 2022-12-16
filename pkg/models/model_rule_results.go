@@ -26,8 +26,8 @@ type RuleResults struct {
 	Labels []string `json:"labels,omitempty"`
 	// The service group of the primary resource associated with this policy (e.g. \"EBS\", \"EC2\")
 	ServiceGroup string `json:"service_group,omitempty"`
-	// A map of rule set ID to a map of versions to a list of control IDs
-	Controls map[string]map[string][]string `json:"controls,omitempty"`
+	// A list of controls associated with this rule.
+	Controls []string `json:"controls,omitempty"`
 	// A list of resource types that the rule uses.
 	ResourceTypes []string     `json:"resource_types,omitempty"`
 	Results       []RuleResult `json:"results"`
