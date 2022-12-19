@@ -2,6 +2,12 @@
 
 
 
+## v0.14.0 - 2022-12-19
+### Changed
+* adopt new metadata format for compliance mappings
+### Fixed
+* Return non-zero exit code on error
+
 ## v0.13.0 - 2022-12-13
 ### Added
 * resource relationships
