@@ -283,7 +283,7 @@ func (e *Engine) Eval(ctx context.Context, options *EvalOptions) *models.Results
 	}
 	return &models.Results{
 		Format:        "results",
-		FormatVersion: "1.0.0",
+		FormatVersion: "1.1.0",
 		Results:       results,
 	}
 }

@@ -204,14 +204,10 @@ components:
           description: The service group of the primary resource associated with this policy (e.g. "EBS", "EC2")
           type: string
         controls:
-          type: object
-          description: A map of rule set ID to a map of versions to a list of control IDs
-          additionalProperties:
-            type: object
-            additionalProperties:
-              type: array
-              items:
-                type: string
+          type: array
+          description: A list of controls associated with this rule.
+          items:
+            type: string
         resource_types:
           type: array
           description: A list of resource types that the rule uses.
