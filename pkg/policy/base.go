@@ -139,9 +139,42 @@ type Metadata struct {
 	Category     string                         `json:"category"`
 	Labels       []string                       `json:"labels,omitempty"`
 	ServiceGroup string                         `json:"service_group"`
-	Controls     map[string]map[string][]string `json:"controls"`
+	Controls     []string                       `json:"controls"`
 	Severity     string                         `json:"severity"`
 	Product      []string                       `json:"product"`
+}
+
+func (m *Metadata) UnmarshalJSON(data []byte) error {
+	compat := struct {
+		ID           string                         `json:"id"`
+		Title        string                         `json:"title"`
+		Description  string                         `json:"description"`
+		Platform     []string                       `json:"platform"`
+		Remediation  map[string]string              `json:"remediation"`
+		References   map[string][]MetadataReference `json:"references"`
+		Category     string                         `json:"category"`
+		Labels       []string                       `json:"labels,omitempty"`
+		ServiceGroup string                         `json:"service_group"`
+		Controls     models.ControlsParser          `json:"controls"`
+		Severity     string                         `json:"severity"`
+		Product      []string                       `json:"product"`
+	}{}
+	if err := json.Unmarshal(data, &compat); err != nil {
+		return err
+	}
+	m.ID = compat.ID
+	m.Title = compat.Title
+	m.Description = compat.Description
+	m.Platform = compat.Platform
+	m.Remediation = compat.Remediation
+	m.References = compat.References
+	m.Category = compat.Category
+	m.Labels = compat.Labels
+	m.ServiceGroup = compat.ServiceGroup
+	m.Controls = compat.Controls.Controls
+	m.Severity = compat.Severity
+	m.Product = compat.Product
+	return nil
 }
 
 func (m Metadata) RemediationFor(inputType string) string {

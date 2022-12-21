@@ -23,6 +23,8 @@ set of additional documents are:
   * Contains a tutorial for authoring policies and instructions for writing policy tests
 * [Use as a library](docs/library_usage.md)
   * Describes how to use `policy-engine` as a Go library
+* [Notes for policy engine developers](docs/development.md)
+  * Describes processes and conventions for working on this repository
 
 ## Contributing
 

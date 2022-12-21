@@ -1,3 +1,0 @@
-kind: Fixed
-body: Return non-zero exit code on error
-time: 2022-12-13T13:23:18.182824-05:00

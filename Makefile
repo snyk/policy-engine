@@ -15,7 +15,7 @@ demo:
 		examples/main.tf
 
 swagger:
-	rm -rf $(MODELS_DIR)
+	rm -f $(MODELS_DIR)/model_*.go
 	docker run --rm -it \
 		--volume $(shell pwd):/workspace \
 		--user $(shell id -u):$(shell id -g) \
