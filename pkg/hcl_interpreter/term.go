@@ -101,10 +101,6 @@ func (t Term) VisitExpressions(f func(hcl.Expression)) {
 	}
 }
 
-type TermDependency struct {
-	expr hcl.Expression
-}
-
 func (t Term) Dependencies() []hcl.Traversal {
 	dependencies := []hcl.Traversal{}
 	t.VisitExpressions(func(e hcl.Expression) {
@@ -175,4 +171,25 @@ func (t *TermTree) LookupByPrefix(name FullName) (*FullName, *Term) {
 	}
 
 	return nil, nil
+}
+
+func (t *TermTree) VisitTerms(f func(name FullName, term Term)) {
+	for moduleKey, module := range t.modules {
+		moduleFullName, err := StringToFullName(moduleKey)
+		if err != nil {
+			panic(err)
+		}
+		moduleName := moduleFullName.Module
+		module.visitTerms(FullName{moduleName, LocalName{}}, f)
+	}
+}
+
+func (t *termLocalTree) visitTerms(name FullName, f func(FullName, Term)) {
+	if t.term != nil {
+		f(name, *t.term)
+	} else {
+		for key, child := range t.children {
+			child.visitTerms(name.AddKey(key), f)
+		}
+	}
 }

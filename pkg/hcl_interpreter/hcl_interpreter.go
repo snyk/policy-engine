@@ -201,69 +201,11 @@ func (v *Analysis) termDependencies(name FullName, term Term) []dependency {
 				v.badKeys[TraversalToString(traversal)] = struct{}{}
 				continue
 			}
+
 			full := FullName{Module: name.Module, Local: local}
-			_, exists := v.Expressions[full.ToString()]
 
-			if exists || full.IsBuiltin() {
-				deps = append(deps, dependency{full, &full, nil})
-			} else if moduleOutput := full.AsModuleOutput(); moduleOutput != nil {
-				// Rewrite module outputs.
-				deps = append(deps, dependency{full, moduleOutput, nil})
-			} else if asVariable, asVar, _ := full.AsVariable(); asVar != nil {
-				// Rewrite variables either as default, or as module input.
-				asModuleInput := full.AsModuleInput()
-				isModuleInput := false
-				if asModuleInput != nil {
-					if _, ok := v.Expressions[asModuleInput.ToString()]; ok {
-						deps = append(deps, dependency{full, asModuleInput, nil})
-						isModuleInput = true
-					}
-				}
-				if !isModuleInput {
-					deps = append(deps, dependency{*asVar, asVariable, nil})
-				}
-			} else if asResourceName, _, trailing := full.AsResourceName(); asResourceName != nil {
-				// Rewrite resource references.
-				resourceKey := asResourceName.ToString()
-				if resourceMeta, ok := v.Resources[resourceKey]; ok {
-					// Keep track of attributes already added, and add "real"
-					// resource expressions.
-					attrs := map[string]struct{}{}
-					for _, re := range v.ResourceExpressions[resourceKey] {
-						attr := re
-						attrs[attr.ToString()] = struct{}{}
-						deps = append(deps, dependency{attr, &attr, nil})
-					}
-
-					// There may be absent attributes as well, such as "id" and
-					// "arn".  We will fill these in with the resource key.
-
-					// Construct attribute name where we will place these.
-					resourceKeyVal := cty.StringVal(resourceKey)
-					resourceName := *asResourceName
-					if resourceMeta.Count {
-						resourceName = resourceName.AddIndex(0)
-					}
-
-					// Add attributes that are not in `attrs` yet.  Include
-					// the requested one (`trailing`) as well as any possible
-					// references we find in the expression (`ExprAttributes`).
-					absentAttrs := ExprAttributes(expr)
-					if len(trailing) > 0 {
-						absentAttrs = append(absentAttrs, trailing)
-					}
-					for _, attr := range absentAttrs {
-						attrName := resourceName.AddLocalName(attr)
-						if _, ok := attrs[attrName.ToString()]; !ok {
-							deps = append(deps, dependency{attrName, nil, &resourceKeyVal})
-						}
-					}
-				} else {
-					// In other cases, just use the local name.  This is sort of
-					// a catch-all and we should try to not rely on this too much.
-					val := cty.StringVal(LocalNameToString(local))
-					deps = append(deps, dependency{full, nil, &val})
-				}
+			if prefix, _ := v.Terms.LookupByPrefix(full); prefix != nil {
+    			deps = append(deps, dependency{*prefix, prefix, nil})
 			}
 		}
 	})
@@ -287,6 +229,36 @@ func (v *Analysis) order() ([]FullName, error) {
 			}
 		}
 	}
+
+	sorted, err := topsort.Topsort(graph)
+	if err != nil {
+		return nil, err
+	}
+
+	sortedNames := []FullName{}
+	for _, key := range sorted {
+		name, err := StringToFullName(key)
+		if err != nil {
+			v.badKeys[key] = struct{}{}
+			continue
+		}
+		sortedNames = append(sortedNames, *name)
+	}
+	return sortedNames, nil
+}
+
+// Iterate all expressions to be evaluated in the "correct" order.
+func (v *Analysis) orderTerms() ([]FullName, error) {
+	graph := map[string][]string{}
+	v.Terms.VisitTerms(func (name FullName, term Term) {
+        key := name.ToString()
+		graph[key] = []string{}
+		for _, dep := range v.termDependencies(name, term) {
+			if dep.source != nil {
+				graph[key] = append(graph[key], dep.source.ToString())
+			}
+		}
+	})
 
 	sorted, err := topsort.Topsort(graph)
 	if err != nil {
@@ -352,6 +324,12 @@ func (v *Evaluation) prepareVariables(name FullName, expr hcl.Expression) ValTre
 func (v *Evaluation) evaluate() error {
 	// Obtain order
 	order, err := v.Analysis.order()
+	if err != nil {
+		return err
+	}
+
+	// Obtain order again
+	_, err = v.Analysis.orderTerms()
 	if err != nil {
 		return err
 	}
