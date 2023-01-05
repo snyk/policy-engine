@@ -243,6 +243,9 @@ type Visitor interface {
 	LeaveResource()
 	VisitBlock(name FullName)
 	VisitExpr(name FullName, expr hcl.Expression)
+
+	// New interface, replaces VisitBlock/VisitExpr/LeaveResource
+	VisitTerm(name FullName, term Term)
 }
 
 func (mtree *ModuleTree) Walk(v Visitor) {
@@ -260,6 +263,7 @@ func walkModuleTree(v Visitor, moduleName ModuleName, mtree *ModuleTree) {
 		// TODO: This is not good.  We end up walking child2 as it were child2.
 		configName := FullName{moduleName, LocalName{"input", key}}
 		walkBody(v, configName, child.config)
+		v.VisitTerm(configName, TermFromBody(child.config))
 
 		walkModuleTree(v, childModuleName, child)
 	}
@@ -272,17 +276,20 @@ func walkModule(v Visitor, moduleName ModuleName, module *configs.Module, variab
 		if val, ok := variableValues[variable.Name]; ok {
 			expr := hclsyntax.LiteralValueExpr{Val: val}
 			v.VisitExpr(name.AddKey("variable").AddKey(variable.Name), &expr)
+			v.VisitTerm(name.AddKey("variable").AddKey(variable.Name), TermFromExpr(&expr))
 		} else if !variable.Default.IsNull() {
 			expr := hclsyntax.LiteralValueExpr{
 				Val:      variable.Default,
 				SrcRange: variable.DeclRange,
 			}
 			v.VisitExpr(name.AddKey("variable").AddKey(variable.Name), &expr)
+			v.VisitTerm(name.AddKey("variable").AddKey(variable.Name), TermFromExpr(&expr))
 		}
 	}
 
 	for _, local := range module.Locals {
 		v.VisitExpr(name.AddKey("local").AddKey(local.Name), local.Expr)
+		v.VisitTerm(name.AddKey("local").AddKey(local.Name), TermFromExpr(local.Expr))
 	}
 
 	for _, resource := range module.DataResources {
@@ -296,11 +303,13 @@ func walkModule(v Visitor, moduleName ModuleName, module *configs.Module, variab
 	for _, output := range module.Outputs {
 		if output.Expr != nil {
 			v.VisitExpr(name.AddKey("output").AddKey(output.Name), output.Expr)
+			v.VisitTerm(name.AddKey("output").AddKey(output.Name), TermFromExpr(output.Expr))
 		}
 	}
 
 	for providerName, providerConf := range module.ProviderConfigs {
 		walkBody(v, ProviderConfigName(moduleName, providerName), providerConf.Config)
+		v.VisitTerm(ProviderConfigName(moduleName, providerName), TermFromBody(providerConf.Config))
 	}
 }
 
@@ -335,12 +344,16 @@ func walkResource(
 
 	v.EnterResource(name, resourceMeta)
 
+	term := TermFromBody(resource.Config)
+
 	if haveCount {
 		name = name.AddIndex(0)
 		v.VisitExpr(name.AddKey("count"), resource.Count)
+		term = term.WithCount(resource.Count)
 	}
 
 	walkBody(v, name, resource.Config)
+	v.VisitTerm(name, term)
 
 	v.LeaveResource()
 }

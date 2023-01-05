@@ -50,6 +50,9 @@ type Analysis struct {
 	// All known blocks
 	Blocks []FullName
 
+	// Replaces Expressions, ResourceExpressions, Blocks
+	Terms map[string]Term
+
 	// Visit state: current resource (if any)
 	currentResource *string
 
@@ -65,6 +68,7 @@ func AnalyzeModuleTree(mtree *ModuleTree) *Analysis {
 		ResourceExpressions: map[string][]FullName{},
 		Expressions:         map[string]hcl.Expression{},
 		Blocks:              []FullName{},
+		Terms:				 map[string]Term{},
 		currentResource:     nil,
 		badKeys:             map[string]struct{}{},
 	}
@@ -101,6 +105,10 @@ func (v *Analysis) VisitExpr(name FullName, expr hcl.Expression) {
 	}
 }
 
+func (v *Analysis) VisitTerm(name FullName, term Term) {
+    v.Terms[name.ToString()] = term
+}
+
 type dependency struct {
 	destination FullName
 	source      *FullName
@@ -111,6 +119,82 @@ type dependency struct {
 func (v *Analysis) dependencies(name FullName, expr hcl.Expression) []dependency {
 	deps := []dependency{}
 	for _, traversal := range expr.Variables() {
+		local, err := TraversalToLocalName(traversal)
+		if err != nil {
+			v.badKeys[TraversalToString(traversal)] = struct{}{}
+			continue
+		}
+		full := FullName{Module: name.Module, Local: local}
+		_, exists := v.Expressions[full.ToString()]
+
+		if exists || full.IsBuiltin() {
+			deps = append(deps, dependency{full, &full, nil})
+		} else if moduleOutput := full.AsModuleOutput(); moduleOutput != nil {
+			// Rewrite module outputs.
+			deps = append(deps, dependency{full, moduleOutput, nil})
+		} else if asVariable, asVar, _ := full.AsVariable(); asVar != nil {
+			// Rewrite variables either as default, or as module input.
+			asModuleInput := full.AsModuleInput()
+			isModuleInput := false
+			if asModuleInput != nil {
+				if _, ok := v.Expressions[asModuleInput.ToString()]; ok {
+					deps = append(deps, dependency{full, asModuleInput, nil})
+					isModuleInput = true
+				}
+			}
+			if !isModuleInput {
+				deps = append(deps, dependency{*asVar, asVariable, nil})
+			}
+		} else if asResourceName, _, trailing := full.AsResourceName(); asResourceName != nil {
+			// Rewrite resource references.
+			resourceKey := asResourceName.ToString()
+			if resourceMeta, ok := v.Resources[resourceKey]; ok {
+				// Keep track of attributes already added, and add "real"
+				// resource expressions.
+				attrs := map[string]struct{}{}
+				for _, re := range v.ResourceExpressions[resourceKey] {
+					attr := re
+					attrs[attr.ToString()] = struct{}{}
+					deps = append(deps, dependency{attr, &attr, nil})
+				}
+
+				// There may be absent attributes as well, such as "id" and
+				// "arn".  We will fill these in with the resource key.
+
+				// Construct attribute name where we will place these.
+				resourceKeyVal := cty.StringVal(resourceKey)
+				resourceName := *asResourceName
+				if resourceMeta.Count {
+					resourceName = resourceName.AddIndex(0)
+				}
+
+				// Add attributes that are not in `attrs` yet.  Include
+				// the requested one (`trailing`) as well as any possible
+				// references we find in the expression (`ExprAttributes`).
+				absentAttrs := ExprAttributes(expr)
+				if len(trailing) > 0 {
+					absentAttrs = append(absentAttrs, trailing)
+				}
+				for _, attr := range absentAttrs {
+					attrName := resourceName.AddLocalName(attr)
+					if _, ok := attrs[attrName.ToString()]; !ok {
+						deps = append(deps, dependency{attrName, nil, &resourceKeyVal})
+					}
+				}
+			} else {
+				// In other cases, just use the local name.  This is sort of
+				// a catch-all and we should try to not rely on this too much.
+				val := cty.StringVal(LocalNameToString(local))
+				deps = append(deps, dependency{full, nil, &val})
+			}
+		}
+	}
+	return deps
+}
+
+func (v *Analysis) termDependencies(name FullName, term Term) []dependency {
+	deps := []dependency{}
+	for _, traversal := range term.Dependencies() {
 		local, err := TraversalToLocalName(traversal)
 		if err != nil {
 			v.badKeys[TraversalToString(traversal)] = struct{}{}
