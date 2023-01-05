@@ -346,6 +346,7 @@ func walkResource(
 
 	term := TermFromBody(resource.Config)
 
+	resourceName := name
 	if haveCount {
 		name = name.AddIndex(0)
 		v.VisitExpr(name.AddKey("count"), resource.Count)
@@ -353,7 +354,7 @@ func walkResource(
 	}
 
 	walkBody(v, name, resource.Config)
-	v.VisitTerm(name, term)
+	v.VisitTerm(resourceName, term)
 
 	v.LeaveResource()
 }

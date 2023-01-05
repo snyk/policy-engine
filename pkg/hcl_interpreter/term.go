@@ -101,10 +101,78 @@ func (t Term) VisitExpressions(f func(hcl.Expression)) {
 	}
 }
 
+type TermDependency struct {
+	expr hcl.Expression
+}
+
 func (t Term) Dependencies() []hcl.Traversal {
 	dependencies := []hcl.Traversal{}
 	t.VisitExpressions(func(e hcl.Expression) {
 		dependencies = append(dependencies, e.Variables()...)
 	})
 	return dependencies
+}
+
+type TermTree struct {
+	modules map[string]*termLocalTree
+}
+
+type termLocalTree struct {
+	term     *Term
+	children map[string]*termLocalTree
+}
+
+func NewTermTree() *TermTree {
+	return &TermTree{
+		modules: map[string]*termLocalTree{},
+	}
+}
+
+func (t *TermTree) AddTerm(name FullName, term Term) {
+	moduleKey := ModuleNameToString(name.Module)
+	if _, ok := t.modules[moduleKey]; !ok {
+		t.modules[moduleKey] = &termLocalTree{}
+	}
+
+	t.modules[moduleKey].addTerm(name.Local, term)
+}
+
+func (t *termLocalTree) addTerm(name LocalName, term Term) {
+	if len(name) == 0 {
+		t.term = &term
+	} else {
+		if t.children == nil {
+			t.children = map[string]*termLocalTree{}
+		}
+		if head, ok := name[0].(string); ok {
+			if _, ok := t.children[head]; !ok {
+				t.children[head] = &termLocalTree{}
+			}
+			t.children[head].addTerm(name[1:], term)
+		} else {
+			panic("TODO: adding int-based term to termLocalTree??")
+		}
+	}
+}
+
+func (t *TermTree) LookupByPrefix(name FullName) (*FullName, *Term) {
+	moduleKey := ModuleNameToString(name.Module)
+	if cursor, ok := t.modules[moduleKey]; ok {
+		for i, key := range name.Local {
+			if cursor.term != nil {
+				return &FullName{name.Module, name.Local[:i+1]}, cursor.term
+			} else {
+				if head, ok := key.(string); ok {
+					if child, ok := cursor.children[head]; ok {
+						cursor = child
+						continue
+					}
+				}
+			}
+
+			return nil, nil
+		}
+	}
+
+	return nil, nil
 }

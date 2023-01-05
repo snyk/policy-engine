@@ -57,6 +57,8 @@ func ModuleNameToString(moduleName ModuleName) string {
 	return str
 }
 
+// TODO: we can get rid of int parts once we switch to terms, since we'll never
+// really use "names" for that?
 type Fragment = interface{} // Either string or int
 type LocalName = []Fragment
 
