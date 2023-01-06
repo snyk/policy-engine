@@ -15,6 +15,7 @@
 package cmd
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"path/filepath"
@@ -34,6 +35,8 @@ var fixtureCmd = &cobra.Command{
 	Use:   "fixture",
 	Short: "Generate test fixture",
 	RunE: func(cmd *cobra.Command, args []string) error {
+		logger := cmdLogger()
+		ctx := context.Background()
 		if len(args) != 1 {
 			return fmt.Errorf("Expected a single input but got %d", len(args))
 		}
@@ -65,6 +68,15 @@ var fixtureCmd = &cobra.Command{
 				}
 			}
 			packageName = strings.Join(parts, ".")
+		}
+
+		// Log non-fatal errors if we're debugging.
+		if *rootCmdVerbose {
+			for path, errs := range loader.Errors() {
+				for _, err := range errs {
+					logger.Warn(ctx, fmt.Sprintf("%s: %s", path, err))
+				}
+			}
 		}
 
 		states := loader.ToStates()
