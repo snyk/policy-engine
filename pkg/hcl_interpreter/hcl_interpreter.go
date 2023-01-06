@@ -205,7 +205,20 @@ func (v *Analysis) termDependencies(name FullName, term Term) []dependency {
 			full := FullName{Module: name.Module, Local: local}
 
 			if prefix, _ := v.Terms.LookupByPrefix(full); prefix != nil {
-    			deps = append(deps, dependency{*prefix, prefix, nil})
+				deps = append(deps, dependency{*prefix, prefix, nil})
+			} else if asVariable, asVar, _ := full.AsVariable(); asVar != nil {
+				// Rewrite variables either as default, or as module input.
+				asModuleInput := full.AsModuleInput()
+				isModuleInput := false
+				if asModuleInput != nil {
+					if mtp, _ := v.Terms.LookupByPrefix(*asModuleInput); mtp != nil {
+						deps = append(deps, dependency{full, asModuleInput, nil})
+						isModuleInput = true
+					}
+				}
+				if !isModuleInput {
+					deps = append(deps, dependency{*asVar, asVariable, nil})
+				}
 			}
 		}
 	})
@@ -250,10 +263,11 @@ func (v *Analysis) order() ([]FullName, error) {
 // Iterate all expressions to be evaluated in the "correct" order.
 func (v *Analysis) orderTerms() ([]FullName, error) {
 	graph := map[string][]string{}
-	v.Terms.VisitTerms(func (name FullName, term Term) {
-        key := name.ToString()
+	v.Terms.VisitTerms(func(name FullName, term Term) {
+		key := name.ToString()
 		graph[key] = []string{}
-		for _, dep := range v.termDependencies(name, term) {
+		deps := v.termDependencies(name, term)
+		for _, dep := range deps {
 			if dep.source != nil {
 				graph[key] = append(graph[key], dep.source.ToString())
 			}
@@ -294,7 +308,7 @@ func EvaluateAnalysis(analysis *Analysis) (*Evaluation, error) {
 		eval.Modules[moduleKey] = EmptyObjectValTree()
 	}
 
-	if err := eval.evaluate(); err != nil {
+	if err := eval.evaluateTerms(); err != nil {
 		return nil, err
 	}
 
@@ -321,15 +335,29 @@ func (v *Evaluation) prepareVariables(name FullName, expr hcl.Expression) ValTre
 	return sparse
 }
 
+func (v *Evaluation) prepareTermVariables(name FullName, term Term) ValTree {
+	sparse := EmptyObjectValTree()
+	for _, dep := range v.Analysis.termDependencies(name, term) {
+		var dependency ValTree
+		if dep.source != nil {
+			sourceModule := ModuleNameToString(dep.source.Module)
+			dependency = BuildValTree(
+				dep.destination.Local,
+				LookupValTree(v.Modules[sourceModule], dep.source.Local),
+			)
+		} else if dep.value != nil {
+			dependency = SingletonValTree(dep.destination.Local, *dep.value)
+		}
+		if dependency != nil {
+			sparse = MergeValTree(sparse, dependency)
+		}
+	}
+	return sparse
+}
+
 func (v *Evaluation) evaluate() error {
 	// Obtain order
 	order, err := v.Analysis.order()
-	if err != nil {
-		return err
-	}
-
-	// Obtain order again
-	_, err = v.Analysis.orderTerms()
 	if err != nil {
 		return err
 	}
@@ -386,6 +414,68 @@ func (v *Evaluation) evaluate() error {
 	return nil
 }
 
+func (v *Evaluation) evaluateTerms() error {
+	// Obtain order again
+	order, err := v.Analysis.orderTerms()
+	if err != nil {
+		return err
+	}
+
+	termsByKey := map[string]Term{}
+	v.Analysis.Terms.VisitTerms(func(name FullName, term Term) {
+		termsByKey[name.ToString()] = term
+	})
+
+	// Evaluate terms
+	for _, name := range order {
+		term := termsByKey[name.ToString()]
+		moduleKey := ModuleNameToString(name.Module)
+		moduleMeta := v.Analysis.Modules[moduleKey]
+
+		vars := v.prepareTermVariables(name, term)
+		vars = MergeValTree(vars, SingletonValTree(LocalName{"path", "module"}, cty.StringVal(moduleMeta.Dir)))
+		vars = MergeValTree(vars, SingletonValTree(LocalName{"terraform", "workspace"}, cty.StringVal("default")))
+
+		// Add count.index if inside a counted resource.
+		resourceName, _, _ := name.AsResourceName()
+		if resourceName != nil {
+			resourceKey := resourceName.ToString()
+			if resource, ok := v.Analysis.Resources[resourceKey]; ok {
+				if resource.Count {
+					vars = MergeValTree(vars, SingletonValTree(LocalName{"count", "index"}, cty.NumberIntVal(0)))
+				}
+			}
+		}
+
+		val, diags := term.Evaluate(func(expr hcl.Expression) (cty.Value, hcl.Diagnostics) {
+			data := Data{}
+			scope := lang.Scope{
+				Data:     &data,
+				SelfAddr: nil,
+				PureOnly: false,
+			}
+			ctx := hcl.EvalContext{
+				Functions: funcs.Override(v.Analysis.Fs, scope),
+				Variables: ValTreeToVariables(vars),
+			}
+			val, diags := expr.Value(&ctx)
+			if diags.HasErrors() {
+				val = cty.NullVal(val.Type())
+			}
+			return val, diags
+		})
+
+		if diags.HasErrors() {
+			v.errors = append(v.errors, fmt.Errorf("evaluate: error: %s", diags))
+		}
+
+		singleton := SingletonValTree(name.Local, val)
+		v.Modules[moduleKey] = MergeValTree(v.Modules[moduleKey], singleton)
+	}
+
+	return nil
+}
+
 func (v *Evaluation) Resources() []models.ResourceState {
 	resources := []models.ResourceState{}
 
@@ -427,11 +517,7 @@ func (v *Evaluation) Resources() []models.ResourceState {
 
 		metaTree := EmptyObjectValTree()
 		providerConfName := ProviderConfigName(resourceName.Module, resource.ProviderName)
-		providerConf := LookupValTree(
-			v.Modules[module],
-			providerConfName.Local,
-		)
-		if obj, ok := providerConf.(map[string]interface{}); ok && len(obj) > 0 {
+		if providerConf := LookupValTree(v.Modules[module], providerConfName.Local); providerConf != nil {
 			metaTree = MergeValTree(
 				metaTree,
 				SingletonValTree(

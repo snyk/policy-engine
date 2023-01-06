@@ -17,6 +17,7 @@
 package hcl_interpreter
 
 import (
+    "os"
 	"fmt"
 	"path/filepath"
 	"strings"
@@ -309,6 +310,7 @@ func walkModule(v Visitor, moduleName ModuleName, module *configs.Module, variab
 
 	for providerName, providerConf := range module.ProviderConfigs {
 		walkBody(v, ProviderConfigName(moduleName, providerName), providerConf.Config)
+		fmt.Fprintf(os.Stderr, "Visiting providerconfig...\n")
 		v.VisitTerm(ProviderConfigName(moduleName, providerName), TermFromBody(providerConf.Config))
 	}
 }

@@ -19,6 +19,7 @@ package hcl_interpreter
 import (
 	"github.com/hashicorp/hcl/v2"
 	"github.com/hashicorp/hcl/v2/hclsyntax"
+	"github.com/zclconf/go-cty/cty"
 )
 
 type Term struct {
@@ -107,6 +108,38 @@ func (t Term) Dependencies() []hcl.Traversal {
 		dependencies = append(dependencies, e.Variables()...)
 	})
 	return dependencies
+}
+
+func (t Term) Evaluate(
+	evalExpr func(expr hcl.Expression) (cty.Value, hcl.Diagnostics),
+) (cty.Value, hcl.Diagnostics) {
+	if t.expr != nil {
+		return evalExpr(*t.expr)
+	} else {
+		obj := map[string]cty.Value{}
+		diagnostics := hcl.Diagnostics{}
+
+		for k, attr := range t.attrs {
+			val, diags := evalExpr(attr)
+			diagnostics = append(diagnostics, diags...)
+			obj[k] = val
+		}
+
+		blists := map[string][]cty.Value{}
+		for k, blocks := range t.blocks {
+			blists[k] = []cty.Value{}
+			for _, block := range blocks {
+				val, diags := block.Evaluate(evalExpr)
+				diagnostics = append(diagnostics, diags...)
+				blists[k] = append(blists[k], val)
+			}
+		}
+		for k, blocks := range blists {
+			obj[k] = cty.TupleVal(blocks)
+		}
+
+		return cty.ObjectVal(obj), diagnostics
+	}
 }
 
 type TermTree struct {
