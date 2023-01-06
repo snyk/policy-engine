@@ -84,12 +84,14 @@ func LocalProvider(root string) Provider {
 	}
 }
 
-func TarGzProvider(reader io.Reader) Provider {
+func TarGzProvider(reader io.ReadCloser) Provider {
 	return func(ctx context.Context, consumer Consumer) error {
+		defer reader.Close()
 		gzf, err := gzip.NewReader(reader)
 		if err != nil {
 			return err
 		}
+		defer gzf.Close()
 
 		tarReader := tar.NewReader(gzf)
 		for true {
