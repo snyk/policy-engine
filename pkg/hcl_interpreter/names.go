@@ -262,6 +262,20 @@ func (name FullName) AsResourceName() (*FullName, int, LocalName) {
 	return nil, -1, nil
 }
 
+func (name FullName) AsUncountedResourceName() (*FullName, LocalName) {
+	if len(name.Local) >= 2 {
+		if str, ok := name.Local[0].(string); ok {
+			cut := 2
+			if str == "data" && len(name.Local) >= cut+1 {
+				cut += 1
+			}
+
+			return &FullName{name.Module, name.Local[:cut]}, name.Local[cut:]
+		}
+	}
+	return nil, nil
+}
+
 // TODO: Refactor to TraversalToName?
 func TraversalToLocalName(traversal hcl.Traversal) (LocalName, error) {
 	parts := make([]Fragment, 0)

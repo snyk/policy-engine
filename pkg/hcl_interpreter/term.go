@@ -189,7 +189,7 @@ func (t *TermTree) LookupByPrefix(name FullName) (*FullName, *Term) {
 	if cursor, ok := t.modules[moduleKey]; ok {
 		for i, key := range name.Local {
 			if cursor.term != nil {
-				return &FullName{name.Module, name.Local[:i+1]}, cursor.term
+				return &FullName{name.Module, name.Local[:i]}, cursor.term
 			} else {
 				if head, ok := key.(string); ok {
 					if child, ok := cursor.children[head]; ok {

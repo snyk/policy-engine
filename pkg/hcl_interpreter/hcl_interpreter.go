@@ -19,6 +19,7 @@ package hcl_interpreter
 import (
 	"fmt"
 	"github.com/hashicorp/hcl/v2"
+	"github.com/hashicorp/hcl/v2/hclsyntax"
 	"github.com/spf13/afero"
 	"github.com/zclconf/go-cty/cty"
 
@@ -219,6 +220,8 @@ func (v *Analysis) termDependencies(name FullName, term Term) []dependency {
 				if !isModuleInput {
 					deps = append(deps, dependency{*asVar, asVariable, nil})
 				}
+			} else if asResourceName, _ := full.AsUncountedResourceName(); asResourceName != nil {
+				deps = append(deps, dependency{*asResourceName, asResourceName, nil})
 			}
 		}
 	})
@@ -295,13 +298,16 @@ type Evaluation struct {
 	Analysis *Analysis
 	Modules  map[string]ValTree
 
+	phantomAttrs *phantomAttrs
+
 	errors []error // Errors encountered during evaluation
 }
 
 func EvaluateAnalysis(analysis *Analysis) (*Evaluation, error) {
 	eval := &Evaluation{
-		Analysis: analysis,
-		Modules:  map[string]ValTree{},
+		Analysis:     analysis,
+		Modules:      map[string]ValTree{},
+		phantomAttrs: newPhantomAttrs(),
 	}
 
 	for moduleKey := range analysis.Modules {
@@ -424,6 +430,7 @@ func (v *Evaluation) evaluateTerms() error {
 	termsByKey := map[string]Term{}
 	v.Analysis.Terms.VisitTerms(func(name FullName, term Term) {
 		termsByKey[name.ToString()] = term
+		v.phantomAttrs.analyze(name, term)
 	})
 
 	// Evaluate terms
@@ -469,6 +476,7 @@ func (v *Evaluation) evaluateTerms() error {
 			v.errors = append(v.errors, fmt.Errorf("evaluate: error: %s", diags))
 		}
 
+		val = v.phantomAttrs.add(name, val)
 		singleton := SingletonValTree(name.Local, val)
 		v.Modules[moduleKey] = MergeValTree(v.Modules[moduleKey], singleton)
 	}
@@ -498,6 +506,10 @@ func (v *Evaluation) Resources() []models.ResourceState {
 		}
 
 		attributes := LookupValTree(v.Modules[module], resourceAttrsName.Local)
+
+		if attrVal, ok := attributes.(cty.Value); ok {
+			attributes = v.phantomAttrs.remove(*resourceName, attrVal)
+		}
 
 		if countTree := LookupValTree(attributes, LocalName{"count"}); countTree != nil {
 			if countVal, ok := countTree.(cty.Value); ok {
@@ -575,4 +587,119 @@ func (e *Evaluation) Errors() []error {
 	}
 	errors = append(errors, e.errors...)
 	return errors
+}
+
+type phantomAttrs struct {
+	// A set of phantom attributes per FullName.
+	attrs map[string]map[string]struct{}
+
+	// Attributes we've actually added.
+	added map[string]map[string]struct{}
+}
+
+func newPhantomAttrs() *phantomAttrs {
+	return &phantomAttrs{
+		attrs: map[string]map[string]struct{}{},
+		added: map[string]map[string]struct{}{},
+	}
+}
+
+func (pa *phantomAttrs) analyze(name FullName, term Term) {
+	term.VisitExpressions(func(expr hcl.Expression) {
+		exprAttrs := pa.ExprAttributes(expr)
+		for _, traversal := range expr.Variables() {
+			local, err := TraversalToLocalName(traversal)
+			if err != nil {
+				continue
+			}
+
+			full := FullName{Module: name.Module, Local: local}
+			if asResourceName, trailing := full.AsUncountedResourceName(); asResourceName != nil {
+				attrs := map[string]struct{}{}
+
+				for _, attr := range trailing {
+					if attr, ok := attr.(string); ok {
+						attrs[attr] = struct{}{}
+					}
+				}
+
+				for _, attr := range exprAttrs {
+					attrs[attr] = struct{}{}
+				}
+
+				if len(attrs) > 0 {
+					resourceKey := asResourceName.ToString()
+					if _, ok := pa.attrs[resourceKey]; !ok {
+						pa.attrs[resourceKey] = map[string]struct{}{}
+					}
+					for k := range attrs {
+						pa.attrs[resourceKey][k] = struct{}{}
+					}
+				}
+			}
+		}
+	})
+}
+
+func (pa *phantomAttrs) ExprAttributes(expr hcl.Expression) []string {
+	attrs := []string{}
+	if syn, ok := expr.(hclsyntax.Expression); ok {
+		hclsyntax.VisitAll(syn, func(node hclsyntax.Node) hcl.Diagnostics {
+			switch e := node.(type) {
+			case *hclsyntax.RelativeTraversalExpr:
+				if name, err := TraversalToLocalName(e.Traversal); err == nil {
+					for _, part := range name {
+						if part, ok := part.(string); ok {
+							attrs = append(attrs, part)
+						}
+					}
+				}
+			case *hclsyntax.IndexExpr:
+				if key := ExprToLiteralString(e.Key); key != nil {
+					attrs = append(attrs, *key)
+				}
+			}
+			return nil
+		})
+	}
+	return attrs
+}
+
+func (pa *phantomAttrs) add(name FullName, val cty.Value) cty.Value {
+	rk := name.ToString()
+	if attrs, ok := pa.attrs[rk]; ok && val.Type().IsObjectType() {
+		obj := map[string]cty.Value{}
+
+		for k, v := range val.AsValueMap() {
+			obj[k] = v
+		}
+
+		for k := range attrs {
+			if _, ok := obj[k]; !ok {
+				if _, ok := pa.added[rk]; !ok {
+					pa.added[rk] = map[string]struct{}{}
+				}
+				obj[k] = cty.StringVal(name.ToString())
+				pa.added[rk][k] = struct{}{}
+			}
+		}
+		return cty.ObjectVal(obj)
+	}
+	return val
+}
+
+func (pa *phantomAttrs) remove(name FullName, val cty.Value) cty.Value {
+	rk := name.ToString()
+	if added, ok := pa.added[rk]; ok && val.Type().IsObjectType() {
+		obj := map[string]cty.Value{}
+
+		for k, v := range val.AsValueMap() {
+			if _, ok := added[k]; !ok {
+				obj[k] = v
+			}
+		}
+
+		return cty.ObjectVal(obj)
+	}
+	return val
 }
