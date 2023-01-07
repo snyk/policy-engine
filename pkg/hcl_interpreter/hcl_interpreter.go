@@ -207,7 +207,10 @@ func (v *Analysis) termDependencies(name FullName, term Term) []dependency {
 
 			if prefix, _ := v.Terms.LookupByPrefix(full); prefix != nil {
 				deps = append(deps, dependency{*prefix, prefix, nil})
-			} else if asVariable, asVar, _ := full.AsVariable(); asVar != nil {
+				continue
+			}
+
+			if asVariable, asVar, _ := full.AsVariable(); asVar != nil {
 				// Rewrite variables either as default, or as module input.
 				asModuleInput := full.AsModuleInput()
 				isModuleInput := false
@@ -220,9 +223,21 @@ func (v *Analysis) termDependencies(name FullName, term Term) []dependency {
 				if !isModuleInput {
 					deps = append(deps, dependency{*asVar, asVariable, nil})
 				}
-			} else if asResourceName, _ := full.AsUncountedResourceName(); asResourceName != nil {
-				deps = append(deps, dependency{*asResourceName, asResourceName, nil})
+				continue
 			}
+
+			if asResourceName, _ := full.AsUncountedResourceName(); asResourceName != nil {
+				// TODO: Superseded by LookupByPrefix?
+				if _, ok := v.Resources[asResourceName.ToString()]; ok {
+					deps = append(deps, dependency{*asResourceName, asResourceName, nil})
+					continue
+				}
+			}
+
+			// In other cases, just use the local name.  This is sort of
+			// a catch-all and we should try to not rely on this too much.
+			val := cty.StringVal(LocalNameToString(local))
+			deps = append(deps, dependency{full, nil, &val})
 		}
 	})
 	return deps
