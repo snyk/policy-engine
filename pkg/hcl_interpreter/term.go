@@ -17,6 +17,9 @@
 package hcl_interpreter
 
 import (
+    "fmt"
+    "os"
+
 	"github.com/hashicorp/hcl/v2"
 	"github.com/hashicorp/hcl/v2/hclsyntax"
 	"github.com/zclconf/go-cty/cty"
@@ -110,17 +113,17 @@ func (t Term) Dependencies() []hcl.Traversal {
 	return dependencies
 }
 
-func (t Term) Evaluate(
-	evalExpr func(expr hcl.Expression) (cty.Value, hcl.Diagnostics),
+func (t Term) evaluateExpr(
+	evalExpr func(expr hcl.Expression, extraVars interface{}) (cty.Value, hcl.Diagnostics),
 ) (cty.Value, hcl.Diagnostics) {
 	if t.expr != nil {
-		return evalExpr(*t.expr)
+		return evalExpr(*t.expr, nil)
 	} else {
 		obj := map[string]cty.Value{}
 		diagnostics := hcl.Diagnostics{}
 
 		for k, attr := range t.attrs {
-			val, diags := evalExpr(attr)
+			val, diags := evalExpr(attr, nil)
 			diagnostics = append(diagnostics, diags...)
 			obj[k] = val
 		}
@@ -140,6 +143,37 @@ func (t Term) Evaluate(
 
 		return cty.ObjectVal(obj), diagnostics
 	}
+}
+
+func (t Term) Evaluate(
+	evalExpr func(expr hcl.Expression, extraVars interface{}) (cty.Value, hcl.Diagnostics),
+) (cty.Value, hcl.Diagnostics) {
+    if t.count != nil {
+        diagnostics := hcl.Diagnostics{}
+        countVal, diags := evalExpr(*t.count, nil)
+        diagnostics = append(diagnostics, diags...)
+
+        if countVal.Type() == cty.Number {
+			countBig := countVal.AsBigFloat()
+			if countBig.IsInt() {
+				count, _ := countBig.Int64()
+				arr := []cty.Value{}
+				for i := int64(0); i < count; i++ {
+    				fmt.Fprintf(os.Stderr, "Evaluating item %d\n", i)
+    				val, diags := t.evaluateExpr(func (e hcl.Expression, v interface{}) (cty.Value, hcl.Diagnostics) {
+						v = MergeValTree(v, SingletonValTree(LocalName{"count", "index"}, cty.NumberIntVal(i)))
+						return evalExpr(e, v)
+    				})
+    				diagnostics = append(diagnostics, diags...)
+    				arr = append(arr, val)
+				}
+				fmt.Fprintf(os.Stderr, "Resulting array: %s\n", cty.TupleVal(arr).GoString())
+				return cty.TupleVal(arr), diagnostics
+			}
+        }
+    }
+
+	return t.evaluateExpr(evalExpr)
 }
 
 // Attr retrieves a term attribute, or nil if it doesn't exist, or the term

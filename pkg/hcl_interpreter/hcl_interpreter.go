@@ -476,13 +476,14 @@ func (v *Evaluation) evaluateTerms() error {
 			}
 		}
 
-		val, diags := term.Evaluate(func(expr hcl.Expression) (cty.Value, hcl.Diagnostics) {
+		val, diags := term.Evaluate(func(expr hcl.Expression, extraVars interface{}) (cty.Value, hcl.Diagnostics) {
 			data := Data{}
 			scope := lang.Scope{
 				Data:     &data,
 				SelfAddr: nil,
 				PureOnly: false,
 			}
+			vars = MergeValTree(vars, extraVars)  // TODO: Mutable, bad bad!
 			ctx := hcl.EvalContext{
 				Functions: funcs.Override(v.Analysis.Fs, scope),
 				Variables: ValTreeToVariables(vars),
