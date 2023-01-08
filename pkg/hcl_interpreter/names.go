@@ -225,6 +225,21 @@ func (name FullName) AsModuleInput() *FullName {
 	return nil
 }
 
+// Parses "module.child.var.foo.key" into "input.child", "foo" and "key"
+func (name FullName) AsSplitModuleInput() (*FullName, string, LocalName) {
+	if len(name.Module) > 0 && len(name.Local) >= 2 {
+		if varlit, ok := name.Local[0].(string); ok && varlit == "var" {
+    		if str, ok := name.Local[1].(string); ok {
+    			parentModuleName := make(ModuleName, len(name.Module)-1)
+    			copy(parentModuleName, name.Module)
+    			local := LocalName{"input", name.Module[len(name.Module)-1]}
+    			return &FullName{parentModuleName, local}, str, name.Local[2:]
+    		}
+		}
+	}
+	return nil, "", nil
+}
+
 // Parses "var.my_var.key" into "variable.my_var", "var.my_var" and "key".
 func (name FullName) AsVariable() (*FullName, *FullName, LocalName) {
 	if len(name.Local) >= 2 {

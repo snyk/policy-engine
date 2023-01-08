@@ -19,7 +19,6 @@ package hcl_interpreter
 import (
 	"fmt"
 	"github.com/hashicorp/hcl/v2"
-	"github.com/hashicorp/hcl/v2/hclsyntax"
 	"github.com/spf13/afero"
 	"github.com/zclconf/go-cty/cty"
 
@@ -210,13 +209,18 @@ func (v *Analysis) termDependencies(name FullName, term Term) []dependency {
 				continue
 			}
 
+			if moduleOutput := full.AsModuleOutput(); moduleOutput != nil {
+				deps = append(deps, dependency{full, moduleOutput, nil})
+				continue
+			}
+
 			if asVariable, asVar, _ := full.AsVariable(); asVar != nil {
 				// Rewrite variables either as default, or as module input.
 				asModuleInput := full.AsModuleInput()
 				isModuleInput := false
 				if asModuleInput != nil {
 					if mtp, _ := v.Terms.LookupByPrefix(*asModuleInput); mtp != nil {
-						deps = append(deps, dependency{full, asModuleInput, nil})
+						deps = append(deps, dependency{*asVar, mtp, nil})
 						isModuleInput = true
 					}
 				}
@@ -313,6 +317,8 @@ type Evaluation struct {
 	Analysis *Analysis
 	Modules  map[string]ValTree
 
+	resourceAttributes map[string]cty.Value
+
 	phantomAttrs *phantomAttrs
 
 	errors []error // Errors encountered during evaluation
@@ -320,9 +326,10 @@ type Evaluation struct {
 
 func EvaluateAnalysis(analysis *Analysis) (*Evaluation, error) {
 	eval := &Evaluation{
-		Analysis:     analysis,
-		Modules:      map[string]ValTree{},
-		phantomAttrs: newPhantomAttrs(),
+		Analysis:           analysis,
+		Modules:            map[string]ValTree{},
+		resourceAttributes: map[string]cty.Value{},
+		phantomAttrs:       newPhantomAttrs(),
 	}
 
 	for moduleKey := range analysis.Modules {
@@ -491,6 +498,7 @@ func (v *Evaluation) evaluateTerms() error {
 			v.errors = append(v.errors, fmt.Errorf("evaluate: error: %s", diags))
 		}
 
+		v.resourceAttributes[resourceName.ToString()] = val
 		val = v.phantomAttrs.add(name, val)
 		singleton := SingletonValTree(name.Local, val)
 		v.Modules[moduleKey] = MergeValTree(v.Modules[moduleKey], singleton)
@@ -520,11 +528,7 @@ func (v *Evaluation) Resources() []models.ResourceState {
 			resourceAttrsName = resourceAttrsName.AddIndex(0)
 		}
 
-		attributes := LookupValTree(v.Modules[module], resourceAttrsName.Local)
-
-		if attrVal, ok := attributes.(cty.Value); ok {
-			attributes = v.phantomAttrs.remove(*resourceName, attrVal)
-		}
+		attributes := v.resourceAttributes[resourceKey]
 
 		if countTree := LookupValTree(attributes, LocalName{"count"}); countTree != nil {
 			if countVal, ok := countTree.(cty.Value); ok {
@@ -607,21 +611,17 @@ func (e *Evaluation) Errors() []error {
 type phantomAttrs struct {
 	// A set of phantom attributes per FullName.
 	attrs map[string]map[string]struct{}
-
-	// Attributes we've actually added.
-	added map[string]map[string]struct{}
 }
 
 func newPhantomAttrs() *phantomAttrs {
 	return &phantomAttrs{
 		attrs: map[string]map[string]struct{}{},
-		added: map[string]map[string]struct{}{},
 	}
 }
 
 func (pa *phantomAttrs) analyze(name FullName, term Term) {
 	term.VisitExpressions(func(expr hcl.Expression) {
-		exprAttrs := pa.ExprAttributes(expr)
+		exprAttrs := ExprAttributes(expr)
 		for _, traversal := range expr.Variables() {
 			local, err := TraversalToLocalName(traversal)
 			if err != nil {
@@ -631,15 +631,9 @@ func (pa *phantomAttrs) analyze(name FullName, term Term) {
 			full := FullName{Module: name.Module, Local: local}
 			if asResourceName, trailing := full.AsUncountedResourceName(); asResourceName != nil {
 				attrs := map[string]struct{}{}
-
-				for _, attr := range trailing {
-					if attr, ok := attr.(string); ok {
-						attrs[attr] = struct{}{}
-					}
-				}
-
+				attrs[LocalNameToString(trailing)] = struct{}{}
 				for _, attr := range exprAttrs {
-					attrs[attr] = struct{}{}
+					attrs[LocalNameToString(attr)] = struct{}{}
 				}
 
 				if len(attrs) > 0 {
@@ -656,65 +650,45 @@ func (pa *phantomAttrs) analyze(name FullName, term Term) {
 	})
 }
 
-func (pa *phantomAttrs) ExprAttributes(expr hcl.Expression) []string {
-	attrs := []string{}
-	if syn, ok := expr.(hclsyntax.Expression); ok {
-		hclsyntax.VisitAll(syn, func(node hclsyntax.Node) hcl.Diagnostics {
-			switch e := node.(type) {
-			case *hclsyntax.RelativeTraversalExpr:
-				if name, err := TraversalToLocalName(e.Traversal); err == nil {
-					for _, part := range name {
-						if part, ok := part.(string); ok {
-							attrs = append(attrs, part)
-						}
-					}
-				}
-			case *hclsyntax.IndexExpr:
-				if key := ExprToLiteralString(e.Key); key != nil {
-					attrs = append(attrs, *key)
-				}
-			}
-			return nil
-		})
-	}
-	return attrs
-}
-
 func (pa *phantomAttrs) add(name FullName, val cty.Value) cty.Value {
 	rk := name.ToString()
-	if attrs, ok := pa.attrs[rk]; ok && val.Type().IsObjectType() {
-		obj := map[string]cty.Value{}
+	nameVal := cty.StringVal(name.ToString())
 
-		for k, v := range val.AsValueMap() {
-			obj[k] = v
-		}
+	var patch func(LocalName, cty.Value) cty.Value
+	patch = func(local LocalName, val cty.Value) cty.Value {
+		if val.Type().IsObjectType() {
+			obj := map[string]cty.Value{}
 
-		for k := range attrs {
-			if _, ok := obj[k]; !ok {
-				if _, ok := pa.added[rk]; !ok {
-					pa.added[rk] = map[string]struct{}{}
-				}
-				obj[k] = cty.StringVal(name.ToString())
-				pa.added[rk][k] = struct{}{}
-			}
-		}
-		return cty.ObjectVal(obj)
-	}
-	return val
-}
-
-func (pa *phantomAttrs) remove(name FullName, val cty.Value) cty.Value {
-	rk := name.ToString()
-	if added, ok := pa.added[rk]; ok && val.Type().IsObjectType() {
-		obj := map[string]cty.Value{}
-
-		for k, v := range val.AsValueMap() {
-			if _, ok := added[k]; !ok {
+			for k, v := range val.AsValueMap() {
 				obj[k] = v
 			}
-		}
 
-		return cty.ObjectVal(obj)
+			if len(local) == 1 {
+				if k, ok := local[0].(string); ok {
+					if _, present := obj[k]; !present {
+						obj[k] = nameVal
+					}
+				}
+			} else if len(local) > 1 {
+				if k, ok := local[0].(string); ok {
+					if child, ok := obj[k]; ok {
+						obj[k] = patch(local[1:], child)
+					} else {
+						obj[k] = patch(local[1:], cty.EmptyObjectVal)
+					}
+				}
+			}
+			return cty.ObjectVal(obj)
+		}
+		return val
+	}
+
+	if attrs, ok := pa.attrs[rk]; ok {
+		for attr := range attrs {
+			if full, _ := StringToFullName(attr); full != nil {
+				val = patch(full.Local, val)
+			}
+		}
 	}
 	return val
 }

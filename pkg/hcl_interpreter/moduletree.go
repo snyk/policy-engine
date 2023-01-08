@@ -17,7 +17,6 @@
 package hcl_interpreter
 
 import (
-    "os"
 	"fmt"
 	"path/filepath"
 	"strings"
@@ -264,7 +263,9 @@ func walkModuleTree(v Visitor, moduleName ModuleName, mtree *ModuleTree) {
 		// TODO: This is not good.  We end up walking child2 as it were child2.
 		configName := FullName{moduleName, LocalName{"input", key}}
 		walkBody(v, configName, child.config)
-		v.VisitTerm(configName, TermFromBody(child.config))
+		for k, input := range TermFromBody(child.config).Attributes() {
+    		v.VisitTerm(configName.AddKey(k), input)
+		}
 
 		walkModuleTree(v, childModuleName, child)
 	}
@@ -310,7 +311,6 @@ func walkModule(v Visitor, moduleName ModuleName, module *configs.Module, variab
 
 	for providerName, providerConf := range module.ProviderConfigs {
 		walkBody(v, ProviderConfigName(moduleName, providerName), providerConf.Config)
-		fmt.Fprintf(os.Stderr, "Visiting providerconfig...\n")
 		v.VisitTerm(ProviderConfigName(moduleName, providerName), TermFromBody(providerConf.Config))
 	}
 }

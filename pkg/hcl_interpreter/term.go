@@ -142,6 +142,16 @@ func (t Term) Evaluate(
 	}
 }
 
+// Attr retrieves a term attribute, or nil if it doesn't exist, or the term
+// doesn't have attributes.
+func (t Term) Attributes() map[string]Term {
+    attrs := map[string]Term{}
+    for k, expr := range t.attrs {
+        attrs[k] = TermFromExpr(expr)
+    }
+    return attrs
+}
+
 type TermTree struct {
 	modules map[string]*termLocalTree
 }
@@ -186,22 +196,30 @@ func (t *termLocalTree) addTerm(name LocalName, term Term) {
 
 func (t *TermTree) LookupByPrefix(name FullName) (*FullName, *Term) {
 	moduleKey := ModuleNameToString(name.Module)
-	if cursor, ok := t.modules[moduleKey]; ok {
-		for i, key := range name.Local {
-			if cursor.term != nil {
-				return &FullName{name.Module, name.Local[:i]}, cursor.term
-			} else {
-				if head, ok := key.(string); ok {
-					if child, ok := cursor.children[head]; ok {
-						cursor = child
-						continue
-					}
-				}
-			}
-
-			return nil, nil
-		}
+	if tree, ok := t.modules[moduleKey]; ok {
+    	prefix, term := tree.lookupByPrefix(name.Local)
+    	if term != nil {
+        	return &FullName{name.Module, prefix}, term
+    	}
 	}
+
+	return nil, nil
+}
+
+func (t *termLocalTree) lookupByPrefix(name LocalName) (LocalName, *Term) {
+    if t.term != nil {
+        return LocalName{}, t.term
+    } else if len(name) > 0 {
+		if head, ok := name[0].(string); ok {
+			if child, ok := t.children[head]; ok {
+    			prefix, term := child.lookupByPrefix(name[1:])
+    			if term != nil {
+        			prefix = append(LocalName{head}, prefix...)
+        			return prefix, term
+    			}
+			}
+		}
+    }
 
 	return nil, nil
 }
