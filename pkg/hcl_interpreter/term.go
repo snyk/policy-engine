@@ -17,9 +17,6 @@
 package hcl_interpreter
 
 import (
-    "fmt"
-    "os"
-
 	"github.com/hashicorp/hcl/v2"
 	"github.com/hashicorp/hcl/v2/hclsyntax"
 	"github.com/zclconf/go-cty/cty"
@@ -148,30 +145,28 @@ func (t Term) evaluateExpr(
 func (t Term) Evaluate(
 	evalExpr func(expr hcl.Expression, extraVars interface{}) (cty.Value, hcl.Diagnostics),
 ) (cty.Value, hcl.Diagnostics) {
-    if t.count != nil {
-        diagnostics := hcl.Diagnostics{}
-        countVal, diags := evalExpr(*t.count, nil)
-        diagnostics = append(diagnostics, diags...)
+	if t.count != nil {
+		diagnostics := hcl.Diagnostics{}
+		countVal, diags := evalExpr(*t.count, nil)
+		diagnostics = append(diagnostics, diags...)
 
-        if countVal.Type() == cty.Number {
+		if countVal.Type() == cty.Number {
 			countBig := countVal.AsBigFloat()
 			if countBig.IsInt() {
 				count, _ := countBig.Int64()
 				arr := []cty.Value{}
 				for i := int64(0); i < count; i++ {
-    				fmt.Fprintf(os.Stderr, "Evaluating item %d\n", i)
-    				val, diags := t.evaluateExpr(func (e hcl.Expression, v interface{}) (cty.Value, hcl.Diagnostics) {
+					val, diags := t.evaluateExpr(func(e hcl.Expression, v interface{}) (cty.Value, hcl.Diagnostics) {
 						v = MergeValTree(v, SingletonValTree(LocalName{"count", "index"}, cty.NumberIntVal(i)))
 						return evalExpr(e, v)
-    				})
-    				diagnostics = append(diagnostics, diags...)
-    				arr = append(arr, val)
+					})
+					diagnostics = append(diagnostics, diags...)
+					arr = append(arr, val)
 				}
-				fmt.Fprintf(os.Stderr, "Resulting array: %s\n", cty.TupleVal(arr).GoString())
 				return cty.TupleVal(arr), diagnostics
 			}
-        }
-    }
+		}
+	}
 
 	return t.evaluateExpr(evalExpr)
 }
@@ -179,11 +174,11 @@ func (t Term) Evaluate(
 // Attr retrieves a term attribute, or nil if it doesn't exist, or the term
 // doesn't have attributes.
 func (t Term) Attributes() map[string]Term {
-    attrs := map[string]Term{}
-    for k, expr := range t.attrs {
-        attrs[k] = TermFromExpr(expr)
-    }
-    return attrs
+	attrs := map[string]Term{}
+	for k, expr := range t.attrs {
+		attrs[k] = TermFromExpr(expr)
+	}
+	return attrs
 }
 
 type TermTree struct {
@@ -231,29 +226,29 @@ func (t *termLocalTree) addTerm(name LocalName, term Term) {
 func (t *TermTree) LookupByPrefix(name FullName) (*FullName, *Term) {
 	moduleKey := ModuleNameToString(name.Module)
 	if tree, ok := t.modules[moduleKey]; ok {
-    	prefix, term := tree.lookupByPrefix(name.Local)
-    	if term != nil {
-        	return &FullName{name.Module, prefix}, term
-    	}
+		prefix, term := tree.lookupByPrefix(name.Local)
+		if term != nil {
+			return &FullName{name.Module, prefix}, term
+		}
 	}
 
 	return nil, nil
 }
 
 func (t *termLocalTree) lookupByPrefix(name LocalName) (LocalName, *Term) {
-    if t.term != nil {
-        return LocalName{}, t.term
-    } else if len(name) > 0 {
+	if t.term != nil {
+		return LocalName{}, t.term
+	} else if len(name) > 0 {
 		if head, ok := name[0].(string); ok {
 			if child, ok := t.children[head]; ok {
-    			prefix, term := child.lookupByPrefix(name[1:])
-    			if term != nil {
-        			prefix = append(LocalName{head}, prefix...)
-        			return prefix, term
-    			}
+				prefix, term := child.lookupByPrefix(name[1:])
+				if term != nil {
+					prefix = append(LocalName{head}, prefix...)
+					return prefix, term
+				}
 			}
 		}
-    }
+	}
 
 	return nil, nil
 }

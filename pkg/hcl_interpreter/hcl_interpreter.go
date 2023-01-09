@@ -483,7 +483,7 @@ func (v *Evaluation) evaluateTerms() error {
 				SelfAddr: nil,
 				PureOnly: false,
 			}
-			vars = MergeValTree(vars, extraVars)  // TODO: Mutable, bad bad!
+			vars = MergeValTree(vars, extraVars) // TODO: Mutable, bad bad!
 			ctx := hcl.EvalContext{
 				Functions: funcs.Override(v.Analysis.Fs, scope),
 				Variables: ValTreeToVariables(vars),
@@ -508,47 +508,32 @@ func (v *Evaluation) evaluateTerms() error {
 	return nil
 }
 
-func (v *Evaluation) Resources() []models.ResourceState {
+func (v *Evaluation) prepareResource(resourceMeta *ResourceMeta, name FullName, val cty.Value) []models.ResourceState {
 	resources := []models.ResourceState{}
 
-	for resourceKey, resource := range v.Analysis.Resources {
-		resourceName, err := StringToFullName(resourceKey)
-		if err != nil || resourceName == nil {
-			v.Analysis.badKeys[resourceKey] = struct{}{}
-			continue
+	resourceKey := name.ToString()
+	module := ModuleNameToString(name.Module)
+
+	resourceType := resourceMeta.Type
+	if resourceMeta.Data {
+		resourceType = "data." + resourceType
+	}
+
+	if val.Type().IsTupleType() {
+		for idx, child := range val.AsValueSlice() {
+			resource := v.prepareResource(resourceMeta, name.AddIndex(idx), child)
+			resources = append(resources, resource...)
 		}
-		module := ModuleNameToString(resourceName.Module)
-
-		resourceType := resource.Type
-		if resource.Data {
-			resourceType = "data." + resourceType
-		}
-
-		resourceAttrsName := *resourceName
-		if resource.Count {
-			resourceAttrsName = resourceAttrsName.AddIndex(0)
-		}
-
-		attributes := v.resourceAttributes[resourceKey]
-
-		if countTree := LookupValTree(attributes, LocalName{"count"}); countTree != nil {
-			if countVal, ok := countTree.(cty.Value); ok {
-				count := ValueToInt(countVal)
-				if count != nil && *count < 1 {
-					continue
-				}
-			}
-		}
-
+	} else {
 		attrs := map[string]interface{}{}
-		iface, errs := ValueToInterface(ValTreeToValue(attributes))
+		iface, errs := ValueToInterface(ValTreeToValue(val))
 		v.errors = append(v.errors, errs...)
 		if obj, ok := iface.(map[string]interface{}); ok {
 			attrs = obj
 		}
 
 		metaTree := EmptyObjectValTree()
-		providerConfName := ProviderConfigName(resourceName.Module, resource.ProviderName)
+		providerConfName := ProviderConfigName(name.Module, resourceMeta.ProviderName)
 		if providerConf := LookupValTree(v.Modules[module], providerConfName.Local); providerConf != nil {
 			metaTree = MergeValTree(
 				metaTree,
@@ -559,12 +544,12 @@ func (v *Evaluation) Resources() []models.ResourceState {
 			)
 		}
 
-		if resource.ProviderVersionConstraint != "" {
+		if resourceMeta.ProviderVersionConstraint != "" {
 			metaTree = MergeValTree(
 				metaTree,
 				SingletonValTree(
 					[]interface{}{"terraform", "provider_version_constraint"},
-					cty.StringVal(resource.ProviderVersionConstraint),
+					cty.StringVal(resourceMeta.ProviderVersionConstraint),
 				),
 			)
 		}
@@ -594,6 +579,23 @@ func (v *Evaluation) Resources() []models.ResourceState {
 			Attributes:   attrs,
 			Meta:         meta,
 		})
+	}
+
+	return resources
+}
+
+func (v *Evaluation) Resources() []models.ResourceState {
+	resources := []models.ResourceState{}
+
+	for resourceKey, resourceMeta := range v.Analysis.Resources {
+		resourceName, err := StringToFullName(resourceKey)
+		if err != nil || resourceName == nil {
+			v.Analysis.badKeys[resourceKey] = struct{}{}
+			continue
+		}
+
+		resource := v.prepareResource(resourceMeta, *resourceName, v.resourceAttributes[resourceKey])
+		resources = append(resources, resource...)
 	}
 
 	return resources
