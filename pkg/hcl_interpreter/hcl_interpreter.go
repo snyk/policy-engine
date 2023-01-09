@@ -655,10 +655,9 @@ func (pa *phantomAttrs) analyze(name FullName, term Term) {
 
 func (pa *phantomAttrs) add(name FullName, val cty.Value) cty.Value {
 	rk := name.ToString()
-	nameVal := cty.StringVal(name.ToString())
 
-	var patch func(LocalName, cty.Value) cty.Value
-	patch = func(local LocalName, val cty.Value) cty.Value {
+	var patch func(LocalName, FullName, cty.Value) cty.Value
+	patch = func(local LocalName, ref FullName, val cty.Value) cty.Value {
 		if val.Type().IsObjectType() {
 			obj := map[string]cty.Value{}
 
@@ -669,19 +668,26 @@ func (pa *phantomAttrs) add(name FullName, val cty.Value) cty.Value {
 			if len(local) == 1 {
 				if k, ok := local[0].(string); ok {
 					if _, present := obj[k]; !present {
-						obj[k] = nameVal
+						obj[k] = cty.StringVal(ref.ToString())
 					}
 				}
 			} else if len(local) > 1 {
 				if k, ok := local[0].(string); ok {
 					if child, ok := obj[k]; ok {
-						obj[k] = patch(local[1:], child)
+						obj[k] = patch(local[1:], ref, child)
 					} else {
-						obj[k] = patch(local[1:], cty.EmptyObjectVal)
+						obj[k] = patch(local[1:], ref, cty.EmptyObjectVal)
 					}
 				}
 			}
 			return cty.ObjectVal(obj)
+		} else if val.Type().IsTupleType() {
+			// Patching counted resources.
+			arr := []cty.Value{}
+			for i, v := range val.AsValueSlice() {
+				arr = append(arr, patch(local, ref.AddIndex(i), v))
+			}
+			return cty.TupleVal(arr)
 		}
 		return val
 	}
@@ -689,7 +695,7 @@ func (pa *phantomAttrs) add(name FullName, val cty.Value) cty.Value {
 	if attrs, ok := pa.attrs[rk]; ok {
 		for attr := range attrs {
 			if full, _ := StringToFullName(attr); full != nil {
-				val = patch(full.Local, val)
+				val = patch(full.Local, name, val)
 			}
 		}
 	}
