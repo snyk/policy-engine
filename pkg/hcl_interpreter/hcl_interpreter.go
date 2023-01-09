@@ -39,22 +39,8 @@ type Analysis struct {
 	// Resource metadata
 	Resources map[string]*ResourceMeta
 
-	// Holds all keys to expressions within resources.  This is necessary if
-	// we want to do dependency analysis and something depends on "all of
-	// a resource".
-	ResourceExpressions map[string][]FullName
-
-	// All known expressions
-	Expressions map[string]hcl.Expression
-
-	// All known blocks
-	Blocks []FullName
-
-	// Replaces Expressions, ResourceExpressions, Blocks
+	// Terms in the evaluation tree.
 	Terms *TermTree
-
-	// Visit state: current resource (if any)
-	currentResource *string
 
 	// Any bad keys that we attempted to reference or failed to parse
 	badKeys map[string]struct{}
@@ -65,11 +51,7 @@ func AnalyzeModuleTree(mtree *ModuleTree) *Analysis {
 		Fs:                  mtree.fs,
 		Modules:             map[string]*ModuleMeta{},
 		Resources:           map[string]*ResourceMeta{},
-		ResourceExpressions: map[string][]FullName{},
-		Expressions:         map[string]hcl.Expression{},
-		Blocks:              []FullName{},
 		Terms:               NewTermTree(),
-		currentResource:     nil,
 		badKeys:             map[string]struct{}{},
 	}
 	mtree.Walk(analysis)
@@ -80,29 +62,9 @@ func (v *Analysis) VisitModule(name ModuleName, meta *ModuleMeta) {
 	v.Modules[ModuleNameToString(name)] = meta
 }
 
-func (v *Analysis) EnterResource(name FullName, resource *ResourceMeta) {
+func (v *Analysis) VisitResource(name FullName, resource *ResourceMeta) {
 	resourceKey := name.ToString()
 	v.Resources[resourceKey] = resource
-	v.ResourceExpressions[resourceKey] = []FullName{}
-	v.currentResource = &resourceKey
-}
-
-func (v *Analysis) LeaveResource() {
-	v.currentResource = nil
-}
-
-func (v *Analysis) VisitBlock(name FullName) {
-	v.Blocks = append(v.Blocks, name)
-}
-
-func (v *Analysis) VisitExpr(name FullName, expr hcl.Expression) {
-	v.Expressions[name.ToString()] = expr
-	if v.currentResource != nil {
-		v.ResourceExpressions[*v.currentResource] = append(
-			v.ResourceExpressions[*v.currentResource],
-			name,
-		)
-	}
 }
 
 func (v *Analysis) VisitTerm(name FullName, term Term) {
@@ -113,83 +75,6 @@ type dependency struct {
 	destination FullName
 	source      *FullName
 	value       *cty.Value
-}
-
-// Iterate all dependencies of a the given expression with the given name.
-func (v *Analysis) dependencies(name FullName, expr hcl.Expression) []dependency {
-	deps := []dependency{}
-	for _, traversal := range expr.Variables() {
-		local, err := TraversalToLocalName(traversal)
-		if err != nil {
-			v.badKeys[TraversalToString(traversal)] = struct{}{}
-			continue
-		}
-		full := FullName{Module: name.Module, Local: local}
-		_, exists := v.Expressions[full.ToString()]
-
-		if exists || full.IsBuiltin() {
-			deps = append(deps, dependency{full, &full, nil})
-		} else if moduleOutput := full.AsModuleOutput(); moduleOutput != nil {
-			// Rewrite module outputs.
-			deps = append(deps, dependency{full, moduleOutput, nil})
-		} else if asVariable, asVar, _ := full.AsVariable(); asVar != nil {
-			// Rewrite variables either as default, or as module input.
-			asModuleInput := full.AsModuleInput()
-			isModuleInput := false
-			if asModuleInput != nil {
-				if _, ok := v.Expressions[asModuleInput.ToString()]; ok {
-					deps = append(deps, dependency{full, asModuleInput, nil})
-					isModuleInput = true
-				}
-			}
-			if !isModuleInput {
-				deps = append(deps, dependency{*asVar, asVariable, nil})
-			}
-		} else if asResourceName, _, trailing := full.AsResourceName(); asResourceName != nil {
-			// Rewrite resource references.
-			resourceKey := asResourceName.ToString()
-			if resourceMeta, ok := v.Resources[resourceKey]; ok {
-				// Keep track of attributes already added, and add "real"
-				// resource expressions.
-				attrs := map[string]struct{}{}
-				for _, re := range v.ResourceExpressions[resourceKey] {
-					attr := re
-					attrs[attr.ToString()] = struct{}{}
-					deps = append(deps, dependency{attr, &attr, nil})
-				}
-
-				// There may be absent attributes as well, such as "id" and
-				// "arn".  We will fill these in with the resource key.
-
-				// Construct attribute name where we will place these.
-				resourceKeyVal := cty.StringVal(resourceKey)
-				resourceName := *asResourceName
-				if resourceMeta.Count {
-					resourceName = resourceName.AddIndex(0)
-				}
-
-				// Add attributes that are not in `attrs` yet.  Include
-				// the requested one (`trailing`) as well as any possible
-				// references we find in the expression (`ExprAttributes`).
-				absentAttrs := ExprAttributes(expr)
-				if len(trailing) > 0 {
-					absentAttrs = append(absentAttrs, trailing)
-				}
-				for _, attr := range absentAttrs {
-					attrName := resourceName.AddLocalName(attr)
-					if _, ok := attrs[attrName.ToString()]; !ok {
-						deps = append(deps, dependency{attrName, nil, &resourceKeyVal})
-					}
-				}
-			} else {
-				// In other cases, just use the local name.  This is sort of
-				// a catch-all and we should try to not rely on this too much.
-				val := cty.StringVal(LocalNameToString(local))
-				deps = append(deps, dependency{full, nil, &val})
-			}
-		}
-	}
-	return deps
 }
 
 func (v *Analysis) termDependencies(name FullName, term Term) []dependency {
@@ -245,41 +130,6 @@ func (v *Analysis) termDependencies(name FullName, term Term) []dependency {
 		}
 	})
 	return deps
-}
-
-// Iterate all expressions to be evaluated in the "correct" order.
-func (v *Analysis) order() ([]FullName, error) {
-	graph := map[string][]string{}
-	for key, expr := range v.Expressions {
-		name, err := StringToFullName(key)
-		if err != nil {
-			v.badKeys[key] = struct{}{}
-			continue
-		}
-
-		graph[key] = []string{}
-		for _, dep := range v.dependencies(*name, expr) {
-			if dep.source != nil {
-				graph[key] = append(graph[key], dep.source.ToString())
-			}
-		}
-	}
-
-	sorted, err := topsort.Topsort(graph)
-	if err != nil {
-		return nil, err
-	}
-
-	sortedNames := []FullName{}
-	for _, key := range sorted {
-		name, err := StringToFullName(key)
-		if err != nil {
-			v.badKeys[key] = struct{}{}
-			continue
-		}
-		sortedNames = append(sortedNames, *name)
-	}
-	return sortedNames, nil
 }
 
 // Iterate all expressions to be evaluated in the "correct" order.
@@ -343,26 +193,6 @@ func EvaluateAnalysis(analysis *Analysis) (*Evaluation, error) {
 	return eval, nil
 }
 
-func (v *Evaluation) prepareVariables(name FullName, expr hcl.Expression) ValTree {
-	sparse := EmptyObjectValTree()
-	for _, dep := range v.Analysis.dependencies(name, expr) {
-		var dependency ValTree
-		if dep.source != nil {
-			sourceModule := ModuleNameToString(dep.source.Module)
-			dependency = BuildValTree(
-				dep.destination.Local,
-				LookupValTree(v.Modules[sourceModule], dep.source.Local),
-			)
-		} else if dep.value != nil {
-			dependency = SingletonValTree(dep.destination.Local, *dep.value)
-		}
-		if dependency != nil {
-			sparse = MergeValTree(sparse, dependency)
-		}
-	}
-	return sparse
-}
-
 func (v *Evaluation) prepareTermVariables(name FullName, term Term) ValTree {
 	sparse := EmptyObjectValTree()
 	for _, dep := range v.Analysis.termDependencies(name, term) {
@@ -381,65 +211,6 @@ func (v *Evaluation) prepareTermVariables(name FullName, term Term) ValTree {
 		}
 	}
 	return sparse
-}
-
-func (v *Evaluation) evaluate() error {
-	// Obtain order
-	order, err := v.Analysis.order()
-	if err != nil {
-		return err
-	}
-
-	// Initialize a skeleton with blocks, to ensure empty blocks are present
-	for _, name := range v.Analysis.Blocks {
-		moduleKey := ModuleNameToString(name.Module)
-		tree := BuildValTree(name.Local, EmptyObjectValTree())
-		v.Modules[moduleKey] = MergeValTree(v.Modules[moduleKey], tree)
-	}
-
-	// Evaluate expressions
-	for _, name := range order {
-		expr := v.Analysis.Expressions[name.ToString()]
-		moduleKey := ModuleNameToString(name.Module)
-		moduleMeta := v.Analysis.Modules[moduleKey]
-
-		vars := v.prepareVariables(name, expr)
-		vars = MergeValTree(vars, SingletonValTree(LocalName{"path", "module"}, cty.StringVal(moduleMeta.Dir)))
-		vars = MergeValTree(vars, SingletonValTree(LocalName{"terraform", "workspace"}, cty.StringVal("default")))
-
-		// Add count.index if inside a counted resource.
-		resourceName, _, _ := name.AsResourceName()
-		if resourceName != nil {
-			resourceKey := resourceName.ToString()
-			if resource, ok := v.Analysis.Resources[resourceKey]; ok {
-				if resource.Count {
-					vars = MergeValTree(vars, SingletonValTree(LocalName{"count", "index"}, cty.NumberIntVal(0)))
-				}
-			}
-		}
-
-		data := Data{}
-		scope := lang.Scope{
-			Data:     &data,
-			SelfAddr: nil,
-			PureOnly: false,
-		}
-		ctx := hcl.EvalContext{
-			Functions: funcs.Override(v.Analysis.Fs, scope),
-			Variables: ValTreeToVariables(vars),
-		}
-
-		val, diags := expr.Value(&ctx)
-		if diags.HasErrors() {
-			v.errors = append(v.errors, fmt.Errorf("evaluate: error: %s", diags))
-			val = cty.NullVal(val.Type())
-		}
-
-		singleton := SingletonValTree(name.Local, val)
-		v.Modules[moduleKey] = MergeValTree(v.Modules[moduleKey], singleton)
-	}
-
-	return nil
 }
 
 func (v *Evaluation) evaluateTerms() error {

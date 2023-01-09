@@ -239,12 +239,7 @@ func moduleIsLocal(source string) bool {
 
 type Visitor interface {
 	VisitModule(name ModuleName, meta *ModuleMeta)
-	EnterResource(name FullName, resource *ResourceMeta)
-	LeaveResource()
-	VisitBlock(name FullName)
-	VisitExpr(name FullName, expr hcl.Expression)
-
-	// New interface, replaces VisitBlock/VisitExpr/LeaveResource
+	VisitResource(name FullName, resource *ResourceMeta)
 	VisitTerm(name FullName, term Term)
 }
 
@@ -262,9 +257,8 @@ func walkModuleTree(v Visitor, moduleName ModuleName, mtree *ModuleTree) {
 
 		// TODO: This is not good.  We end up walking child2 as it were child2.
 		configName := FullName{moduleName, LocalName{"input", key}}
-		walkBody(v, configName, child.config)
 		for k, input := range TermFromBody(child.config).Attributes() {
-    		v.VisitTerm(configName.AddKey(k), input)
+			v.VisitTerm(configName.AddKey(k), input)
 		}
 
 		walkModuleTree(v, childModuleName, child)
@@ -277,20 +271,17 @@ func walkModule(v Visitor, moduleName ModuleName, module *configs.Module, variab
 	for _, variable := range module.Variables {
 		if val, ok := variableValues[variable.Name]; ok {
 			expr := hclsyntax.LiteralValueExpr{Val: val}
-			v.VisitExpr(name.AddKey("variable").AddKey(variable.Name), &expr)
 			v.VisitTerm(name.AddKey("variable").AddKey(variable.Name), TermFromExpr(&expr))
 		} else if !variable.Default.IsNull() {
 			expr := hclsyntax.LiteralValueExpr{
 				Val:      variable.Default,
 				SrcRange: variable.DeclRange,
 			}
-			v.VisitExpr(name.AddKey("variable").AddKey(variable.Name), &expr)
 			v.VisitTerm(name.AddKey("variable").AddKey(variable.Name), TermFromExpr(&expr))
 		}
 	}
 
 	for _, local := range module.Locals {
-		v.VisitExpr(name.AddKey("local").AddKey(local.Name), local.Expr)
 		v.VisitTerm(name.AddKey("local").AddKey(local.Name), TermFromExpr(local.Expr))
 	}
 
@@ -304,13 +295,11 @@ func walkModule(v Visitor, moduleName ModuleName, module *configs.Module, variab
 
 	for _, output := range module.Outputs {
 		if output.Expr != nil {
-			v.VisitExpr(name.AddKey("output").AddKey(output.Name), output.Expr)
 			v.VisitTerm(name.AddKey("output").AddKey(output.Name), TermFromExpr(output.Expr))
 		}
 	}
 
 	for providerName, providerConf := range module.ProviderConfigs {
-		walkBody(v, ProviderConfigName(moduleName, providerName), providerConf.Config)
 		v.VisitTerm(ProviderConfigName(moduleName, providerName), TermFromBody(providerConf.Config))
 	}
 }
@@ -344,59 +333,17 @@ func walkResource(
 		resourceMeta.ProviderVersionConstraint = providerReqs.Requirement.Required.String()
 	}
 
-	v.EnterResource(name, resourceMeta)
+	v.VisitResource(name, resourceMeta)
 
 	term := TermFromBody(resource.Config)
 
 	resourceName := name
 	if haveCount {
 		name = name.AddIndex(0)
-		v.VisitExpr(name.AddKey("count"), resource.Count)
 		term = term.WithCount(resource.Count)
 	}
 
-	walkBody(v, name, resource.Config)
 	v.VisitTerm(resourceName, term)
-
-	v.LeaveResource()
-}
-
-func walkBody(v Visitor, name FullName, body hcl.Body) {
-	switch b := body.(type) {
-	case *hclsyntax.Body:
-		walkBlock(v, name, b)
-	default:
-		walkJustAttributes(v, name, body)
-	}
-}
-
-func walkJustAttributes(v Visitor, name FullName, body hcl.Body) {
-	v.VisitBlock(name)
-
-	attributes, _ := body.JustAttributes()
-	for _, attribute := range attributes {
-		v.VisitExpr(name.AddKey(attribute.Name), attribute.Expr)
-	}
-}
-
-func walkBlock(v Visitor, name FullName, body *hclsyntax.Body) {
-	v.VisitBlock(name)
-
-	for _, attribute := range body.Attributes {
-		v.VisitExpr(name.AddKey(attribute.Name), attribute.Expr)
-	}
-
-	blockCounter := map[string]int{} // Which index we're at per block type.
-	for _, block := range body.Blocks {
-		idx := 0
-		if i, ok := blockCounter[block.Type]; ok {
-			idx = i
-			blockCounter[block.Type] += 1
-		} else {
-			blockCounter[block.Type] = 1
-		}
-		walkBlock(v, name.AddKey(block.Type).AddIndex(idx), block.Body)
-	}
 }
 
 // TfFilePathJoin is like `filepath.Join` but avoids cleaning the path.  This
