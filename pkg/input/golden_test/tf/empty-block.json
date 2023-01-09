@@ -12,7 +12,11 @@
         "id": "google_compute_instance.test",
         "resource_type": "google_compute_instance",
         "namespace": "golden_test/tf/empty-block/main.tf",
-        "meta": {},
+        "meta": {
+          "terraform": {
+            "provider_config": {}
+          }
+        },
         "attributes": {
           "boot_disk": [
             {

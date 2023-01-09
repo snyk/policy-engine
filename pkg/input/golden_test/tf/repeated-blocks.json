@@ -12,7 +12,11 @@
         "id": "google_sql_database_instance.default",
         "resource_type": "google_sql_database_instance",
         "namespace": "golden_test/tf/repeated-blocks/main.tf",
-        "meta": {},
+        "meta": {
+          "terraform": {
+            "provider_config": {}
+          }
+        },
         "attributes": {
           "database_version": "POSTGRES_11",
           "deletion_protection": false,
