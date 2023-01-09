@@ -114,13 +114,13 @@ func (t Term) evaluateExpr(
 	evalExpr func(expr hcl.Expression, extraVars interface{}) (cty.Value, hcl.Diagnostics),
 ) (cty.Value, hcl.Diagnostics) {
 	if t.expr != nil {
-		return evalExpr(*t.expr, nil)
+		return evalExpr(*t.expr, EmptyObjectValTree())
 	} else {
 		obj := map[string]cty.Value{}
 		diagnostics := hcl.Diagnostics{}
 
 		for k, attr := range t.attrs {
-			val, diags := evalExpr(attr, nil)
+			val, diags := evalExpr(attr, EmptyObjectValTree())
 			diagnostics = append(diagnostics, diags...)
 			obj[k] = val
 		}
@@ -146,25 +146,38 @@ func (t Term) Evaluate(
 	evalExpr func(expr hcl.Expression, extraVars interface{}) (cty.Value, hcl.Diagnostics),
 ) (cty.Value, hcl.Diagnostics) {
 	if t.count != nil {
-		diagnostics := hcl.Diagnostics{}
-		countVal, diags := evalExpr(*t.count, nil)
-		diagnostics = append(diagnostics, diags...)
-
-		if countVal.Type() == cty.Number {
-			countBig := countVal.AsBigFloat()
-			if countBig.IsInt() {
-				count, _ := countBig.Int64()
-				arr := []cty.Value{}
-				for i := int64(0); i < count; i++ {
-					val, diags := t.evaluateExpr(func(e hcl.Expression, v interface{}) (cty.Value, hcl.Diagnostics) {
-						v = MergeValTree(v, SingletonValTree(LocalName{"count", "index"}, cty.NumberIntVal(i)))
-						return evalExpr(e, v)
-					})
-					diagnostics = append(diagnostics, diags...)
-					arr = append(arr, val)
+		// Helper
+		parseCount := func(val cty.Value) *int64 {
+			if val.IsNull() || !val.IsKnown() {
+				// An unknown variable prompts the user to enter a value.  This
+				// could be how many resources we want to create.  Just create one
+				// so we can check it for misconfigurations.
+				count := int64(1)
+				return &count
+			} else if val.Type() == cty.Number {
+				big := val.AsBigFloat()
+				if big.IsInt() {
+					count, _ := big.Int64()
+					return &count
 				}
-				return cty.TupleVal(arr), diagnostics
 			}
+			return nil
+		}
+
+		diagnostics := hcl.Diagnostics{}
+		countVal, diags := evalExpr(*t.count, EmptyObjectValTree())
+		diagnostics = append(diagnostics, diags...)
+		if count := parseCount(countVal); count != nil {
+			arr := []cty.Value{}
+			for i := int64(0); i < *count; i++ {
+				val, diags := t.evaluateExpr(func(e hcl.Expression, v interface{}) (cty.Value, hcl.Diagnostics) {
+					v = MergeValTree(v, SingletonValTree(LocalName{"count", "index"}, cty.NumberIntVal(i)))
+					return evalExpr(e, v)
+				})
+				diagnostics = append(diagnostics, diags...)
+				arr = append(arr, val)
+			}
+			return cty.TupleVal(arr), diagnostics
 		}
 	}
 
