@@ -72,7 +72,7 @@ func (v *Analysis) VisitTerm(name FullName, term Term) {
 }
 
 type dependency struct {
-	destination FullName
+	destination *FullName
 	source      *FullName
 	value       *cty.Value
 }
@@ -90,12 +90,12 @@ func (v *Analysis) termDependencies(name FullName, term Term) []dependency {
 			full := FullName{Module: name.Module, Local: local}
 
 			if prefix, _ := v.Terms.LookupByPrefix(full); prefix != nil {
-				deps = append(deps, dependency{*prefix, prefix, nil})
+				deps = append(deps, dependency{nil, prefix, nil})
 				continue
 			}
 
 			if moduleOutput := full.AsModuleOutput(); moduleOutput != nil {
-				deps = append(deps, dependency{full, moduleOutput, nil})
+				deps = append(deps, dependency{&full, moduleOutput, nil})
 				continue
 			}
 
@@ -105,12 +105,12 @@ func (v *Analysis) termDependencies(name FullName, term Term) []dependency {
 				isModuleInput := false
 				if asModuleInput != nil {
 					if mtp, _ := v.Terms.LookupByPrefix(*asModuleInput); mtp != nil {
-						deps = append(deps, dependency{*asVar, mtp, nil})
+						deps = append(deps, dependency{asVar, mtp, nil})
 						isModuleInput = true
 					}
 				}
 				if !isModuleInput {
-					deps = append(deps, dependency{*asVar, asVariable, nil})
+					deps = append(deps, dependency{asVar, asVariable, nil})
 				}
 				continue
 			}
@@ -118,7 +118,7 @@ func (v *Analysis) termDependencies(name FullName, term Term) []dependency {
 			// In other cases, just use the local name.  This is sort of
 			// a catch-all and we should try to not rely on this too much.
 			val := cty.StringVal(LocalNameToString(local))
-			deps = append(deps, dependency{full, nil, &val})
+			deps = append(deps, dependency{&full, nil, &val})
 		}
 	})
 	return deps
@@ -186,20 +186,22 @@ func EvaluateAnalysis(analysis *Analysis) (*Evaluation, error) {
 }
 
 func (v *Evaluation) prepareTermVariables(name FullName, term Term) cty.Value {
-	sparse := cty.EmptyObjectVal
+	sparse := v.Modules[ModuleNameToString(name.Module)]
 	for _, dep := range v.Analysis.termDependencies(name, term) {
-		var dependency cty.Value
-		if dep.source != nil {
-			sourceModule := ModuleNameToString(dep.source.Module)
-			dependency = NestVal(
-				dep.destination.Local,
-				LookupVal(v.Modules[sourceModule], dep.source.Local),
-			)
-		} else if dep.value != nil {
-			dependency = NestVal(dep.destination.Local, *dep.value)
-		}
-		if !dependency.IsNull() {
-			sparse = MergeVal(sparse, dependency)
+		if dep.destination != nil {
+			var dependency cty.Value
+			if dep.source != nil {
+				sourceModule := ModuleNameToString(dep.source.Module)
+				dependency = NestVal(
+					dep.destination.Local,
+					LookupVal(v.Modules[sourceModule], dep.source.Local),
+				)
+			} else if dep.value != nil {
+				dependency = NestVal(dep.destination.Local, *dep.value)
+			}
+			if !dependency.IsNull() {
+				sparse = MergeVal(sparse, dependency)
+			}
 		}
 	}
 	return sparse
