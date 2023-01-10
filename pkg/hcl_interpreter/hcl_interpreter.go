@@ -71,10 +71,21 @@ func (v *Analysis) VisitTerm(name FullName, term Term) {
 	v.Terms.AddTerm(name, term)
 }
 
+// A dependency contains all the information we need to schedule evaluation of
+// a term and where it should go in the scope of the term to be evaluated.
 type dependency struct {
+	// If this dependency should end up in a different place in the module tree
+	// than the original term, destination should be set to a non-nil value.
 	destination *FullName
-	source      *FullName
-	value       *cty.Value
+
+	// If source is set, we will evaluate the source term before we evaluate the
+	// term depending on it.
+	source *FullName
+
+	// Sometimes, rather than evaluating a term we may want to place a literal
+	// value in the scope tree.  To do this, set source to nil and value to the
+	// non-nil literal value.
+	value *cty.Value
 }
 
 func (v *Analysis) termDependencies(name FullName, term Term) []dependency {
@@ -361,94 +372,4 @@ func (e *Evaluation) Errors() []error {
 	}
 	errors = append(errors, e.errors...)
 	return errors
-}
-
-type phantomAttrs struct {
-	// A set of phantom attributes per FullName.
-	attrs map[string]map[string]struct{}
-}
-
-func newPhantomAttrs() *phantomAttrs {
-	return &phantomAttrs{
-		attrs: map[string]map[string]struct{}{},
-	}
-}
-
-func (pa *phantomAttrs) analyze(name FullName, term Term) {
-	term.VisitExpressions(func(expr hcl.Expression) {
-		exprAttrs := ExprAttributes(expr)
-		for _, traversal := range expr.Variables() {
-			local, err := TraversalToLocalName(traversal)
-			if err != nil {
-				continue
-			}
-
-			full := FullName{Module: name.Module, Local: local}
-			if asResourceName, trailing := full.AsResourceName(); asResourceName != nil {
-				attrs := map[string]struct{}{}
-				attrs[LocalNameToString(trailing)] = struct{}{}
-				for _, attr := range exprAttrs {
-					attrs[LocalNameToString(attr)] = struct{}{}
-				}
-
-				if len(attrs) > 0 {
-					resourceKey := asResourceName.ToString()
-					if _, ok := pa.attrs[resourceKey]; !ok {
-						pa.attrs[resourceKey] = map[string]struct{}{}
-					}
-					for k := range attrs {
-						pa.attrs[resourceKey][k] = struct{}{}
-					}
-				}
-			}
-		}
-	})
-}
-
-func (pa *phantomAttrs) add(name FullName, val cty.Value) cty.Value {
-	rk := name.ToString()
-
-	var patch func(LocalName, string, cty.Value) cty.Value
-	patch = func(local LocalName, ref string, val cty.Value) cty.Value {
-		if val.Type().IsObjectType() {
-			obj := map[string]cty.Value{}
-
-			for k, v := range val.AsValueMap() {
-				obj[k] = v
-			}
-
-			if len(local) == 1 {
-				k := local[0]
-				if _, present := obj[k]; !present {
-					obj[k] = cty.StringVal(ref)
-				}
-			} else if len(local) > 1 {
-				k := local[0]
-				if child, ok := obj[k]; ok {
-					obj[k] = patch(local[1:], ref, child)
-				} else {
-					obj[k] = patch(local[1:], ref, cty.EmptyObjectVal)
-				}
-			}
-			return cty.ObjectVal(obj)
-		} else if val.Type().IsTupleType() {
-			// Patching counted resources.
-			arr := []cty.Value{}
-			for i, v := range val.AsValueSlice() {
-				indexedRef := fmt.Sprintf("%s[%d]", ref, i)
-				arr = append(arr, patch(local, indexedRef, v))
-			}
-			return cty.TupleVal(arr)
-		}
-		return val
-	}
-
-	if attrs, ok := pa.attrs[rk]; ok {
-		for attr := range attrs {
-			if full, _ := StringToFullName(attr); full != nil {
-				val = patch(full.Local, name.ToString(), val)
-			}
-		}
-	}
-	return val
 }

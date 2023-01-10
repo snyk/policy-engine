@@ -27,6 +27,7 @@ func NestVal(prefix []string, val cty.Value) cty.Value {
 	}
 }
 
+// Merges two Values with a preference given to the right object.
 func MergeVal(left cty.Value, right cty.Value) cty.Value {
 	if left.IsKnown() && left.Type().IsObjectType() && !left.IsNull() &&
 		right.IsKnown() && right.Type().IsObjectType() && !right.IsNull() {
@@ -47,7 +48,7 @@ func MergeVal(left cty.Value, right cty.Value) cty.Value {
 	return right
 }
 
-// Look up a given subtree, returns nil if not found
+// Look up a given subtree, returns Null if not found
 func LookupVal(tree cty.Value, name LocalName) cty.Value {
 	for _, k := range name {
 		if tree.IsKnown() && tree.Type().IsObjectType() && !tree.IsNull() {
