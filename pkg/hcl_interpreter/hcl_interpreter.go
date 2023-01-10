@@ -88,7 +88,7 @@ type dependency struct {
 	value *cty.Value
 }
 
-func (v *Analysis) termDependencies(name FullName, term Term) []dependency {
+func (v *Analysis) dependencies(name FullName, term Term) []dependency {
 	deps := []dependency{}
 	term.VisitExpressions(func(expr hcl.Expression) {
 		for _, traversal := range expr.Variables() {
@@ -136,12 +136,12 @@ func (v *Analysis) termDependencies(name FullName, term Term) []dependency {
 }
 
 // Iterate all expressions to be evaluated in the "correct" order.
-func (v *Analysis) orderTerms() ([]FullName, error) {
+func (v *Analysis) order() ([]FullName, error) {
 	graph := map[string][]string{}
 	v.Terms.VisitTerms(func(name FullName, term Term) {
 		key := name.ToString()
 		graph[key] = []string{}
-		deps := v.termDependencies(name, term)
+		deps := v.dependencies(name, term)
 		for _, dep := range deps {
 			if dep.source != nil {
 				graph[key] = append(graph[key], dep.source.ToString())
@@ -189,16 +189,16 @@ func EvaluateAnalysis(analysis *Analysis) (*Evaluation, error) {
 		eval.Modules[moduleKey] = cty.EmptyObjectVal
 	}
 
-	if err := eval.evaluateTerms(); err != nil {
+	if err := eval.evaluate(); err != nil {
 		return nil, err
 	}
 
 	return eval, nil
 }
 
-func (v *Evaluation) prepareTermVariables(name FullName, term Term) cty.Value {
+func (v *Evaluation) prepareVariables(name FullName, term Term) cty.Value {
 	sparse := v.Modules[ModuleNameToString(name.Module)]
-	for _, dep := range v.Analysis.termDependencies(name, term) {
+	for _, dep := range v.Analysis.dependencies(name, term) {
 		if dep.destination != nil {
 			var dependency cty.Value
 			if dep.source != nil {
@@ -218,9 +218,9 @@ func (v *Evaluation) prepareTermVariables(name FullName, term Term) cty.Value {
 	return sparse
 }
 
-func (v *Evaluation) evaluateTerms() error {
+func (v *Evaluation) evaluate() error {
 	// Obtain order again
-	order, err := v.Analysis.orderTerms()
+	order, err := v.Analysis.order()
 	if err != nil {
 		return err
 	}
@@ -237,7 +237,7 @@ func (v *Evaluation) evaluateTerms() error {
 		moduleKey := ModuleNameToString(name.Module)
 		moduleMeta := v.Analysis.Modules[moduleKey]
 
-		vars := v.prepareTermVariables(name, term)
+		vars := v.prepareVariables(name, term)
 		vars = MergeVal(vars, NestVal(LocalName{"path", "module"}, cty.StringVal(moduleMeta.Dir)))
 		vars = MergeVal(vars, NestVal(LocalName{"terraform", "workspace"}, cty.StringVal("default")))
 
