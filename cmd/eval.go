@@ -19,34 +19,38 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
-	"path/filepath"
 
 	"github.com/open-policy-agent/opa/ast"
-	"github.com/open-policy-agent/opa/repl"
+	"github.com/open-policy-agent/opa/rego"
 	"github.com/open-policy-agent/opa/storage"
 	"github.com/open-policy-agent/opa/storage/inmem"
+	"github.com/spf13/cobra"
+
 	"github.com/snyk/policy-engine/pkg/data"
 	"github.com/snyk/policy-engine/pkg/engine"
+	"github.com/snyk/policy-engine/pkg/policy"
 	"github.com/snyk/policy-engine/pkg/snapshot_testing"
-	"github.com/spf13/cobra"
 )
 
 var (
-	cmdReplInit []string
+	cmdEvalInput []string
 )
 
-var replCmd = &cobra.Command{
-	Use:   "repl [-d <rules/metadata>...] [input]",
-	Short: "Policy Engine",
+var evalCmd = &cobra.Command{
+	Use:   "eval [-d <rules/metadata>...] eval [-i input] [query]",
+	Short: "Evaluate a query",
 	RunE: func(cmd *cobra.Command, args []string) error {
 		ctx := context.Background()
 		logger := cmdLogger()
 		snapshot_testing.GlobalRegisterNoop()
 		consumer := engine.NewPolicyConsumer()
-		if len(args) > 1 {
+
+		regoOptions := []func(r *rego.Rego){}
+
+		if len(cmdEvalInput) > 1 {
 			return fmt.Errorf("Expected at most 1 input")
-		} else if len(args) == 1 {
-			inputState, err := loadSingleInput(ctx, logger, args[0])
+		} else if len(cmdEvalInput) == 1 {
+			inputState, err := loadSingleInput(ctx, logger, cmdEvalInput[0])
 			if err != nil {
 				return err
 			}
@@ -54,16 +58,9 @@ var replCmd = &cobra.Command{
 			if err != nil {
 				return err
 			}
-			consumer.DataDocument(
-				ctx,
-				"repl/input/state.json",
-				map[string]interface{}{
-					"repl": map[string]interface{}{
-						"input": replInput,
-					},
-				},
-			)
+			regoOptions = append(regoOptions, rego.Input(replInput))
 		}
+
 		providers := []data.Provider{
 			data.PureRegoBuiltinsProvider(),
 			data.PureRegoLibProvider(),
@@ -87,45 +84,35 @@ var replCmd = &cobra.Command{
 		if err = store.Commit(ctx, txn); err != nil {
 			return err
 		}
-		var historyPath string
-		if homeDir, err := os.UserHomeDir(); err == nil {
-			historyPath = filepath.Join(homeDir, ".engine-history")
+		regoOptions = append(regoOptions, rego.Store(store))
+
+		compiler := ast.NewCompiler().WithCapabilities(policy.Capabilities())
+		compiler.Compile(consumer.Modules)
+		regoOptions = append(regoOptions, rego.Compiler(compiler))
+
+		if len(args) != 1 {
+			return fmt.Errorf("Expected exactly one query argument")
 		} else {
-			historyPath = filepath.Join(".", ".engine-history")
-		}
-		r := repl.New(
-			store,
-			historyPath,
-			os.Stdout,
-			"pretty",
-			ast.CompileErrorLimitDefault,
-			"",
-		)
-
-		r.OneShot(ctx, "strict-builtin-errors")
-		for _, command := range cmdReplInit {
-			if err := r.OneShot(ctx, command); err != nil {
-				return err
-			}
+			regoOptions = append(regoOptions, rego.Query(args[0]))
 		}
 
-		r.Loop(ctx)
+		query, err := rego.New(regoOptions...).PrepareForEval(ctx)
+		if err != nil {
+			return err
+		}
+		resultSet, err := query.Eval(ctx)
+		if err != nil {
+			return err
+		}
+		bytes, err := json.Marshal(resultSet)
+		if err != nil {
+			return err
+		}
+		fmt.Fprintf(os.Stdout, "%s\n", string(bytes))
 		return nil
 	},
 }
 
-func jsonMarshalUnmarshal(v interface{}) (map[string]interface{}, error) {
-	if b, err := json.Marshal(v); err != nil {
-		return nil, err
-	} else {
-		out := map[string]interface{}{}
-		if err := json.Unmarshal(b, &out); err != nil {
-			return nil, err
-		}
-		return out, nil
-	}
-}
-
 func init() {
-	replCmd.Flags().StringSliceVarP(&cmdReplInit, "init", "i", nil, "execute Rego statement(s) before starting REPL")
+	evalCmd.Flags().StringSliceVarP(&cmdEvalInput, "input", "i", nil, "input file or directory")
 }

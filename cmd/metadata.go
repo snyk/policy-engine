@@ -35,17 +35,7 @@ var metadataCmd = &cobra.Command{
 		providers := []data.Provider{
 			data.PureRegoLibProvider(),
 		}
-		for _, path := range rootCmdRegoPaths {
-			if isTgz(path) {
-				f, err := os.Open(path)
-				if err != nil {
-					return err
-				}
-				providers = append(providers, data.TarGzProvider(f))
-			} else {
-				providers = append(providers, data.LocalProvider(path))
-			}
-		}
+		providers = append(providers, rootCmdRegoProviders()...)
 		ctx := context.Background()
 		eng, err := engine.NewEngine(ctx, &engine.EngineOptions{
 			Providers: providers,

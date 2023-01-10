@@ -15,12 +15,14 @@
 package cmd
 
 import (
+	"context"
 	"fmt"
 	"io"
 	"net/http"
 	"os"
 
 	"github.com/rs/zerolog"
+	"github.com/snyk/policy-engine/pkg/data"
 	"github.com/snyk/policy-engine/pkg/logging"
 	"github.com/spf13/cobra"
 )
@@ -89,6 +91,25 @@ func isTgz(path string) bool {
 	return m == "application/x-gzip" || m == "application/gzip"
 }
 
+func rootCmdRegoProviders() []data.Provider {
+	providers := []data.Provider{}
+	for _, path := range rootCmdRegoPaths {
+		if isTgz(path) {
+			f, err := os.Open(path)
+			if err != nil {
+				providers = append(providers, func(ctx context.Context, consumer data.Consumer) error {
+					return err
+				})
+			} else {
+				providers = append(providers, data.TarGzProvider(f))
+			}
+		} else {
+			providers = append(providers, data.LocalProvider(path))
+		}
+	}
+	return providers
+}
+
 func init() {
 	rootCmdVerbose = rootCmd.PersistentFlags().BoolP("verbose", "v", false, "Sets log level to DEBUG")
 	rootCmd.PersistentFlags().StringSliceVarP(&rootCmdRegoPaths, "data", "d", rootCmdRegoPaths, "Rego paths to load")
@@ -98,4 +119,5 @@ func init() {
 	rootCmd.AddCommand(replCmd)
 	rootCmd.AddCommand(versionCmd)
 	rootCmd.AddCommand(metadataCmd)
+	rootCmd.AddCommand(evalCmd)
 }
