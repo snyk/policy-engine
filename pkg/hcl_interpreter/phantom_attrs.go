@@ -72,26 +72,9 @@ func (pa *phantomAttrs) add(name FullName, val cty.Value) cty.Value {
 	var patch func(LocalName, string, cty.Value) cty.Value
 	patch = func(local LocalName, ref string, val cty.Value) cty.Value {
 		if val.Type().IsObjectType() {
-			obj := map[string]cty.Value{}
-
-			for k, v := range val.AsValueMap() {
-				obj[k] = v
-			}
-
-			if len(local) == 1 {
-				k := local[0]
-				if _, present := obj[k]; !present {
-					obj[k] = cty.StringVal(ref)
-				}
-			} else if len(local) > 1 {
-				k := local[0]
-				if child, ok := obj[k]; ok {
-					obj[k] = patch(local[1:], ref, child)
-				} else {
-					obj[k] = patch(local[1:], ref, cty.EmptyObjectVal)
-				}
-			}
-			return cty.ObjectVal(obj)
+			// Insert the literal string value at the given location.
+			sparse := NestVal(local, cty.StringVal(ref))
+			return MergeVal(sparse, val)
 		} else if val.Type().IsTupleType() {
 			// Patching counted resources.
 			arr := []cty.Value{}
