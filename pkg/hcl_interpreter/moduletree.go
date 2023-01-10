@@ -43,7 +43,7 @@ type ResourceMeta struct {
 	ProviderType              string
 	ProviderName              string
 	ProviderVersionConstraint string
-	Count                     bool
+	Multiple                  bool
 	Location                  hcl.Range
 	Body                      hcl.Body // For source code locations only.
 }
@@ -317,6 +317,7 @@ func walkResource(
 	}
 	name = name.Add(resource.Type).Add(resource.Name)
 	haveCount := resource.Count != nil
+	haveForEach := resource.ForEach != nil
 
 	providerName := resource.ProviderConfigAddr().StringCompact()
 	resourceMeta := &ResourceMeta{
@@ -325,7 +326,7 @@ func walkResource(
 		ProviderType: resource.Provider.Type,
 		Type:         resource.Type,
 		Location:     resource.DeclRange,
-		Count:        haveCount,
+		Multiple:     haveCount || haveForEach,
 		Body:         resource.Config,
 	}
 
@@ -338,6 +339,8 @@ func walkResource(
 	term := TermFromBody(resource.Config)
 	if haveCount {
 		term = term.WithCount(resource.Count)
+	} else if haveForEach {
+		term = term.WithForEach(resource.ForEach)
 	}
 
 	v.VisitTerm(name, term)

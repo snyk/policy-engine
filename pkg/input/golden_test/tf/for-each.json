@@ -1,0 +1,106 @@
+{
+  "format": "",
+  "format_version": "",
+  "input_type": "tf_hcl",
+  "environment_provider": "iac",
+  "meta": {
+    "filepath": "golden_test/tf/for-each/main.tf"
+  },
+  "resources": {
+    "aws_iam_user": {
+      "aws_iam_user.the-accounts[0]": {
+        "id": "aws_iam_user.the-accounts[0]",
+        "resource_type": "aws_iam_user",
+        "namespace": "golden_test/tf/for-each/main.tf",
+        "meta": {},
+        "attributes": {
+          "for_each": [
+            "Alice",
+            "Dottie",
+            "James",
+            "Todd"
+          ],
+          "name": "Alice"
+        }
+      },
+      "aws_iam_user.the-accounts[1]": {
+        "id": "aws_iam_user.the-accounts[1]",
+        "resource_type": "aws_iam_user",
+        "namespace": "golden_test/tf/for-each/main.tf",
+        "meta": {},
+        "attributes": {
+          "for_each": [
+            "Alice",
+            "Dottie",
+            "James",
+            "Todd"
+          ],
+          "name": "Dottie"
+        }
+      },
+      "aws_iam_user.the-accounts[2]": {
+        "id": "aws_iam_user.the-accounts[2]",
+        "resource_type": "aws_iam_user",
+        "namespace": "golden_test/tf/for-each/main.tf",
+        "meta": {},
+        "attributes": {
+          "for_each": [
+            "Alice",
+            "Dottie",
+            "James",
+            "Todd"
+          ],
+          "name": "James"
+        }
+      },
+      "aws_iam_user.the-accounts[3]": {
+        "id": "aws_iam_user.the-accounts[3]",
+        "resource_type": "aws_iam_user",
+        "namespace": "golden_test/tf/for-each/main.tf",
+        "meta": {},
+        "attributes": {
+          "for_each": [
+            "Alice",
+            "Dottie",
+            "James",
+            "Todd"
+          ],
+          "name": "Todd"
+        }
+      }
+    },
+    "azurerm_resource_group": {
+      "azurerm_resource_group.rg[0]": {
+        "id": "azurerm_resource_group.rg[0]",
+        "resource_type": "azurerm_resource_group",
+        "namespace": "golden_test/tf/for-each/main.tf",
+        "meta": {},
+        "attributes": {
+          "for_each": {
+            "a_group": "eastus",
+            "another_group": "westus2"
+          },
+          "location": "eastus",
+          "name": "a_group"
+        }
+      },
+      "azurerm_resource_group.rg[1]": {
+        "id": "azurerm_resource_group.rg[1]",
+        "resource_type": "azurerm_resource_group",
+        "namespace": "golden_test/tf/for-each/main.tf",
+        "meta": {},
+        "attributes": {
+          "for_each": {
+            "a_group": "eastus",
+            "another_group": "westus2"
+          },
+          "location": "westus2",
+          "name": "another_group"
+        }
+      }
+    }
+  },
+  "scope": {
+    "filepath": "golden_test/tf/for-each/main.tf"
+  }
+}
