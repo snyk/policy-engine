@@ -258,7 +258,7 @@ func walkModuleTree(v Visitor, moduleName ModuleName, mtree *ModuleTree) {
 		// TODO: This is not good.  We end up walking child2 as it were child2.
 		configName := FullName{moduleName, LocalName{"input", key}}
 		for k, input := range TermFromBody(child.config).Attributes() {
-			v.VisitTerm(configName.AddKey(k), input)
+			v.VisitTerm(configName.Add(k), input)
 		}
 
 		walkModuleTree(v, childModuleName, child)
@@ -271,18 +271,18 @@ func walkModule(v Visitor, moduleName ModuleName, module *configs.Module, variab
 	for _, variable := range module.Variables {
 		if val, ok := variableValues[variable.Name]; ok {
 			expr := hclsyntax.LiteralValueExpr{Val: val}
-			v.VisitTerm(name.AddKey("variable").AddKey(variable.Name), TermFromExpr(&expr))
+			v.VisitTerm(name.Add("variable").Add(variable.Name), TermFromExpr(&expr))
 		} else if !variable.Default.IsNull() {
 			expr := hclsyntax.LiteralValueExpr{
 				Val:      variable.Default,
 				SrcRange: variable.DeclRange,
 			}
-			v.VisitTerm(name.AddKey("variable").AddKey(variable.Name), TermFromExpr(&expr))
+			v.VisitTerm(name.Add("variable").Add(variable.Name), TermFromExpr(&expr))
 		}
 	}
 
 	for _, local := range module.Locals {
-		v.VisitTerm(name.AddKey("local").AddKey(local.Name), TermFromExpr(local.Expr))
+		v.VisitTerm(name.Add("local").Add(local.Name), TermFromExpr(local.Expr))
 	}
 
 	for _, resource := range module.DataResources {
@@ -295,7 +295,7 @@ func walkModule(v Visitor, moduleName ModuleName, module *configs.Module, variab
 
 	for _, output := range module.Outputs {
 		if output.Expr != nil {
-			v.VisitTerm(name.AddKey("output").AddKey(output.Name), TermFromExpr(output.Expr))
+			v.VisitTerm(name.Add("output").Add(output.Name), TermFromExpr(output.Expr))
 		}
 	}
 
@@ -313,9 +313,9 @@ func walkResource(
 ) {
 	name := EmptyFullName(moduleName)
 	if isDataResource {
-		name = name.AddKey("data")
+		name = name.Add("data")
 	}
-	name = name.AddKey(resource.Type).AddKey(resource.Name)
+	name = name.Add(resource.Type).Add(resource.Name)
 	haveCount := resource.Count != nil
 
 	providerName := resource.ProviderConfigAddr().StringCompact()
@@ -336,14 +336,11 @@ func walkResource(
 	v.VisitResource(name, resourceMeta)
 
 	term := TermFromBody(resource.Config)
-
-	resourceName := name
 	if haveCount {
-		name = name.AddIndex(0)
 		term = term.WithCount(resource.Count)
 	}
 
-	v.VisitTerm(resourceName, term)
+	v.VisitTerm(name, term)
 }
 
 // TfFilePathJoin is like `filepath.Join` but avoids cleaning the path.  This

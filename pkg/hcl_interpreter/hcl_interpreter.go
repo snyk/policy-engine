@@ -48,11 +48,11 @@ type Analysis struct {
 
 func AnalyzeModuleTree(mtree *ModuleTree) *Analysis {
 	analysis := &Analysis{
-		Fs:                  mtree.fs,
-		Modules:             map[string]*ModuleMeta{},
-		Resources:           map[string]*ResourceMeta{},
-		Terms:               NewTermTree(),
-		badKeys:             map[string]struct{}{},
+		Fs:        mtree.fs,
+		Modules:   map[string]*ModuleMeta{},
+		Resources: map[string]*ResourceMeta{},
+		Terms:     NewTermTree(),
+		badKeys:   map[string]struct{}{},
 	}
 	mtree.Walk(analysis)
 	return analysis
@@ -113,14 +113,6 @@ func (v *Analysis) termDependencies(name FullName, term Term) []dependency {
 					deps = append(deps, dependency{*asVar, asVariable, nil})
 				}
 				continue
-			}
-
-			if asResourceName, _ := full.AsUncountedResourceName(); asResourceName != nil {
-				// TODO: Superseded by LookupByPrefix?
-				if _, ok := v.Resources[asResourceName.ToString()]; ok {
-					deps = append(deps, dependency{*asResourceName, asResourceName, nil})
-					continue
-				}
 			}
 
 			// In other cases, just use the local name.  This is sort of
@@ -236,17 +228,6 @@ func (v *Evaluation) evaluateTerms() error {
 		vars = MergeValTree(vars, SingletonValTree(LocalName{"path", "module"}, cty.StringVal(moduleMeta.Dir)))
 		vars = MergeValTree(vars, SingletonValTree(LocalName{"terraform", "workspace"}, cty.StringVal("default")))
 
-		// Add count.index if inside a counted resource.
-		resourceName, _, _ := name.AsResourceName()
-		if resourceName != nil {
-			resourceKey := resourceName.ToString()
-			if resource, ok := v.Analysis.Resources[resourceKey]; ok {
-				if resource.Count {
-					vars = MergeValTree(vars, SingletonValTree(LocalName{"count", "index"}, cty.NumberIntVal(0)))
-				}
-			}
-		}
-
 		val, diags := term.Evaluate(func(expr hcl.Expression, extraVars interface{}) (cty.Value, hcl.Diagnostics) {
 			data := Data{}
 			scope := lang.Scope{
@@ -270,7 +251,7 @@ func (v *Evaluation) evaluateTerms() error {
 			v.errors = append(v.errors, fmt.Errorf("evaluate: error: %s", diags))
 		}
 
-		v.resourceAttributes[resourceName.ToString()] = val
+		v.resourceAttributes[name.ToString()] = val
 		val = v.phantomAttrs.add(name, val)
 		singleton := SingletonValTree(name.Local, val)
 		v.Modules[moduleKey] = MergeValTree(v.Modules[moduleKey], singleton)
@@ -279,11 +260,9 @@ func (v *Evaluation) evaluateTerms() error {
 	return nil
 }
 
-func (v *Evaluation) prepareResource(resourceMeta *ResourceMeta, name FullName, val cty.Value) []models.ResourceState {
+func (v *Evaluation) prepareResource(resourceMeta *ResourceMeta, module ModuleName, name string, val cty.Value) []models.ResourceState {
 	resources := []models.ResourceState{}
-
-	resourceKey := name.ToString()
-	module := ModuleNameToString(name.Module)
+	moduleKey := ModuleNameToString(module)
 
 	resourceType := resourceMeta.Type
 	if resourceMeta.Data {
@@ -292,7 +271,8 @@ func (v *Evaluation) prepareResource(resourceMeta *ResourceMeta, name FullName, 
 
 	if val.Type().IsTupleType() {
 		for idx, child := range val.AsValueSlice() {
-			resource := v.prepareResource(resourceMeta, name.AddIndex(idx), child)
+			indexedName := fmt.Sprintf("%s[%d]", name, idx)
+			resource := v.prepareResource(resourceMeta, module, indexedName, child)
 			resources = append(resources, resource...)
 		}
 	} else {
@@ -304,12 +284,12 @@ func (v *Evaluation) prepareResource(resourceMeta *ResourceMeta, name FullName, 
 		}
 
 		metaTree := EmptyObjectValTree()
-		providerConfName := ProviderConfigName(name.Module, resourceMeta.ProviderName)
-		if providerConf := LookupValTree(v.Modules[module], providerConfName.Local); providerConf != nil {
+		providerConfName := ProviderConfigName(module, resourceMeta.ProviderName)
+		if providerConf := LookupValTree(v.Modules[moduleKey], providerConfName.Local); providerConf != nil {
 			metaTree = MergeValTree(
 				metaTree,
 				SingletonValTree(
-					[]interface{}{"terraform", "provider_config"},
+					[]string{"terraform", "provider_config"},
 					ValTreeToValue(providerConf),
 				),
 			)
@@ -319,7 +299,7 @@ func (v *Evaluation) prepareResource(resourceMeta *ResourceMeta, name FullName, 
 			metaTree = MergeValTree(
 				metaTree,
 				SingletonValTree(
-					[]interface{}{"terraform", "provider_version_constraint"},
+					[]string{"terraform", "provider_version_constraint"},
 					cty.StringVal(resourceMeta.ProviderVersionConstraint),
 				),
 			)
@@ -345,7 +325,7 @@ func (v *Evaluation) prepareResource(resourceMeta *ResourceMeta, name FullName, 
 
 		// TODO: Support tags again: PopulateTags(input[resourceKey])
 		resources = append(resources, models.ResourceState{
-			Id:           resourceKey,
+			Id:           name,
 			ResourceType: resourceType,
 			Attributes:   attrs,
 			Meta:         meta,
@@ -365,7 +345,7 @@ func (v *Evaluation) Resources() []models.ResourceState {
 			continue
 		}
 
-		resource := v.prepareResource(resourceMeta, *resourceName, v.resourceAttributes[resourceKey])
+		resource := v.prepareResource(resourceMeta, resourceName.Module, resourceName.ToString(), v.resourceAttributes[resourceKey])
 		resources = append(resources, resource...)
 	}
 
@@ -403,7 +383,7 @@ func (pa *phantomAttrs) analyze(name FullName, term Term) {
 			}
 
 			full := FullName{Module: name.Module, Local: local}
-			if asResourceName, trailing := full.AsUncountedResourceName(); asResourceName != nil {
+			if asResourceName, trailing := full.AsResourceName(); asResourceName != nil {
 				attrs := map[string]struct{}{}
 				attrs[LocalNameToString(trailing)] = struct{}{}
 				for _, attr := range exprAttrs {
@@ -427,8 +407,8 @@ func (pa *phantomAttrs) analyze(name FullName, term Term) {
 func (pa *phantomAttrs) add(name FullName, val cty.Value) cty.Value {
 	rk := name.ToString()
 
-	var patch func(LocalName, FullName, cty.Value) cty.Value
-	patch = func(local LocalName, ref FullName, val cty.Value) cty.Value {
+	var patch func(LocalName, string, cty.Value) cty.Value
+	patch = func(local LocalName, ref string, val cty.Value) cty.Value {
 		if val.Type().IsObjectType() {
 			obj := map[string]cty.Value{}
 
@@ -437,18 +417,16 @@ func (pa *phantomAttrs) add(name FullName, val cty.Value) cty.Value {
 			}
 
 			if len(local) == 1 {
-				if k, ok := local[0].(string); ok {
-					if _, present := obj[k]; !present {
-						obj[k] = cty.StringVal(ref.ToString())
-					}
+				k := local[0]
+				if _, present := obj[k]; !present {
+					obj[k] = cty.StringVal(ref)
 				}
 			} else if len(local) > 1 {
-				if k, ok := local[0].(string); ok {
-					if child, ok := obj[k]; ok {
-						obj[k] = patch(local[1:], ref, child)
-					} else {
-						obj[k] = patch(local[1:], ref, cty.EmptyObjectVal)
-					}
+				k := local[0]
+				if child, ok := obj[k]; ok {
+					obj[k] = patch(local[1:], ref, child)
+				} else {
+					obj[k] = patch(local[1:], ref, cty.EmptyObjectVal)
 				}
 			}
 			return cty.ObjectVal(obj)
@@ -456,7 +434,8 @@ func (pa *phantomAttrs) add(name FullName, val cty.Value) cty.Value {
 			// Patching counted resources.
 			arr := []cty.Value{}
 			for i, v := range val.AsValueSlice() {
-				arr = append(arr, patch(local, ref.AddIndex(i), v))
+				indexedRef := fmt.Sprintf("%s[%d]", ref, i)
+				arr = append(arr, patch(local, indexedRef, v))
 			}
 			return cty.TupleVal(arr)
 		}
@@ -466,7 +445,7 @@ func (pa *phantomAttrs) add(name FullName, val cty.Value) cty.Value {
 	if attrs, ok := pa.attrs[rk]; ok {
 		for attr := range attrs {
 			if full, _ := StringToFullName(attr); full != nil {
-				val = patch(full.Local, name, val)
+				val = patch(full.Local, name.ToString(), val)
 			}
 		}
 	}

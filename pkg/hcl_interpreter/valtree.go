@@ -35,12 +35,7 @@ func BuildValTree(name LocalName, sub ValTree) ValTree {
 	var tree ValTree = sub
 
 	for i := len(name) - 1; i >= 0; i-- {
-		switch v := name[i].(type) {
-		case string:
-			tree = map[string]ValTree{v: tree}
-		case int:
-			tree = map[int]ValTree{v: tree}
-		}
+		tree = map[string]ValTree{name[i]: tree}
 	}
 
 	return tree
@@ -49,28 +44,12 @@ func BuildValTree(name LocalName, sub ValTree) ValTree {
 // Look up a given subtree, returns nil if not found
 func LookupValTree(tree ValTree, name LocalName) ValTree {
 	cursor := tree
-	for _, p := range name {
-		switch k := p.(type) {
-		case string:
-			switch m := cursor.(type) {
-			case map[string]ValTree:
-				if child, ok := m[k]; ok {
-					cursor = child
-				} else {
-					return nil
-				}
-			default:
-				return nil
-			}
-		case int:
-			switch m := cursor.(type) {
-			case map[int]ValTree:
-				if child, ok := m[k]; ok {
-					cursor = child
-				} else {
-					return nil
-				}
-			default:
+	for _, k := range name {
+		switch m := cursor.(type) {
+		case map[string]ValTree:
+			if child, ok := m[k]; ok {
+				cursor = child
+			} else {
 				return nil
 			}
 		default:
@@ -189,4 +168,13 @@ func PrettyValTree(tree ValTree) string {
 		return fmt.Sprintf("Could not convert ValTree to JSON: %s\n", err)
 	}
 	return string(bytes)
+}
+
+func NestVal(prefix []string, val cty.Value) cty.Value {
+    if len(prefix) == 0 {
+        return val
+    } else {
+        nested := NestVal(prefix[1:], val)
+        return cty.ObjectVal(map[string]cty.Value{prefix[0]: nested})
+    }
 }

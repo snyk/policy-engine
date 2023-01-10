@@ -222,17 +222,14 @@ func (t *termLocalTree) addTerm(name LocalName, term Term) {
 	if len(name) == 0 {
 		t.term = &term
 	} else {
+		head := name[0]
 		if t.children == nil {
 			t.children = map[string]*termLocalTree{}
 		}
-		if head, ok := name[0].(string); ok {
-			if _, ok := t.children[head]; !ok {
-				t.children[head] = &termLocalTree{}
-			}
-			t.children[head].addTerm(name[1:], term)
-		} else {
-			panic("TODO: adding int-based term to termLocalTree??")
+		if _, ok := t.children[head]; !ok {
+			t.children[head] = &termLocalTree{}
 		}
+		t.children[head].addTerm(name[1:], term)
 	}
 }
 
@@ -252,13 +249,12 @@ func (t *termLocalTree) lookupByPrefix(name LocalName) (LocalName, *Term) {
 	if t.term != nil {
 		return LocalName{}, t.term
 	} else if len(name) > 0 {
-		if head, ok := name[0].(string); ok {
-			if child, ok := t.children[head]; ok {
-				prefix, term := child.lookupByPrefix(name[1:])
-				if term != nil {
-					prefix = append(LocalName{head}, prefix...)
-					return prefix, term
-				}
+		head := name[0]
+		if child, ok := t.children[head]; ok {
+			prefix, term := child.lookupByPrefix(name[1:])
+			if term != nil {
+				prefix = append(LocalName{head}, prefix...)
+				return prefix, term
 			}
 		}
 	}
@@ -282,7 +278,7 @@ func (t *termLocalTree) visitTerms(name FullName, f func(FullName, Term)) {
 		f(name, *t.term)
 	} else {
 		for key, child := range t.children {
-			child.visitTerms(name.AddKey(key), f)
+			child.visitTerms(name.Add(key), f)
 		}
 	}
 }
