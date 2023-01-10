@@ -111,16 +111,16 @@ func (t Term) Dependencies() []hcl.Traversal {
 }
 
 func (t Term) evaluateExpr(
-	evalExpr func(expr hcl.Expression, extraVars interface{}) (cty.Value, hcl.Diagnostics),
+	evalExpr func(expr hcl.Expression, extraVars cty.Value) (cty.Value, hcl.Diagnostics),
 ) (cty.Value, hcl.Diagnostics) {
 	if t.expr != nil {
-		return evalExpr(*t.expr, EmptyObjectValTree())
+		return evalExpr(*t.expr, cty.EmptyObjectVal)
 	} else {
 		obj := map[string]cty.Value{}
 		diagnostics := hcl.Diagnostics{}
 
 		for k, attr := range t.attrs {
-			val, diags := evalExpr(attr, EmptyObjectValTree())
+			val, diags := evalExpr(attr, cty.EmptyObjectVal)
 			diagnostics = append(diagnostics, diags...)
 			obj[k] = val
 		}
@@ -143,7 +143,7 @@ func (t Term) evaluateExpr(
 }
 
 func (t Term) Evaluate(
-	evalExpr func(expr hcl.Expression, extraVars interface{}) (cty.Value, hcl.Diagnostics),
+	evalExpr func(expr hcl.Expression, extraVars cty.Value) (cty.Value, hcl.Diagnostics),
 ) (cty.Value, hcl.Diagnostics) {
 	if t.count != nil {
 		// Helper
@@ -165,13 +165,13 @@ func (t Term) Evaluate(
 		}
 
 		diagnostics := hcl.Diagnostics{}
-		countVal, diags := evalExpr(*t.count, EmptyObjectValTree())
+		countVal, diags := evalExpr(*t.count, cty.EmptyObjectVal)
 		diagnostics = append(diagnostics, diags...)
 		if count := parseCount(countVal); count != nil {
 			arr := []cty.Value{}
 			for i := int64(0); i < *count; i++ {
-				val, diags := t.evaluateExpr(func(e hcl.Expression, v interface{}) (cty.Value, hcl.Diagnostics) {
-					v = MergeValTree(v, SingletonValTree(LocalName{"count", "index"}, cty.NumberIntVal(i)))
+				val, diags := t.evaluateExpr(func(e hcl.Expression, v cty.Value) (cty.Value, hcl.Diagnostics) {
+					v = MergeVal(v, NestVal(LocalName{"count", "index"}, cty.NumberIntVal(i)))
 					return evalExpr(e, v)
 				})
 				diagnostics = append(diagnostics, diags...)

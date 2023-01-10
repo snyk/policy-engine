@@ -157,7 +157,7 @@ func (v *Analysis) orderTerms() ([]FullName, error) {
 
 type Evaluation struct {
 	Analysis *Analysis
-	Modules  map[string]ValTree
+	Modules  map[string]cty.Value
 
 	resourceAttributes map[string]cty.Value
 
@@ -169,13 +169,13 @@ type Evaluation struct {
 func EvaluateAnalysis(analysis *Analysis) (*Evaluation, error) {
 	eval := &Evaluation{
 		Analysis:           analysis,
-		Modules:            map[string]ValTree{},
+		Modules:            map[string]cty.Value{},
 		resourceAttributes: map[string]cty.Value{},
 		phantomAttrs:       newPhantomAttrs(),
 	}
 
 	for moduleKey := range analysis.Modules {
-		eval.Modules[moduleKey] = EmptyObjectValTree()
+		eval.Modules[moduleKey] = cty.EmptyObjectVal
 	}
 
 	if err := eval.evaluateTerms(); err != nil {
@@ -185,21 +185,21 @@ func EvaluateAnalysis(analysis *Analysis) (*Evaluation, error) {
 	return eval, nil
 }
 
-func (v *Evaluation) prepareTermVariables(name FullName, term Term) ValTree {
-	sparse := EmptyObjectValTree()
+func (v *Evaluation) prepareTermVariables(name FullName, term Term) cty.Value {
+	sparse := cty.EmptyObjectVal
 	for _, dep := range v.Analysis.termDependencies(name, term) {
-		var dependency ValTree
+		var dependency cty.Value
 		if dep.source != nil {
 			sourceModule := ModuleNameToString(dep.source.Module)
-			dependency = BuildValTree(
+			dependency = NestVal(
 				dep.destination.Local,
-				LookupValTree(v.Modules[sourceModule], dep.source.Local),
+				LookupVal(v.Modules[sourceModule], dep.source.Local),
 			)
 		} else if dep.value != nil {
-			dependency = SingletonValTree(dep.destination.Local, *dep.value)
+			dependency = NestVal(dep.destination.Local, *dep.value)
 		}
-		if dependency != nil {
-			sparse = MergeValTree(sparse, dependency)
+		if !dependency.IsNull() {
+			sparse = MergeVal(sparse, dependency)
 		}
 	}
 	return sparse
@@ -225,20 +225,19 @@ func (v *Evaluation) evaluateTerms() error {
 		moduleMeta := v.Analysis.Modules[moduleKey]
 
 		vars := v.prepareTermVariables(name, term)
-		vars = MergeValTree(vars, SingletonValTree(LocalName{"path", "module"}, cty.StringVal(moduleMeta.Dir)))
-		vars = MergeValTree(vars, SingletonValTree(LocalName{"terraform", "workspace"}, cty.StringVal("default")))
+		vars = MergeVal(vars, NestVal(LocalName{"path", "module"}, cty.StringVal(moduleMeta.Dir)))
+		vars = MergeVal(vars, NestVal(LocalName{"terraform", "workspace"}, cty.StringVal("default")))
 
-		val, diags := term.Evaluate(func(expr hcl.Expression, extraVars interface{}) (cty.Value, hcl.Diagnostics) {
+		val, diags := term.Evaluate(func(expr hcl.Expression, extraVars cty.Value) (cty.Value, hcl.Diagnostics) {
 			data := Data{}
 			scope := lang.Scope{
 				Data:     &data,
 				SelfAddr: nil,
 				PureOnly: false,
 			}
-			vars = MergeValTree(vars, extraVars) // TODO: Mutable, bad bad!
 			ctx := hcl.EvalContext{
 				Functions: funcs.Override(v.Analysis.Fs, scope),
-				Variables: ValTreeToVariables(vars),
+				Variables: ValToVariables(MergeVal(vars, extraVars)),
 			}
 			val, diags := expr.Value(&ctx)
 			if diags.HasErrors() {
@@ -253,8 +252,8 @@ func (v *Evaluation) evaluateTerms() error {
 
 		v.resourceAttributes[name.ToString()] = val
 		val = v.phantomAttrs.add(name, val)
-		singleton := SingletonValTree(name.Local, val)
-		v.Modules[moduleKey] = MergeValTree(v.Modules[moduleKey], singleton)
+		singleton := NestVal(name.Local, val)
+		v.Modules[moduleKey] = MergeVal(v.Modules[moduleKey], singleton)
 	}
 
 	return nil
@@ -277,28 +276,28 @@ func (v *Evaluation) prepareResource(resourceMeta *ResourceMeta, module ModuleNa
 		}
 	} else {
 		attrs := map[string]interface{}{}
-		iface, errs := ValueToInterface(ValTreeToValue(val))
+		iface, errs := ValueToInterface(val)
 		v.errors = append(v.errors, errs...)
 		if obj, ok := iface.(map[string]interface{}); ok {
 			attrs = obj
 		}
 
-		metaTree := EmptyObjectValTree()
+		metaTree := cty.EmptyObjectVal
 		providerConfName := ProviderConfigName(module, resourceMeta.ProviderName)
-		if providerConf := LookupValTree(v.Modules[moduleKey], providerConfName.Local); providerConf != nil {
-			metaTree = MergeValTree(
+		if providerConf := LookupVal(v.Modules[moduleKey], providerConfName.Local); !providerConf.IsNull() {
+			metaTree = MergeVal(
 				metaTree,
-				SingletonValTree(
+				NestVal(
 					[]string{"terraform", "provider_config"},
-					ValTreeToValue(providerConf),
+					providerConf,
 				),
 			)
 		}
 
 		if resourceMeta.ProviderVersionConstraint != "" {
-			metaTree = MergeValTree(
+			metaTree = MergeVal(
 				metaTree,
-				SingletonValTree(
+				NestVal(
 					[]string{"terraform", "provider_version_constraint"},
 					cty.StringVal(resourceMeta.ProviderVersionConstraint),
 				),
@@ -306,7 +305,7 @@ func (v *Evaluation) prepareResource(resourceMeta *ResourceMeta, module ModuleNa
 		}
 
 		meta := map[string]interface{}{}
-		if metaVal, errs := ValueToInterface(ValTreeToValue(metaTree)); len(errs) == 0 {
+		if metaVal, errs := ValueToInterface(metaTree); len(errs) == 0 {
 			if metaObj, ok := metaVal.(map[string]interface{}); ok {
 				meta = metaObj
 			}
