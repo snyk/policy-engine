@@ -17,6 +17,8 @@
 package hcl_interpreter
 
 import (
+	"sort"
+
 	"github.com/hashicorp/hcl/v2"
 	"github.com/hashicorp/hcl/v2/hclsyntax"
 	"github.com/zclconf/go-cty/cty"
@@ -197,10 +199,16 @@ func (t Term) Evaluate(
 
 		eaches := []cty.Value{}
 		if forEachVal.IsKnown() && (forEachVal.Type().IsMapType() || forEachVal.Type().IsObjectType()) {
-			for k, v := range forEachVal.AsValueMap() {
+			valueMap := forEachVal.AsValueMap()
+			keys := []string{}
+			for k := range valueMap {
+				keys = append(keys, k)
+			}
+			sort.Strings(keys)
+			for _, k := range keys {
 				each := cty.ObjectVal(map[string]cty.Value{
 					"key":   cty.StringVal(k),
-					"value": v,
+					"value": valueMap[k],
 				})
 				eaches = append(eaches, each)
 			}
