@@ -322,8 +322,13 @@ func (v *Evaluation) evaluate() error {
 	return nil
 }
 
-func (v *Evaluation) Resources() []models.ResourceState {
-	resources := []models.ResourceState{}
+type Resource struct {
+	Meta  *ResourceMeta
+	Model models.ResourceState
+}
+
+func (v *Evaluation) Resources() []Resource {
+	resources := []Resource{}
 
 	for resourceKey, resource := range v.Analysis.Resources {
 		resourceName, err := StringToFullName(resourceKey)
@@ -406,11 +411,14 @@ func (v *Evaluation) Resources() []models.ResourceState {
 		attrs = schemas.ApplyObject(attrs, tfschemas.GetSchema(resourceType))
 
 		// TODO: Support tags again: PopulateTags(input[resourceKey])
-		resources = append(resources, models.ResourceState{
-			Id:           resourceKey,
-			ResourceType: resourceType,
-			Attributes:   attrs,
-			Meta:         meta,
+		resources = append(resources, Resource{
+			Meta: resource,
+			Model: models.ResourceState{
+				Id:           resourceKey,
+				ResourceType: resourceType,
+				Attributes:   attrs,
+				Meta:         meta,
+			},
 		})
 	}
 
