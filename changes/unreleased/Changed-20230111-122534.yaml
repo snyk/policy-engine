@@ -1,0 +1,3 @@
+kind: Changed
+body: revert ReadCloser change to targz provider
+time: 2023-01-11T12:25:34.943890539+01:00
