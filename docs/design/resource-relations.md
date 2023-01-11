@@ -237,16 +237,17 @@ easy to understand and don't conflict.
 There are three rules:
 
 1.  If a resource type is meaningless on its own and always meant to be attached
-    to a primary resource, you can use the name of that resource type.
-    Example: `aws_s3_bucket_server_side_encryption_configuration`.
+    to a primary resource, very much like a property, you can use the name of
+    that resource type and property, concatenated with a `.`.
+    Example: `aws_s3_bucket.server_side_encryption_configuration`.
 
 2.  If resource type X refers to resource type Y using some attribute A,
-    use some variation of `X_A`, possibly dropping `id` or `name` from A if it
+    use some variation of `X.A`, possibly dropping `id` or `name` from A if it
     makes sense.  Example: `aws_cloudtrail` refers to `aws_s3_bucket` using the
-    attribute `s3_bucket_name`, so we use `aws_cloudtrail_s3_bucket`.
+    attribute `s3_bucket_name`, so we use `aws_cloudtrail.s3_bucket`.
 
 3.  If none of the above apply, use something that follows the convention of
-    `<resource_type>_<attribute_name>` in spirit.
+    `<resource_type>.<attribute_name>` in spirit.
 
 ### Listing relationships
 

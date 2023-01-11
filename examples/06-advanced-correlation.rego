@@ -14,7 +14,7 @@ is_encrypted(bucket) {
 }
 
 is_encrypted(bucket) {
-	encryption_configs := snyk.relates(bucket, "aws_s3_bucket_server_side_encryption_configuration")
+	encryption_configs := snyk.relates(bucket, "aws_s3_bucket.server_side_encryption_configuration")
 	_ := encryption_configs[_]
 }
 
@@ -46,7 +46,7 @@ resources[info] {
 # encryption configurations with the corresponding buckets.
 resources[info] {
 	bucket := buckets[_]
-	encryption_configs := snyk.relates(bucket, "aws_s3_bucket_server_side_encryption_configuration")
+	encryption_configs := snyk.relates(bucket, "aws_s3_bucket.server_side_encryption_configuration")
 	ec = encryption_configs[_]
 	info := {
 		"correlation": bucket.id,

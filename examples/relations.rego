@@ -10,7 +10,7 @@ relations[info] {
 	encryption_configs := snyk.resources("aws_s3_bucket_server_side_encryption_configuration")
 	info := {
 		# The name of the relationship is required.
-		"name": "aws_s3_bucket_server_side_encryption_configuration",
+		"name": "aws_s3_bucket.server_side_encryption_configuration",
 		# Relationships can be constructed multiple ways, but `keys` is
 		# recommended in almost all cases.
 		#
