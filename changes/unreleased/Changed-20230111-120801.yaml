@@ -1,0 +1,3 @@
+kind: Changed
+body: return more resource metadata from the hcl_interpreter library
+time: 2023-01-11T12:08:01.186352176+01:00
