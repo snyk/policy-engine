@@ -246,7 +246,12 @@ There are three rules:
     makes sense.  Example: `aws_cloudtrail` refers to `aws_s3_bucket` using the
     attribute `s3_bucket_name`, so we use `aws_cloudtrail.s3_bucket`.
 
-3.  If none of the above apply, use something that follows the convention of
+3.  There are some rare cases in which many different types of resources can be
+    associated with a specific resource X.  In that case you can use just `X`.
+    Examples include `aws_security_group` (you could associate instances,
+    autoscaling groups, clusters...) and `data.iam_policy_document`.
+
+4.  If none of the above apply, use something that follows the convention of
     `<resource_type>.<attribute_name>` in spirit.
 
 ### Listing relationships
