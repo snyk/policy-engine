@@ -81,9 +81,10 @@ func newHclConfiguration(moduleTree *hcl_interpreter.ModuleTree) (*HclConfigurat
 		return nil, fmt.Errorf("%w: %v", FailedToParseInput, err)
 	}
 
-	resources := []models.ResourceState{}
-	for _, resource := range evaluation.Resources() {
-		resources = append(resources, resource.Model)
+	evaluationResources := evaluation.Resources()
+	resources := make([]models.ResourceState, len(evaluationResources))
+	for i := range evaluationResources {
+		resources[i] = evaluationResources[i].Model
 	}
 
 	namespace := moduleTree.FilePath()
