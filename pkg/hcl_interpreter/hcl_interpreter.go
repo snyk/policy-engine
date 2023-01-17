@@ -347,8 +347,13 @@ func (v *Evaluation) prepareResource(resourceMeta *ResourceMeta, module ModuleNa
 	return resources
 }
 
-func (v *Evaluation) Resources() []models.ResourceState {
-	resources := []models.ResourceState{}
+type Resource struct {
+	Meta  *ResourceMeta
+	Model models.ResourceState
+}
+
+func (v *Evaluation) Resources() []Resource {
+	resources := []Resource{}
 
 	for resourceKey, resourceMeta := range v.Analysis.Resources {
 		resourceName, err := StringToFullName(resourceKey)
@@ -357,8 +362,13 @@ func (v *Evaluation) Resources() []models.ResourceState {
 			continue
 		}
 
-		resource := v.prepareResource(resourceMeta, resourceName.Module, resourceName.ToString(), v.resourceAttributes[resourceKey])
-		resources = append(resources, resource...)
+		prepared := v.prepareResource(resourceMeta, resourceName.Module, resourceName.ToString(), v.resourceAttributes[resourceKey])
+		for _, model := range prepared {
+			resources = append(resources, Resource{
+				Meta:  resourceMeta,
+				Model: model,
+			})
+		}
 	}
 
 	return resources

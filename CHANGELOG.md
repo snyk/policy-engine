@@ -2,6 +2,13 @@
 
 
 
+## v0.14.1 - 2023-01-10
+### Added
+* document release process
+* support -v in fixture command
+### Fixed
+* too many open files when reading large amount of rego files
+
 ## v0.14.0 - 2022-12-19
 ### Changed
 * adopt new metadata format for compliance mappings

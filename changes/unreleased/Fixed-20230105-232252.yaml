@@ -1,3 +1,0 @@
-kind: Fixed
-body: too many open files when reading large amount of rego files
-time: 2023-01-05T23:22:52.673034294+01:00
