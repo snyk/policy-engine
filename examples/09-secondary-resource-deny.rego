@@ -18,11 +18,11 @@ bad_attrs(config) = ret {
 
 # Here we're demonstrating a deny on a secondary resource. You can think of this
 # rule as saying:
-# "This bucket is invalid because of this config, and these attributes of the 
+# "This bucket is invalid because of this config, and these attributes of the
 # config explain why."
 deny[info] {
 	bucket := buckets[_]
-	config := snyk.relates(bucket, "aws_s3_bucket_server_side_encryption_configuration")[_]
+	config := snyk.relates(bucket, "aws_s3_bucket.server_side_encryption_configuration")[_]
 	bad := bad_attrs(config)
 	count(bad) > 0
 	info := {
@@ -40,7 +40,7 @@ deny[info] {
 # factored into that decision.
 resources[info] {
 	bucket := buckets[_]
-	config := snyk.relates(bucket, "aws_s3_bucket_server_side_encryption_configuration")[_]
+	config := snyk.relates(bucket, "aws_s3_bucket.server_side_encryption_configuration")[_]
 	info := {
 		"primary_resource": bucket,
 		"resource": config,
