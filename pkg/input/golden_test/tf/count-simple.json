@@ -1,0 +1,46 @@
+{
+  "format": "",
+  "format_version": "",
+  "input_type": "tf_hcl",
+  "environment_provider": "iac",
+  "meta": {
+    "filepath": "golden_test/tf/count-simple/main.tf"
+  },
+  "resources": {
+    "aws_s3_bucket": {
+      "aws_s3_bucket.example[0]": {
+        "id": "aws_s3_bucket.example[0]",
+        "resource_type": "aws_s3_bucket",
+        "namespace": "golden_test/tf/count-simple/main.tf",
+        "meta": {},
+        "attributes": {
+          "bucket_prefix": "example_0",
+          "count": 3
+        }
+      },
+      "aws_s3_bucket.example[1]": {
+        "id": "aws_s3_bucket.example[1]",
+        "resource_type": "aws_s3_bucket",
+        "namespace": "golden_test/tf/count-simple/main.tf",
+        "meta": {},
+        "attributes": {
+          "bucket_prefix": "example_1",
+          "count": 3
+        }
+      },
+      "aws_s3_bucket.example[2]": {
+        "id": "aws_s3_bucket.example[2]",
+        "resource_type": "aws_s3_bucket",
+        "namespace": "golden_test/tf/count-simple/main.tf",
+        "meta": {},
+        "attributes": {
+          "bucket_prefix": "example_2",
+          "count": 3
+        }
+      }
+    }
+  },
+  "scope": {
+    "filepath": "golden_test/tf/count-simple/main.tf"
+  }
+}

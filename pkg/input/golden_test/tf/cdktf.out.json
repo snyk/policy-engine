@@ -325,6 +325,7 @@
         "namespace": "golden_test/tf/cdktf.out",
         "meta": {
           "terraform": {
+            "provider_config": {},
             "provider_version_constraint": "2.2.3"
           }
         },

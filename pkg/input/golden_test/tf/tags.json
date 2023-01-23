@@ -33,7 +33,7 @@
           ],
           "max_size": 1,
           "min_size": 1,
-          "provider": null,
+          "provider": "aws",
           "tag": [
             {
               "key": "Stage",
@@ -61,7 +61,7 @@
           "image_id": "ami-1a2b3c",
           "instance_type": "t2.micro",
           "name_prefix": "example",
-          "provider": null
+          "provider": "aws"
         }
       }
     },
@@ -80,7 +80,7 @@
         },
         "attributes": {
           "bucket_prefix": "example",
-          "provider": null,
+          "provider": "aws",
           "tags": {
             "Stage": "Prod"
           }
@@ -92,7 +92,11 @@
         "id": "google_compute_instance.default",
         "resource_type": "google_compute_instance",
         "namespace": "golden_test/tf/tags/main.tf",
-        "meta": {},
+        "meta": {
+          "terraform": {
+            "provider_config": {}
+          }
+        },
         "attributes": {
           "boot_disk": [
             {
@@ -131,14 +135,18 @@
         "id": "google_storage_bucket.example",
         "resource_type": "google_storage_bucket",
         "namespace": "golden_test/tf/tags/main.tf",
-        "meta": {},
+        "meta": {
+          "terraform": {
+            "provider_config": {}
+          }
+        },
         "attributes": {
           "labels": {
             "Stage": "Prod"
           },
           "location": "US",
           "name": "example",
-          "provider": null
+          "provider": "google"
         }
       }
     }

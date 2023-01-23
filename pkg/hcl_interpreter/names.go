@@ -16,8 +16,6 @@ package hcl_interpreter
 
 import (
 	"fmt"
-	"regexp"
-	"strconv"
 	"strings"
 
 	"github.com/hashicorp/hcl/v2"
@@ -57,23 +55,10 @@ func ModuleNameToString(moduleName ModuleName) string {
 	return str
 }
 
-type Fragment = interface{} // Either string or int
-type LocalName = []Fragment
+type LocalName = []string
 
 func LocalNameToString(name LocalName) string {
-	str := ""
-	for _, p := range name {
-		switch v := p.(type) {
-		case string:
-			if str != "" {
-				str += "."
-			}
-			str += v
-		case int:
-			str += fmt.Sprintf("[%d]", v)
-		}
-	}
-	return str
+	return strings.Join(name, ".")
 }
 
 type FullName struct {
@@ -87,21 +72,19 @@ func EmptyFullName(module ModuleName) FullName {
 
 func ProviderConfigName(module ModuleName, providerName string) FullName {
 	escaped := strings.ReplaceAll(strings.ReplaceAll(providerName, "_", "__"), ".", "_")
-	return FullName{module, []interface{}{"provider", escaped}}
+	return FullName{module, []string{"provider", escaped}}
 }
 
-func takeModulePrefix(parts []Fragment) (*string, []Fragment) {
+func takeModulePrefix(parts []string) (*string, []string) {
 	if len(parts) >= 2 {
-		if p1, ok := parts[0].(string); ok && p1 == "module" {
-			if p2, ok := parts[1].(string); ok {
-				return &p2, parts[2:]
-			}
+		if parts[0] == "module" {
+			return &parts[1], parts[2:]
 		}
 	}
 	return nil, parts
 }
 
-func ArrayToFullName(parts []Fragment) FullName {
+func ArrayToFullName(parts []string) FullName {
 	module := ModuleName{}
 
 	m, parts := takeModulePrefix(parts)
@@ -113,27 +96,8 @@ func ArrayToFullName(parts []Fragment) FullName {
 	return FullName{Module: module, Local: parts}
 }
 
-var keyRegex *regexp.Regexp = regexp.MustCompile(`^\.?([^.[]+)`)
-var indexRegex *regexp.Regexp = regexp.MustCompile(`^\[([0-9]+)\]`)
-
 func StringToFullName(name string) (*FullName, error) {
-	parts := []Fragment{}
-	for len(name) > 0 {
-		if match := keyRegex.FindStringSubmatch(name); match != nil {
-			parts = append(parts, match[1])
-			name = name[len(match[0]):]
-		} else if match := indexRegex.FindStringSubmatch(name); match != nil {
-			if i, err := strconv.Atoi(match[1]); err == nil {
-				parts = append(parts, i)
-				name = name[len(match[0]):]
-			} else {
-				return nil, err
-			}
-		} else {
-			return nil, fmt.Errorf("Invalid name: %s", name)
-		}
-	}
-
+	parts := strings.Split(name, ".")
 	full := ArrayToFullName(parts)
 	return &full, nil
 }
@@ -146,48 +110,11 @@ func (name FullName) ToString() string {
 	}
 }
 
-func (name FullName) add(p Fragment) FullName {
-	local := make([]interface{}, len(name.Local)+1)
+func (name FullName) Add(p string) FullName {
+	local := make([]string, len(name.Local)+1)
 	copy(local, name.Local)
 	local[len(name.Local)] = p
 	return FullName{name.Module, local}
-}
-
-func (name FullName) AddKey(k string) FullName {
-	return name.add(k)
-}
-
-func (name FullName) AddIndex(i int) FullName {
-	return name.add(i)
-}
-
-func (name FullName) AddLocalName(after LocalName) FullName {
-	local := make([]interface{}, len(name.Local)+len(after))
-	copy(local, name.Local)
-	copy(local[len(name.Local):], after)
-	return FullName{name.Module, local}
-}
-
-// Is this a builtin variable?
-func (name FullName) IsBuiltin() bool {
-	if len(name.Module) > 0 {
-		return false
-	}
-
-	if len(name.Local) == 2 {
-		if str, ok := name.Local[0].(string); ok {
-			switch str {
-			case "terraform":
-				return true
-			case "path":
-				return true
-			case "count":
-				return true
-			}
-		}
-	}
-
-	return false
 }
 
 //   module.child1.my_output ->
@@ -198,13 +125,11 @@ func (name FullName) IsBuiltin() bool {
 func (name FullName) AsModuleOutput() *FullName {
 	moduleName, tail := takeModulePrefix(name.Local)
 	if moduleName != nil && len(tail) == 1 {
-		if str, ok := tail[0].(string); ok {
-			expandedModule := make([]string, len(name.Module)+1)
-			copy(expandedModule, name.Module)
-			expandedModule[len(name.Module)] = *moduleName
-			local := []Fragment{"output", str}
-			return &FullName{expandedModule, local}
-		}
+		expandedModule := make([]string, len(name.Module)+1)
+		copy(expandedModule, name.Module)
+		expandedModule[len(name.Module)] = *moduleName
+		local := []string{"output", tail[0]}
+		return &FullName{expandedModule, local}
 	}
 	return nil
 }
@@ -212,7 +137,7 @@ func (name FullName) AsModuleOutput() *FullName {
 // Parses "module.child.var.foo" into "input.child.foo"
 func (name FullName) AsModuleInput() *FullName {
 	if len(name.Module) > 0 && len(name.Local) >= 2 {
-		if str, ok := name.Local[0].(string); ok && str == "var" {
+		if name.Local[0] == "var" {
 			parentModuleName := make(ModuleName, len(name.Module)-1)
 			copy(parentModuleName, name.Module)
 			local := LocalName{"input", name.Module[len(name.Module)-1]}
@@ -226,7 +151,7 @@ func (name FullName) AsModuleInput() *FullName {
 // Parses "var.my_var.key" into "variable.my_var", "var.my_var" and "key".
 func (name FullName) AsVariable() (*FullName, *FullName, LocalName) {
 	if len(name.Local) >= 2 {
-		if str, ok := name.Local[0].(string); ok && str == "var" {
+		if name.Local[0] == "var" {
 			local := make(LocalName, len(name.Local))
 			copy(local, name.Local)
 			local[0] = "variable"
@@ -236,33 +161,21 @@ func (name FullName) AsVariable() (*FullName, *FullName, LocalName) {
 	return nil, nil, nil
 }
 
-// Parses "aws_s3_bucket.my_bucket[3].bucket_prefix" into:
-// - The resource name "aws_s3_bucket.my_bucket".
-// - The count index "3", or -1 if not present.
-// - The remainder, "bucket_prefix".
-func (name FullName) AsResourceName() (*FullName, int, LocalName) {
+func (name FullName) AsResourceName() (*FullName, LocalName) {
 	if len(name.Local) >= 2 {
-		if str, ok := name.Local[0].(string); ok {
-			cut := 2
-			if str == "data" && len(name.Local) >= cut+1 {
-				cut += 1
-			}
-
-			if len(name.Local) > cut {
-				if index, ok := name.Local[cut].(int); ok {
-					return &FullName{name.Module, name.Local[:cut]}, index, name.Local[cut+1:]
-				}
-			}
-
-			return &FullName{name.Module, name.Local[:cut]}, -1, name.Local[cut:]
+		cut := 2
+		if name.Local[0] == "data" && len(name.Local) >= cut+1 {
+			cut += 1
 		}
+
+		return &FullName{name.Module, name.Local[:cut]}, name.Local[cut:]
 	}
-	return nil, -1, nil
+	return nil, nil
 }
 
 // TODO: Refactor to TraversalToName?
 func TraversalToLocalName(traversal hcl.Traversal) (LocalName, error) {
-	parts := make([]Fragment, 0)
+	parts := make([]string, 0)
 
 	for _, traverser := range traversal {
 		switch t := traverser.(type) {
@@ -274,13 +187,8 @@ func TraversalToLocalName(traversal hcl.Traversal) (LocalName, error) {
 			val := t.Key
 			if val.IsKnown() {
 				if val.Type() == cty.Number {
-					n := val.AsBigFloat()
-					if n.IsInt() {
-						i, _ := n.Int64()
-						parts = append(parts, int(i))
-					} else {
-						return nil, fmt.Errorf("Unsupported number in TraverseIndex: %s", val.GoString())
-					}
+					// The other parts must be trailing accessors.
+					return parts, nil
 				} else if val.Type() == cty.String {
 					parts = append(parts, val.AsString())
 				} else {

@@ -239,10 +239,8 @@ func moduleIsLocal(source string) bool {
 
 type Visitor interface {
 	VisitModule(name ModuleName, meta *ModuleMeta)
-	EnterResource(name FullName, resource *ResourceMeta)
-	LeaveResource()
-	VisitBlock(name FullName)
-	VisitExpr(name FullName, expr hcl.Expression)
+	VisitResource(name FullName, resource *ResourceMeta)
+	VisitTerm(name FullName, term Term)
 }
 
 func (mtree *ModuleTree) Walk(v Visitor) {
@@ -259,7 +257,9 @@ func walkModuleTree(v Visitor, moduleName ModuleName, mtree *ModuleTree) {
 
 		// TODO: This is not good.  We end up walking child2 as it were child2.
 		configName := FullName{moduleName, LocalName{"input", key}}
-		walkBody(v, configName, child.config)
+		for k, input := range TermFromBody(child.config).Attributes() {
+			v.VisitTerm(configName.Add(k), input)
+		}
 
 		walkModuleTree(v, childModuleName, child)
 	}
@@ -271,18 +271,18 @@ func walkModule(v Visitor, moduleName ModuleName, module *configs.Module, variab
 	for _, variable := range module.Variables {
 		if val, ok := variableValues[variable.Name]; ok {
 			expr := hclsyntax.LiteralValueExpr{Val: val}
-			v.VisitExpr(name.AddKey("variable").AddKey(variable.Name), &expr)
+			v.VisitTerm(name.Add("variable").Add(variable.Name), TermFromExpr(&expr))
 		} else if !variable.Default.IsNull() {
 			expr := hclsyntax.LiteralValueExpr{
 				Val:      variable.Default,
 				SrcRange: variable.DeclRange,
 			}
-			v.VisitExpr(name.AddKey("variable").AddKey(variable.Name), &expr)
+			v.VisitTerm(name.Add("variable").Add(variable.Name), TermFromExpr(&expr))
 		}
 	}
 
 	for _, local := range module.Locals {
-		v.VisitExpr(name.AddKey("local").AddKey(local.Name), local.Expr)
+		v.VisitTerm(name.Add("local").Add(local.Name), TermFromExpr(local.Expr))
 	}
 
 	for _, resource := range module.DataResources {
@@ -295,12 +295,12 @@ func walkModule(v Visitor, moduleName ModuleName, module *configs.Module, variab
 
 	for _, output := range module.Outputs {
 		if output.Expr != nil {
-			v.VisitExpr(name.AddKey("output").AddKey(output.Name), output.Expr)
+			v.VisitTerm(name.Add("output").Add(output.Name), TermFromExpr(output.Expr))
 		}
 	}
 
 	for providerName, providerConf := range module.ProviderConfigs {
-		walkBody(v, ProviderConfigName(moduleName, providerName), providerConf.Config)
+		v.VisitTerm(ProviderConfigName(moduleName, providerName), TermFromBody(providerConf.Config))
 	}
 }
 
@@ -313,9 +313,9 @@ func walkResource(
 ) {
 	name := EmptyFullName(moduleName)
 	if isDataResource {
-		name = name.AddKey("data")
+		name = name.Add("data")
 	}
-	name = name.AddKey(resource.Type).AddKey(resource.Name)
+	name = name.Add(resource.Type).Add(resource.Name)
 	haveCount := resource.Count != nil
 
 	providerName := resource.ProviderConfigAddr().StringCompact()
@@ -333,54 +333,14 @@ func walkResource(
 		resourceMeta.ProviderVersionConstraint = providerReqs.Requirement.Required.String()
 	}
 
-	v.EnterResource(name, resourceMeta)
+	v.VisitResource(name, resourceMeta)
 
+	term := TermFromBody(resource.Config)
 	if haveCount {
-		name = name.AddIndex(0)
-		v.VisitExpr(name.AddKey("count"), resource.Count)
+		term = term.WithCount(resource.Count)
 	}
 
-	walkBody(v, name, resource.Config)
-
-	v.LeaveResource()
-}
-
-func walkBody(v Visitor, name FullName, body hcl.Body) {
-	switch b := body.(type) {
-	case *hclsyntax.Body:
-		walkBlock(v, name, b)
-	default:
-		walkJustAttributes(v, name, body)
-	}
-}
-
-func walkJustAttributes(v Visitor, name FullName, body hcl.Body) {
-	v.VisitBlock(name)
-
-	attributes, _ := body.JustAttributes()
-	for _, attribute := range attributes {
-		v.VisitExpr(name.AddKey(attribute.Name), attribute.Expr)
-	}
-}
-
-func walkBlock(v Visitor, name FullName, body *hclsyntax.Body) {
-	v.VisitBlock(name)
-
-	for _, attribute := range body.Attributes {
-		v.VisitExpr(name.AddKey(attribute.Name), attribute.Expr)
-	}
-
-	blockCounter := map[string]int{} // Which index we're at per block type.
-	for _, block := range body.Blocks {
-		idx := 0
-		if i, ok := blockCounter[block.Type]; ok {
-			idx = i
-			blockCounter[block.Type] += 1
-		} else {
-			blockCounter[block.Type] = 1
-		}
-		walkBlock(v, name.AddKey(block.Type).AddIndex(idx), block.Body)
-	}
+	v.VisitTerm(name, term)
 }
 
 // TfFilePathJoin is like `filepath.Join` but avoids cleaning the path.  This

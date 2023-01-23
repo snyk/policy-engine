@@ -12,7 +12,11 @@
         "id": "data.google_iam_policy.all_authenticated_users",
         "resource_type": "data.google_iam_policy",
         "namespace": "golden_test/tf/data-resources/main.tf",
-        "meta": {},
+        "meta": {
+          "terraform": {
+            "provider_config": {}
+          }
+        },
         "attributes": {
           "binding": [
             {
@@ -34,7 +38,11 @@
         "id": "data.google_iam_policy.all_users",
         "resource_type": "data.google_iam_policy",
         "namespace": "golden_test/tf/data-resources/main.tf",
-        "meta": {},
+        "meta": {
+          "terraform": {
+            "provider_config": {}
+          }
+        },
         "attributes": {
           "binding": [
             {
@@ -58,7 +66,11 @@
         "id": "google_storage_bucket.all_authenticated_users",
         "resource_type": "google_storage_bucket",
         "namespace": "golden_test/tf/data-resources/main.tf",
-        "meta": {},
+        "meta": {
+          "terraform": {
+            "provider_config": {}
+          }
+        },
         "attributes": {
           "force_destroy": true,
           "name": "invalid-public-all-authenticated-iam"
@@ -68,7 +80,11 @@
         "id": "google_storage_bucket.all_users",
         "resource_type": "google_storage_bucket",
         "namespace": "golden_test/tf/data-resources/main.tf",
-        "meta": {},
+        "meta": {
+          "terraform": {
+            "provider_config": {}
+          }
+        },
         "attributes": {
           "force_destroy": true,
           "name": "invalid-public-all-users-iam"
@@ -80,7 +96,11 @@
         "id": "google_storage_bucket_iam_policy.all_authenticated_users_policy",
         "resource_type": "google_storage_bucket_iam_policy",
         "namespace": "golden_test/tf/data-resources/main.tf",
-        "meta": {},
+        "meta": {
+          "terraform": {
+            "provider_config": {}
+          }
+        },
         "attributes": {
           "bucket": "invalid-public-all-authenticated-iam",
           "policy_data": "data.google_iam_policy.all_authenticated_users"
@@ -90,7 +110,11 @@
         "id": "google_storage_bucket_iam_policy.all_users_policy",
         "resource_type": "google_storage_bucket_iam_policy",
         "namespace": "golden_test/tf/data-resources/main.tf",
-        "meta": {},
+        "meta": {
+          "terraform": {
+            "provider_config": {}
+          }
+        },
         "attributes": {
           "bucket": "invalid-public-all-users-iam",
           "policy_data": "data.google_iam_policy.all_users"

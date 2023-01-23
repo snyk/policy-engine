@@ -23,9 +23,9 @@ import (
 	"github.com/zclconf/go-cty/cty"
 
 	"github.com/snyk/policy-engine/pkg/hcl_interpreter/funcs"
-	"github.com/snyk/policy-engine/pkg/internal/terraform/lang"
-	tfschemas "github.com/snyk/policy-engine/pkg/input/schemas/tf"
 	"github.com/snyk/policy-engine/pkg/input/schemas"
+	tfschemas "github.com/snyk/policy-engine/pkg/input/schemas/tf"
+	"github.com/snyk/policy-engine/pkg/internal/terraform/lang"
 	"github.com/snyk/policy-engine/pkg/models"
 	"github.com/snyk/policy-engine/pkg/topsort"
 )
@@ -39,19 +39,8 @@ type Analysis struct {
 	// Resource metadata
 	Resources map[string]*ResourceMeta
 
-	// Holds all keys to expressions within resources.  This is necessary if
-	// we want to do dependency analysis and something depends on "all of
-	// a resource".
-	ResourceExpressions map[string][]FullName
-
-	// All known expressions
-	Expressions map[string]hcl.Expression
-
-	// All known blocks
-	Blocks []FullName
-
-	// Visit state: current resource (if any)
-	currentResource *string
+	// Terms in the evaluation tree.
+	Terms *TermTree
 
 	// Any bad keys that we attempted to reference or failed to parse
 	badKeys map[string]struct{}
@@ -59,14 +48,11 @@ type Analysis struct {
 
 func AnalyzeModuleTree(mtree *ModuleTree) *Analysis {
 	analysis := &Analysis{
-		Fs:                  mtree.fs,
-		Modules:             map[string]*ModuleMeta{},
-		Resources:           map[string]*ResourceMeta{},
-		ResourceExpressions: map[string][]FullName{},
-		Expressions:         map[string]hcl.Expression{},
-		Blocks:              []FullName{},
-		currentResource:     nil,
-		badKeys:             map[string]struct{}{},
+		Fs:        mtree.fs,
+		Modules:   map[string]*ModuleMeta{},
+		Resources: map[string]*ResourceMeta{},
+		Terms:     NewTermTree(),
+		badKeys:   map[string]struct{}{},
 	}
 	mtree.Walk(analysis)
 	return analysis
@@ -76,131 +62,92 @@ func (v *Analysis) VisitModule(name ModuleName, meta *ModuleMeta) {
 	v.Modules[ModuleNameToString(name)] = meta
 }
 
-func (v *Analysis) EnterResource(name FullName, resource *ResourceMeta) {
+func (v *Analysis) VisitResource(name FullName, resource *ResourceMeta) {
 	resourceKey := name.ToString()
 	v.Resources[resourceKey] = resource
-	v.ResourceExpressions[resourceKey] = []FullName{}
-	v.currentResource = &resourceKey
 }
 
-func (v *Analysis) LeaveResource() {
-	v.currentResource = nil
+func (v *Analysis) VisitTerm(name FullName, term Term) {
+	v.Terms.AddTerm(name, term)
 }
 
-func (v *Analysis) VisitBlock(name FullName) {
-	v.Blocks = append(v.Blocks, name)
-}
-
-func (v *Analysis) VisitExpr(name FullName, expr hcl.Expression) {
-	v.Expressions[name.ToString()] = expr
-	if v.currentResource != nil {
-		v.ResourceExpressions[*v.currentResource] = append(
-			v.ResourceExpressions[*v.currentResource],
-			name,
-		)
-	}
-}
-
+// A dependency contains all the information we need to schedule evaluation of
+// a term and where it should go in the scope of the term to be evaluated.
 type dependency struct {
-	destination FullName
-	source      *FullName
-	value       *cty.Value
+	// If this dependency should end up in a different place in the module tree
+	// than the original term, destination should be set to a non-nil value.
+	destination *FullName
+
+	// If source is set, we will evaluate the source term before we evaluate the
+	// term depending on it.
+	source *FullName
+
+	// Sometimes, rather than evaluating a term we may want to place a literal
+	// value in the scope tree.  To do this, set source to nil and value to the
+	// non-nil literal value.
+	value *cty.Value
 }
 
-// Iterate all dependencies of a the given expression with the given name.
-func (v *Analysis) dependencies(name FullName, expr hcl.Expression) []dependency {
+func (v *Analysis) dependencies(name FullName, term Term) []dependency {
 	deps := []dependency{}
-	for _, traversal := range expr.Variables() {
-		local, err := TraversalToLocalName(traversal)
-		if err != nil {
-			v.badKeys[TraversalToString(traversal)] = struct{}{}
-			continue
-		}
-		full := FullName{Module: name.Module, Local: local}
-		_, exists := v.Expressions[full.ToString()]
-
-		if exists || full.IsBuiltin() {
-			deps = append(deps, dependency{full, &full, nil})
-		} else if moduleOutput := full.AsModuleOutput(); moduleOutput != nil {
-			// Rewrite module outputs.
-			deps = append(deps, dependency{full, moduleOutput, nil})
-		} else if asVariable, asVar, _ := full.AsVariable(); asVar != nil {
-			// Rewrite variables either as default, or as module input.
-			asModuleInput := full.AsModuleInput()
-			isModuleInput := false
-			if asModuleInput != nil {
-				if _, ok := v.Expressions[asModuleInput.ToString()]; ok {
-					deps = append(deps, dependency{full, asModuleInput, nil})
-					isModuleInput = true
-				}
+	term.VisitExpressions(func(expr hcl.Expression) {
+		for _, traversal := range expr.Variables() {
+			local, err := TraversalToLocalName(traversal)
+			if err != nil {
+				v.badKeys[TraversalToString(traversal)] = struct{}{}
+				continue
 			}
-			if !isModuleInput {
-				deps = append(deps, dependency{*asVar, asVariable, nil})
+
+			full := FullName{Module: name.Module, Local: local}
+
+			if prefix, _ := v.Terms.LookupByPrefix(full); prefix != nil {
+				deps = append(deps, dependency{nil, prefix, nil})
+				continue
 			}
-		} else if asResourceName, _, trailing := full.AsResourceName(); asResourceName != nil {
-			// Rewrite resource references.
-			resourceKey := asResourceName.ToString()
-			if resourceMeta, ok := v.Resources[resourceKey]; ok {
-				// Keep track of attributes already added, and add "real"
-				// resource expressions.
-				attrs := map[string]struct{}{}
-				for _, re := range v.ResourceExpressions[resourceKey] {
-					attr := re
-					attrs[attr.ToString()] = struct{}{}
-					deps = append(deps, dependency{attr, &attr, nil})
-				}
 
-				// There may be absent attributes as well, such as "id" and
-				// "arn".  We will fill these in with the resource key.
+			if moduleOutput := full.AsModuleOutput(); moduleOutput != nil {
+				deps = append(deps, dependency{&full, moduleOutput, nil})
+				continue
+			}
 
-				// Construct attribute name where we will place these.
-				resourceKeyVal := cty.StringVal(resourceKey)
-				resourceName := *asResourceName
-				if resourceMeta.Count {
-					resourceName = resourceName.AddIndex(0)
-				}
-
-				// Add attributes that are not in `attrs` yet.  Include
-				// the requested one (`trailing`) as well as any possible
-				// references we find in the expression (`ExprAttributes`).
-				absentAttrs := ExprAttributes(expr)
-				if len(trailing) > 0 {
-					absentAttrs = append(absentAttrs, trailing)
-				}
-				for _, attr := range absentAttrs {
-					attrName := resourceName.AddLocalName(attr)
-					if _, ok := attrs[attrName.ToString()]; !ok {
-						deps = append(deps, dependency{attrName, nil, &resourceKeyVal})
+			if asVariable, asVar, _ := full.AsVariable(); asVar != nil {
+				// Rewrite variables either as default, or as module input.
+				asModuleInput := full.AsModuleInput()
+				isModuleInput := false
+				if asModuleInput != nil {
+					if mtp, _ := v.Terms.LookupByPrefix(*asModuleInput); mtp != nil {
+						deps = append(deps, dependency{asVar, mtp, nil})
+						isModuleInput = true
 					}
 				}
-			} else {
-				// In other cases, just use the local name.  This is sort of
-				// a catch-all and we should try to not rely on this too much.
-				val := cty.StringVal(LocalNameToString(local))
-				deps = append(deps, dependency{full, nil, &val})
+				if !isModuleInput {
+					deps = append(deps, dependency{asVar, asVariable, nil})
+				}
+				continue
 			}
+
+			// In other cases, just use the local name.  This is sort of
+			// a catch-all and we should try to not rely on this too much.
+			val := cty.StringVal(LocalNameToString(local))
+			deps = append(deps, dependency{&full, nil, &val})
 		}
-	}
+	})
 	return deps
 }
 
 // Iterate all expressions to be evaluated in the "correct" order.
 func (v *Analysis) order() ([]FullName, error) {
 	graph := map[string][]string{}
-	for key, expr := range v.Expressions {
-		name, err := StringToFullName(key)
-		if err != nil {
-			v.badKeys[key] = struct{}{}
-			continue
-		}
-
+	v.Terms.VisitTerms(func(name FullName, term Term) {
+		key := name.ToString()
 		graph[key] = []string{}
-		for _, dep := range v.dependencies(*name, expr) {
+		deps := v.dependencies(name, term)
+		for _, dep := range deps {
 			if dep.source != nil {
 				graph[key] = append(graph[key], dep.source.ToString())
 			}
 		}
-	}
+	})
 
 	sorted, err := topsort.Topsort(graph)
 	if err != nil {
@@ -221,19 +168,25 @@ func (v *Analysis) order() ([]FullName, error) {
 
 type Evaluation struct {
 	Analysis *Analysis
-	Modules  map[string]ValTree
+	Modules  map[string]cty.Value
+
+	resourceAttributes map[string]cty.Value
+
+	phantomAttrs *phantomAttrs
 
 	errors []error // Errors encountered during evaluation
 }
 
 func EvaluateAnalysis(analysis *Analysis) (*Evaluation, error) {
 	eval := &Evaluation{
-		Analysis: analysis,
-		Modules:  map[string]ValTree{},
+		Analysis:           analysis,
+		Modules:            map[string]cty.Value{},
+		resourceAttributes: map[string]cty.Value{},
+		phantomAttrs:       newPhantomAttrs(),
 	}
 
 	for moduleKey := range analysis.Modules {
-		eval.Modules[moduleKey] = EmptyObjectValTree()
+		eval.Modules[moduleKey] = cty.EmptyObjectVal
 	}
 
 	if err := eval.evaluate(); err != nil {
@@ -243,157 +196,129 @@ func EvaluateAnalysis(analysis *Analysis) (*Evaluation, error) {
 	return eval, nil
 }
 
-func (v *Evaluation) prepareVariables(name FullName, expr hcl.Expression) ValTree {
-	sparse := EmptyObjectValTree()
-	for _, dep := range v.Analysis.dependencies(name, expr) {
-		var dependency ValTree
-		if dep.source != nil {
-			sourceModule := ModuleNameToString(dep.source.Module)
-			dependency = BuildValTree(
-				dep.destination.Local,
-				LookupValTree(v.Modules[sourceModule], dep.source.Local),
-			)
-		} else if dep.value != nil {
-			dependency = SingletonValTree(dep.destination.Local, *dep.value)
-		}
-		if dependency != nil {
-			sparse = MergeValTree(sparse, dependency)
+func (v *Evaluation) prepareVariables(name FullName, term Term) cty.Value {
+	sparse := v.Modules[ModuleNameToString(name.Module)]
+	for _, dep := range v.Analysis.dependencies(name, term) {
+		if dep.destination != nil {
+			var dependency cty.Value
+			if dep.source != nil {
+				sourceModule := ModuleNameToString(dep.source.Module)
+				dependency = NestVal(
+					dep.destination.Local,
+					LookupVal(v.Modules[sourceModule], dep.source.Local),
+				)
+			} else if dep.value != nil {
+				dependency = NestVal(dep.destination.Local, *dep.value)
+			}
+			if !dependency.IsNull() {
+				sparse = MergeVal(sparse, dependency)
+			}
 		}
 	}
 	return sparse
 }
 
 func (v *Evaluation) evaluate() error {
-	// Obtain order
+	// Obtain order again
 	order, err := v.Analysis.order()
 	if err != nil {
 		return err
 	}
 
-	// Initialize a skeleton with blocks, to ensure empty blocks are present
-	for _, name := range v.Analysis.Blocks {
-		moduleKey := ModuleNameToString(name.Module)
-		tree := BuildValTree(name.Local, EmptyObjectValTree())
-		v.Modules[moduleKey] = MergeValTree(v.Modules[moduleKey], tree)
-	}
+	termsByKey := map[string]Term{}
+	v.Analysis.Terms.VisitTerms(func(name FullName, term Term) {
+		termsByKey[name.ToString()] = term
+		v.phantomAttrs.analyze(name, term)
+	})
 
-	// Evaluate expressions
+	// Evaluate terms
 	for _, name := range order {
-		expr := v.Analysis.Expressions[name.ToString()]
+		term := termsByKey[name.ToString()]
 		moduleKey := ModuleNameToString(name.Module)
 		moduleMeta := v.Analysis.Modules[moduleKey]
 
-		vars := v.prepareVariables(name, expr)
-		vars = MergeValTree(vars, SingletonValTree(LocalName{"path", "module"}, cty.StringVal(moduleMeta.Dir)))
-		vars = MergeValTree(vars, SingletonValTree(LocalName{"terraform", "workspace"}, cty.StringVal("default")))
+		vars := v.prepareVariables(name, term)
+		vars = MergeVal(vars, NestVal(LocalName{"path", "module"}, cty.StringVal(moduleMeta.Dir)))
+		vars = MergeVal(vars, NestVal(LocalName{"terraform", "workspace"}, cty.StringVal("default")))
 
-		// Add count.index if inside a counted resource.
-		resourceName, _, _ := name.AsResourceName()
-		if resourceName != nil {
-			resourceKey := resourceName.ToString()
-			if resource, ok := v.Analysis.Resources[resourceKey]; ok {
-				if resource.Count {
-					vars = MergeValTree(vars, SingletonValTree(LocalName{"count", "index"}, cty.NumberIntVal(0)))
-				}
+		val, diags := term.Evaluate(func(expr hcl.Expression, extraVars cty.Value) (cty.Value, hcl.Diagnostics) {
+			data := Data{}
+			scope := lang.Scope{
+				Data:     &data,
+				SelfAddr: nil,
+				PureOnly: false,
 			}
-		}
+			ctx := hcl.EvalContext{
+				Functions: funcs.Override(v.Analysis.Fs, scope),
+				Variables: ValToVariables(MergeVal(vars, extraVars)),
+			}
+			val, diags := expr.Value(&ctx)
+			if diags.HasErrors() {
+				val = cty.NullVal(val.Type())
+			}
+			return val, diags
+		})
 
-		data := Data{}
-		scope := lang.Scope{
-			Data:     &data,
-			SelfAddr: nil,
-			PureOnly: false,
-		}
-		ctx := hcl.EvalContext{
-			Functions: funcs.Override(v.Analysis.Fs, scope),
-			Variables: ValTreeToVariables(vars),
-		}
-
-		val, diags := expr.Value(&ctx)
 		if diags.HasErrors() {
 			v.errors = append(v.errors, fmt.Errorf("evaluate: error: %s", diags))
-			val = cty.NullVal(val.Type())
 		}
 
-		singleton := SingletonValTree(name.Local, val)
-		v.Modules[moduleKey] = MergeValTree(v.Modules[moduleKey], singleton)
+		v.resourceAttributes[name.ToString()] = val
+		val = v.phantomAttrs.add(name, val)
+		singleton := NestVal(name.Local, val)
+		v.Modules[moduleKey] = MergeVal(v.Modules[moduleKey], singleton)
 	}
 
 	return nil
 }
 
-type Resource struct {
-	Meta  *ResourceMeta
-	Model models.ResourceState
-}
+func (v *Evaluation) prepareResource(resourceMeta *ResourceMeta, module ModuleName, name string, val cty.Value) []models.ResourceState {
+	resources := []models.ResourceState{}
+	moduleKey := ModuleNameToString(module)
 
-func (v *Evaluation) Resources() []Resource {
-	resources := []Resource{}
+	resourceType := resourceMeta.Type
+	if resourceMeta.Data {
+		resourceType = "data." + resourceType
+	}
 
-	for resourceKey, resource := range v.Analysis.Resources {
-		resourceName, err := StringToFullName(resourceKey)
-		if err != nil || resourceName == nil {
-			v.Analysis.badKeys[resourceKey] = struct{}{}
-			continue
+	if val.Type().IsTupleType() {
+		for idx, child := range val.AsValueSlice() {
+			indexedName := fmt.Sprintf("%s[%d]", name, idx)
+			resource := v.prepareResource(resourceMeta, module, indexedName, child)
+			resources = append(resources, resource...)
 		}
-		module := ModuleNameToString(resourceName.Module)
-
-		resourceType := resource.Type
-		if resource.Data {
-			resourceType = "data." + resourceType
-		}
-
-		resourceAttrsName := *resourceName
-		if resource.Count {
-			resourceAttrsName = resourceAttrsName.AddIndex(0)
-		}
-
-		attributes := LookupValTree(v.Modules[module], resourceAttrsName.Local)
-
-		if countTree := LookupValTree(attributes, LocalName{"count"}); countTree != nil {
-			if countVal, ok := countTree.(cty.Value); ok {
-				count := ValueToInt(countVal)
-				if count != nil && *count < 1 {
-					continue
-				}
-			}
-		}
-
+	} else {
 		attrs := map[string]interface{}{}
-		iface, errs := ValueToInterface(ValTreeToValue(attributes))
+		iface, errs := ValueToInterface(val)
 		v.errors = append(v.errors, errs...)
 		if obj, ok := iface.(map[string]interface{}); ok {
 			attrs = obj
 		}
 
-		metaTree := EmptyObjectValTree()
-		providerConfName := ProviderConfigName(resourceName.Module, resource.ProviderName)
-		providerConf := LookupValTree(
-			v.Modules[module],
-			providerConfName.Local,
-		)
-		if obj, ok := providerConf.(map[string]interface{}); ok && len(obj) > 0 {
-			metaTree = MergeValTree(
+		metaTree := cty.EmptyObjectVal
+		providerConfName := ProviderConfigName(module, resourceMeta.ProviderName)
+		if providerConf := LookupVal(v.Modules[moduleKey], providerConfName.Local); !providerConf.IsNull() {
+			metaTree = MergeVal(
 				metaTree,
-				SingletonValTree(
-					[]interface{}{"terraform", "provider_config"},
-					ValTreeToValue(providerConf),
+				NestVal(
+					[]string{"terraform", "provider_config"},
+					providerConf,
 				),
 			)
 		}
 
-		if resource.ProviderVersionConstraint != "" {
-			metaTree = MergeValTree(
+		if resourceMeta.ProviderVersionConstraint != "" {
+			metaTree = MergeVal(
 				metaTree,
-				SingletonValTree(
-					[]interface{}{"terraform", "provider_version_constraint"},
-					cty.StringVal(resource.ProviderVersionConstraint),
+				NestVal(
+					[]string{"terraform", "provider_version_constraint"},
+					cty.StringVal(resourceMeta.ProviderVersionConstraint),
 				),
 			)
 		}
 
 		meta := map[string]interface{}{}
-		if metaVal, errs := ValueToInterface(ValTreeToValue(metaTree)); len(errs) == 0 {
+		if metaVal, errs := ValueToInterface(metaTree); len(errs) == 0 {
 			if metaObj, ok := metaVal.(map[string]interface{}); ok {
 				meta = metaObj
 			}
@@ -411,15 +336,39 @@ func (v *Evaluation) Resources() []Resource {
 		attrs = schemas.ApplyObject(attrs, tfschemas.GetSchema(resourceType))
 
 		// TODO: Support tags again: PopulateTags(input[resourceKey])
-		resources = append(resources, Resource{
-			Meta: resource,
-			Model: models.ResourceState{
-				Id:           resourceKey,
-				ResourceType: resourceType,
-				Attributes:   attrs,
-				Meta:         meta,
-			},
+		resources = append(resources, models.ResourceState{
+			Id:           name,
+			ResourceType: resourceType,
+			Attributes:   attrs,
+			Meta:         meta,
 		})
+	}
+
+	return resources
+}
+
+type Resource struct {
+	Meta  *ResourceMeta
+	Model models.ResourceState
+}
+
+func (v *Evaluation) Resources() []Resource {
+	resources := []Resource{}
+
+	for resourceKey, resourceMeta := range v.Analysis.Resources {
+		resourceName, err := StringToFullName(resourceKey)
+		if err != nil || resourceName == nil {
+			v.Analysis.badKeys[resourceKey] = struct{}{}
+			continue
+		}
+
+		prepared := v.prepareResource(resourceMeta, resourceName.Module, resourceName.ToString(), v.resourceAttributes[resourceKey])
+		for _, model := range prepared {
+			resources = append(resources, Resource{
+				Meta:  resourceMeta,
+				Model: model,
+			})
+		}
 	}
 
 	return resources
