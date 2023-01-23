@@ -17,6 +17,8 @@
 package hcl_interpreter
 
 import (
+	"sort"
+
 	"github.com/hashicorp/hcl/v2"
 	"github.com/hashicorp/hcl/v2/hclsyntax"
 	"github.com/zclconf/go-cty/cty"
@@ -29,7 +31,8 @@ type Term struct {
 	blocks map[string][]Term
 
 	// Meta-expressions
-	count *hcl.Expression
+	count   *hcl.Expression
+	forEach *hcl.Expression
 }
 
 func TermFromExpr(expr hcl.Expression) Term {
@@ -84,6 +87,11 @@ func (t Term) WithCount(expr hcl.Expression) Term {
 	return t
 }
 
+func (t Term) WithForEach(expr hcl.Expression) Term {
+	t.forEach = &expr
+	return t
+}
+
 func (t Term) VisitExpressions(f func(hcl.Expression)) {
 	if t.expr != nil {
 		f(*t.expr)
@@ -98,6 +106,9 @@ func (t Term) VisitExpressions(f func(hcl.Expression)) {
 		}
 		if t.count != nil {
 			f(*t.count)
+		}
+		if t.forEach != nil {
+			f(*t.forEach)
 		}
 	}
 }
@@ -179,6 +190,48 @@ func (t Term) Evaluate(
 			}
 			return cty.TupleVal(arr), diagnostics
 		}
+	}
+
+	if t.forEach != nil {
+		diagnostics := hcl.Diagnostics{}
+		forEachVal, diags := evalExpr(*t.forEach, cty.EmptyObjectVal)
+		diagnostics = append(diagnostics, diags...)
+
+		eaches := []cty.Value{}
+		if forEachVal.IsKnown() && (forEachVal.Type().IsMapType() || forEachVal.Type().IsObjectType()) {
+			valueMap := forEachVal.AsValueMap()
+			keys := []string{}
+			for k := range valueMap {
+				keys = append(keys, k)
+			}
+			sort.Strings(keys)
+			for _, k := range keys {
+				each := cty.ObjectVal(map[string]cty.Value{
+					"key":   cty.StringVal(k),
+					"value": valueMap[k],
+				})
+				eaches = append(eaches, each)
+			}
+		} else if forEachVal.IsKnown() && forEachVal.Type().IsSetType() {
+			for _, v := range forEachVal.AsValueSet().Values() {
+				each := cty.ObjectVal(map[string]cty.Value{
+					"key":   v,
+					"value": v,
+				})
+				eaches = append(eaches, each)
+			}
+		}
+
+		arr := []cty.Value{}
+		for _, each := range eaches {
+			val, diags := t.evaluateExpr(func(e hcl.Expression, v cty.Value) (cty.Value, hcl.Diagnostics) {
+				v = MergeVal(v, NestVal(LocalName{"each"}, each))
+				return evalExpr(e, v)
+			})
+			diagnostics = append(diagnostics, diags...)
+			arr = append(arr, val)
+		}
+		return cty.TupleVal(arr), diagnostics
 	}
 
 	return t.evaluateExpr(evalExpr)
