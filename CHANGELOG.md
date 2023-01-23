@@ -1,6 +1,12 @@
 # CHANGELOG
 
-
+## v0.15.0 - 2023-01-23
+### Added
+* for_each support
+* count will create multiple resources rather than creating a template resource
+### Changed
+* return more resource metadata from the hcl_interpreter library
+* revert ReadCloser change to targz provider
 
 ## v0.14.1 - 2023-01-10
 ### Added
