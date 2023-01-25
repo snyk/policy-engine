@@ -11,7 +11,7 @@ This document describes the contract and API for policy bundles that run in the 
       - [Restrictions](#restrictions)
   - [Examples](#examples)
     - [Example bundle directory structure](#example-bundle-directory-structure)
-    - [Example metadata](#example-metadata)
+    - [Example `manifest.json`](#example-manifestjson)
 
 ## Policy bundle requirements
 
@@ -65,10 +65,11 @@ libraries and may be overwritten by Snyk tooling.
         └── terraform.rego
 ```
 
-### Example metadata
+### Example `manifest.json`
 
 ```json
 {
+    "policy_engine_version": "v0.15.0",
     "revision": "22e2f3bccb6fd28733bfbf445ba41e26e0fc32af",
     "vcs": {
         "type": "git",
