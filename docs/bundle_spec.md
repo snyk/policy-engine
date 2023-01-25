@@ -2,6 +2,17 @@
 
 This document describes the contract and API for policy bundles that run in the policy engine.
 
+- [Policy bundle specification](#policy-bundle-specification)
+  - [Policy bundle requirements](#policy-bundle-requirements)
+  - [Optional bundle contents](#optional-bundle-contents)
+    - [`manifest.json`](#manifestjson)
+      - [Fields](#fields)
+    - [`lib` directory](#lib-directory)
+      - [Restrictions](#restrictions)
+  - [Examples](#examples)
+    - [Example bundle directory structure](#example-bundle-directory-structure)
+    - [Example metadata](#example-metadata)
+
 ## Policy bundle requirements
 
 1. Policy bundles must be a GZipped Tar file
@@ -11,20 +22,21 @@ This document describes the contract and API for policy bundles that run in the 
 
 ## Optional bundle contents
 
-### `metadata.json`
+### `manifest.json`
 
-A `metadata.json` file in the root of the bundle will be interpreted as "bundle metadata". This
+A `manifest.json` file in the root of the bundle will be interpreted as "bundle metadata". This
 metadata contains identifying information about the policy bundle. All metadata fields are
 considered optional.
 
 #### Fields
 
-| Field      |  Type  | Description                                                                  |
-| :--------- | :----: | :--------------------------------------------------------------------------- |
-| `revision` | string | The revision of the bundle, e.g. a Git hash                                  |
-| `vcs`      | object | Version control system (VCS) information                                     |
-| `vcs.type` | string | The type of VCS used, e.g. git, mercurial, svn                               |
-| `vcs.uri`  | string | A URI to the source of this bundle, e.g. https://github.com/example/policies |
+| Field                   |  Type  | Description                                                                  |
+| :---------------------- | :----: | :--------------------------------------------------------------------------- |
+| `policy_engine_version` | string | The version of policy engine used to develop or build this bundle            |
+| `revision`              | string | The revision of the bundle, e.g. a Git hash                                  |
+| `vcs`                   | object | Version control system (VCS) information                                     |
+| `vcs.type`              | string | The type of VCS used, e.g. git, mercurial, svn                               |
+| `vcs.uri`               | string | A URI to the source of this bundle, e.g. https://github.com/example/policies |
 
 ### `lib` directory
 
