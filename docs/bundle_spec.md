@@ -4,9 +4,9 @@ This document describes the contract and API for policy bundles that run in the 
 
 - [Policy bundle specification](#policy-bundle-specification)
   - [Policy bundle requirements](#policy-bundle-requirements)
-  - [Optional bundle contents](#optional-bundle-contents)
     - [`manifest.json`](#manifestjson)
       - [Fields](#fields)
+  - [Optional bundle contents](#optional-bundle-contents)
     - [`lib` directory](#lib-directory)
       - [Restrictions](#restrictions)
   - [Examples](#examples)
@@ -16,12 +16,10 @@ This document describes the contract and API for policy bundles that run in the 
 ## Policy bundle requirements
 
 1. Policy bundles must be a GZipped Tar file
-2. Policy bundles must contain a `manifest.json` file with the required fields
+2. Policy bundles must contain a [`manifest.json`](#manifestjson) file with the required fields
 3. Policy bundles must contain one or more policies that meet the requirements defined in the
    [Policies specification](policy_spec.md)
 4. Policies must be stored within a top-level `rules` directory
-
-## Optional bundle contents
 
 ### `manifest.json`
 
@@ -38,6 +36,8 @@ metadata contains identifying information about the policy bundle.
 | `vcs`                   | object |    no    | Version control system (VCS) information                                     |
 | `vcs.type`              | string |    no    | The type of VCS used, e.g. git, mercurial, svn                               |
 | `vcs.uri`               | string |    no    | A URI to the source of this bundle, e.g. https://github.com/example/policies |
+
+## Optional bundle contents
 
 ### `lib` directory
 
