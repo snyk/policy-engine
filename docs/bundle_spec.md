@@ -2,6 +2,8 @@
 
 This document describes the contract and API for policy bundles that run in the policy engine.
 
+Current version: `v1`.
+
 - [Policy bundle specification](#policy-bundle-specification)
   - [Policy bundle requirements](#policy-bundle-requirements)
     - [`manifest.json`](#manifestjson)
@@ -70,7 +72,7 @@ libraries and may be overwritten by Snyk tooling.
 
 ```json
 {
-    "bundle_format_version": "v0.0.1",
+    "bundle_format_version": "v1",
     "policy_engine_version": "v0.15.0",
     "revision": "22e2f3bccb6fd28733bfbf445ba41e26e0fc32af",
     "vcs": {
