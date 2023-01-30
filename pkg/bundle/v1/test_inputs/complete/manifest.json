@@ -1,0 +1,9 @@
+{
+    "bundle_format_version": "v1",
+    "policy_engine_version": "v0.15.0",
+    "revision": "924d418a9f8f05a66c7dab87989fad631abc291d",
+    "vcs": {
+        "type": "git",
+        "uri": "git@github.com:example/rules.git"
+    }
+}

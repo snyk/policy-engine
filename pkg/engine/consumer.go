@@ -21,10 +21,10 @@ import (
 	"github.com/snyk/policy-engine/pkg/interfacetricks"
 )
 
-var rulesPrefix = ast.Ref{
-	ast.DefaultRootDocument,
-	ast.StringTerm("rules"),
-}
+// var rulesPrefix = ast.Ref{
+// 	ast.DefaultRootDocument,
+// 	ast.StringTerm("rules"),
+// }
 
 // PolicyConsumer is an implementation of the data.Consumer interface that stores
 // parsed modules, policies, and documents in-memory.

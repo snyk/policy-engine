@@ -22,11 +22,11 @@ import (
 // Returns a prefix to nest the document under based on the filename.  This
 // matches the OPA behaviour.
 //
-//     metadata/rules/snyk_001/metadata.json
+//	basepath = metadata/rules and path = metadata/rules/snyk_001/metadata.json
 //
 // Results in
 //
-//     ["rules", "snyk_001"]
+//	["rules", "snyk_001"]
 func dataDocumentPrefix(basePath string, path string) []string {
 	if basePath == path {
 		return nil

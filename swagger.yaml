@@ -16,8 +16,8 @@
 openapi: 3.0.0
 info:
   version: 1.0.0
-  title: Unified Policy Engine I/O Formats
-  description: Documentation for the input and output formats used in Unified Policy Engine
+  title: Policy Engine I/O Formats
+  description: Documentation for the input and output formats used in Policy Engine
 paths:
   /dummy:
     get:
@@ -29,8 +29,7 @@ components:
     State:
       description: |
         The state format contains the state of all resources from some input. This format
-        is intended to be used as both an input and output for the unified policy engine.
-        It is also intended to support the visualizer and other downstream artifacts.
+        is intended to be used as both an input and output for the policy engine.
       type: object
       required:
         - format
@@ -133,7 +132,7 @@ components:
           additionalProperties: {}
     Results:
       description: |
-        This is the top-level output from the Unified Policy Engine.
+        This is the top-level output from the Policy Engine.
       type: object
       required:
         - format
@@ -146,9 +145,21 @@ components:
         format_version:
           type: string
           enum: ["1.0.0"]
+        rule_sets:
+          type: array
+          description: An array of rule sets used to produce these results
+          items:
+            $ref: '#/components/schemas/RuleSet'
         results:
+          type: array
           items:
             $ref: '#/components/schemas/Result'
+        errors:
+          type: array
+          description: |
+            An array of errors that occurred while initializing the engine
+          items:
+            type: string
     Result:
       description: |
         An object that relates an input with its rule results
@@ -176,6 +187,9 @@ components:
           type: string
           description: |
             The Rule ID, e.g. SNYK_00503 or 608f97c3-a11a-4154-a88e-a2fcd18c75b0
+        rule_set:
+          description: The rule set that provided this rule
+          $ref: '#/components/schemas/RuleSet'
         title:
           type: string
           description: The rule title
@@ -340,3 +354,14 @@ components:
           type: string
       required:
       - url
+    RuleSet:
+      type: object
+      description: A rule set that was used in the evaluation
+      properties:
+        name:
+          type: string
+        source:
+          type: string
+          enum: ["data", "bundle_archive", "bundle_directory"]
+        checksum:
+          type: string

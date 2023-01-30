@@ -22,6 +22,7 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/snyk/policy-engine/pkg/bundle"
 	"github.com/snyk/policy-engine/pkg/data"
 	"github.com/snyk/policy-engine/pkg/engine"
 	"github.com/snyk/policy-engine/pkg/input"
@@ -35,23 +36,47 @@ import (
 
 var (
 	runCmdRules   []string
+	runCmdBundles []string
 	runVarFiles   []string
 	runCmdWorkers *int
 )
 
 var runCmd = &cobra.Command{
-	Use:   "run [-d <rules/metadata>...] [-r <rule ID>...] <input> [input...]",
+	Use:   "run [-d <rules/metadata>...] [-b <bundle>] [-r <rule ID>...] <input> [input...]",
 	Short: "Policy Engine",
 	RunE: func(cmd *cobra.Command, args []string) error {
 		logger := cmdLogger()
 		snapshot_testing.GlobalRegisterNoop()
 		m := metrics.NewLocalMetrics(logger)
-		selectedRules := map[string]bool{}
-		for _, k := range runCmdRules {
-			selectedRules[k] = true
-		}
+		ctx := context.Background()
 		providers := []data.Provider{data.PureRegoLibProvider()}
 		providers = append(providers, rootCmdRegoProviders()...)
+		bundleReaders := []bundle.Reader{}
+		for _, path := range runCmdBundles {
+			if isTgz(path) {
+				f, err := os.Open(path)
+				if err != nil {
+					return err
+				}
+				defer f.Close()
+				reader, err := bundle.NewTarGzReader(path, f)
+				if err != nil {
+					return err
+				}
+				bundleReaders = append(bundleReaders, reader)
+			} else {
+				stat, err := os.Stat(path)
+				if err != nil {
+					return err
+				}
+				if stat.IsDir() {
+					reader := bundle.NewDirReader(path)
+					bundleReaders = append(bundleReaders, reader)
+				}
+
+			}
+		}
+
 		detector, err := input.DetectorByInputTypes(
 			input.Types{input.Auto},
 		)
@@ -103,7 +128,7 @@ var runCmd = &cobra.Command{
 				}
 			}
 		}
-		ctx := context.Background()
+
 		for path, errs := range loader.Errors() {
 			for _, err := range errs {
 				logger.Warn(ctx, fmt.Sprintf("%s: %s", path, err))
@@ -111,10 +136,10 @@ var runCmd = &cobra.Command{
 		}
 		states := loader.ToStates()
 		eng, err := engine.NewEngine(ctx, &engine.EngineOptions{
-			Providers: providers,
-			RuleIDs:   selectedRules,
-			Logger:    logger,
-			Metrics:   m,
+			Providers:     providers,
+			BundleReaders: bundleReaders,
+			Logger:        logger,
+			Metrics:       m,
 		})
 		if err != nil {
 			return err
@@ -122,6 +147,7 @@ var runCmd = &cobra.Command{
 		results := eng.Eval(ctx, &engine.EvalOptions{
 			Inputs:  states,
 			Workers: *runCmdWorkers,
+			RuleIDs: runCmdRules,
 		})
 		postprocess.AddSourceLocs(results, loader)
 
@@ -138,5 +164,6 @@ var runCmd = &cobra.Command{
 func init() {
 	runCmdWorkers = runCmd.PersistentFlags().IntP("workers", "w", 0, "Number of workers. When 0 (the default) will use num CPUs + 1.")
 	runCmd.PersistentFlags().StringSliceVarP(&runCmdRules, "rule", "r", runCmdRules, "Select specific rules")
+	runCmd.PersistentFlags().StringSliceVarP(&runCmdBundles, "bundle", "b", runCmdRules, "Select specific bundles")
 	runCmd.PersistentFlags().StringSliceVar(&runVarFiles, "var-file", runVarFiles, "Pass in variable files")
 }

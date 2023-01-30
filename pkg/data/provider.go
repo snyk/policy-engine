@@ -92,7 +92,7 @@ func TarGzProvider(reader io.Reader) Provider {
 		}
 
 		tarReader := tar.NewReader(gzf)
-		for true {
+		for {
 			header, err := tarReader.Next()
 			if err == io.EOF {
 				break

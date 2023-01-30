@@ -16,16 +16,10 @@ package engine
 
 import (
 	"context"
-	"fmt"
-	"runtime"
 	"sort"
-	"sync"
-	"time"
 
-	"github.com/open-policy-agent/opa/ast"
 	"github.com/open-policy-agent/opa/rego"
-	"github.com/open-policy-agent/opa/storage"
-	"github.com/open-policy-agent/opa/storage/inmem"
+	"github.com/snyk/policy-engine/pkg/bundle"
 	"github.com/snyk/policy-engine/pkg/data"
 	"github.com/snyk/policy-engine/pkg/logging"
 	"github.com/snyk/policy-engine/pkg/metrics"
@@ -35,24 +29,22 @@ import (
 
 // Engine is responsible for evaluating some States with a given set of rules.
 type Engine struct {
-	logger      logging.Logger
-	metrics     metrics.Metrics
-	policies    []policy.Policy
-	compiler    *ast.Compiler
-	store       storage.Store
-	ruleIDs     map[string]bool
-	runAllRules bool
+	instrumentation *engineInstrumentation
+	policySets      []*policySet
+	errors          []error
 }
 
 // EngineOptions contains options for initializing an Engine instance
 type EngineOptions struct {
 	// Providers contains functions that produce parsed OPA modules or data documents.
 	Providers []data.Provider
-	// RuleIDs determines which rules are executed. When this option is empty or
-	// unspecified, all rules will be run.
-	RuleIDs map[string]bool
+
+	// Providers contains bundle.Reader objects that produce parsed bundles.
+	BundleReaders []bundle.Reader
+
 	// Logger is an optional instance of the logger.Logger interface
 	Logger logging.Logger
+
 	// Metrics is an optional instance of the metrics.Metrics interface
 	Metrics metrics.Metrics
 }
@@ -67,69 +59,89 @@ func NewEngine(ctx context.Context, options *EngineOptions) (*Engine, error) {
 	if m == nil {
 		m = metrics.NewLocalMetrics(logger)
 	}
-	logger.Info(ctx, "Initializing engine")
-	consumer := NewPolicyConsumer()
-	if err := policy.RegoAPIProvider(ctx, consumer); err != nil {
-		logger.Error(ctx, "Failed to load rego API")
-		return nil, fmt.Errorf("%w: %v", FailedToLoadRegoAPI, err)
+	eng := &Engine{
+		instrumentation: &engineInstrumentation{
+			instrumentation: newInstrumentation(instrumentationOptions{
+				component: "policy_engine",
+				logger:    logger,
+				metrics:   m,
+			}),
+		},
 	}
-	providersStart := time.Now()
-	for _, p := range options.Providers {
-		if err := p(ctx, consumer); err != nil {
-			logger.Error(ctx, "Failed to consume rule and data providers")
-			return nil, fmt.Errorf("%w: %v", FailedToLoadRules, err)
-		}
+	eng.instrumentation.startInitialization(ctx)
+	if err := eng.initPolicySets(ctx, options.Providers, options.BundleReaders); err != nil {
+		return nil, err
 	}
-	m.Timer(ctx, metrics.PROVIDERS_LOAD_TIME, "", metrics.Labels{}).
-		Record(time.Now().Sub(providersStart))
-	logger.WithField(logging.MODULES, len(consumer.Modules)).
-		WithField(logging.DATA_DOCUMENTS, consumer.NumDocuments).
-		Info(ctx, "Finished consuming providers")
-	tree := ast.NewModuleTree(consumer.Modules)
-	policies := []policy.Policy{}
-	for _, moduleSet := range policy.ExtractModuleSets(tree) {
-		l := logger.WithField(logging.PACKAGE, moduleSet.Path.String())
-		p, err := policy.PolicyFactory(moduleSet)
+	eng.instrumentation.finishInitialization(ctx)
+	return eng, nil
+}
+
+func (e *Engine) initPolicySets(ctx context.Context, providers []data.Provider, readers []bundle.Reader) error {
+	e.instrumentation.startInitializePolicySets(ctx)
+	if len(providers) > 0 {
+		policySet, err := newPolicySet(ctx, policySetOptions{
+			providers: providers,
+			source:    POLICY_SOURCE_DATA,
+			instrumentation: e.instrumentation.child(
+				metrics.Labels{
+					"policy_set_source": string(POLICY_SOURCE_DATA),
+				},
+				info,
+				withField("policy_set_source", string(POLICY_SOURCE_DATA)),
+			),
+		})
 		if err != nil {
-			l.WithField(logging.ERROR, err.Error()).
-				Warn(ctx, "Error while parsing policy. It will still be loaded and accessible via data.")
-		} else if p == nil {
-			l.Debug(ctx, "Module did not contain a policy. It will still be loaded and accessible via data.")
-		} else {
-			policies = append(policies, p)
+			return err
 		}
+		e.policySets = append(e.policySets, policySet)
 	}
 
-	compiler := ast.NewCompiler().WithCapabilities(policy.Capabilities())
-	compilationStart := time.Now()
-	compiler.Compile(consumer.Modules)
-	m.Timer(ctx, metrics.COMPILATION_TIME, "", metrics.Labels{}).
-		Record(time.Now().Sub(compilationStart))
-	if len(compiler.Errors) > 0 {
-		err := compiler.Errors.Error()
-		logger.Error(ctx, "Failed during compilation")
-		return nil, fmt.Errorf("%w: %v", FailedToCompile, err)
+	for _, r := range readers {
+		b, err := bundle.NewBundle(r)
+		if err != nil {
+			e.errors = append(e.errors, err)
+			continue
+		}
+		sourceInfo := b.SourceInfo()
+		var policySource PolicySource
+		if sourceInfo.SourceType == bundle.ARCHIVE {
+			policySource = POLICY_SOURCE_BUNDLE_ARCHIVE
+		} else if sourceInfo.SourceType == bundle.DIRECTORY {
+			policySource = POLICY_SOURCE_BUNDLE_DIRECTORY
+		}
+		labels := metrics.Labels{
+			"policy_set_source": string(policySource),
+			"policy_set_name":   sourceInfo.FileInfo.Path,
+		}
+		fields := []loggerOption{
+			withField("policy_set_source", string(policySource)),
+			withField("policy_set_name", sourceInfo.FileInfo.Path),
+		}
+		if sourceInfo.FileInfo.Checksum != "" {
+			labels["policy_set_checksum"] = sourceInfo.FileInfo.Checksum
+			fields = append(fields, withField("policy_set_checksum", sourceInfo.FileInfo.Checksum))
+		}
+		policySet, err := newPolicySet(ctx, policySetOptions{
+			providers: []data.Provider{b.Provider()},
+			source:    policySource,
+			name:      sourceInfo.FileInfo.Path,
+			checksum:  sourceInfo.FileInfo.Checksum,
+			instrumentation: e.instrumentation.child(
+				labels,
+				info,
+				fields...,
+			),
+		})
+		if err != nil {
+			return err
+		}
+		e.policySets = append(e.policySets, policySet)
 	}
-	logger.Info(ctx, "Finished initializing engine")
-	m.Counter(ctx, metrics.MODULES_LOADED, "", metrics.Labels{}).
-		Add(float64(len(consumer.Modules)))
-	m.Counter(ctx, metrics.DATA_DOCUMENTS_LOADED, "", metrics.Labels{}).
-		Add(float64(consumer.NumDocuments))
-	m.Counter(ctx, metrics.POLICIES_LOADED, "", metrics.Labels{}).
-		Add(float64(len(policies)))
-	return &Engine{
-		logger:      logger,
-		metrics:     m,
-		compiler:    compiler,
-		policies:    policies,
-		store:       inmem.NewFromObject(consumer.Document),
-		ruleIDs:     options.RuleIDs,
-		runAllRules: len(options.RuleIDs) < 1,
-	}, nil
+	e.instrumentation.finishInitializePolicySets(ctx)
+	return nil
 }
 
 type policyResults struct {
-	pkg         string
 	err         error
 	ruleResults []models.RuleResults
 }
@@ -137,147 +149,79 @@ type policyResults struct {
 // EvalOptions contains options for Engine.Eval
 type EvalOptions struct {
 	// Inputs are the State instances that the engine should evaluate.
-	Inputs  []models.State
+	Inputs []models.State
+
+	// Workers sets how many policies are to be evaluated concurrently. When
+	// unset or set to a value less than 1, this defaults to the number of CPU
+	// cores - 1.
 	Workers int
+
 	// ResourceResolver is a function that returns a resource state for the given
 	// ResourceRequest.
 	// Multiple ResourcesResolvers can be composed with And() and Or().
 	ResourcesResolver policy.ResourcesResolver
+
+	// RuleIDs determines which rules are executed. When this option is empty or
+	// unspecified, all rules will be run.
+	RuleIDs []string
 }
 
 // Eval evaluates the given states using the rules that the engine was initialized with.
 func (e *Engine) Eval(ctx context.Context, options *EvalOptions) *models.Results {
-	e.logger.Debug(ctx, "Beginning evaluation")
-	regoOptions := []func(*rego.Rego){
-		rego.Compiler(e.compiler),
-		rego.Store(e.store),
-		rego.StrictBuiltinErrors(true),
-	}
-	policies := e.policies
-	if !e.runAllRules {
-		ruleSelectionStart := time.Now()
-		policies = []policy.Policy{}
-		for _, p := range e.policies {
-			id, err := p.ID(ctx, regoOptions)
-			if err != nil {
-				e.logger.WithField("package", p.Package()).
-					Warn(ctx, "Failed to extract ID from policy")
-				continue
-			}
-			if !e.ruleIDs[id] {
-				continue
-			}
-			policies = append(policies, p)
-		}
-		e.metrics.Timer(ctx, metrics.RULE_SELECTION_TIME, "", metrics.Labels{}).
-			Record(time.Now().Sub(ruleSelectionStart))
-	}
+	e.instrumentation.startEvaluate(ctx)
 	results := []models.Result{}
-	for idx, state := range options.Inputs {
-		policyOpts := policy.EvalOptions{
-			RegoOptions:       regoOptions,
-			Input:             &state,
-			ResourcesResolver: options.ResourcesResolver,
-			Logger:            e.logger,
-		}
+	for _, input := range options.Inputs {
+		loggerFields := inputFields(&input)
+		e.instrumentation.startEvaluateInput(ctx, loggerFields)
 		allRuleResults := []models.RuleResults{}
-		policyChan := make(chan policy.Policy)
-		resultsChan := make(chan policyResults)
-		var wg sync.WaitGroup
-		ruleEvalCounter := e.metrics.Counter(ctx, metrics.RULES_EVALUATED, "", metrics.Labels{
-			metrics.INPUT_IDX: fmt.Sprint(idx),
-		})
-		totalEvalStart := time.Now()
-		go func() {
-			numWorkers := options.Workers
-			if numWorkers < 1 {
-				numWorkers = runtime.NumCPU() + 1
-			}
-			e.logger.WithField("workers", numWorkers).Debug(ctx, "Starting workers")
-			for i := 0; i < numWorkers; i++ {
-				wg.Add(1)
-				go func() {
-					defer wg.Done()
-					for {
-						p, ok := <-policyChan
-						if !ok {
-							return
-						}
-						pkg := p.Package()
-						evalStart := time.Now()
-						ruleResults, err := p.Eval(ctx, policyOpts)
-						labels := metrics.Labels{
-							metrics.PACKAGE: pkg,
-							// TODO: Do we need a better way to identify inputs?
-							metrics.INPUT_IDX: fmt.Sprint(idx),
-						}
-						e.metrics.Timer(ctx, metrics.RULE_EVAL_TIME, "", labels).
-							Record(time.Now().Sub(evalStart))
-						for _, r := range ruleResults {
-							e.metrics.Counter(ctx, metrics.RESULTS_PRODUCED, "", labels).
-								Add(float64(len(r.Results)))
-						}
-						resultsChan <- policyResults{
-							pkg:         pkg,
-							err:         err,
-							ruleResults: ruleResults,
-						}
-					}
-				}()
-			}
-			for _, p := range policies {
-				if !p.InputTypeMatches(state.InputType) {
-					continue
-				}
-				policyChan <- p
-				ruleEvalCounter.Inc()
-			}
-			close(policyChan)
-			wg.Wait()
-			close(resultsChan)
-		}()
-		errCounter := e.metrics.Counter(ctx, metrics.POLICY_ERRORS, "", metrics.Labels{})
-		for {
-			select {
-			case policyResults, ok := <-resultsChan:
-				if !ok {
-					resultsChan = nil
-					break
-				}
-				if policyResults.err != nil {
-					e.logger.WithField(logging.PACKAGE, policyResults.pkg).
-						WithError(policyResults.err).
-						Warn(ctx, "Failed to evaluate policy")
-					errCounter.Inc()
-					allRuleResults = append(allRuleResults, policyResults.ruleResults...)
-				} else {
-					e.logger.WithField(logging.PACKAGE, policyResults.pkg).
-						Debug(ctx, "Completed policy evaluation")
-					allRuleResults = append(allRuleResults, policyResults.ruleResults...)
-				}
-			}
-			if resultsChan == nil {
-				break
+		totalResults := 0
+		for _, p := range e.policySets {
+			ruleResults := p.eval(ctx, &parallelEvalOptions{
+				resourcesResolver: options.ResourcesResolver,
+				regoOptions: []func(*rego.Rego){
+					rego.StrictBuiltinErrors(true),
+				},
+				input:        &input,
+				ruleIDs:      options.RuleIDs,
+				workers:      options.Workers,
+				loggerFields: loggerFields,
+			})
+			allRuleResults = append(allRuleResults, ruleResults...)
+			for _, r := range ruleResults {
+				totalResults += len(r.Results)
 			}
 		}
-
 		// Ensure deterministic output.
 		sort.Slice(allRuleResults, func(i, j int) bool {
 			return allRuleResults[i].Package_ < allRuleResults[j].Package_
 		})
-
-		e.metrics.Timer(ctx, metrics.TOTAL_RULE_EVAL_TIME, "", metrics.Labels{
-			metrics.INPUT_IDX: fmt.Sprint(idx),
-		}).Record(time.Now().Sub(totalEvalStart))
 		results = append(results, models.Result{
-			Input:       state,
+			Input:       input,
 			RuleResults: allRuleResults,
 		})
+		loggerFields = append(loggerFields,
+			withField("policies", len(allRuleResults)),
+			withField("results", totalResults),
+		)
+		e.instrumentation.finishEvaluateInput(ctx, loggerFields)
 	}
+
+	ruleSets := make([]models.RuleSet, len(e.policySets))
+	for idx, p := range e.policySets {
+		ruleSets[idx] = *p.toRuleSet()
+	}
+	e.instrumentation.finishEvaluate(ctx)
+	var errors []string
+	for _, err := range e.errors {
+		errors = append(errors, err.Error())
+	}
+
 	return &models.Results{
 		Format:        "results",
 		FormatVersion: "1.1.0",
 		Results:       results,
+		RuleSets:      ruleSets,
+		Errors:        errors,
 	}
 }
 
@@ -290,31 +234,68 @@ type MetadataResult struct {
 // Metadata returns the metadata of all Policies that have been loaded into this
 // Engine instance.
 func (e *Engine) Metadata(ctx context.Context) []MetadataResult {
-	opts := []func(*rego.Rego){
-		rego.Compiler(e.compiler),
-		rego.Store(e.store),
+	metadata := []MetadataResult{}
+	for _, p := range e.policySets {
+		m := p.metadata(ctx, []func(*rego.Rego){
+			rego.StrictBuiltinErrors(true),
+		})
+		metadata = append(metadata, m...)
 	}
-
 	// Ensure a consistent ordering for policies to make our output
 	// deterministic.
-	policies := make([]policy.Policy, len(e.policies))
-	copy(policies, e.policies)
-	sort.Slice(policies, func(i, j int) bool {
-		return policies[i].Package() < policies[j].Package()
+	sort.Slice(metadata, func(i, j int) bool {
+		return metadata[i].Package < metadata[j].Package
 	})
 
-	metadata := make([]MetadataResult, len(policies))
-	for idx, p := range policies {
-		m, err := p.Metadata(ctx, opts)
-		result := MetadataResult{
-			Package: p.Package(),
-		}
-		if err != nil {
-			result.Error = err.Error()
-		} else {
-			result.Metadata = m
-		}
-		metadata[idx] = result
-	}
 	return metadata
+}
+
+type engineInstrumentation struct {
+	instrumentation
+}
+
+func (i *engineInstrumentation) startInitialization(ctx context.Context) {
+	i.startPhase(ctx, "initialize_engine")
+}
+
+func (i *engineInstrumentation) finishInitialization(ctx context.Context) {
+	i.finishPhase(ctx, "initialize_engine")
+}
+
+func (i *engineInstrumentation) startInitializePolicySets(ctx context.Context) {
+	i.startPhase(ctx, "initialize_policy_sets")
+}
+
+func (i *engineInstrumentation) finishInitializePolicySets(ctx context.Context) {
+	i.finishPhase(ctx, "initialize_policy_sets")
+}
+
+func (i *engineInstrumentation) startEvaluate(ctx context.Context) {
+	i.startPhase(ctx, "evaluate_all_inputs")
+}
+
+func (i *engineInstrumentation) finishEvaluate(ctx context.Context) {
+	i.finishPhase(ctx, "evaluate_all_inputs")
+}
+
+func (i *engineInstrumentation) startEvaluateInput(ctx context.Context, fields []loggerOption) {
+	i.startPhase(ctx, "evaluate_inputs", fields...)
+}
+
+func (i *engineInstrumentation) finishEvaluateInput(ctx context.Context, fields []loggerOption) {
+	i.finishPhase(ctx, "evaluate_inputs", fields...)
+}
+
+func inputFields(input *models.State) []loggerOption {
+	resourceTypes := len(input.Resources)
+	resources := 0
+	for _, rt := range input.Resources {
+		resources += len(rt)
+	}
+	return []loggerOption{
+		withField("input_type", input.InputType),
+		withField("scope", input.Scope),
+		withField("resource_types", resourceTypes),
+		withField("resources", resources),
+	}
 }

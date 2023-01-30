@@ -28,6 +28,16 @@ type Buckets []float64
 
 type Labels = map[string]string
 
+func MergeLabels(labels ...Labels) Labels {
+	merged := Labels{}
+	for _, l := range labels {
+		for k, v := range l {
+			merged[k] = v
+		}
+	}
+	return merged
+}
+
 type Histogram interface {
 	Observe(val float64)
 }
