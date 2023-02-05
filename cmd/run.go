@@ -50,20 +50,8 @@ var runCmd = &cobra.Command{
 		for _, k := range runCmdRules {
 			selectedRules[k] = true
 		}
-		providers := []data.Provider{
-			data.PureRegoLibProvider(),
-		}
-		for _, path := range rootCmdRegoPaths {
-			if isTgz(path) {
-				f, err := os.Open(path)
-				if err != nil {
-					return err
-				}
-				providers = append(providers, data.TarGzProvider(f))
-			} else {
-				providers = append(providers, data.LocalProvider(path))
-			}
-		}
+		providers := []data.Provider{data.PureRegoLibProvider()}
+		providers = append(providers, rootCmdRegoProviders()...)
 		detector, err := input.DetectorByInputTypes(
 			input.Types{input.Auto},
 		)
