@@ -22,6 +22,7 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/hashicorp/go-multierror"
 	"github.com/snyk/policy-engine/pkg/bundle"
 	"github.com/snyk/policy-engine/pkg/data"
 	"github.com/snyk/policy-engine/pkg/engine"
@@ -135,14 +136,15 @@ var runCmd = &cobra.Command{
 			}
 		}
 		states := loader.ToStates()
-		eng, err := engine.NewEngine(ctx, &engine.EngineOptions{
+		eng := engine.NewEngine(ctx, &engine.EngineOptions{
 			Providers:     providers,
 			BundleReaders: bundleReaders,
 			Logger:        logger,
 			Metrics:       m,
 		})
-		if err != nil {
-			return err
+		if eng.Errors != nil {
+			err := &multierror.Error{}
+			return multierror.Append(err, eng.Errors...)
 		}
 		results := eng.Eval(ctx, &engine.EvalOptions{
 			Inputs:  states,

@@ -48,10 +48,10 @@ func TestExamples(t *testing.T) {
 	assert.NoError(t, err)
 	ctx := context.Background()
 	states := loader.ToStates()
-	eng, err := engine.NewEngine(ctx, &engine.EngineOptions{
+	eng := engine.NewEngine(ctx, &engine.EngineOptions{
 		Providers: providers,
 	})
-	assert.NoError(t, err)
+	assert.Nil(t, eng.Errors)
 	results := eng.Eval(ctx, &engine.EvalOptions{
 		Inputs: states,
 	})

@@ -29,3 +29,7 @@ var FailedToLoadRules = errors.New("Failed to load rules")
 // FailedToCompile indicates that more than the maximum number of errors occurred during
 // the compilation stage.
 var FailedToCompile = errors.New("Failed to compile rules")
+
+// ErrFailedToReadBundle indicates that an error occurred while consuming a
+// bundle.Reader.
+var ErrFailedToReadBundle = errors.New("failed to load bundle")

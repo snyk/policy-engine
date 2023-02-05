@@ -20,6 +20,7 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/hashicorp/go-multierror"
 	"github.com/snyk/policy-engine/pkg/data"
 	"github.com/snyk/policy-engine/pkg/engine"
 	"github.com/snyk/policy-engine/pkg/snapshot_testing"
@@ -37,12 +38,13 @@ var metadataCmd = &cobra.Command{
 		}
 		providers = append(providers, rootCmdRegoProviders()...)
 		ctx := context.Background()
-		eng, err := engine.NewEngine(ctx, &engine.EngineOptions{
+		eng := engine.NewEngine(ctx, &engine.EngineOptions{
 			Providers: providers,
 			Logger:    logger,
 		})
-		if err != nil {
-			return err
+		if eng.Errors != nil {
+			err := &multierror.Error{}
+			return multierror.Append(err, eng.Errors...)
 		}
 		metadata := eng.Metadata(ctx)
 		bytes, err := json.MarshalIndent(metadata, "  ", "  ")

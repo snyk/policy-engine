@@ -16,6 +16,7 @@ package engine
 
 import (
 	"context"
+	"fmt"
 	"sort"
 
 	"github.com/open-policy-agent/opa/rego"
@@ -29,9 +30,12 @@ import (
 
 // Engine is responsible for evaluating some States with a given set of rules.
 type Engine struct {
+	// Errors contains any errors that occurred during initialization. The
+	// messages from these errors will be included in the models.Results
+	// returned by the Eval method.
+	Errors          []error
 	instrumentation *engineInstrumentation
 	policySets      []*policySet
-	errors          []error
 }
 
 // EngineOptions contains options for initializing an Engine instance
@@ -50,7 +54,7 @@ type EngineOptions struct {
 }
 
 // NewEngine constructs a new Engine instance.
-func NewEngine(ctx context.Context, options *EngineOptions) (*Engine, error) {
+func NewEngine(ctx context.Context, options *EngineOptions) *Engine {
 	logger := options.Logger
 	if logger == nil {
 		logger = logging.DefaultLogger
@@ -69,14 +73,12 @@ func NewEngine(ctx context.Context, options *EngineOptions) (*Engine, error) {
 		},
 	}
 	eng.instrumentation.startInitialization(ctx)
-	if err := eng.initPolicySets(ctx, options.Providers, options.BundleReaders); err != nil {
-		return nil, err
-	}
-	eng.instrumentation.finishInitialization(ctx)
-	return eng, nil
+	eng.initPolicySets(ctx, options.Providers, options.BundleReaders)
+	eng.instrumentation.finishInitialization(ctx, eng)
+	return eng
 }
 
-func (e *Engine) initPolicySets(ctx context.Context, providers []data.Provider, readers []bundle.Reader) error {
+func (e *Engine) initPolicySets(ctx context.Context, providers []data.Provider, readers []bundle.Reader) {
 	e.instrumentation.startInitializePolicySets(ctx)
 	if len(providers) > 0 {
 		policySet, err := newPolicySet(ctx, policySetOptions{
@@ -91,15 +93,16 @@ func (e *Engine) initPolicySets(ctx context.Context, providers []data.Provider, 
 			),
 		})
 		if err != nil {
-			return err
+			e.Errors = append(e.Errors, err)
+		} else {
+			e.policySets = append(e.policySets, policySet)
 		}
-		e.policySets = append(e.policySets, policySet)
 	}
 
 	for _, r := range readers {
 		b, err := bundle.NewBundle(r)
 		if err != nil {
-			e.errors = append(e.errors, err)
+			e.Errors = append(e.Errors, fmt.Errorf("%w: %v", ErrFailedToReadBundle, err))
 			continue
 		}
 		sourceInfo := b.SourceInfo()
@@ -133,12 +136,12 @@ func (e *Engine) initPolicySets(ctx context.Context, providers []data.Provider, 
 			),
 		})
 		if err != nil {
-			return err
+			e.Errors = append(e.Errors, err)
+			continue
 		}
 		e.policySets = append(e.policySets, policySet)
 	}
 	e.instrumentation.finishInitializePolicySets(ctx)
-	return nil
 }
 
 type policyResults struct {
@@ -212,7 +215,7 @@ func (e *Engine) Eval(ctx context.Context, options *EvalOptions) *models.Results
 	}
 	e.instrumentation.finishEvaluate(ctx)
 	var errors []string
-	for _, err := range e.errors {
+	for _, err := range e.Errors {
 		errors = append(errors, err.Error())
 	}
 
@@ -258,8 +261,11 @@ func (i *engineInstrumentation) startInitialization(ctx context.Context) {
 	i.startPhase(ctx, "initialize_engine")
 }
 
-func (i *engineInstrumentation) finishInitialization(ctx context.Context) {
-	i.finishPhase(ctx, "initialize_engine")
+func (i *engineInstrumentation) finishInitialization(ctx context.Context, eng *Engine) {
+	i.finishPhase(ctx, "initialize_engine",
+		withField("policy_sets", len(eng.policySets)),
+		withField("errors", len(eng.Errors)),
+	)
 }
 
 func (i *engineInstrumentation) startInitializePolicySets(ctx context.Context) {
