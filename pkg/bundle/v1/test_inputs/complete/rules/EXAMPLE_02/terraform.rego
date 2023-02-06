@@ -20,7 +20,7 @@ includes_cheeseburger(menu_item) {
 
 deny[info] {
 	menu_item := menu_items[_]
-	has_bucket_name(menu_item)
+	includes_cheeseburger(menu_item)
 	info := {"resource": menu_item}
 }
 

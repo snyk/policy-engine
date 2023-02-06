@@ -12,9 +12,9 @@ package models
 type Results struct {
 	Format        string `json:"format"`
 	FormatVersion string `json:"format_version"`
-	// An array of rule sets used to produce these results
-	RuleSets []RuleSet `json:"rule_sets,omitempty"`
-	Results  []Result  `json:"results"`
-	// An array of errors that occurred while initializing the engine
-	Errors []string `json:"errors,omitempty"`
+	// An array of rule bundles used to produce these results
+	RuleBundles []RuleBundleInfo `json:"rule_bundles,omitempty"`
+	// An array of errors that occurred while initializing the rule bundles
+	RuleBundleErrors []RuleBundleErrors `json:"rule_bundle_errors,omitempty"`
+	Results          []Result           `json:"results"`
 }

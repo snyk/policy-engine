@@ -8,9 +8,8 @@
  */
 package models
 
-// A rule set that was used in the evaluation
-type RuleSet struct {
-	Name     string `json:"name,omitempty"`
-	Source   string `json:"source,omitempty"`
-	Checksum string `json:"checksum,omitempty"`
+// Records an error that occurred while initializing a rule bundle
+type RuleBundleErrors struct {
+	RuleBundle *RuleBundleInfo `json:"rule_bundle,omitempty"`
+	Errors     []string        `json:"errors,omitempty"`
 }

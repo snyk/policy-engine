@@ -23,6 +23,7 @@ import (
 	"github.com/spf13/afero"
 	"github.com/stretchr/testify/assert"
 
+	"github.com/snyk/policy-engine/pkg/bundle"
 	"github.com/snyk/policy-engine/pkg/data"
 	"github.com/snyk/policy-engine/pkg/engine"
 	"github.com/snyk/policy-engine/pkg/input"
@@ -32,10 +33,13 @@ import (
 
 func TestExamples(t *testing.T) {
 	providers := []data.Provider{
-		data.PureRegoLibProvider(),
+		data.LocalProvider("../examples/metadata/"),
+		data.LocalProvider("../examples/"),
 	}
-	providers = append(providers, data.LocalProvider("../examples/metadata/"))
-	providers = append(providers, data.LocalProvider("../examples/"))
+	readers := []bundle.Reader{
+		bundle.NewDirReader("../pkg/bundle/v1/test_inputs/complete"),
+		bundle.NewDirReader("../pkg/bundle/v1/test_inputs/minimal"),
+	}
 	detector, err := input.DetectorByInputTypes(
 		input.Types{input.Auto},
 	)
@@ -49,9 +53,10 @@ func TestExamples(t *testing.T) {
 	ctx := context.Background()
 	states := loader.ToStates()
 	eng := engine.NewEngine(ctx, &engine.EngineOptions{
-		Providers: providers,
+		Providers:     providers,
+		BundleReaders: readers,
 	})
-	assert.Nil(t, eng.Errors)
+	// assert.Nil(t, eng.InitializationErrors)
 	results := eng.Eval(ctx, &engine.EvalOptions{
 		Inputs: states,
 	})

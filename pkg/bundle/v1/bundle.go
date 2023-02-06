@@ -171,3 +171,11 @@ func (b *Bundle) Document() map[string]interface{} {
 func (b *Bundle) SourceInfo() base.SourceInfo {
 	return b.info
 }
+
+// func (b *Bundle) Info() *models.RuleBundleInfo {
+// 	return &models.RuleBundleInfo{
+// 		Name:     b.SourceInfo().FileInfo.Path,
+// 		Source:   b.Sourc,
+// 		Checksum: b.Info().Checksum,
+// 	}
+// }

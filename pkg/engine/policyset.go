@@ -37,6 +37,63 @@ type policySet struct {
 	checksum        string
 }
 
+type policySetOptions struct {
+	providers       []data.Provider
+	source          PolicySource
+	instrumentation instrumentation
+	name            string
+	checksum        string
+}
+
+type RuleBundleError struct {
+	ruleBundle *models.RuleBundleInfo
+	err        error
+}
+
+func (p *RuleBundleError) Error() string {
+	return p.err.Error()
+}
+
+func (p *RuleBundleError) ToModel() models.RuleBundleErrors {
+	return models.RuleBundleErrors{
+		RuleBundle: p.ruleBundle,
+		Errors:     []string{p.Error()},
+	}
+}
+
+func newRuleBundleError(ruleBundle *models.RuleBundleInfo, err error) error {
+	return &RuleBundleError{
+		ruleBundle: ruleBundle,
+		err:        err,
+	}
+}
+
+func newPolicySet(ctx context.Context, options policySetOptions) (*policySet, error) {
+	s := &policySet{
+		instrumentation: &policySetInstrumentation{
+			instrumentation: options.instrumentation,
+		},
+		PolicyConsumer: *NewPolicyConsumer(),
+		name:           options.name,
+		source:         options.source,
+		checksum:       options.checksum,
+	}
+	s.instrumentation.startInitialization(ctx)
+	defer s.instrumentation.finishInitialization(ctx, s)
+	if err := s.loadRegoAPI(ctx); err != nil {
+		return nil, newRuleBundleError(s.ruleBundleInfo(), fmt.Errorf("%w: %v", FailedToLoadRegoAPI, err))
+	}
+	if err := s.consumeProviders(ctx, options.providers); err != nil {
+		return nil, newRuleBundleError(s.ruleBundleInfo(), fmt.Errorf("%w: %v", FailedToLoadRules, err))
+	}
+	s.extractPolicies(ctx)
+	if err := s.compile(ctx); err != nil {
+		return nil, newRuleBundleError(s.ruleBundleInfo(), fmt.Errorf("%w: %v", FailedToCompile, err))
+	}
+	s.initStore(ctx)
+	return s, nil
+}
+
 func (s *policySet) loadRegoAPI(ctx context.Context) error {
 	s.instrumentation.startLoadRegoAPI(ctx)
 	defer s.instrumentation.finishLoadRegoAPI(ctx)
@@ -120,7 +177,7 @@ func (s *policySet) evalPolicy(ctx context.Context, options *evalPolicyOptions) 
 	})
 	totalResults := 0
 	for idx, r := range ruleResults {
-		ruleResults[idx].RuleSet = s.toRuleSet()
+		ruleResults[idx].RuleBundle = s.ruleBundleInfo()
 		totalResults += len(r.Results)
 	}
 	instrumentation.finishEval(ctx, totalResults)
@@ -268,46 +325,12 @@ func (s *policySet) metadata(ctx context.Context, baseOptions []func(*rego.Rego)
 	return metadata
 }
 
-func (s *policySet) toRuleSet() *models.RuleSet {
-	return &models.RuleSet{
+func (s *policySet) ruleBundleInfo() *models.RuleBundleInfo {
+	return &models.RuleBundleInfo{
 		Name:     s.name,
 		Source:   string(s.source),
 		Checksum: s.checksum,
 	}
-}
-
-type policySetOptions struct {
-	providers       []data.Provider
-	source          PolicySource
-	instrumentation instrumentation
-	name            string
-	checksum        string
-}
-
-func newPolicySet(ctx context.Context, options policySetOptions) (*policySet, error) {
-	s := &policySet{
-		instrumentation: &policySetInstrumentation{
-			instrumentation: options.instrumentation,
-		},
-		PolicyConsumer: *NewPolicyConsumer(),
-		name:           options.name,
-		source:         options.source,
-		checksum:       options.checksum,
-	}
-	s.instrumentation.startInitialization(ctx)
-	defer s.instrumentation.finishInitialization(ctx, s)
-	if err := s.loadRegoAPI(ctx); err != nil {
-		return nil, fmt.Errorf("%w: %v", FailedToLoadRegoAPI, err)
-	}
-	if err := s.consumeProviders(ctx, options.providers); err != nil {
-		return nil, fmt.Errorf("%w: %v", FailedToLoadRules, err)
-	}
-	s.extractPolicies(ctx)
-	if err := s.compile(ctx); err != nil {
-		return nil, fmt.Errorf("%w: %v", FailedToCompile, err)
-	}
-	s.initStore(ctx)
-	return s, nil
 }
 
 type policySetInstrumentation struct {

@@ -13,7 +13,7 @@ buckets := snyk.resources("aws_s3_bucket")
 
 deny[info] {
 	bucket := buckets[_]
-	lib.bucket_name_contains(bucket, "bucket")
+	utils.bucket_name_contains(bucket, "bucket")
 	info := {"resource": bucket}
 }
 

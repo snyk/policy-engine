@@ -21,6 +21,7 @@ import (
 
 	"github.com/open-policy-agent/opa/rego"
 	"github.com/snyk/policy-engine/pkg/bundle"
+	"github.com/snyk/policy-engine/pkg/bundle/base"
 	"github.com/snyk/policy-engine/pkg/data"
 	"github.com/snyk/policy-engine/pkg/logging"
 	"github.com/snyk/policy-engine/pkg/metrics"
@@ -30,12 +31,10 @@ import (
 
 // Engine is responsible for evaluating some States with a given set of rules.
 type Engine struct {
-	// Errors contains any errors that occurred during initialization. The
-	// messages from these errors will be included in the models.Results
-	// returned by the Eval method.
-	Errors          []error
-	instrumentation *engineInstrumentation
-	policySets      []*policySet
+	// InitializationErrors contains any errors that occurred during initialization.
+	InitializationErrors []error
+	instrumentation      *engineInstrumentation
+	policySets           []*policySet
 }
 
 // EngineOptions contains options for initializing an Engine instance
@@ -93,50 +92,45 @@ func (e *Engine) initPolicySets(ctx context.Context, providers []data.Provider, 
 			),
 		})
 		if err != nil {
-			e.Errors = append(e.Errors, err)
+			e.InitializationErrors = append(e.InitializationErrors, err)
 		} else {
 			e.policySets = append(e.policySets, policySet)
 		}
 	}
 
 	for _, r := range readers {
-		b, err := bundle.NewBundle(r)
-		if err != nil {
-			e.Errors = append(e.Errors, fmt.Errorf("%w: %v", ErrFailedToReadBundle, err))
-			continue
-		}
-		sourceInfo := b.SourceInfo()
+		sourceInfo := r.Info()
 		var policySource PolicySource
 		if sourceInfo.SourceType == bundle.ARCHIVE {
 			policySource = POLICY_SOURCE_BUNDLE_ARCHIVE
 		} else if sourceInfo.SourceType == bundle.DIRECTORY {
 			policySource = POLICY_SOURCE_BUNDLE_DIRECTORY
 		}
-		labels := metrics.Labels{
-			"policy_set_source": string(policySource),
-			"policy_set_name":   sourceInfo.FileInfo.Path,
-		}
-		fields := []loggerOption{
-			withField("policy_set_source", string(policySource)),
-			withField("policy_set_name", sourceInfo.FileInfo.Path),
-		}
-		if sourceInfo.FileInfo.Checksum != "" {
-			labels["policy_set_checksum"] = sourceInfo.FileInfo.Checksum
-			fields = append(fields, withField("policy_set_checksum", sourceInfo.FileInfo.Checksum))
+		b, err := bundle.NewBundle(r)
+		if err != nil {
+			e.InitializationErrors = append(e.InitializationErrors,
+				newRuleBundleError(
+					&models.RuleBundleInfo{
+						Name:     sourceInfo.FileInfo.Path,
+						Source:   string(policySource),
+						Checksum: sourceInfo.FileInfo.Checksum,
+					},
+					fmt.Errorf("%w: %v", ErrFailedToReadBundle, err),
+				))
+			continue
 		}
 		policySet, err := newPolicySet(ctx, policySetOptions{
 			providers: []data.Provider{b.Provider()},
 			source:    policySource,
 			name:      sourceInfo.FileInfo.Path,
 			checksum:  sourceInfo.FileInfo.Checksum,
-			instrumentation: e.instrumentation.child(
-				labels,
-				info,
-				fields...,
+			instrumentation: e.instrumentation.policySetInstrumentation(
+				string(policySource),
+				sourceInfo,
 			),
 		})
 		if err != nil {
-			e.Errors = append(e.Errors, err)
+			e.InitializationErrors = append(e.InitializationErrors, err)
 			continue
 		}
 		e.policySets = append(e.policySets, policySet)
@@ -209,22 +203,25 @@ func (e *Engine) Eval(ctx context.Context, options *EvalOptions) *models.Results
 		e.instrumentation.finishEvaluateInput(ctx, loggerFields)
 	}
 
-	ruleSets := make([]models.RuleSet, len(e.policySets))
+	ruleBundles := make([]models.RuleBundleInfo, len(e.policySets))
 	for idx, p := range e.policySets {
-		ruleSets[idx] = *p.toRuleSet()
+		ruleBundles[idx] = *p.ruleBundleInfo()
 	}
 	e.instrumentation.finishEvaluate(ctx)
-	var errors []string
-	for _, err := range e.Errors {
-		errors = append(errors, err.Error())
+
+	var ruleBundleErrors []models.RuleBundleErrors
+	for _, err := range e.InitializationErrors {
+		if err, ok := err.(*RuleBundleError); ok {
+			ruleBundleErrors = append(ruleBundleErrors, err.ToModel())
+		}
 	}
 
 	return &models.Results{
-		Format:        "results",
-		FormatVersion: "1.1.0",
-		Results:       results,
-		RuleSets:      ruleSets,
-		Errors:        errors,
+		Format:           "results",
+		FormatVersion:    "1.1.0",
+		Results:          results,
+		RuleBundles:      ruleBundles,
+		RuleBundleErrors: ruleBundleErrors,
 	}
 }
 
@@ -264,7 +261,7 @@ func (i *engineInstrumentation) startInitialization(ctx context.Context) {
 func (i *engineInstrumentation) finishInitialization(ctx context.Context, eng *Engine) {
 	i.finishPhase(ctx, "initialize_engine",
 		withField("policy_sets", len(eng.policySets)),
-		withField("errors", len(eng.Errors)),
+		withField("errors", len(eng.InitializationErrors)),
 	)
 }
 
@@ -290,6 +287,26 @@ func (i *engineInstrumentation) startEvaluateInput(ctx context.Context, fields [
 
 func (i *engineInstrumentation) finishEvaluateInput(ctx context.Context, fields []loggerOption) {
 	i.finishPhase(ctx, "evaluate_inputs", fields...)
+}
+
+func (i *engineInstrumentation) policySetInstrumentation(policySource string, sourceInfo base.SourceInfo) instrumentation {
+	labels := metrics.Labels{
+		"policy_set_source": policySource,
+		"policy_set_name":   sourceInfo.FileInfo.Path,
+	}
+	fields := []loggerOption{
+		withField("policy_set_source", policySource),
+		withField("policy_set_name", sourceInfo.FileInfo.Path),
+	}
+	if sourceInfo.FileInfo.Checksum != "" {
+		labels["policy_set_checksum"] = sourceInfo.FileInfo.Checksum
+		fields = append(fields, withField("policy_set_checksum", sourceInfo.FileInfo.Checksum))
+	}
+	return i.child(
+		labels,
+		info,
+		fields...,
+	)
 }
 
 func inputFields(input *models.State) []loggerOption {

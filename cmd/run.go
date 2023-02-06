@@ -22,9 +22,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/hashicorp/go-multierror"
 	"github.com/snyk/policy-engine/pkg/bundle"
-	"github.com/snyk/policy-engine/pkg/data"
 	"github.com/snyk/policy-engine/pkg/engine"
 	"github.com/snyk/policy-engine/pkg/input"
 	"github.com/snyk/policy-engine/pkg/metrics"
@@ -50,8 +48,6 @@ var runCmd = &cobra.Command{
 		snapshot_testing.GlobalRegisterNoop()
 		m := metrics.NewLocalMetrics(logger)
 		ctx := context.Background()
-		providers := []data.Provider{data.PureRegoLibProvider()}
-		providers = append(providers, rootCmdRegoProviders()...)
 		bundleReaders := []bundle.Reader{}
 		for _, path := range runCmdBundles {
 			if isTgz(path) {
@@ -137,15 +133,11 @@ var runCmd = &cobra.Command{
 		}
 		states := loader.ToStates()
 		eng := engine.NewEngine(ctx, &engine.EngineOptions{
-			Providers:     providers,
+			Providers:     rootCmdRegoProviders(),
 			BundleReaders: bundleReaders,
 			Logger:        logger,
 			Metrics:       m,
 		})
-		if eng.Errors != nil {
-			err := &multierror.Error{}
-			return multierror.Append(err, eng.Errors...)
-		}
 		results := eng.Eval(ctx, &engine.EvalOptions{
 			Inputs:  states,
 			Workers: *runCmdWorkers,
