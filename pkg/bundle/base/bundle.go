@@ -18,5 +18,5 @@ type Bundle interface {
 	SourceInfo() SourceInfo
 	Modules() map[string]*ast.Module
 	Document() map[string]interface{}
-	// Info() *models.RuleBundleInfo
+	Validate() error
 }

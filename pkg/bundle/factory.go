@@ -20,12 +20,20 @@ func NewBundle(reader base.Reader) (base.Bundle, error) {
 		Reader: reader,
 		Filter: bundleFilter,
 	}
+	var b base.Bundle
 	switch manifest.BundleFormatVersion {
 	case v1.VERSION:
-		return v1.NewBundle(producer)
+		b, err = v1.NewBundle(producer)
 	default:
 		return nil, fmt.Errorf("%w: %v", ErrUnrecognizedBundleFormatVersion, manifest.BundleFormatVersion)
 	}
+	if err != nil {
+		return nil, err
+	}
+	if err := b.Validate(); err != nil {
+		return nil, err
+	}
+	return b, nil
 }
 
 func bundleFilter(path string) bool {
