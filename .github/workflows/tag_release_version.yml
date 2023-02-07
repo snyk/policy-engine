@@ -1,23 +1,18 @@
-name: release
+name: tag_release_version
 
-on:
-  push:
-    branches:
-      - 'master'
-    paths:
-      - 'changes/v*.md'
+on: [pull_request]
+# on:
+#   pull_request:
+#     types:
+#       - closed
 
 jobs:
-  release:
-    environment: release
+  tag_release_version:
+    # if: github.event.pull_request.merged == true
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v2
-      with:
-        submodules: true
-    - uses: actions/setup-go@v2
-      with:
-        go-version: '1.18'
-  
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    - name: Extract release name from git ref
+      id: tag_name
+      run: |
+        BRANCH_NAME={{ github.pull_request.head.ref }}
+        echo ::set-output name=BRANCH_NAME::${BRANCH_NAME}
