@@ -1,0 +1,23 @@
+name: release
+
+on:
+  push:
+    branches:
+      - 'master'
+    paths:
+      - 'changes/v*.md'
+
+jobs:
+  release:
+    environment: release
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+      with:
+        submodules: true
+    - uses: actions/setup-go@v2
+      with:
+        go-version: '1.18'
+  
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
