@@ -8,9 +8,7 @@ on: [pull_request]
 
 jobs:
   tag_release_version:
-    # TODO: Need both of these:
-    # if: github.event.pull_request.merged == true
-    # if: startsWith(github.event.pull_request.head.ref, "release/")
+    # if: github.event.pull_request.merged && startsWith(github.event.pull_request.head.ref, "release/")
     runs-on: ubuntu-latest
     steps:
     - name: Extract version from branch name
