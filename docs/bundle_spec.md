@@ -10,6 +10,7 @@ Current version: `v1`.
       - [Fields](#fields)
   - [Optional bundle contents](#optional-bundle-contents)
     - [`lib` directory](#lib-directory)
+    - [`data.json`](#datajson)
       - [Restrictions](#restrictions)
   - [Examples](#examples)
     - [Example bundle directory structure](#example-bundle-directory-structure)
@@ -44,6 +45,10 @@ metadata contains identifying information about the policy bundle.
 ### `lib` directory
 
 Non-rule code, like shared libraries, can be included in a top-level `lib` directory.
+
+### `data.json`
+
+Bundles can optionally contain a top-level data document in a file called `data.json`.
 
 #### Restrictions
 

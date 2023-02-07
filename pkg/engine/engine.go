@@ -106,7 +106,7 @@ func (e *Engine) initPolicySets(ctx context.Context, providers []data.Provider, 
 		} else if sourceInfo.SourceType == bundle.DIRECTORY {
 			policySource = POLICY_SOURCE_BUNDLE_DIRECTORY
 		}
-		b, err := bundle.NewBundle(r)
+		b, err := bundle.ReadBundle(r)
 		if err != nil {
 			e.InitializationErrors = append(e.InitializationErrors,
 				newRuleBundleError(

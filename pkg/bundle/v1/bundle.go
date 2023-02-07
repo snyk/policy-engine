@@ -12,21 +12,22 @@ import (
 	"github.com/snyk/policy-engine/pkg/bundle/base"
 	"github.com/snyk/policy-engine/pkg/data"
 	"github.com/snyk/policy-engine/pkg/interfacetricks"
+	"github.com/snyk/policy-engine/pkg/version"
 	"gopkg.in/yaml.v3"
 )
 
 const VERSION = "v1"
 
-type VcsMetadata struct {
+type VCSMetadata struct {
 	Type string `json:"type"`
-	Uri  string `json:"uri"`
+	URI  string `json:"uri"`
 }
 
 type Manifest struct {
 	base.Manifest
 	PolicyEngineVersion string      `json:"policy_engine_version"`
 	Revision            string      `json:"revision"`
-	Vcs                 VcsMetadata `json:"vcs"`
+	VCS                 VCSMetadata `json:"vcs"`
 }
 
 var ErrInvalidManifest = errors.New("invalid manifest")
@@ -46,7 +47,6 @@ type Bundle struct {
 	info     base.SourceInfo
 	document map[string]interface{}
 	modules  map[string]*ast.Module
-	files    map[string][]byte
 	manifest Manifest
 }
 
@@ -77,7 +77,6 @@ func (b *Bundle) addDocument(path string, raw []byte) error {
 	default:
 		return fmt.Errorf("root data document needs to be object not array: %s", path)
 	}
-	b.files[path] = raw
 	return nil
 }
 
@@ -87,7 +86,6 @@ func (b *Bundle) addModule(path string, raw []byte) error {
 		return err
 	}
 	b.modules[path] = module
-	b.files[path] = raw
 	return nil
 }
 
@@ -131,13 +129,24 @@ func (b *Bundle) Manifest() interface{} {
 	return b.manifest
 }
 
-func NewBundle(p base.FileProducer) (base.Bundle, error) {
+func (b *Bundle) Modules() map[string]*ast.Module {
+	return b.modules
+}
+
+func (b *Bundle) Document() map[string]interface{} {
+	return b.document
+}
+
+func (b *Bundle) SourceInfo() base.SourceInfo {
+	return b.info
+}
+
+func ReadBundle(p base.FileProducer) (base.Bundle, error) {
 	info := p.Info()
 	bundle := &Bundle{
 		info:     info,
 		document: map[string]interface{}{},
 		modules:  map[string]*ast.Module{},
-		files:    map[string][]byte{},
 	}
 	consumer := func(f base.File) error {
 		path := f.Info.Path
@@ -160,22 +169,58 @@ func NewBundle(p base.FileProducer) (base.Bundle, error) {
 	return bundle, nil
 }
 
-func (b *Bundle) Modules() map[string]*ast.Module {
-	return b.modules
+type ManifestOption func(m *Manifest)
+
+func BuildBundle(p base.FileProducer, opts ...ManifestOption) (base.Bundle, error) {
+	manifest := Manifest{}
+	for _, opt := range opts {
+		opt(&manifest)
+	}
+	manifest.BundleFormatVersion = VERSION
+	manifest.PolicyEngineVersion = version.Version
+	bundle := &Bundle{
+		manifest: manifest,
+		document: map[string]interface{}{},
+		modules:  map[string]*ast.Module{},
+	}
+	consumer := func(f base.File) error {
+		path := f.Info.Path
+		raw := f.Raw
+		if f.Info.Path == "manifest.json" {
+			return nil
+		}
+		switch filepath.Ext(f.Info.Path) {
+		case ".rego":
+			return bundle.addModule(path, raw)
+		case ".yml", ".yaml", ".json":
+			return bundle.addDocument(path, raw)
+		default:
+			return nil
+		}
+	}
+	if err := p.Produce(consumer); err != nil {
+		return nil, err
+	}
+	if err := bundle.Validate(); err != nil {
+		return nil, err
+	}
+	return bundle, nil
 }
 
-func (b *Bundle) Document() map[string]interface{} {
-	return b.document
+func WithRevision(r string) ManifestOption {
+	return func(m *Manifest) {
+		m.Revision = r
+	}
 }
 
-func (b *Bundle) SourceInfo() base.SourceInfo {
-	return b.info
+func WithVCSType(t string) ManifestOption {
+	return func(m *Manifest) {
+		m.VCS.Type = t
+	}
 }
 
-// func (b *Bundle) Info() *models.RuleBundleInfo {
-// 	return &models.RuleBundleInfo{
-// 		Name:     b.SourceInfo().FileInfo.Path,
-// 		Source:   b.Sourc,
-// 		Checksum: b.Info().Checksum,
-// 	}
-// }
+func WithVCSURI(u string) ManifestOption {
+	return func(m *Manifest) {
+		m.VCS.URI = u
+	}
+}
