@@ -8,11 +8,17 @@ on: [pull_request]
 
 jobs:
   tag_release_version:
+    # TODO: Need both of these:
     # if: github.event.pull_request.merged == true
+    # if: startsWith(github.event.pull_request.head.ref, "release/")
     runs-on: ubuntu-latest
     steps:
-    - name: Extract release name from git ref
-      id: tag_name
+    - name: Extract version from branch name
+      id: version
       run: |
         BRANCH_NAME=${{ github.event.pull_request.head.ref }}
-        echo ::set-output name=BRANCH_NAME::${BRANCH_NAME}
+        VERSION=v${BRANCH_NAME#release/}
+        echo ::set-output name=VERSION::${VERSION}
+    - name: Tag version
+      run: |
+        echo "Tagging version: ${{ steps.version.outputs.VERSION }}"
