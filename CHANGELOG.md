@@ -9,6 +9,8 @@
 ### Fixed
 * remove input for multi-resource policies to address extreme memory usage for large inputs
 
+## v0.16.0-test2 - 2023-02-07
+
 ## v0.16.0-test - 2023-02-07
 
 ## v0.15.0 - 2023-01-23
