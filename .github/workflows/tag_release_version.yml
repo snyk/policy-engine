@@ -14,5 +14,5 @@ jobs:
     - name: Extract release name from git ref
       id: tag_name
       run: |
-        BRANCH_NAME={{ github.pull_request.head.ref }}
+        BRANCH_NAME={{ github.event.pull_request.head.ref }}
         echo ::set-output name=BRANCH_NAME::${BRANCH_NAME}
