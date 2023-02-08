@@ -38,8 +38,8 @@ var nanovizCommand = &cobra.Command{
 		logger := cmdLogger()
 		snapshot_testing.GlobalRegisterNoop()
 		consumer := engine.NewPolicyConsumer()
-		if len(args) > 1 {
-			return fmt.Errorf("Expected at most 1 input")
+		if len(args) != 1 {
+			return fmt.Errorf("Expected exactly one input")
 		}
 
 		inputState, err := loadSingleInput(ctx, logger, args[0])
