@@ -6,7 +6,7 @@ on:
       - 'release/**'
 
 jobs:
-  release:
+  release_candidate:
     environment: release
     runs-on: ubuntu-latest
     steps:
@@ -19,7 +19,7 @@ jobs:
       - run: make install_tools
       - name: Extract version name from git branch
         id: version
-        run: echo "VERSION=v${GITHUB_REF#release/}" >> $GITHUB_OUTPUT
+        run: echo "VERSION=v${GITHUB_REF#*release/}" >> $GITHUB_OUTPUT
       - name: Ensure changelog exists
         run: ls changes/${{ steps.version.outputs.VERSION }}.md
       - name: Run goreleaser
