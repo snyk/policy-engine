@@ -11,13 +11,13 @@ jobs:
     # if: github.event.pull_request.merged && startsWith(github.event.pull_request.head.ref, "release/")
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
     - name: Extract version from branch name
       id: version
       run: |
         BRANCH_NAME=${{ github.event.pull_request.head.ref }}
         VERSION=v${BRANCH_NAME#release/}
-        echo ::set-output name=VERSION::${VERSION}
+        echo "{VERSION}={$VERSION}" >> $GITHUB_OUTPUT
     - name: Tag version
       run: |
         VERSION=${{ steps.version.outputs.VERSION }}
