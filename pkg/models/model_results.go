@@ -12,9 +12,7 @@ package models
 type Results struct {
 	Format        string `json:"format"`
 	FormatVersion string `json:"format_version"`
-	// An array of rule bundles used to produce these results
+	// Information about the rule bundles used in the evaluation
 	RuleBundles []RuleBundleInfo `json:"rule_bundles,omitempty"`
-	// An array of errors that occurred while initializing the rule bundles
-	RuleBundleErrors []RuleBundleErrors `json:"rule_bundle_errors,omitempty"`
-	Results          []Result           `json:"results"`
+	Results     []Result         `json:"results"`
 }

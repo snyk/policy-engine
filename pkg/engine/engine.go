@@ -110,7 +110,7 @@ func (e *Engine) initPolicySets(ctx context.Context, providers []data.Provider, 
 		if err != nil {
 			e.InitializationErrors = append(e.InitializationErrors,
 				newRuleBundleError(
-					&models.RuleBundleInfo{
+					&models.RuleBundle{
 						Name:     sourceInfo.FileInfo.Path,
 						Source:   string(policySource),
 						Checksum: sourceInfo.FileInfo.Checksum,
@@ -203,25 +203,24 @@ func (e *Engine) Eval(ctx context.Context, options *EvalOptions) *models.Results
 		e.instrumentation.finishEvaluateInput(ctx, loggerFields)
 	}
 
-	ruleBundles := make([]models.RuleBundleInfo, len(e.policySets))
-	for idx, p := range e.policySets {
-		ruleBundles[idx] = *p.ruleBundleInfo()
-	}
 	e.instrumentation.finishEvaluate(ctx)
-
-	var ruleBundleErrors []models.RuleBundleErrors
+	ruleBundles := []models.RuleBundleInfo{}
+	for _, p := range e.policySets {
+		ruleBundles = append(ruleBundles, models.RuleBundleInfo{
+			RuleBundle: p.ruleBundle(),
+		})
+	}
 	for _, err := range e.InitializationErrors {
 		if err, ok := err.(*RuleBundleError); ok {
-			ruleBundleErrors = append(ruleBundleErrors, err.ToModel())
+			ruleBundles = append(ruleBundles, err.ToModel())
 		}
 	}
 
 	return &models.Results{
-		Format:           "results",
-		FormatVersion:    "1.1.0",
-		Results:          results,
-		RuleBundles:      ruleBundles,
-		RuleBundleErrors: ruleBundleErrors,
+		Format:        "results",
+		FormatVersion: "1.2.0",
+		Results:       results,
+		RuleBundles:   ruleBundles,
 	}
 }
 

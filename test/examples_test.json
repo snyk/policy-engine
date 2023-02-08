@@ -3,15 +3,21 @@
     "format_version": "1.1.0",
     "rule_bundles": [
       {
-        "source": "data"
+        "rule_bundle": {
+          "source": "data"
+        }
       },
       {
-        "name": "../pkg/bundle/v1/test_inputs/complete",
-        "source": "bundle_directory"
+        "rule_bundle": {
+          "name": "../pkg/bundle/v1/test_inputs/complete",
+          "source": "bundle_directory"
+        }
       },
       {
-        "name": "../pkg/bundle/v1/test_inputs/minimal",
-        "source": "bundle_directory"
+        "rule_bundle": {
+          "name": "../pkg/bundle/v1/test_inputs/minimal",
+          "source": "bundle_directory"
+        }
       }
     ],
     "results": [

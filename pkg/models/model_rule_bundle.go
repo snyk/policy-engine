@@ -8,8 +8,9 @@
  */
 package models
 
-// Records an error that occurred while initializing a rule bundle
-type RuleBundleErrors struct {
-	RuleBundle *RuleBundleInfo `json:"rule_bundle,omitempty"`
-	Errors     []string        `json:"errors,omitempty"`
+// Identifying information for a rule bundle
+type RuleBundle struct {
+	Name     string `json:"name,omitempty"`
+	Source   string `json:"source,omitempty"`
+	Checksum string `json:"checksum,omitempty"`
 }

@@ -147,15 +147,9 @@ components:
           enum: ["1.0.0"]
         rule_bundles:
           type: array
-          description: An array of rule bundles used to produce these results
+          description: Information about the rule bundles used in the evaluation
           items:
             $ref: '#/components/schemas/RuleBundleInfo'
-        rule_bundle_errors:
-          type: array
-          description: |
-            An array of errors that occurred while initializing the rule bundles
-          items:
-            $ref: '#/components/schemas/RuleBundleErrors'
         results:
           type: array
           items:
@@ -189,7 +183,7 @@ components:
             The Rule ID, e.g. SNYK_00503 or 608f97c3-a11a-4154-a88e-a2fcd18c75b0
         rule_bundle:
           description: The rule bundle that provided this rule
-          $ref: '#/components/schemas/RuleBundleInfo'
+          $ref: '#/components/schemas/RuleBundle'
         title:
           type: string
           description: The rule title
@@ -356,7 +350,17 @@ components:
       - url
     RuleBundleInfo:
       type: object
-      description: A rule bundle that was used in the evaluation
+      description: Information about a rule bundle that was used in the evaluation
+      properties:
+        rule_bundle:
+          $ref: '#/components/schemas/RuleBundle'
+        errors:
+          type: array
+          description: Any errors that occurred while initializing this rule bundle
+          items:
+            type: string
+    RuleBundle:
+      description: Identifying information for a rule bundle
       properties:
         name:
           type: string
@@ -365,13 +369,3 @@ components:
           enum: ["data", "bundle_archive", "bundle_directory"]
         checksum:
           type: string
-    RuleBundleErrors:
-      type: object
-      description: Records an error that occurred while initializing a rule bundle
-      properties:
-        rule_bundle:
-          $ref: '#/components/schemas/RuleBundleInfo'
-        errors:
-          type: array
-          items:
-            type: string

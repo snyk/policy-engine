@@ -8,9 +8,9 @@
  */
 package models
 
-// A rule bundle that was used in the evaluation
+// Information about a rule bundle that was used in the evaluation
 type RuleBundleInfo struct {
-	Name     string `json:"name,omitempty"`
-	Source   string `json:"source,omitempty"`
-	Checksum string `json:"checksum,omitempty"`
+	RuleBundle *RuleBundle `json:"rule_bundle,omitempty"`
+	// Any errors that occurred while initializing this rule bundle
+	Errors []string `json:"errors,omitempty"`
 }

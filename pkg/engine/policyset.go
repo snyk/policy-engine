@@ -46,7 +46,7 @@ type policySetOptions struct {
 }
 
 type RuleBundleError struct {
-	ruleBundle *models.RuleBundleInfo
+	ruleBundle *models.RuleBundle
 	err        error
 }
 
@@ -54,14 +54,14 @@ func (p *RuleBundleError) Error() string {
 	return p.err.Error()
 }
 
-func (p *RuleBundleError) ToModel() models.RuleBundleErrors {
-	return models.RuleBundleErrors{
+func (p *RuleBundleError) ToModel() models.RuleBundleInfo {
+	return models.RuleBundleInfo{
 		RuleBundle: p.ruleBundle,
 		Errors:     []string{p.Error()},
 	}
 }
 
-func newRuleBundleError(ruleBundle *models.RuleBundleInfo, err error) error {
+func newRuleBundleError(ruleBundle *models.RuleBundle, err error) error {
 	return &RuleBundleError{
 		ruleBundle: ruleBundle,
 		err:        err,
@@ -81,14 +81,14 @@ func newPolicySet(ctx context.Context, options policySetOptions) (*policySet, er
 	s.instrumentation.startInitialization(ctx)
 	defer s.instrumentation.finishInitialization(ctx, s)
 	if err := s.loadRegoAPI(ctx); err != nil {
-		return nil, newRuleBundleError(s.ruleBundleInfo(), fmt.Errorf("%w: %v", FailedToLoadRegoAPI, err))
+		return nil, newRuleBundleError(s.ruleBundle(), fmt.Errorf("%w: %v", FailedToLoadRegoAPI, err))
 	}
 	if err := s.consumeProviders(ctx, options.providers); err != nil {
-		return nil, newRuleBundleError(s.ruleBundleInfo(), fmt.Errorf("%w: %v", FailedToLoadRules, err))
+		return nil, newRuleBundleError(s.ruleBundle(), fmt.Errorf("%w: %v", FailedToLoadRules, err))
 	}
 	s.extractPolicies(ctx)
 	if err := s.compile(ctx); err != nil {
-		return nil, newRuleBundleError(s.ruleBundleInfo(), fmt.Errorf("%w: %v", FailedToCompile, err))
+		return nil, newRuleBundleError(s.ruleBundle(), fmt.Errorf("%w: %v", FailedToCompile, err))
 	}
 	s.initStore(ctx)
 	return s, nil
@@ -177,7 +177,7 @@ func (s *policySet) evalPolicy(ctx context.Context, options *evalPolicyOptions) 
 	})
 	totalResults := 0
 	for idx, r := range ruleResults {
-		ruleResults[idx].RuleBundle = s.ruleBundleInfo()
+		ruleResults[idx].RuleBundle = s.ruleBundle()
 		totalResults += len(r.Results)
 	}
 	instrumentation.finishEval(ctx, totalResults)
@@ -325,8 +325,8 @@ func (s *policySet) metadata(ctx context.Context, baseOptions []func(*rego.Rego)
 	return metadata
 }
 
-func (s *policySet) ruleBundleInfo() *models.RuleBundleInfo {
-	return &models.RuleBundleInfo{
+func (s *policySet) ruleBundle() *models.RuleBundle {
+	return &models.RuleBundle{
 		Name:     s.name,
 		Source:   string(s.source),
 		Checksum: s.checksum,
