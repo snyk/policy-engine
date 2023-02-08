@@ -12,6 +12,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v3
+      ref: main
     - name: Extract version from branch name
       id: version
       run: |
@@ -23,6 +24,5 @@ jobs:
         VERSION=${{ steps.version.outputs.VERSION }}
         git config user.name "$GITHUB_ACTOR"
         git config user.email "$GITHUB_ACTOR@users.noreply.github.com"
-        git fetch --depth=1 origin main
-        git tag -a -F changes/$VERSION.md $VERSION main
+        git tag -a -F changes/$VERSION.md $VERSION
         git push origin $VERSION
