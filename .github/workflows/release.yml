@@ -19,7 +19,7 @@ jobs:
     - run: make install_tools
     - name: Extract tag name from git ref
       id: tag_name
-      run: echo "{TAG_NAME}={${GITHUB_REF/refs\/tags\//}}" >> $GITHUB_OUTPUT
+      run: echo "TAG_NAME=${GITHUB_REF/refs\/tags\//}" >> $GITHUB_OUTPUT
     - name: Ensure changelog exists
       run: ls changes/${{ steps.tag_name.outputs.TAG_NAME }}.md
     - name: Run goreleaser

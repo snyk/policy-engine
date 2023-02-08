@@ -17,7 +17,7 @@ jobs:
       run: |
         BRANCH_NAME=${{ github.event.pull_request.head.ref }}
         VERSION=v${BRANCH_NAME#release/}
-        echo "{VERSION}={$VERSION}" >> $GITHUB_OUTPUT
+        echo "VERSION=$VERSION" >> $GITHUB_OUTPUT
     - name: Tag version
       run: |
         VERSION=${{ steps.version.outputs.VERSION }}
