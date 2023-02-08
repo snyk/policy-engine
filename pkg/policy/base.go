@@ -60,7 +60,6 @@ var SupportedInputTypes = input.Types{
 type EvalOptions struct {
 	RegoOptions       []func(*rego.Rego)
 	Input             *models.State
-	InputValue        ast.Value
 	Logger            logging.Logger
 	ResourcesResolver ResourcesResolver
 }

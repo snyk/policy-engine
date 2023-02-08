@@ -12,23 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# In this file, `count` is set to `null` which is undefined behavior in
-# terraform.  We interpret this as `count = 1`.
-#
-# This lets us include some resources in terraform modules with required
-# arguments that we can't determine a value for.  While those resources may end
-# up not existing, usually you'd still want to be warned about unsafe
-# configurations detected by rules.
-
-variable "foo_count" {
-  type = number
-}
-
-provider "aws" {
-  region = "us-east-1"
-}
-
-resource "aws_s3_bucket" "foo" {
-  bucket = "mybucket-${count.index}"
-  count = var.foo_count ? 10 : null
+resource "aws_s3_bucket" "example" {
+  count         = 3
+  bucket_prefix = "example_${count.index}"
 }

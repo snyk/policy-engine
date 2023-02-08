@@ -31,12 +31,8 @@ func TestStringToFullName(t *testing.T) {
 			expected: &FullName{ModuleName{"foo", "bar"}, LocalName{"aws_s3_bucket", "bucket"}},
 		},
 		{
-			input:    "local.ports[1]",
-			expected: &FullName{ModuleName{}, LocalName{"local", "ports", 1}},
-		},
-		{
-			input:    "local.ingress[1].from",
-			expected: &FullName{ModuleName{}, LocalName{"local", "ingress", 1, "from"}},
+			input:    "local.ports",
+			expected: &FullName{ModuleName{}, LocalName{"local", "ports"}},
 		},
 	}
 
@@ -69,15 +65,8 @@ func TestAsResourceName(t *testing.T) {
 
 	tests := []Test{
 		{
-			input: "module.foo.module.bar.aws_s3_bucket.bucket[3].bucket_prefix",
-			full:  &FullName{ModuleName{"foo", "bar"}, LocalName{"aws_s3_bucket", "bucket"}},
-			index: 3,
-			local: LocalName{"bucket_prefix"},
-		},
-		{
 			input: "aws_s3_bucket.bucket.bucket_prefix",
 			full:  &FullName{ModuleName{}, LocalName{"aws_s3_bucket", "bucket"}},
-			index: -1,
 			local: LocalName{"bucket_prefix"},
 		},
 	}
@@ -87,9 +76,8 @@ func TestAsResourceName(t *testing.T) {
 		if err != nil {
 			t.Fatalf("%s", err)
 		}
-		full, index, local := name.AsResourceName()
+		full, local := name.AsResourceName()
 		assert.Equal(t, test.full, full)
-		assert.Equal(t, test.index, index)
 		assert.Equal(t, test.local, local)
 	}
 }

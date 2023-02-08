@@ -44,6 +44,7 @@ func FSProvider(fsys fs.FS, basePath string) Provider {
 				if err != nil {
 					return err
 				}
+				defer reader.Close()
 				if err := parser(ctx, basePath, path, reader, consumer); err != nil {
 					return err
 				}
@@ -72,6 +73,7 @@ func LocalProvider(root string) Provider {
 					if err != nil {
 						return err
 					}
+					defer reader.Close()
 					if err := parser(ctx, root, path, reader, consumer); err != nil {
 						return err
 					}
@@ -95,6 +97,7 @@ func TarGzProvider(reader io.Reader) Provider {
 			if err == io.EOF {
 				break
 			} else if err != nil {
+				gzf.Close()
 				return err
 			}
 
@@ -105,15 +108,17 @@ func TarGzProvider(reader io.Reader) Provider {
 				ext := filepath.Ext(path)
 				if parser, ok := parsersByExtension[ext]; ok {
 					if err != nil {
+						gzf.Close()
 						return err
 					}
 					if err := parser(ctx, "", path, tarReader, consumer); err != nil {
+						gzf.Close()
 						return err
 					}
 				}
 			}
 		}
-		return nil
+		return gzf.Close()
 	}
 }
 

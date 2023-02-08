@@ -2,6 +2,29 @@
 
 
 
+## v0.16.0 - 2023-02-07
+### Added
+* add `eval` command for use in scripts
+* Policy bundle specification document
+### Fixed
+* remove input for multi-resource policies to address extreme memory usage for large inputs
+
+## v0.15.0 - 2023-01-23
+### Added
+* for_each support
+* count will create multiple resources rather than creating a template resource
+### Changed
+* return more resource metadata from the hcl_interpreter library
+* revert ReadCloser change to targz provider
+* updated resource relations naming conventions to use resource_type.attribute_name
+
+## v0.14.1 - 2023-01-10
+### Added
+* document release process
+* support -v in fixture command
+### Fixed
+* too many open files when reading large amount of rego files
+
 ## v0.14.0 - 2022-12-19
 ### Changed
 * adopt new metadata format for compliance mappings

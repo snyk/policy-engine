@@ -15,9 +15,7 @@ accessible from our code.  This is automated in the top-level Makefile.
 from strings and rendering them back to strings.  A name consists of two parts:
 
  -  A module part (e.g. `module.child1.`).  This is empty for the root module.
- -  A local part (e.g. `aws_s3_bucket.my_bucket` or `var.my_var`).  This local
-    part can refer to arbitrarly deeply nested expressions, e.g.
-    `aws_security_group.invalid_sg_1.ingress[0].from_port`.
+ -  A local part (e.g. `aws_s3_bucket.my_bucket` or `var.my_var`).
 
 Importantly, there are a number of `AsXYZ()` methods, for example
 `AsModuleOutput()`.  These manipulate the names to point to their "real"
@@ -36,60 +34,49 @@ including children (submodules).  We end up with a hierarchical structure:
      *  child 2
          -  grandchild
 
-We can "walk" this tree using a visitor pattern.  This visits every expression
-in every nested submodule, for example:
+We can "walk" this tree using a visitor pattern and visit every _term_.
 
-  -  `aws_security_group.invalid_sg_1.ingress[1].from_port` = `22`
-  -  `module.child1.some_bucket.bucket_prefix` = `"foo"`
+A term can be a simple expression or a block with attributes and sub-blocks.
+Each resource forms a term, and so does each other "entity" in the input,
+like a a local variable or a module output.  For more details, see [term.go].
 
-Because we pass in both the full name (see above) as well as the expression,
-a visitor can store these in a flat rather than hierarchical map, which is
-more convenient to work with in Go.
+For example:
+
+  -  `aws_security_group.invalid_sg_1`
+  -  `module.child1.output.bucket`
+
+Because we pass in both the full name (see above) as well as the term, a visitor
+can store these in a flat rather than hierarchical map, which is more convenient
+to work with in Go.
 
 This file uses an additional file [moduleregister.go] to deal with the locations
 of remote (downloaded) terraform modules.
 
 ## valtree.go
 
-A bit of an implementation detail, but worth discussing anyway, [valtree.go] is
-how we will store the values of these expressions once they have been evaluated.
-The terraform internals use `cty.Value` for this, but this does not suffice for
-our use case, since `cty.Value` is immutable.  If we want to evaluate HCL in an
-iterative way, we would need to deconstruct and reconstruct these large values
-(representing the entire state) at every step.
+Once expressions are evaluated, they become values of the type `cty.Value`.
+This module has a number of utilities to construct and merge Values.
 
-So you can think of `ValTree` as a _mutable_ version of `cty.Value`.  We also
-use names for lookup and construction, which makes them even more convenient.
-We can build sparse or dense value trees and then "merge" them together; this
-is used heavily during evaluation.
+## phantom_attrs.go
 
-As an example, these two expressions:
-
-  -  `aws_security_group.invalid_sg_1.ingress[1].from_port` = `22`
-  -  `module.child1.some_bucket.bucket_prefix` = `"foo"`
-
-Would eventually, during evaluation, result in the following sparse `ValTree`:
+In IaC files, it is common to depend on values which are not filled in:
 
 ```
-{
-  "aws_security_group": {
-    "invalid_sg_1": {
-      "ingress": {
-        1: {
-          "from_port": 22
-        }
-      }
-    }
-  },
-  "module": {
-    "child1": {
-      "some_bucket": {
-        "bucket_prefix": "foo"
-      }
-    }
-  }
+resource "aws_kms_key" "rds-db-instance-kms" {
+  deletion_window_in_days = 10
 }
+
+resource "aws_db_instance" "default" {
+  kms_key_id = "${aws_kms_key.rds-db-instance-kms.arn}"
+  ...
+}
+
 ```
+
+`rds-db-instance-kms` does not have an `.arn` attribute, but evaluating
+`kms_key_id` needs one.  We solve this by collecting all references to unknown
+attributes in the expressions, and setting these as "phantom attributes" on the
+resources.  They are not included in the output.
 
 ## hcl_interpreter.go
 
@@ -99,27 +86,30 @@ logic.  This happens in the following imperative steps:
 1.  We use the visitor from [moduletree.go] to obtain a full list of everything
     in the module and its children.
 
-2.  For every expression, we can compute its dependencies (possibly renaming
+2.  For every term, we can compute its dependencies (possibly renaming
     some using the logic in [names.go]).  This gives us enough info to run a
     [topological sort](https://en.wikipedia.org/wiki/Topological_sorting);
-    which tells us the exact order in which all expressions should be evaluated.
+    which tells us the exact order in which all terms should be evaluated.
 
 3.  We run through and evaluate each expression.
 
-     -  We have a single big `ValTree` that holds **everything** we have
-        evaluated so far.
+     -  We have a single big `cty.Value` that holds **everything** we have
+        evaluated so far per module.
 
-     -  For performance reasons, construct a sparse `ValTree` with only the
-        exact dependencies of the expression, and pass this in as scope.
+     -  Before evaluating, we add extra dependencies to this `cty.Value` scope
+        based on the code in `dependencies()` and `prepareVariables()`.  This
+        is used to e.g. get outputs from other modules.
 
-     -  After evaluating, we build a sparse `ValTree` containing only the
-        result of this expression, and merge that back into the big `ValTree`.
+     -  After evaluating, we merge the result back into the `cty.Value` for that
+        module.
 
-4.  We convert the big `ValTree` into the resources view (this involves only
-    some minor bookkeeping like adding the `id` and `_provider` fields).
+4.  We convert the individual `cty.Value`s for the resources into the resources
+    view (this involves only some minor bookkeeping like adding the `id` and
+    `_provider` fields).
 
 [moduleregister.go]: moduleregister.go
 [moduletree.go]: moduletree.go
 [names.go]: names.go
 [hcl_interpreter.go]: hcl_interpreter.go
 [valtree.go]: valtree.go
+[term.go]: term.go

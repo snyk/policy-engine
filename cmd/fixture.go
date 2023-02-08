@@ -15,15 +15,19 @@
 package cmd
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"path/filepath"
 	"strings"
 
 	"github.com/open-policy-agent/opa/format"
-	"github.com/snyk/policy-engine/pkg/input"
 	"github.com/spf13/afero"
 	"github.com/spf13/cobra"
+
+	"github.com/snyk/policy-engine/pkg/input"
+	"github.com/snyk/policy-engine/pkg/logging"
+	"github.com/snyk/policy-engine/pkg/models"
 )
 
 var (
@@ -34,24 +38,14 @@ var fixtureCmd = &cobra.Command{
 	Use:   "fixture",
 	Short: "Generate test fixture",
 	RunE: func(cmd *cobra.Command, args []string) error {
+		logger := cmdLogger()
+		ctx := context.Background()
 		if len(args) != 1 {
 			return fmt.Errorf("Expected a single input but got %d", len(args))
 		}
-		detector, err := input.DetectorByInputTypes(input.Types{input.Auto})
+		inputState, err := loadSingleInput(ctx, logger, args[0])
 		if err != nil {
 			return err
-		}
-		i, err := input.NewDetectable(afero.OsFs{}, args[0])
-		if err != nil {
-			return err
-		}
-		loader := input.NewLoader(detector)
-		loaded, err := loader.Load(i, input.DetectOptions{})
-		if err != nil {
-			return err
-		}
-		if !loaded {
-			return fmt.Errorf("Unable to find recognized input in %s", args[0])
 		}
 		packageName := cmdFixturePackage
 		if packageName == "" {
@@ -67,11 +61,7 @@ var fixtureCmd = &cobra.Command{
 			packageName = strings.Join(parts, ".")
 		}
 
-		states := loader.ToStates()
-		if len(states) != 1 {
-			return fmt.Errorf("Expected a single state but got %d", len(states))
-		}
-		bytes, err := json.MarshalIndent(states[0], "", "  ")
+		bytes, err := json.MarshalIndent(inputState, "", "  ")
 		if err != nil {
 			return err
 		}
@@ -86,6 +76,40 @@ mock_input = %s`, packageName, string(bytes)))
 		fmt.Printf("%s", string(bytes))
 		return nil
 	},
+}
+
+func loadSingleInput(ctx context.Context, logger logging.Logger, path string) (*models.State, error) {
+	detector, err := input.DetectorByInputTypes(input.Types{input.Auto})
+	if err != nil {
+		return nil, err
+	}
+	i, err := input.NewDetectable(afero.OsFs{}, path)
+	if err != nil {
+		return nil, err
+	}
+	loader := input.NewLoader(detector)
+	loaded, err := loader.Load(i, input.DetectOptions{})
+
+	// Log non-fatal errors if we're debugging.
+	if *rootCmdVerbose {
+		for path, errs := range loader.Errors() {
+			for _, err := range errs {
+				logger.Warn(ctx, fmt.Sprintf("%s: %s", path, err))
+			}
+		}
+	}
+
+	if err != nil {
+		return nil, err
+	}
+	if !loaded {
+		return nil, fmt.Errorf("Unable to find recognized input in %s", path)
+	}
+	states := loader.ToStates()
+	if len(states) != 1 {
+		return nil, fmt.Errorf("Expected a single state but got %d", len(states))
+	}
+	return &states[0], nil
 }
 
 func init() {

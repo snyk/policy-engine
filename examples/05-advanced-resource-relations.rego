@@ -29,7 +29,7 @@ is_encrypted(bucket) {
 	# Relationships are declared in separate files, so they can be shared by
 	# rules.  In <relations.rego>, you can see how this relationship is defined
 	# in Rego.
-	encryption_configs := snyk.relates(bucket, "aws_s3_bucket_server_side_encryption_configuration")
+	encryption_configs := snyk.relates(bucket, "aws_s3_bucket.server_side_encryption_configuration")
 	_ := encryption_configs[_]
 }
 
@@ -54,7 +54,7 @@ resources[info] {
 # many-to-many.
 resources[info] {
 	ec := encryption_configs[_]
-	bucket := snyk.back_relates("aws_s3_bucket_server_side_encryption_configuration", ec)[_]
+	bucket := snyk.back_relates("aws_s3_bucket.server_side_encryption_configuration", ec)[_]
 	info := {
 		"primary_resource": bucket,
 		"resource": ec,

@@ -47,9 +47,7 @@ var testCmd = &cobra.Command{
 			data.PureRegoBuiltinsProvider(),
 			data.PureRegoLibProvider(),
 		}
-		for _, path := range rootCmdRegoPaths {
-			providers = append(providers, data.LocalProvider(path))
-		}
+		providers = append(providers, rootCmdRegoProviders()...)
 
 		consumer := engine.NewPolicyConsumer()
 		for _, provider := range providers {
