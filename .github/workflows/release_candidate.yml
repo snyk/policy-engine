@@ -23,7 +23,4 @@ jobs:
       - name: Ensure changelog exists
         run: ls changes/${{ steps.version.outputs.VERSION }}.md
       - name: Run goreleaser
-        run: |
-          goreleaser build \
-            --release-notes=changes/${{ steps.version.outputs.VERSION }}.md \
-            --skip-validate
+        run: goreleaser build --skip-validate
