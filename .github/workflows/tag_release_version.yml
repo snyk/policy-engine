@@ -19,4 +19,6 @@ jobs:
         echo ::set-output name=VERSION::${VERSION}
     - name: Tag version
       run: |
-        echo "Tagging version: ${{ steps.version.outputs.VERSION }}"
+        VERSION=${{ steps.version.outputs.VERSION }}
+        git tag -a -F changes/$VERSION.md $VERSION
+        git push origin $VERSION
