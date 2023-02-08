@@ -23,4 +23,4 @@ jobs:
       - name: Ensure changelog exists
         run: ls changes/${{ steps.version.outputs.VERSION }}.md
       - name: Run goreleaser
-        run: goreleaser build --skip-validate
+        run: goreleaser build --snapshot
