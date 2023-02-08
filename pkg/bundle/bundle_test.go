@@ -80,7 +80,7 @@ func TestReadBundle(t *testing.T) {
 			reader := bundle.NewFSReader(tc.root, tc.fsys)
 			b, err := bundle.NewBundle(reader)
 			if tc.err != nil {
-				assert.NotNil(t, err)
+				assert.NoError(t, err)
 				assert.ErrorIs(t, tc.err, err)
 			} else {
 				assert.Nil(t, err)
