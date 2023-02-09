@@ -5,7 +5,6 @@ import (
 	"bytes"
 	"compress/gzip"
 	"crypto/sha256"
-	"encoding/base64"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -264,5 +263,5 @@ func (p *FileProducer) Info() base.SourceInfo {
 
 func Checksum(raw []byte) string {
 	sum := sha256.Sum256(raw)
-	return base64.RawStdEncoding.EncodeToString(sum[:])
+	return fmt.Sprintf("%x", sum)
 }
