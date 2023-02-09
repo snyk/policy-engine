@@ -2,6 +2,12 @@
 
 
 
+## v0.16.1 - 2023-02-09
+### Changed
+* improve release process
+### Fixed
+* broken multi-resource policies that reference input for testing purposes
+
 ## v0.16.0 - 2023-02-07
 ### Added
 * add `eval` command for use in scripts
