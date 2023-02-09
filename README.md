@@ -1,4 +1,4 @@
-# Unified Policy Engine
+# Policy Engine
 
 This repository contains a Go library that performs two main functions:
 

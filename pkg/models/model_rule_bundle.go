@@ -8,9 +8,9 @@
  */
 package models
 
-// An object that relates an input with its rule results
-type Result struct {
-	Input State `json:"input"`
-	// An array of rule results objects
-	RuleResults []RuleResults `json:"rule_results"`
+// Identifying information for a rule bundle
+type RuleBundle struct {
+	Name     string `json:"name,omitempty"`
+	Source   string `json:"source"`
+	Checksum string `json:"checksum,omitempty"`
 }

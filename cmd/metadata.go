@@ -20,7 +20,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/snyk/policy-engine/pkg/data"
+	"github.com/hashicorp/go-multierror"
 	"github.com/snyk/policy-engine/pkg/engine"
 	"github.com/snyk/policy-engine/pkg/snapshot_testing"
 	"github.com/spf13/cobra"
@@ -32,17 +32,14 @@ var metadataCmd = &cobra.Command{
 	RunE: func(cmd *cobra.Command, args []string) error {
 		logger := cmdLogger()
 		snapshot_testing.GlobalRegisterNoop()
-		providers := []data.Provider{
-			data.PureRegoLibProvider(),
-		}
-		providers = append(providers, rootCmdRegoProviders()...)
 		ctx := context.Background()
-		eng, err := engine.NewEngine(ctx, &engine.EngineOptions{
-			Providers: providers,
+		eng := engine.NewEngine(ctx, &engine.EngineOptions{
+			Providers: rootCmdRegoProviders(),
 			Logger:    logger,
 		})
-		if err != nil {
-			return err
+		if eng.InitializationErrors != nil {
+			err := &multierror.Error{}
+			return multierror.Append(err, eng.InitializationErrors...)
 		}
 		metadata := eng.Metadata(ctx)
 		bytes, err := json.MarshalIndent(metadata, "  ", "  ")

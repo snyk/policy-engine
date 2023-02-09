@@ -17,12 +17,17 @@ components together.
   - [Custom resource resolution](#custom-resource-resolution)
   - [Evaluating policies](#evaluating-policies)
     - [`engine.Engine`](#engineengine)
+    - [`bundle.Reader`](#bundlereader)
+      - [`bundle.TarGzReader`](#bundletargzreader)
+      - [`bundle.DirReader`](#bundledirreader)
+      - [`bundle.FSReader`](#bundlefsreader)
     - [`data.Provider`](#dataprovider)
       - [`data.FSProvider()`](#datafsprovider)
       - [`data.LocalProvider()`](#datalocalprovider)
+    - [Differences between the `bundle` and `data` packages](#differences-between-the-bundle-and-data-packages)
     - [Example](#example-1)
     - [Error handling](#error-handling-1)
-  - [Post-processing](#post-processing)
+  - [Post-processing of results](#post-processing-of-results)
     - [Source code location and line numbers](#source-code-location-and-line-numbers)
       - [Example](#example-2)
     - [Filtering down resources](#filtering-down-resources)
@@ -324,6 +329,79 @@ API directly.
 The `Engine` type is responsible for evaluating some `State`s with a given set of
 policies.
 
+### `bundle.Reader`
+
+The types that implement the `bundle.Reader` interface will read and parse a
+[bundle](./bundle_spec.md) into modules and data documents that can be used by
+an `Engine`.
+
+#### `bundle.TarGzReader`
+
+`bundle.TarGzReader` is a `bundle.Reader` that reads from an `io.Reader` that
+that contains a `.tar.gz` file.
+
+```go
+package main
+
+import "github.com/snyk/policy-engine/pkg/bundle"
+
+func main() {
+  // ...
+  f, err := os.Open(path)
+  if err != nil {
+    return err
+  }
+  defer f.Close()
+  reader, err := bundle.NewTarGzReader(path, f)
+  if err != nil {
+    return err
+  }
+  // ...
+}
+```
+
+#### `bundle.DirReader`
+
+`bundle.DirReader` is a `bundle.Reader` that reads from a local directory that
+conforms to the bundle spec.
+
+```go
+package main
+
+import "github.com/snyk/policy-engine/pkg/bundle"
+
+func main() {
+  // ...
+  // where path is a path to a local directory
+  reader := bundle.NewDirReader(path)
+  // ...
+}
+```
+
+#### `bundle.FSReader`
+
+`bundle.FSReader` is a `bundle.Reader` that reads from a directory that
+conforms to the bundle spec via a given `io.FS` implementation.
+
+```go
+package main
+
+import (
+  "embed"
+
+  "github.com/snyk/policy-engine/pkg/bundle"
+)
+
+//go:embed bundle_dir
+var embeddedBundle embed.FS
+
+func main() {
+  // ...
+  reader := bundle.NewFSReader("bundle_dir", embeddedBundle)
+  // ...
+}
+```
+
 ### `data.Provider`
 
 The `data.Provider` type is a function that provides parsed OPA modules and data
@@ -375,6 +453,14 @@ func main() {
 }
 ```
 
+### Differences between the `bundle` and `data` packages
+
+* The `bundle` package is intended to load files and directories that conform to
+  the [bundle specification](./bundle_spec.md), whereas the `data` package can
+  be used to load and combine arbitrary Rego code and data documents.
+* Each bundle is evaluated in its own context - meaning that separate bundles
+  can contain overlapping package names and not interfere with each other.
+
 ### Example
 
 ```go
@@ -385,13 +471,10 @@ import "github.com/snyk/policy-engine/pkg/engine"
 func main() {
   ctx := context.Background()
   // ...
-  eng, err := engine.NewEngine(ctx, &engine.EngineOptions{
-    // Providers contains functions that produce parsed OPA modules or data documents.
-    // See above for descriptions of the providers included in this library.
-    Providers: providers,
-    // This option is used to determine which policies are executed. When this option is
-    // empty or unspecified, all policies will be run.
-    RuleIDs:   selectedPolicies,
+  eng := engine.NewEngine(ctx, &engine.EngineOptions{
+    // BundleReaders contains bundle.Reader objects. See above for descriptions
+    // of the reader implementations included in this library.
+    BundleReaders: readers,
     // This is an optional instance of the logger.Logger interface. This interface is
     // compatible with the one provided by the snyk/go-common library. The logger
     // package also contains an implementation of this interface.
@@ -400,28 +483,38 @@ func main() {
     // compatible with the one provided by the snyk/go-common library. The metrics
     // package also contains an implementation of this interface.
     Metrics:   m,
-    // ResourceResolvers is a list of functions that return a resource state for
-    // the given ResourceRequest. They will be invoked in order until a result is
-    // returned with ScopeFound set to true.
-    ResourcesResolvers []policy.ResourcesResolver
   })
-  if err != nil {
-    // Checking for specific errors
-    switch {
-    case errors.Is(err, engine.FailedToLoadRegoAPI):
-      // ...
-    case errors.Is(err, engine.FailedToLoadRules):
-      // ...
-    default:
-      // ...
+
+  // Errors that occurred during the initialization process will be contained in
+  // eng.Errors
+  for _, err := range eng.Errors {
+    if err != nil {
+      // Checking for specific errors
+      switch {
+      case errors.Is(err, engine.ErrFailedToReadBundle):
+        // ...
+      case errors.Is(err, engine.FailedToLoadRules):
+        // ...
+      default:
+        // ...
+      }
     }
   }
+
   // This function returns a *models.Results
   results := eng.Eval(ctx, &engine.EvalOptions{
+    // This option is used to determine which policies are executed. When this option is
+    // empty or unspecified, all policies will be run.
+    RuleIDs:   selectedPolicies,
     // Inputs is a []models.State, like the output of the loader.ToStates()
     // described above.
     Inputs: states,
+    // ResourceResolvers is a list of functions that return a resource state for
+    // the given ResourceRequest. They will be invoked in order until a result is
+    // returned with ScopeFound set to true.
+    ResourcesResolvers []policy.ResourcesResolver,
   })
+  
 }
 ```
 
@@ -437,11 +530,12 @@ documentation.
 evaluation will be returned in the `Errors` field of the corresponding `RuleResults`
 model in the output.
 
-| Error                 |
-| :-------------------- |
-| `FailedToLoadRegoAPI` |
-| `FailedToLoadRules`   |
-| `FailedToCompile`     |
+| Error                   |
+| :---------------------- |
+| `FailedToLoadRegoAPI`   |
+| `FailedToLoadRules`     |
+| `FailedToCompile`       |
+| `ErrFailedToReadBundle` |
 
 ## Post-processing of results
 

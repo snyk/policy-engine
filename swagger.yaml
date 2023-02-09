@@ -16,8 +16,8 @@
 openapi: 3.0.0
 info:
   version: 1.0.0
-  title: Unified Policy Engine I/O Formats
-  description: Documentation for the input and output formats used in Unified Policy Engine
+  title: Policy Engine I/O Formats
+  description: Documentation for the input and output formats used in Policy Engine
 paths:
   /dummy:
     get:
@@ -29,8 +29,7 @@ components:
     State:
       description: |
         The state format contains the state of all resources from some input. This format
-        is intended to be used as both an input and output for the unified policy engine.
-        It is also intended to support the visualizer and other downstream artifacts.
+        is intended to be used as both an input and output for the policy engine.
       type: object
       required:
         - format
@@ -133,7 +132,7 @@ components:
           additionalProperties: {}
     Results:
       description: |
-        This is the top-level output from the Unified Policy Engine.
+        This is the top-level output from the Policy Engine.
       type: object
       required:
         - format
@@ -146,7 +145,13 @@ components:
         format_version:
           type: string
           enum: ["1.0.0"]
+        rule_bundles:
+          type: array
+          description: Information about the rule bundles used in the evaluation
+          items:
+            $ref: '#/components/schemas/RuleBundleInfo'
         results:
+          type: array
           items:
             $ref: '#/components/schemas/Result'
     Result:
@@ -176,6 +181,9 @@ components:
           type: string
           description: |
             The Rule ID, e.g. SNYK_00503 or 608f97c3-a11a-4154-a88e-a2fcd18c75b0
+        rule_bundle:
+          description: The rule bundle that provided this rule
+          $ref: '#/components/schemas/RuleBundle'
         title:
           type: string
           description: The rule title
@@ -340,3 +348,26 @@ components:
           type: string
       required:
       - url
+    RuleBundleInfo:
+      type: object
+      description: Information about a rule bundle that was used in the evaluation
+      properties:
+        rule_bundle:
+          $ref: '#/components/schemas/RuleBundle'
+        errors:
+          type: array
+          description: Any errors that occurred while initializing this rule bundle
+          items:
+            type: string
+    RuleBundle:
+      description: Identifying information for a rule bundle
+      required:
+        - source
+      properties:
+        name:
+          type: string
+        source:
+          type: string
+          enum: ["data", "bundle_archive", "bundle_directory"]
+        checksum:
+          type: string
