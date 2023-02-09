@@ -10,7 +10,7 @@ jobs:
       run: |
         REMOTE=$(git remote | head)
         git fetch $REMOTE ${{ github.base_ref }}
-        CHANGES="$(git diff $REMOTE/${{ github.base_ref }} -- changes/unreleased/)"
+        CHANGES="$(git diff $REMOTE/${{ github.base_ref }} -- changes/)"
         echo $CHANGES
         if [[ "$CHANGES" == "" ]]; then
             1>&2 echo "Please use 'changie new' to generate a changelog entry"
