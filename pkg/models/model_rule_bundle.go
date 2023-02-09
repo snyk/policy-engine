@@ -11,6 +11,6 @@ package models
 // Identifying information for a rule bundle
 type RuleBundle struct {
 	Name     string `json:"name,omitempty"`
-	Source   string `json:"source,omitempty"`
+	Source   string `json:"source"`
 	Checksum string `json:"checksum,omitempty"`
 }

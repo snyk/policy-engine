@@ -361,6 +361,8 @@ components:
             type: string
     RuleBundle:
       description: Identifying information for a rule bundle
+      required:
+        - source
       properties:
         name:
           type: string
