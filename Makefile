@@ -59,7 +59,7 @@ install_tools:
 	go install github.com/goreleaser/goreleaser@v1.9.2
 	go install github.com/miniscruff/changie@v1.7.0
 
-PLAIN_VERSION := $(VERSION:v=)
+PLAIN_VERSION := $(VERSION:v%=%)
 
 .PHONY: release
 release:
@@ -72,7 +72,7 @@ release:
 	git diff --staged
 	@echo -n "Are you sure? [y/N] " && read ans && [ $${ans:-N} == y ]
 	git commit -m "Bump version to $(VERSION)"
-	git push origin release/$(PLAIN_VERSION) $(VERSION)
+	git push origin release/$(PLAIN_VERSION)
 	@echo "Go to https://github.com/snyk/policy-engine/compare/release/$(VERSION)?expand=1"
 
 TERRAFORM_VERSION=1.0.10
