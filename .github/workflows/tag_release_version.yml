@@ -1,0 +1,28 @@
+name: tag_release_version
+
+on:
+  pull_request:
+    types:
+    - closed
+
+jobs:
+  tag_release_version:
+    if: github.event.pull_request.merged && startsWith(github.event.pull_request.head.ref, "release/")
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+      with:
+        ref: main
+    - name: Extract version from branch name
+      id: version
+      run: |
+        BRANCH_NAME=${{ github.event.pull_request.head.ref }}
+        VERSION=v${BRANCH_NAME#release/}
+        echo "VERSION=$VERSION" >> $GITHUB_OUTPUT
+    - name: Tag version
+      run: |
+        VERSION=${{ steps.version.outputs.VERSION }}
+        git config user.name "$GITHUB_ACTOR"
+        git config user.email "$GITHUB_ACTOR@users.noreply.github.com"
+        git tag -a -F changes/$VERSION.md $VERSION
+        git push origin $VERSION

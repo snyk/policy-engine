@@ -1,0 +1,26 @@
+name: release_candidate
+
+on:
+  push:
+    branches:
+      - 'release/**'
+
+jobs:
+  release_candidate:
+    environment: release
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          submodules: true
+      - uses: actions/setup-go@v3
+        with:
+          go-version: '1.18'
+      - run: make install_tools
+      - name: Extract version name from git branch
+        id: version
+        run: echo "VERSION=v${GITHUB_REF#*release/}" >> $GITHUB_OUTPUT
+      - name: Ensure changelog exists
+        run: ls changes/${{ steps.version.outputs.VERSION }}.md
+      - name: Run goreleaser
+        run: goreleaser build --snapshot

@@ -5,7 +5,7 @@ jobs:
     runs-on: ubuntu-latest
     name: Check changelog entry
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
     - name: Check changelog entry
       run: |
         REMOTE=$(git remote | head)
