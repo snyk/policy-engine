@@ -1,4 +1,4 @@
-name: release
+name: release_manual
 
 on:
   push:
@@ -6,7 +6,7 @@ on:
     - "v*"
 
 jobs:
-  release:
+  release_manual:
     environment: release
     runs-on: ubuntu-latest
     steps:

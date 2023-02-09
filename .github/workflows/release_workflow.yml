@@ -1,4 +1,4 @@
-name: tag_release_version
+name: release_workflow
 
 on:
   pull_request:
@@ -6,19 +6,27 @@ on:
     - closed
 
 jobs:
-  tag_release_version:
+  release_workflow:
     if: ${{ github.event.pull_request.merged && startsWith(github.event.pull_request.head.ref, 'release/') }}
+    environment: release
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v3
       with:
         ref: main
+        submodules: true
+    - uses: actions/setup-go@v3
+      with:
+        go-version: '1.18'
+    - run: make install_tools
     - name: Extract version from branch name
       id: version
       run: |
         BRANCH_NAME=${{ github.event.pull_request.head.ref }}
         VERSION=v${BRANCH_NAME#release/}
         echo "VERSION=$VERSION" >> $GITHUB_OUTPUT
+    - name: Ensure changelog exists
+      run: ls changes/${{ steps.version.outputs.VERSION }}.md
     - name: Tag version
       run: |
         VERSION=${{ steps.version.outputs.VERSION }}
@@ -26,3 +34,10 @@ jobs:
         git config user.email "$GITHUB_ACTOR@users.noreply.github.com"
         git tag -a -F changes/$VERSION.md $VERSION
         git push origin $VERSION
+    - name: Run goreleaser
+      run: |
+        goreleaser release \
+          --release-notes=changes/${{ steps.version.outputs.VERSION }}.md \
+          --skip-validate
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

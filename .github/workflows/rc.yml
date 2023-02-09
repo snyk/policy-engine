@@ -1,4 +1,4 @@
-name: release_candidate
+name: rc
 
 on:
   push:
@@ -6,8 +6,7 @@ on:
       - 'release/**'
 
 jobs:
-  release_candidate:
-    environment: release
+  rc:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
