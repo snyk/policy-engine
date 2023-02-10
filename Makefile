@@ -87,7 +87,7 @@ release:
 	@echo -n "Are you sure? [y/N] " && read ans && [ $${ans:-N} == y ]
 	git commit -m "Bump version to $(VERSION)"
 	git push origin release/$(PLAIN_VERSION)
-	@echo "Go to https://github.com/snyk/policy-engine/compare/release/$(VERSION)?expand=1"
+	@echo "Go to https://github.com/snyk/policy-engine/compare/release/$(PLAIN_VERSION)?expand=1"
 
 TERRAFORM_VERSION=1.0.10
 
