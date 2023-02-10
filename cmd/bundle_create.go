@@ -10,12 +10,12 @@ import (
 	"github.com/spf13/cobra"
 )
 
-var (
-	bundleCreateOutput   string
-	bundleCreateRevision string
-	bundleCreateVCSType  string
-	bundleCreateVCSURI   string
-)
+var bundleCreateFlags struct {
+	Output   string
+	Revision string
+	VCSType  string
+	VCSURI   string
+}
 
 var bundleCreateCmd = &cobra.Command{
 	Use:   "create <bundle directory> [-o <output .tar.gz file>]",
@@ -28,20 +28,20 @@ var bundleCreateCmd = &cobra.Command{
 		}
 		reader := bundle.NewDirReader(args[0])
 		opts := []v1.ManifestOption{}
-		if bundleCreateRevision != "" {
-			opts = append(opts, v1.WithRevision(bundleCreateRevision))
+		if bundleCreateFlags.Revision != "" {
+			opts = append(opts, v1.WithRevision(bundleCreateFlags.Revision))
 		}
-		if bundleCreateVCSType != "" {
-			opts = append(opts, v1.WithVCSType(bundleCreateVCSType))
+		if bundleCreateFlags.VCSType != "" {
+			opts = append(opts, v1.WithVCSType(bundleCreateFlags.VCSType))
 		}
-		if bundleCreateVCSURI != "" {
-			opts = append(opts, v1.WithVCSURI(bundleCreateVCSURI))
+		if bundleCreateFlags.VCSURI != "" {
+			opts = append(opts, v1.WithVCSURI(bundleCreateFlags.VCSURI))
 		}
 		b, err := bundle.BuildBundle(reader, opts...)
 		if err != nil {
 			return err
 		}
-		f, err := os.Create(bundleCreateOutput)
+		f, err := os.Create(bundleCreateFlags.Output)
 		if err != nil {
 			return err
 		}
@@ -50,15 +50,15 @@ var bundleCreateCmd = &cobra.Command{
 			return err
 		}
 		logger.
-			WithField("output", bundleCreateOutput).
+			WithField("output", bundleCreateFlags.Output).
 			Info(ctx, "wrote bundle")
 		return nil
 	},
 }
 
 func init() {
-	bundleCreateCmd.Flags().StringVarP(&bundleCreateOutput, "output", "o", "dist.tar.gz", ".tar.gz file to write to")
-	bundleCreateCmd.Flags().StringVarP(&bundleCreateRevision, "revision", "r", "", "the revision of this bundle, e.g. a commit hash")
-	bundleCreateCmd.Flags().StringVarP(&bundleCreateVCSType, "vcs-type", "t", "", "the vcs type of this bundle, e.g. 'git'")
-	bundleCreateCmd.Flags().StringVarP(&bundleCreateVCSURI, "vcs-uri", "u", "", "the vcs repo URI of this bundle, e.g. 'git@github.com:example/rules.git")
+	bundleCreateCmd.Flags().StringVarP(&bundleCreateFlags.Output, "output", "o", "dist.tar.gz", ".tar.gz file to write to")
+	bundleCreateCmd.Flags().StringVarP(&bundleCreateFlags.Revision, "revision", "r", "", "the revision of this bundle, e.g. a commit hash")
+	bundleCreateCmd.Flags().StringVarP(&bundleCreateFlags.VCSType, "vcs-type", "t", "", "the vcs type of this bundle, e.g. 'git'")
+	bundleCreateCmd.Flags().StringVarP(&bundleCreateFlags.VCSURI, "vcs-uri", "u", "", "the vcs repo URI of this bundle, e.g. 'git@github.com:example/rules.git")
 }
