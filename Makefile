@@ -2,7 +2,7 @@ MODELS_DIR="pkg/models"
 
 GO_SOURCE = $(shell find cmd pkg rego -type f -name '*.go') $(shell find pkg rego -type f -name '*.rego')
 CLI_SOURCE = $(GO_SOURCE) go.mod go.sum
-CURRENT_VERSION=$(shell git fetch --tags && git describe --tags --abbrev=0 | sed 's/^v//')
+CURRENT_VERSION=$(shell awk '/^\#\# v[0-9]/ { print $$2 }' CHANGELOG.md | head -n 1 | sed 's/^v//')
 GITCOMMIT=$(shell git rev-parse --short HEAD 2> /dev/null || true)
 
 # Hardcoding -dev here to make it easier to distinguish between ad-hoc builds
