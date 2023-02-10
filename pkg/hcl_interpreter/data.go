@@ -35,7 +35,7 @@ func (d UnsupportedOperationDiag) Severity() tfdiags.Severity {
 func (d UnsupportedOperationDiag) Description() tfdiags.Description {
 	return tfdiags.Description{
 		Summary: "Unsupported operation",
-		Detail:  "This operation cannot currently be performed by regula.",
+		Detail:  "This operation cannot currently be performed by policy-engine.",
 	}
 }
 
@@ -44,6 +44,10 @@ func (d UnsupportedOperationDiag) Source() tfdiags.Source {
 }
 
 func (d UnsupportedOperationDiag) FromExpr() *tfdiags.FromExpr {
+	return nil
+}
+
+func (d UnsupportedOperationDiag) ExtraInfo() interface{} {
 	return nil
 }
 

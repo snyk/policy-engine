@@ -1,5 +1,5 @@
 diff --git a/pkg/internal/terraform/configs/configload/loader_snapshot.go b/pkg/internal/terraform/configs/configload/loader_snapshot.go
-index 243939f..6ca8b4f 100644
+index 91868aa..1912ab6 100644
 --- a/pkg/internal/terraform/configs/configload/loader_snapshot.go
 +++ b/pkg/internal/terraform/configs/configload/loader_snapshot.go
 @@ -325,6 +325,10 @@ func (fs snapshotFS) Chmod(name string, mode os.FileMode) error {
@@ -14,7 +14,7 @@ index 243939f..6ca8b4f 100644
  	return fmt.Errorf("cannot set file times inside configuration snapshot")
  }
 diff --git a/pkg/internal/terraform/tfdiags/diagnostics.go b/pkg/internal/terraform/tfdiags/diagnostics.go
-index 30476ee..25cd135 100644
+index b4d71bf..7044dd8 100644
 --- a/pkg/internal/terraform/tfdiags/diagnostics.go
 +++ b/pkg/internal/terraform/tfdiags/diagnostics.go
 @@ -107,24 +107,6 @@ func (diags Diagnostics) HasErrors() bool {
@@ -44,10 +44,10 @@ index 30476ee..25cd135 100644
  //
 diff --git a/pkg/internal/terraform/tfdiags/rpc_friendly.go b/pkg/internal/terraform/tfdiags/rpc_friendly.go
 deleted file mode 100644
-index 485063b..0000000
+index 4c627bf..0000000
 --- a/pkg/internal/terraform/tfdiags/rpc_friendly.go
 +++ /dev/null
-@@ -1,59 +0,0 @@
+@@ -1,64 +0,0 @@
 -package tfdiags
 -
 -import (
@@ -101,6 +101,11 @@ index 485063b..0000000
 -func (d rpcFriendlyDiag) FromExpr() *FromExpr {
 -	// RPC-friendly diagnostics cannot preserve expression information because
 -	// expressions themselves are not RPC-friendly.
+-	return nil
+-}
+-
+-func (d rpcFriendlyDiag) ExtraInfo() interface{} {
+-	// RPC-friendly diagnostics always discard any "extra information".
 -	return nil
 -}
 -
