@@ -168,6 +168,10 @@ func (name FullName) AsResourceName() (*FullName, LocalName) {
 			cut += 1
 		}
 
+		if name.Local[0] == "var" || name.Local[0] == "local" {
+			return nil, nil
+		}
+
 		return &FullName{name.Module, name.Local[:cut]}, name.Local[cut:]
 	}
 	return nil, nil

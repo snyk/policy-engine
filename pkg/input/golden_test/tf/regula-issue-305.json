@@ -4,14 +4,14 @@
   "input_type": "tf_hcl",
   "environment_provider": "iac",
   "meta": {
-    "filepath": "golden_test/tf/issue-305/main.tf"
+    "filepath": "golden_test/tf/regula-issue-305/main.tf"
   },
   "resources": {
     "aws_s3_bucket": {
       "aws_s3_bucket.bucket": {
         "id": "aws_s3_bucket.bucket",
         "resource_type": "aws_s3_bucket",
-        "namespace": "golden_test/tf/issue-305/main.tf",
+        "namespace": "golden_test/tf/regula-issue-305/main.tf",
         "meta": {},
         "attributes": {
           "bucket": "default"
@@ -20,6 +20,6 @@
     }
   },
   "scope": {
-    "filepath": "golden_test/tf/issue-305/main.tf"
+    "filepath": "golden_test/tf/regula-issue-305/main.tf"
   }
 }

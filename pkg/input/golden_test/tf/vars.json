@@ -16,7 +16,7 @@
         "attributes": {
           "tags": {
             "department": "engineering",
-            "environment": null
+            "environment": "var.environment"
           }
         }
       }

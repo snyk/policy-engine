@@ -113,17 +113,18 @@ func (v *Analysis) dependencies(name FullName, term Term) []dependency {
 			if asVariable, asVar, _ := full.AsVariable(); asVar != nil {
 				// Rewrite variables either as default, or as module input.
 				asModuleInput := full.AsModuleInput()
-				isModuleInput := false
 				if asModuleInput != nil {
 					if mtp, _ := v.Terms.LookupByPrefix(*asModuleInput); mtp != nil {
 						deps = append(deps, dependency{asVar, mtp, nil})
-						isModuleInput = true
+						continue
 					}
 				}
-				if !isModuleInput {
+
+				// Not module input, check that default is set.
+				if prefix, _ := v.Terms.LookupByPrefix(*asVariable); prefix != nil {
 					deps = append(deps, dependency{asVar, asVariable, nil})
+					continue
 				}
-				continue
 			}
 
 			// In other cases, just use the local name.  This is sort of

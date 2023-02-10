@@ -71,7 +71,9 @@ func (pa *phantomAttrs) add(name FullName, val cty.Value) cty.Value {
 
 	var patch func(LocalName, string, cty.Value) cty.Value
 	patch = func(local LocalName, ref string, val cty.Value) cty.Value {
-		if val.Type().IsObjectType() {
+		if !val.IsKnown() || val.IsNull() {
+			return val // Avoid panicking on unknowns
+		} else if val.Type().IsObjectType() {
 			// Insert the literal string value at the given location.
 			sparse := NestVal(local, cty.StringVal(ref))
 			return MergeVal(sparse, val)

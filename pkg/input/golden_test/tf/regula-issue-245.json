@@ -4,10 +4,10 @@
   "input_type": "tf_hcl",
   "environment_provider": "iac",
   "meta": {
-    "filepath": "golden_test/tf/issue-245/test.tf"
+    "filepath": "golden_test/tf/regula-issue-245/test.tf"
   },
   "resources": {},
   "scope": {
-    "filepath": "golden_test/tf/issue-245/test.tf"
+    "filepath": "golden_test/tf/regula-issue-245/test.tf"
   }
 }
