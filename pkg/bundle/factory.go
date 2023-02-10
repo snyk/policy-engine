@@ -11,7 +11,7 @@ import (
 
 var ErrUnrecognizedBundleFormatVersion = errors.New("unrecognized bundle format version")
 
-func NewBundle(reader base.Reader) (base.Bundle, error) {
+func ReadBundle(reader base.Reader) (base.Bundle, error) {
 	manifest, err := reader.Manifest()
 	if err != nil {
 		return nil, err
@@ -23,7 +23,7 @@ func NewBundle(reader base.Reader) (base.Bundle, error) {
 	var b base.Bundle
 	switch manifest.BundleFormatVersion {
 	case v1.VERSION:
-		b, err = v1.NewBundle(producer)
+		b, err = v1.ReadBundle(producer)
 	default:
 		return nil, fmt.Errorf("%w: %v", ErrUnrecognizedBundleFormatVersion, manifest.BundleFormatVersion)
 	}
@@ -36,8 +36,16 @@ func NewBundle(reader base.Reader) (base.Bundle, error) {
 	return b, nil
 }
 
+func BuildBundle(reader base.Reader, opt ...v1.ManifestOption) (base.Bundle, error) {
+	producer := &FileProducer{
+		Reader: reader,
+		Filter: bundleFilter,
+	}
+	return v1.BuildBundle(producer, opt...)
+}
+
 func bundleFilter(path string) bool {
-	if path == "manifest.json" {
+	if path == "manifest.json" || path == "data.json" {
 		return true
 	}
 	return strings.HasPrefix(path, "rules/") || strings.HasPrefix(path, "lib/")

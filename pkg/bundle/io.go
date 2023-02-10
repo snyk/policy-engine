@@ -265,3 +265,54 @@ func Checksum(raw []byte) string {
 	sum := sha256.Sum256(raw)
 	return fmt.Sprintf("%x", sum)
 }
+
+type TarGzWriter struct {
+	writer io.Writer
+}
+
+func NewTarGzWriter(w io.Writer) base.Writer {
+	return &TarGzWriter{
+		writer: w,
+	}
+}
+
+func (w *TarGzWriter) Write(b Bundle) error {
+	gw := gzip.NewWriter(w.writer)
+	defer gw.Close()
+	tw := tar.NewWriter(gw)
+	defer tw.Close()
+	for path, mod := range b.Modules() {
+		bytes := []byte(mod.String())
+		if err := writeToTar(tw, path, bytes); err != nil {
+			return err
+		}
+	}
+	bytes, err := json.Marshal(b.Document())
+	if err != nil {
+		return err
+	}
+	if err := writeToTar(tw, "data.json", bytes); err != nil {
+		return err
+	}
+	bytes, err = json.Marshal(b.Manifest())
+	if err != nil {
+		return err
+	}
+	return writeToTar(tw, "manifest.json", bytes)
+}
+
+func writeToTar(tw *tar.Writer, path string, b []byte) error {
+	hdr := &tar.Header{
+		Name:     path,
+		Mode:     0600,
+		Typeflag: tar.TypeReg,
+		Size:     int64(len(b)),
+	}
+	if err := tw.WriteHeader(hdr); err != nil {
+		return err
+	}
+	if _, err := tw.Write(b); err != nil {
+		return err
+	}
+	return nil
+}

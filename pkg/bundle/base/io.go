@@ -15,13 +15,13 @@ type Reader interface {
 }
 
 type FileInfo struct {
-	Path     string
-	Checksum string
+	Path     string `json:"path"`
+	Checksum string `json:"checksum"`
 }
 
 type SourceInfo struct {
-	SourceType SourceType
-	FileInfo   FileInfo
+	SourceType SourceType `json:"source_type"`
+	FileInfo   FileInfo   `json:"file_info"`
 }
 
 type File struct {
@@ -34,4 +34,8 @@ type FileConsumer func(f File) error
 type FileProducer interface {
 	Produce(consumer FileConsumer) error
 	Info() SourceInfo
+}
+
+type Writer interface {
+	Write(bundle Bundle) error
 }

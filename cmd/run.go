@@ -20,12 +20,13 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"io"
 	"os"
 
-	"github.com/snyk/policy-engine/pkg/bundle"
 	"github.com/snyk/policy-engine/pkg/engine"
 	"github.com/snyk/policy-engine/pkg/input"
 	"github.com/snyk/policy-engine/pkg/metrics"
+	"github.com/snyk/policy-engine/pkg/models"
 	"github.com/snyk/policy-engine/pkg/postprocess"
 	"github.com/snyk/policy-engine/pkg/snapshot_testing"
 	"github.com/spf13/afero"
@@ -37,43 +38,22 @@ var (
 	runCmdRules   []string
 	runCmdBundles []string
 	runVarFiles   []string
+	runCmdStates  []string
 	runCmdWorkers *int
 )
 
 var runCmd = &cobra.Command{
-	Use:   "run [-d <rules/metadata>...] [-b <bundle>] [-r <rule ID>...] <input> [input...]",
+	Use:   "run [-d <rules/metadata>...] [-b <bundle>] [-r <rule ID>...] [<input> [input...]] [-s <state JSON file>]",
 	Short: "Policy Engine",
 	RunE: func(cmd *cobra.Command, args []string) error {
 		logger := cmdLogger()
 		snapshot_testing.GlobalRegisterNoop()
 		m := metrics.NewLocalMetrics(logger)
 		ctx := context.Background()
-		bundleReaders := []bundle.Reader{}
-		for _, path := range runCmdBundles {
-			if isTgz(path) {
-				f, err := os.Open(path)
-				if err != nil {
-					return err
-				}
-				defer f.Close()
-				reader, err := bundle.NewTarGzReader(path, f)
-				if err != nil {
-					return err
-				}
-				bundleReaders = append(bundleReaders, reader)
-			} else {
-				stat, err := os.Stat(path)
-				if err != nil {
-					return err
-				}
-				if stat.IsDir() {
-					reader := bundle.NewDirReader(path)
-					bundleReaders = append(bundleReaders, reader)
-				}
-
-			}
+		bundleReaders, err := bundleReadersFromPaths(runCmdBundles)
+		if err != nil {
+			return err
 		}
-
 		detector, err := input.DetectorByInputTypes(
 			input.Types{input.Auto},
 		)
@@ -132,6 +112,21 @@ var runCmd = &cobra.Command{
 			}
 		}
 		states := loader.ToStates()
+		for _, path := range runCmdStates {
+			f, err := os.Open(path)
+			if err != nil {
+				return err
+			}
+			raw, err := io.ReadAll(f)
+			if err != nil {
+				return err
+			}
+			state := models.State{}
+			if err := json.Unmarshal(raw, &state); err != nil {
+				return err
+			}
+			states = append(states, state)
+		}
 		eng := engine.NewEngine(ctx, &engine.EngineOptions{
 			Providers:     rootCmdRegoProviders(),
 			BundleReaders: bundleReaders,
@@ -160,4 +155,5 @@ func init() {
 	runCmd.PersistentFlags().StringSliceVarP(&runCmdRules, "rule", "r", runCmdRules, "Select specific rules")
 	runCmd.PersistentFlags().StringSliceVarP(&runCmdBundles, "bundle", "b", runCmdRules, "Select specific bundles")
 	runCmd.PersistentFlags().StringSliceVar(&runVarFiles, "var-file", runVarFiles, "Pass in variable files")
+	runCmd.PersistentFlags().StringSliceVarP(&runCmdStates, "state", "s", runVarFiles, "Pass in state JSON files")
 }

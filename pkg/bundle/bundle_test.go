@@ -56,9 +56,9 @@ func TestReadBundle(t *testing.T) {
 				},
 				PolicyEngineVersion: "v0.15.0",
 				Revision:            "924d418a9f8f05a66c7dab87989fad631abc291d",
-				Vcs: v1.VcsMetadata{
+				VCS: v1.VCSMetadata{
 					Type: "git",
-					Uri:  "git@github.com:example/rules.git",
+					URI:  "git@github.com:example/rules.git",
 				},
 			},
 			sourceInfo: base.SourceInfo{
@@ -78,7 +78,7 @@ func TestReadBundle(t *testing.T) {
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
 			reader := bundle.NewFSReader(tc.root, tc.fsys)
-			b, err := bundle.NewBundle(reader)
+			b, err := bundle.ReadBundle(reader)
 			if tc.err != nil {
 				assert.NoError(t, err)
 				assert.ErrorIs(t, tc.err, err)

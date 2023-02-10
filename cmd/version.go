@@ -18,18 +18,22 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/snyk/policy-engine/pkg/version"
 	"github.com/spf13/cobra"
-)
-
-var (
-	version string = "dev"
 )
 
 var versionCmd = &cobra.Command{
 	Use:   "version",
 	Short: "Display version",
 	RunE: func(cmd *cobra.Command, args []string) error {
-		fmt.Fprintf(os.Stdout, "%s\n", version)
+		v := version.GetVersionInfo()
+		fmt.Fprintf(os.Stdout, "Version:\t%s\n", v.Version)
+		fmt.Fprintf(os.Stdout, "OPA Version:\t%s\n", v.OPAVersion)
+		revision := v.Revision
+		if v.HasChanges {
+			revision = fmt.Sprintf("%s*", revision)
+		}
+		fmt.Fprintf(os.Stdout, "Revision:\t%s\n", revision)
 		return nil
 	},
 }

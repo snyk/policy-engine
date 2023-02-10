@@ -22,6 +22,7 @@ import (
 	"os"
 
 	"github.com/rs/zerolog"
+	"github.com/snyk/policy-engine/pkg/bundle"
 	"github.com/snyk/policy-engine/pkg/data"
 	"github.com/snyk/policy-engine/pkg/logging"
 	"github.com/spf13/cobra"
@@ -108,6 +109,34 @@ func rootCmdRegoProviders() []data.Provider {
 		}
 	}
 	return providers
+}
+
+func bundleReadersFromPaths(paths []string) ([]bundle.Reader, error) {
+	var bundleReaders []bundle.Reader
+	for _, path := range paths {
+		if isTgz(path) {
+			f, err := os.Open(path)
+			if err != nil {
+				return nil, err
+			}
+			defer f.Close()
+			reader, err := bundle.NewTarGzReader(path, f)
+			if err != nil {
+				return nil, err
+			}
+			bundleReaders = append(bundleReaders, reader)
+		} else {
+			stat, err := os.Stat(path)
+			if err != nil {
+				return nil, err
+			}
+			if stat.IsDir() {
+				reader := bundle.NewDirReader(path)
+				bundleReaders = append(bundleReaders, reader)
+			}
+		}
+	}
+	return bundleReaders, nil
 }
 
 func init() {
