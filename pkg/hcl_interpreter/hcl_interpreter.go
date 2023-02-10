@@ -44,15 +44,20 @@ type Analysis struct {
 
 	// Any bad keys that we attempted to reference or failed to parse
 	badKeys map[string]struct{}
+
+	// Terms that we could not find and returned as a string.  We will
+	// generate a warning for these.
+	missingTerms map[string]struct{}
 }
 
 func AnalyzeModuleTree(mtree *ModuleTree) *Analysis {
 	analysis := &Analysis{
-		Fs:        mtree.fs,
-		Modules:   map[string]*ModuleMeta{},
-		Resources: map[string]*ResourceMeta{},
-		Terms:     NewTermTree(),
-		badKeys:   map[string]struct{}{},
+		Fs:           mtree.fs,
+		Modules:      map[string]*ModuleMeta{},
+		Resources:    map[string]*ResourceMeta{},
+		Terms:        NewTermTree(),
+		badKeys:      map[string]struct{}{},
+		missingTerms: map[string]struct{}{},
 	}
 	mtree.Walk(analysis)
 	return analysis
@@ -113,21 +118,23 @@ func (v *Analysis) dependencies(name FullName, term Term) []dependency {
 			if asVariable, asVar, _ := full.AsVariable(); asVar != nil {
 				// Rewrite variables either as default, or as module input.
 				asModuleInput := full.AsModuleInput()
-				isModuleInput := false
 				if asModuleInput != nil {
 					if mtp, _ := v.Terms.LookupByPrefix(*asModuleInput); mtp != nil {
 						deps = append(deps, dependency{asVar, mtp, nil})
-						isModuleInput = true
+						continue
 					}
 				}
-				if !isModuleInput {
+
+				// Not module input, check that default is set.
+				if prefix, _ := v.Terms.LookupByPrefix(*asVariable); prefix != nil {
 					deps = append(deps, dependency{asVar, asVariable, nil})
+					continue
 				}
-				continue
 			}
 
 			// In other cases, just use the local name.  This is sort of
 			// a catch-all and we should try to not rely on this too much.
+			v.missingTerms[full.ToString()] = struct{}{}
 			val := cty.StringVal(LocalNameToString(local))
 			deps = append(deps, dependency{&full, nil, &val})
 		}
@@ -377,8 +384,11 @@ func (v *Evaluation) Resources() []Resource {
 // Errors returns the non-fatal errors encountered during evaluation
 func (e *Evaluation) Errors() []error {
 	errors := []error{}
-	for _, badKey := range e.Analysis.badKeys {
+	for badKey := range e.Analysis.badKeys {
 		errors = append(errors, fmt.Errorf("Bad dependency key: %s", badKey))
+	}
+	for missingTerm := range e.Analysis.missingTerms {
+		errors = append(errors, fmt.Errorf(`Missing term for "%s", substituted in as string`, missingTerm))
 	}
 	errors = append(errors, e.errors...)
 	return errors

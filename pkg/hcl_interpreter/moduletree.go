@@ -278,6 +278,17 @@ func walkModule(v Visitor, moduleName ModuleName, module *configs.Module, variab
 				SrcRange: variable.DeclRange,
 			}
 			v.VisitTerm(name.Add("variable").Add(variable.Name), TermFromExpr(&expr))
+		} else {
+			// If no default is provided, we can add our own default depending
+			// on the type.  We currently only do this for strings.
+			if variable.Type == cty.String {
+				selfRef := name.Add("var").Add(variable.Name).ToString()
+				expr := hclsyntax.LiteralValueExpr{
+					Val:      cty.StringVal(selfRef),
+					SrcRange: variable.DeclRange,
+				}
+				v.VisitTerm(name.Add("variable").Add(variable.Name), TermFromExpr(&expr))
+			}
 		}
 	}
 
@@ -349,10 +360,9 @@ func walkResource(
 // TfFilePathJoin is like `filepath.Join` but avoids cleaning the path.  This
 // allows to get unique paths for submodules including a parent module, e.g.:
 //
-//     .
-//     examples/mssql/../../
-//     examples/complete/../../
-//
+//	.
+//	examples/mssql/../../
+//	examples/complete/../../
 func TfFilePathJoin(leading, trailing string) string {
 	if filepath.IsAbs(trailing) {
 		return trailing
