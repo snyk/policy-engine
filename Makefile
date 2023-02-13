@@ -89,7 +89,7 @@ release:
 	git push origin release/$(PLAIN_VERSION)
 	@echo "Go to https://github.com/snyk/policy-engine/compare/release/$(PLAIN_VERSION)?expand=1"
 
-TERRAFORM_VERSION=1.0.10
+TERRAFORM_VERSION=1.3.8
 
 .PHONY: vendor_terraform
 vendor_terraform:
@@ -108,7 +108,19 @@ vendor_terraform:
 	cp -r terraform-$(TERRAFORM_VERSION)/internal/modsdir pkg/internal/terraform
 	cp -r terraform-$(TERRAFORM_VERSION)/internal/registry pkg/internal/terraform
 	cp -r terraform-$(TERRAFORM_VERSION)/internal/tfdiags pkg/internal/terraform
-	cp -r terraform-$(TERRAFORM_VERSION)/internal/typeexpr pkg/internal/terraform
+	cp -r terraform-$(TERRAFORM_VERSION)/internal/getmodules pkg/internal/terraform
+	cp -r terraform-$(TERRAFORM_VERSION)/internal/depsfile pkg/internal/terraform
+	cp -r terraform-$(TERRAFORM_VERSION)/internal/ipaddr pkg/internal/terraform
+	cp -r terraform-$(TERRAFORM_VERSION)/internal/providers pkg/internal/terraform
+	cp -r terraform-$(TERRAFORM_VERSION)/internal/replacefile pkg/internal/terraform
+	cp -r terraform-$(TERRAFORM_VERSION)/internal/copy pkg/internal/terraform
+	cp -r terraform-$(TERRAFORM_VERSION)/internal/states  pkg/internal/terraform
+	cp -r terraform-$(TERRAFORM_VERSION)/internal/checks  pkg/internal/terraform
+	cp -r terraform-$(TERRAFORM_VERSION)/internal/terraform  pkg/internal/terraform
+	cp -r terraform-$(TERRAFORM_VERSION)/internal/dag  pkg/internal/terraform
+	cp -r terraform-$(TERRAFORM_VERSION)/internal/plans  pkg/internal/terraform
+	cp -r terraform-$(TERRAFORM_VERSION)/internal/provisioners  pkg/internal/terraform
+	cp -r terraform-$(TERRAFORM_VERSION)/internal/refactoring  pkg/internal/terraform
 	cp -r terraform-$(TERRAFORM_VERSION)/version pkg/internal/terraform
 	cp terraform-$(TERRAFORM_VERSION)/LICENSE pkg/internal/terraform
 	find pkg/internal/terraform/ -name '*.go' \
@@ -118,4 +130,5 @@ vendor_terraform:
 	find pkg/internal/terraform/ -name '*.bak' -delete
 	find pkg/internal/terraform/ -name '*_test.go' -delete
 	git apply patches/terraform.patch
+	go mod tidy
 	rm -rf terraform.zip terraform-$(TERRAFORM_VERSION)

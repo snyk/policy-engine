@@ -1,0 +1,67 @@
+# Snyk (https://snyk.io) policy file, patches or ignores known vulnerabilities.
+version: v1.25.0
+# ignores vulnerabilities until expiry date; change duration by modifying expiry date
+ignore:
+  "snyk:lic:golang:github.com:hashicorp:consul:api:MPL-2.0":
+    - "*":
+        reason: MPL code and dependencies allowed in this project
+  "snyk:lic:golang:github.com:hashicorp:consul:sdk:MPL-2.0":
+    - "*":
+        reason: MPL code and dependencies allowed in this project
+  "snyk:lic:golang:github.com:hashicorp:errwrap:MPL-2.0":
+    - "*":
+        reason: MPL code and dependencies allowed in this project
+  "snyk:lic:golang:github.com:hashicorp:go-cleanhttp:MPL-2.0":
+    - "*":
+        reason: MPL code and dependencies allowed in this project
+  "snyk:lic:golang:github.com:hashicorp:go-immutable-radix:MPL-2.0":
+    - "*":
+        reason: MPL code and dependencies allowed in this project
+  "snyk:lic:golang:github.com:hashicorp:go-multierror:MPL-2.0":
+    - "*":
+        reason: MPL code and dependencies allowed in this project
+  "snyk:lic:golang:github.com:hashicorp:go-retryablehttp:MPL-2.0":
+    - "*":
+        reason: MPL code and dependencies allowed in this project
+  "snyk:lic:golang:github.com:hashicorp:go-rootcerts:MPL-2.0":
+    - "*":
+        reason: MPL code and dependencies allowed in this project
+  "snyk:lic:golang:github.com:hashicorp:go-sockaddr:MPL-2.0":
+    - "*":
+        reason: MPL code and dependencies allowed in this project
+  "snyk:lic:golang:github.com:hashicorp:go-uuid:MPL-2.0":
+    - "*":
+        reason: MPL code and dependencies allowed in this project
+  "snyk:lic:golang:github.com:hashicorp:go-version:MPL-2.0":
+    - "*":
+        reason: MPL code and dependencies allowed in this project
+  "snyk:lic:golang:github.com:hashicorp:golang-lru:MPL-2.0":
+    - "*":
+        reason: MPL code and dependencies allowed in this project
+  "snyk:lic:golang:github.com:hashicorp:hcl:v2:MPL-2.0":
+    - "*":
+        reason: MPL code and dependencies allowed in this project
+  "snyk:lic:golang:github.com:hashicorp:logutils:MPL-2.0":
+    - "*":
+        reason: MPL code and dependencies allowed in this project
+  "snyk:lic:golang:github.com:hashicorp:memberlist:MPL-2.0":
+    - "*":
+        reason: MPL code and dependencies allowed in this project
+  "snyk:lic:golang:github.com:hashicorp:serf:MPL-2.0":
+    - "*":
+        reason: MPL code and dependencies allowed in this project
+  "snyk:lic:golang:github.com:mitchellh:cli:MPL-2.0":
+    - "*":
+        reason: MPL code and dependencies allowed in this project
+  "snyk:lic:golang:github.com:mitchellh:gox:MPL-2.0":
+    - "*":
+        reason: MPL code and dependencies allowed in this project
+  "snyk:lic:golang:github.com:hashicorp:terraform-registry-address:MPL-2.0":
+    - "*":
+        reason: MPL code and dependencies allowed in this project
+  "snyk:lic:golang:github.com:hashicorp:go-getter:MPL-2.0":
+    - "*":
+        reason: MPL code and dependencies allowed in this project
+  "snyk:lic:golang:github.com:hashicorp:go-safetemp:MPL-2.0":
+    - "*":
+        reason: MPL code and dependencies allowed in this project
