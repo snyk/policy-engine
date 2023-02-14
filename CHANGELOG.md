@@ -2,6 +2,11 @@
 
 
 
+## v0.18.0 - 2023-02-14
+### Updated
+* vendored Terraform to v1.3.8
+* license and copyright blocks
+
 ## v0.17.0 - 2023-02-10
 ### Added
 * API for evaluating bundles
