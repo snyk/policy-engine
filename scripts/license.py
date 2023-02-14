@@ -78,6 +78,7 @@ def license_file(path, comment_prefix):
 
 
 ignores = [
+    "pkg/hcl_interpreter/funcs",
     "pkg/input/golden_test/tf/example-terraform-modules",
     "pkg/internal/terraform",
     "pkg/models",

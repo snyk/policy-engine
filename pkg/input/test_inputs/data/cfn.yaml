@@ -1,4 +1,4 @@
-# Copyright 2022 Snyk Ltd
+# Copyright 2022-2023 Snyk Ltd
 # Copyright 2020-2021 Fugue, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
