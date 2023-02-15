@@ -198,27 +198,29 @@ func (t Term) Evaluate(
 		diagnostics = append(diagnostics, diags...)
 
 		eaches := []cty.Value{}
-		if forEachVal.IsKnown() && (forEachVal.Type().IsMapType() || forEachVal.Type().IsObjectType()) {
-			valueMap := forEachVal.AsValueMap()
-			keys := []string{}
-			for k := range valueMap {
-				keys = append(keys, k)
-			}
-			sort.Strings(keys)
-			for _, k := range keys {
-				each := cty.ObjectVal(map[string]cty.Value{
-					"key":   cty.StringVal(k),
-					"value": valueMap[k],
-				})
-				eaches = append(eaches, each)
-			}
-		} else if forEachVal.IsKnown() && forEachVal.Type().IsSetType() {
-			for _, v := range forEachVal.AsValueSet().Values() {
-				each := cty.ObjectVal(map[string]cty.Value{
-					"key":   v,
-					"value": v,
-				})
-				eaches = append(eaches, each)
+		if !forEachVal.IsNull() && forEachVal.IsKnown() {
+			if forEachVal.Type().IsMapType() || forEachVal.Type().IsObjectType() {
+				valueMap := forEachVal.AsValueMap()
+				keys := []string{}
+				for k := range valueMap {
+					keys = append(keys, k)
+				}
+				sort.Strings(keys)
+				for _, k := range keys {
+					each := cty.ObjectVal(map[string]cty.Value{
+						"key":   cty.StringVal(k),
+						"value": valueMap[k],
+					})
+					eaches = append(eaches, each)
+				}
+			} else if forEachVal.Type().IsSetType() {
+				for _, v := range forEachVal.AsValueSet().Values() {
+					each := cty.ObjectVal(map[string]cty.Value{
+						"key":   v,
+						"value": v,
+					})
+					eaches = append(eaches, each)
+				}
 			}
 		}
 

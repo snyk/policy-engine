@@ -1,0 +1,87 @@
+{
+  "format": "",
+  "format_version": "",
+  "input_type": "tf_hcl",
+  "environment_provider": "iac",
+  "meta": {
+    "filepath": "golden_test/tf/regula-issue-397/main.tf"
+  },
+  "resources": {
+    "aws_lb": {
+      "aws_lb.msk": {
+        "id": "aws_lb.msk",
+        "resource_type": "aws_lb",
+        "namespace": "golden_test/tf/regula-issue-397/main.tf",
+        "meta": {},
+        "attributes": {
+          "internal": true,
+          "load_balancer_type": "network",
+          "name": "msk-private-link-ingress",
+          "subnets": [
+            "subnet-000000",
+            "subnet-111111",
+            "subnet-222222"
+          ]
+        }
+      }
+    },
+    "aws_lb_target_group": {
+      "aws_lb_target_group.msk_nlb_target_groups[0]": {
+        "id": "aws_lb_target_group.msk_nlb_target_groups[0]",
+        "resource_type": "aws_lb_target_group",
+        "namespace": "golden_test/tf/regula-issue-397/main.tf",
+        "meta": {},
+        "attributes": {
+          "count": 3,
+          "name": "msk-dynamic-broker0",
+          "port": 1234,
+          "protocol": "TCP",
+          "target_type": "ip",
+          "vpc_id": "vpc-0123456789"
+        }
+      },
+      "aws_lb_target_group.msk_nlb_target_groups[1]": {
+        "id": "aws_lb_target_group.msk_nlb_target_groups[1]",
+        "resource_type": "aws_lb_target_group",
+        "namespace": "golden_test/tf/regula-issue-397/main.tf",
+        "meta": {},
+        "attributes": {
+          "count": 3,
+          "name": "msk-dynamic-broker1",
+          "port": 1234,
+          "protocol": "TCP",
+          "target_type": "ip",
+          "vpc_id": "vpc-0123456789"
+        }
+      },
+      "aws_lb_target_group.msk_nlb_target_groups[2]": {
+        "id": "aws_lb_target_group.msk_nlb_target_groups[2]",
+        "resource_type": "aws_lb_target_group",
+        "namespace": "golden_test/tf/regula-issue-397/main.tf",
+        "meta": {},
+        "attributes": {
+          "count": 3,
+          "name": "msk-dynamic-broker2",
+          "port": 1234,
+          "protocol": "TCP",
+          "target_type": "ip",
+          "vpc_id": "vpc-0123456789"
+        }
+      }
+    },
+    "data.aws_msk_broker_nodes": {
+      "data.aws_msk_broker_nodes.msk_nodes": {
+        "id": "data.aws_msk_broker_nodes.msk_nodes",
+        "resource_type": "data.aws_msk_broker_nodes",
+        "namespace": "golden_test/tf/regula-issue-397/main.tf",
+        "meta": {},
+        "attributes": {
+          "cluster_arn": "cluster-arn"
+        }
+      }
+    }
+  },
+  "scope": {
+    "filepath": "golden_test/tf/regula-issue-397/main.tf"
+  }
+}
