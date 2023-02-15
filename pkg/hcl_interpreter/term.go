@@ -197,41 +197,43 @@ func (t Term) Evaluate(
 		forEachVal, diags := evalExpr(*t.forEach, cty.EmptyObjectVal)
 		diagnostics = append(diagnostics, diags...)
 
-		eaches := []cty.Value{}
-		if forEachVal.IsKnown() && (forEachVal.Type().IsMapType() || forEachVal.Type().IsObjectType()) {
-			valueMap := forEachVal.AsValueMap()
-			keys := []string{}
-			for k := range valueMap {
-				keys = append(keys, k)
+		if !forEachVal.IsNull() && forEachVal.IsKnown() {
+			eaches := []cty.Value{}
+			if forEachVal.Type().IsMapType() || forEachVal.Type().IsObjectType() {
+				valueMap := forEachVal.AsValueMap()
+				keys := []string{}
+				for k := range valueMap {
+					keys = append(keys, k)
+				}
+				sort.Strings(keys)
+				for _, k := range keys {
+					each := cty.ObjectVal(map[string]cty.Value{
+						"key":   cty.StringVal(k),
+						"value": valueMap[k],
+					})
+					eaches = append(eaches, each)
+				}
+			} else if forEachVal.Type().IsSetType() {
+				for _, v := range forEachVal.AsValueSet().Values() {
+					each := cty.ObjectVal(map[string]cty.Value{
+						"key":   v,
+						"value": v,
+					})
+					eaches = append(eaches, each)
+				}
 			}
-			sort.Strings(keys)
-			for _, k := range keys {
-				each := cty.ObjectVal(map[string]cty.Value{
-					"key":   cty.StringVal(k),
-					"value": valueMap[k],
-				})
-				eaches = append(eaches, each)
-			}
-		} else if forEachVal.IsKnown() && forEachVal.Type().IsSetType() {
-			for _, v := range forEachVal.AsValueSet().Values() {
-				each := cty.ObjectVal(map[string]cty.Value{
-					"key":   v,
-					"value": v,
-				})
-				eaches = append(eaches, each)
-			}
-		}
 
-		arr := []cty.Value{}
-		for _, each := range eaches {
-			val, diags := t.evaluateExpr(func(e hcl.Expression, v cty.Value) (cty.Value, hcl.Diagnostics) {
-				v = MergeVal(v, NestVal(LocalName{"each"}, each))
-				return evalExpr(e, v)
-			})
-			diagnostics = append(diagnostics, diags...)
-			arr = append(arr, val)
+			arr := []cty.Value{}
+			for _, each := range eaches {
+				val, diags := t.evaluateExpr(func(e hcl.Expression, v cty.Value) (cty.Value, hcl.Diagnostics) {
+					v = MergeVal(v, NestVal(LocalName{"each"}, each))
+					return evalExpr(e, v)
+				})
+				diagnostics = append(diagnostics, diags...)
+				arr = append(arr, val)
+			}
+			return cty.TupleVal(arr), diagnostics
 		}
-		return cty.TupleVal(arr), diagnostics
 	}
 
 	return t.evaluateExpr(evalExpr)
