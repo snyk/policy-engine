@@ -2,6 +2,10 @@
 
 
 
+## v0.18.1 - 2023-02-15
+### Fixed
+* panic on null for_each value
+
 ## v0.18.0 - 2023-02-14
 ### Updated
 * vendored Terraform to v1.3.8
