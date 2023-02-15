@@ -69,6 +69,19 @@
         }
       }
     },
+    "aws_lb_target_group_attachment": {
+      "aws_lb_target_group_attachment.msk_tgr_attachment": {
+        "id": "aws_lb_target_group_attachment.msk_tgr_attachment",
+        "resource_type": "aws_lb_target_group_attachment",
+        "namespace": "golden_test/tf/regula-issue-397/main.tf",
+        "meta": {},
+        "attributes": {
+          "for_each": null,
+          "target_group_arn": "each.value.target_group.arn",
+          "target_id": "each.value.instance_ip"
+        }
+      }
+    },
     "data.aws_msk_broker_nodes": {
       "data.aws_msk_broker_nodes.msk_nodes": {
         "id": "data.aws_msk_broker_nodes.msk_nodes",
