@@ -2,6 +2,10 @@
 
 
 
+## v0.18.2 - 2023-02-17
+### Changed
+* disabled logging by default
+
 ## v0.18.1 - 2023-02-15
 ### Fixed
 * panic on null for_each value
