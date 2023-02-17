@@ -56,7 +56,7 @@ type EngineOptions struct {
 func NewEngine(ctx context.Context, options *EngineOptions) *Engine {
 	logger := options.Logger
 	if logger == nil {
-		logger = logging.DefaultLogger
+		logger = logging.NopLogger
 	}
 	m := options.Metrics
 	if m == nil {

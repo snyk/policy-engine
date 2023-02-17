@@ -21,10 +21,14 @@ import (
 	"github.com/rs/zerolog"
 )
 
-var DefaultLogger Logger = NewZeroLogger(zerolog.Logger{}.
+// StdErrLogger writes structured log messages to stderr
+var StdErrLogger Logger = NewZeroLogger(zerolog.Logger{}.
 	Level(zerolog.GlobalLevel()).
 	Output(os.Stderr).
 	With().Timestamp().Logger())
+
+// NopLogger does not write any messages. It can be used to disable logging.
+var NopLogger Logger = NewZeroLogger(zerolog.Nop())
 
 // Logger defines a simple interface for the pluggable logging in the policy engine
 type Logger interface {
