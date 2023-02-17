@@ -47,7 +47,7 @@ func (p *MultiResourcePolicy) Eval(
 ) ([]models.RuleResults, error) {
 	logger := options.Logger
 	if logger == nil {
-		logger = logging.DefaultLogger
+		logger = logging.NopLogger
 	}
 	logger = logger.WithField(logging.PACKAGE, p.Package()).
 		WithField(logging.POLICY_TYPE, "multi_resource").

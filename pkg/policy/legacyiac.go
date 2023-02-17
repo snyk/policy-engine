@@ -62,7 +62,7 @@ func (p *LegacyIaCPolicy) Eval(
 ) ([]models.RuleResults, error) {
 	logger := options.Logger
 	if logger == nil {
-		logger = logging.DefaultLogger
+		logger = logging.NopLogger
 	}
 	logger = logger.WithField(logging.POLICY_TYPE, "legacy_iac")
 	inputs, err := legacyIaCInput(options.Input)
