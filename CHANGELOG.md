@@ -2,6 +2,11 @@
 
 
 
+## v0.18.3 - 2023-02-20
+### Changed
+* upgrade go-getter to v1.7.0
+* upgrade net to v0.7.0
+
 ## v0.18.2 - 2023-02-17
 ### Changed
 * disabled logging by default
