@@ -97,3 +97,7 @@ require (
 	google.golang.org/grpc v1.50.1 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
 )
+
+// Fixes:
+// SNYK-GOLANG-GOLANGORGXNETHTTP2H2C-3230894
+replace golang.org/x/net => golang.org/x/net v0.7.0
