@@ -43,7 +43,7 @@ func check(errs ...error) {
 
 var (
 	rootCmdRegoPaths []string
-	rootCmdVerbose   *bool
+	rootCmdVerbosity Verbosity
 )
 
 var rootCmd = &cobra.Command{
@@ -56,12 +56,8 @@ func Execute() error {
 }
 
 func cmdLogger() logging.Logger {
-	logLevel := zerolog.InfoLevel
-	if *rootCmdVerbose {
-		logLevel = zerolog.DebugLevel
-	}
 	return logging.NewZeroLogger(zerolog.Logger{}.
-		Level(logLevel).
+		Level(rootCmdVerbosity.LogLevel()).
 		Output(zerolog.ConsoleWriter{Out: os.Stderr}).
 		With().Timestamp().Logger())
 }
@@ -140,8 +136,8 @@ func bundleReadersFromPaths(paths []string) ([]bundle.Reader, error) {
 }
 
 func init() {
-	rootCmdVerbose = rootCmd.PersistentFlags().BoolP("verbose", "v", false, "Sets log level to DEBUG")
 	rootCmd.PersistentFlags().StringSliceVarP(&rootCmdRegoPaths, "data", "d", rootCmdRegoPaths, "Rego paths to load")
+	rootCmdVerbosity.InitFlags(rootCmd.PersistentFlags())
 	rootCmd.AddCommand(runCmd)
 	rootCmd.AddCommand(testCmd)
 	rootCmd.AddCommand(fixtureCmd)

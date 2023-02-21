@@ -85,7 +85,7 @@ var testCmd = &cobra.Command{
 				},
 			}).
 			SetCompiler(compiler).
-			EnableTracing(*rootCmdVerbose).
+			EnableTracing(rootCmdVerbosity.Debug()).
 			SetStore(store).
 			SetModules(consumer.Modules).
 			Filter(cmdTestFilter).
@@ -109,7 +109,7 @@ var testCmd = &cobra.Command{
 		reporter := tester.PrettyReporter{
 			Output:      os.Stdout,
 			FailureLine: true,
-			Verbose:     *rootCmdVerbose,
+			Verbose:     rootCmdVerbosity.Debug(),
 		}
 
 		if err := reporter.Report(dup); err != nil {
