@@ -38,6 +38,9 @@ ignore:
   "snyk:lic:golang:github.com:hashicorp:golang-lru:MPL-2.0":
     - "*":
         reason: MPL code and dependencies allowed in this project
+  "snyk:lic:golang:github.com:hashicorp:hcl:MPL-2.0":
+    - "*":
+        reason: MPL code and dependencies allowed in this project
   "snyk:lic:golang:github.com:hashicorp:hcl:v2:MPL-2.0":
     - "*":
         reason: MPL code and dependencies allowed in this project
@@ -57,6 +60,9 @@ ignore:
     - "*":
         reason: MPL code and dependencies allowed in this project
   "snyk:lic:golang:github.com:hashicorp:terraform-registry-address:MPL-2.0":
+    - "*":
+        reason: MPL code and dependencies allowed in this project
+  "snyk:lic:golang:github.com:hashicorp:terraform-svchost:MPL-2.0":
     - "*":
         reason: MPL code and dependencies allowed in this project
   "snyk:lic:golang:github.com:hashicorp:go-getter:MPL-2.0":
