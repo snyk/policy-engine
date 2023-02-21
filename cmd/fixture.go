@@ -91,7 +91,7 @@ func loadSingleInput(ctx context.Context, logger logging.Logger, path string) (*
 	loaded, err := loader.Load(i, input.DetectOptions{})
 
 	// Log non-fatal errors if we're debugging.
-	if *rootCmdVerbose {
+	if rootCmdVerbosity.Debug() {
 		for path, errs := range loader.Errors() {
 			for _, err := range errs {
 				logger.Warn(ctx, fmt.Sprintf("%s: %s", path, err))
