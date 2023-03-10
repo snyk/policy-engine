@@ -15,9 +15,11 @@
 package lib.utils
 
 bucket_name_contains(bucket, query) {
-	contains(bucket.bucket, "bucket")
+	is_string(bucket.bucket)
+	contains(bucket.bucket, query)
 }
 
 bucket_name_contains(bucket, query) {
-	contains(bucket.bucket_prefix, "bucket")
+	is_string(bucket.bucket_prefix)
+	contains(bucket.bucket_prefix, query)
 }
