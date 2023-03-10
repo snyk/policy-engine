@@ -30,9 +30,10 @@ import (
 	"github.com/snyk/policy-engine/pkg/models"
 )
 
-var (
-	cmdFixturePackage string
-)
+var fixtureFlags struct {
+	Package   string
+	InputType string
+}
 
 var fixtureCmd = &cobra.Command{
 	Use:   "fixture",
@@ -47,7 +48,12 @@ var fixtureCmd = &cobra.Command{
 		if err != nil {
 			return err
 		}
-		packageName := cmdFixturePackage
+
+		if fixtureFlags.InputType != "" {
+			inputState.InputType = fixtureFlags.InputType
+		}
+
+		packageName := fixtureFlags.Package
 		if packageName == "" {
 			normalized := filepath.ToSlash(args[0])
 			normalized = strings.TrimSuffix(normalized, filepath.Ext(normalized))
@@ -113,5 +119,6 @@ func loadSingleInput(ctx context.Context, logger logging.Logger, path string) (*
 }
 
 func init() {
-	fixtureCmd.PersistentFlags().StringVar(&cmdFixturePackage, "package", "", "Explicitly set package name")
+	fixtureCmd.PersistentFlags().StringVar(&fixtureFlags.Package, "package", "", "Explicitly set package name")
+	fixtureCmd.PersistentFlags().StringVar(&fixtureFlags.InputType, "input-type", "", "Explicitly set input type")
 }
