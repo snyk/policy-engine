@@ -1,4 +1,4 @@
-// Copyright 2022 Snyk Ltd
+// © 2022 Snyk Limited All rights reserved.
 // Copyright 2021 Fugue, Inc.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");

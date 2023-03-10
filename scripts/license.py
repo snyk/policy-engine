@@ -27,7 +27,7 @@ def license_file(path, comment_prefix):
     copyrights_end = None
     for i in range(len(lines)):
         words = lines[i].split()
-        if len(words) > 4 and words[0] == comment_prefix and words[1] == "Copyright":
+        if len(words) > 4 and words[0] == comment_prefix and words[1] == "©":
             years = words[2]
             start_year = years
             end_year = years
@@ -39,7 +39,7 @@ def license_file(path, comment_prefix):
             copyrights_end = i
 
     # Insert Snyk copyright
-    snyk = "Snyk Ltd"
+    snyk = "Snyk Limited All rights reserved."
     year = str(datetime.datetime.today().year)
     changed = False
     if snyk in copyrights:
