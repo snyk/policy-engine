@@ -33,6 +33,7 @@ import (
 var fixtureFlags struct {
 	Package   string
 	InputType string
+	Cloud     cloudOptions
 }
 
 var fixtureCmd = &cobra.Command{
@@ -41,30 +42,47 @@ var fixtureCmd = &cobra.Command{
 	RunE: func(cmd *cobra.Command, args []string) error {
 		logger := cmdLogger()
 		ctx := context.Background()
-		if len(args) != 1 {
-			return fmt.Errorf("Expected a single input but got %d", len(args))
-		}
-		inputState, err := loadSingleInput(ctx, logger, args[0])
-		if err != nil {
-			return err
+
+		var inputState *models.State
+		var err error
+		packageName := fixtureFlags.Package
+		if len(args) == 1 {
+			inputState, err = loadSingleInput(ctx, logger, args[0])
+			if err != nil {
+				return err
+			}
+
+			if fixtureFlags.InputType != "" {
+				inputState.InputType = fixtureFlags.InputType
+			}
+			if packageName == "" {
+				normalized := filepath.ToSlash(args[0])
+				normalized = strings.TrimSuffix(normalized, filepath.Ext(normalized))
+				normalized = strings.ReplaceAll(normalized, "-", "_")
+				parts := []string{}
+				for _, part := range strings.Split(normalized, "/") {
+					if part != "" {
+						parts = append(parts, part)
+					}
+				}
+				packageName = strings.Join(parts, ".")
+			}
+		} else if fixtureFlags.Cloud.enabled() {
+			cloudStates, err := getCloudStates(ctx, fixtureFlags.Cloud)
+			if err != nil {
+				return err
+			}
+			inputState = &cloudStates[0]
+			if packageName == "" {
+				// TODO: Can we generate a good package name for these?
+				packageName = "cloud_scan"
+			}
+		} else {
+			return fmt.Errorf("expected either a single input or a cloud org ID")
 		}
 
 		if fixtureFlags.InputType != "" {
 			inputState.InputType = fixtureFlags.InputType
-		}
-
-		packageName := fixtureFlags.Package
-		if packageName == "" {
-			normalized := filepath.ToSlash(args[0])
-			normalized = strings.TrimSuffix(normalized, filepath.Ext(normalized))
-			normalized = strings.ReplaceAll(normalized, "-", "_")
-			parts := []string{}
-			for _, part := range strings.Split(normalized, "/") {
-				if part != "" {
-					parts = append(parts, part)
-				}
-			}
-			packageName = strings.Join(parts, ".")
 		}
 
 		bytes, err := json.MarshalIndent(inputState, "", "  ")
@@ -121,4 +139,5 @@ func loadSingleInput(ctx context.Context, logger logging.Logger, path string) (*
 func init() {
 	fixtureCmd.PersistentFlags().StringVar(&fixtureFlags.Package, "package", "", "Explicitly set package name")
 	fixtureCmd.PersistentFlags().StringVar(&fixtureFlags.InputType, "input-type", "", "Explicitly set input type")
+	fixtureFlags.Cloud.addFlags(fixtureCmd)
 }

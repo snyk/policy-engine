@@ -34,13 +34,14 @@ import (
 	"github.com/spf13/cobra"
 )
 
-var (
-	runCmdRules   []string
-	runCmdBundles []string
-	runVarFiles   []string
-	runCmdStates  []string
-	runCmdWorkers *int
-)
+var runFlags struct {
+	Rules    []string
+	Bundles  []string
+	VarFiles []string
+	States   []string
+	Workers  int
+	Cloud    cloudOptions
+}
 
 var runCmd = &cobra.Command{
 	Use:   "run [-d <rules/metadata>...] [-b <bundle>] [-r <rule ID>...] [<input> [input...]] [-s <state JSON file>]",
@@ -50,7 +51,7 @@ var runCmd = &cobra.Command{
 		snapshot_testing.GlobalRegisterNoop()
 		m := metrics.NewLocalMetrics(logger)
 		ctx := context.Background()
-		bundleReaders, err := bundleReadersFromPaths(runCmdBundles)
+		bundleReaders, err := bundleReadersFromPaths(runFlags.Bundles)
 		if err != nil {
 			return err
 		}
@@ -86,7 +87,7 @@ var runCmd = &cobra.Command{
 				}
 			}
 			loaded, err := loader.Load(detectable, input.DetectOptions{
-				VarFiles: runVarFiles,
+				VarFiles: runFlags.VarFiles,
 			})
 			if err != nil {
 				return err
@@ -97,7 +98,7 @@ var runCmd = &cobra.Command{
 			if dir, ok := detectable.(*input.Directory); ok {
 				walkFunc := func(d input.Detectable, depth int) (bool, error) {
 					return loader.Load(d, input.DetectOptions{
-						VarFiles: runVarFiles,
+						VarFiles: runFlags.VarFiles,
 					})
 				}
 				if err := dir.Walk(walkFunc); err != nil {
@@ -112,7 +113,7 @@ var runCmd = &cobra.Command{
 			}
 		}
 		states := loader.ToStates()
-		for _, path := range runCmdStates {
+		for _, path := range runFlags.States {
 			f, err := os.Open(path)
 			if err != nil {
 				return err
@@ -127,6 +128,13 @@ var runCmd = &cobra.Command{
 			}
 			states = append(states, state)
 		}
+		if runFlags.Cloud.enabled() {
+			cloudStates, err := getCloudStates(ctx, runFlags.Cloud)
+			if err != nil {
+				return err
+			}
+			states = append(states, cloudStates...)
+		}
 		eng := engine.NewEngine(ctx, &engine.EngineOptions{
 			Providers:     rootCmdRegoProviders(),
 			BundleReaders: bundleReaders,
@@ -135,8 +143,8 @@ var runCmd = &cobra.Command{
 		})
 		results := eng.Eval(ctx, &engine.EvalOptions{
 			Inputs:  states,
-			Workers: *runCmdWorkers,
-			RuleIDs: runCmdRules,
+			Workers: runFlags.Workers,
+			RuleIDs: runFlags.Rules,
 		})
 		postprocess.AddSourceLocs(results, loader)
 
@@ -151,9 +159,10 @@ var runCmd = &cobra.Command{
 }
 
 func init() {
-	runCmdWorkers = runCmd.PersistentFlags().IntP("workers", "w", 0, "Number of workers. When 0 (the default) will use num CPUs + 1.")
-	runCmd.PersistentFlags().StringSliceVarP(&runCmdRules, "rule", "r", runCmdRules, "Select specific rules")
-	runCmd.PersistentFlags().StringSliceVarP(&runCmdBundles, "bundle", "b", runCmdRules, "Select specific bundles")
-	runCmd.PersistentFlags().StringSliceVar(&runVarFiles, "var-file", runVarFiles, "Pass in variable files")
-	runCmd.PersistentFlags().StringSliceVarP(&runCmdStates, "state", "s", runVarFiles, "Pass in state JSON files")
+	runCmd.PersistentFlags().IntVarP(&runFlags.Workers, "workers", "w", 0, "Number of workers. When 0 (the default) will use num CPUs + 1.")
+	runCmd.PersistentFlags().StringSliceVarP(&runFlags.Rules, "rule", "r", runFlags.Rules, "Select specific rules")
+	runCmd.PersistentFlags().StringSliceVarP(&runFlags.Bundles, "bundle", "b", runFlags.Bundles, "Select specific bundles")
+	runCmd.PersistentFlags().StringSliceVar(&runFlags.VarFiles, "var-file", runFlags.VarFiles, "Pass in variable files")
+	runCmd.PersistentFlags().StringSliceVarP(&runFlags.States, "state", "s", runFlags.States, "Pass in state JSON files")
+	runFlags.Cloud.addFlags(runCmd)
 }

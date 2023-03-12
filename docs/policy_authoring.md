@@ -12,6 +12,7 @@ concepts as well how to test policies.
     - [Advanced policies part 1](#advanced-policies-part-1)
     - [Advanced policies part 2: Adding compliant resource info](#advanced-policies-part-2-adding-compliant-resource-info)
     - [Advanced policies part 3: Correlating resources](#advanced-policies-part-3-correlating-resources)
+    - [Advanced policies part 3b: Resource relations](#advanced-policies-part-3b-resource-relations)
     - [Advanced policies part 4: Correlating resources](#advanced-policies-part-4-correlating-resources)
     - [Advanced policies part 5: Returning attributes](#advanced-policies-part-5-returning-attributes)
     - [Missing resources](#missing-resources)
@@ -23,7 +24,7 @@ concepts as well how to test policies.
         - [Examples](#examples)
       - [Without an input](#without-an-input)
         - [Example](#example)
-    - [Using snapshot_testing.match](#using-snapshot_testingmatch)
+    - [Using snapshot\_testing.match](#using-snapshot_testingmatch)
 
 ## Policy syntax tutorial
 
@@ -81,7 +82,20 @@ to use standard OPA tooling.
 You can generate a fixture using the `fixture` command.  For example, we can
 generate a fixture for the example terraform file we are using like this:
 
-    ./policy-engine fixture examples/main.tf >examples/tests/fixture.json
+    ./policy-engine fixture examples/main.tf >examples/tests/fixture.rego
+
+You can also fetch resources from the Snyk Cloud API and use them to generate
+a test fixture:
+
+```sh
+SNYK_TOKEN='<your snyk token>' \
+./policy-engine fixture \
+  --cloud.org '<your org ID>' \
+  --cloud.resource-id '<some resource ID>' \
+  --cloud.resource-id '<another resource ID>' \
+  --package 'data.rules.EXAMPLE_01.terraform.cloud_scan' \
+  > rego/rules/EXAMPLE_01/fixtures/terraform/cloud_scan.rego
+```
 
 Fixtures can also be generated using other applications.  The important bit is
 that a fixture should provide a `mock_input` rule which represents the input to

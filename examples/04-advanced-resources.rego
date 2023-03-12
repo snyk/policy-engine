@@ -11,10 +11,12 @@ import data.snyk
 buckets = snyk.resources("aws_s3_bucket")
 
 has_bucket_name(bucket) {
+	is_string(bucket.bucket)
 	contains(bucket.bucket, "bucket")
 }
 
 has_bucket_name(bucket) {
+	is_string(bucket.bucket)
 	contains(bucket.bucket_prefix, "bucket")
 }
 
