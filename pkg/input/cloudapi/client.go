@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net/http"
 	"net/url"
+	"regexp"
 )
 
 type ClientConfig struct {
@@ -27,6 +28,15 @@ func NewClient(config ClientConfig) (*Client, error) {
 	u := config.URL
 	if u == "" {
 		u = "https://api.snyk.io"
+	}
+
+	// Prefer https if no scheme is specified, support http
+	matched, err := regexp.MatchString("^https?://", u)
+	if err != nil {
+		return nil, err
+	}
+	if !matched {
+		u = "https://" + u
 	}
 
 	v := config.Version
