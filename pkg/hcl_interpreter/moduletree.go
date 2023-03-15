@@ -21,6 +21,7 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/hashicorp/go-multierror"
 	"github.com/hashicorp/hcl/v2"
 	"github.com/hashicorp/hcl/v2/hclsyntax"
 	"github.com/spf13/afero"
@@ -129,7 +130,7 @@ func ParseFiles(
 
 	errors := []error{}
 	if diags.HasErrors() {
-		errors = append(errors, fmt.Errorf(diags.Error()))
+		return nil, &multierror.Error{Errors: diags.Errs()}
 	}
 	if module == nil {
 		// Only actually throw an error if we don't have a module.  We can
