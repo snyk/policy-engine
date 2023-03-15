@@ -16,7 +16,7 @@ has_bucket_name(bucket) {
 }
 
 has_bucket_name(bucket) {
-	is_string(bucket.bucket)
+	is_string(bucket.bucket_prefix)
 	contains(bucket.bucket_prefix, "bucket")
 }
 
