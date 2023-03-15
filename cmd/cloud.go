@@ -47,7 +47,7 @@ func getCloudStates(ctx context.Context, options cloudOptions) (*models.State, e
 	if err != nil {
 		return nil, err
 	}
-	loader := input.CloudLoader{client}
+	loader := input.CloudLoader{Client: client}
 	return loader.GetState(ctx, options.OrgID, cloudapi.ResourcesParameters{
 		EnvironmentID: options.EnvIDs,
 		ResourceType:  options.ResourceTypes,
