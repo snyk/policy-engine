@@ -1,0 +1,181 @@
+{
+  "format": "",
+  "format_version": "",
+  "input_type": "tf_hcl",
+  "environment_provider": "iac",
+  "meta": {
+    "filepath": "golden_test/tf/cdktf.frontend.out/frontend-dev.tf.json"
+  },
+  "resources": {
+    "aws_cloudfront_distribution": {
+      "aws_cloudfront_distribution.frontend_cf_6C82FC12": {
+        "id": "aws_cloudfront_distribution.frontend_cf_6C82FC12",
+        "resource_type": "aws_cloudfront_distribution",
+        "namespace": "golden_test/tf/cdktf.frontend.out/frontend-dev.tf.json",
+        "meta": {
+          "region": "eu-central-1",
+          "terraform": {
+            "provider_config": {
+              "region": "eu-central-1"
+            },
+            "provider_version_constraint": "4.27.0"
+          }
+        },
+        "attributes": {
+          "comment": "Serverless example frontend for env=development",
+          "default_cache_behavior": {
+            "allowed_methods": [
+              "DELETE",
+              "GET",
+              "HEAD",
+              "OPTIONS",
+              "PATCH",
+              "POST",
+              "PUT"
+            ],
+            "cached_methods": [
+              "GET",
+              "HEAD"
+            ],
+            "forwarded_values": {
+              "cookies": {
+                "forward": "none"
+              },
+              "query_string": false
+            },
+            "target_origin_id": "s3Origin",
+            "viewer_protocol_policy": "redirect-to-https"
+          },
+          "default_root_object": "index.html",
+          "enabled": true,
+          "origin": [
+            {
+              "custom_origin_config": {
+                "http_port": 80,
+                "https_port": 443,
+                "origin_protocol_policy": "http-only",
+                "origin_ssl_protocols": [
+                  "TLSv1.2",
+                  "TLSv1.1",
+                  "TLSv1"
+                ]
+              },
+              "domain_name": "aws_s3_bucket_website_configuration.frontend_website-configuration_53A72F76",
+              "origin_id": "s3Origin"
+            }
+          ],
+          "restrictions": {
+            "geo_restriction": {
+              "restriction_type": "none"
+            }
+          },
+          "viewer_certificate": {
+            "cloudfront_default_certificate": true
+          }
+        }
+      }
+    },
+    "aws_s3_bucket": {
+      "aws_s3_bucket.frontend_bucket_EFDC2F3F": {
+        "id": "aws_s3_bucket.frontend_bucket_EFDC2F3F",
+        "resource_type": "aws_s3_bucket",
+        "namespace": "golden_test/tf/cdktf.frontend.out/frontend-dev.tf.json",
+        "meta": {
+          "region": "eu-central-1",
+          "terraform": {
+            "provider_config": {
+              "region": "eu-central-1"
+            },
+            "provider_version_constraint": "4.27.0"
+          }
+        },
+        "attributes": {
+          "bucket_prefix": "sls-example-frontend-development",
+          "tags": {
+            "hc-internet-facing": "true"
+          }
+        }
+      }
+    },
+    "aws_s3_bucket_policy": {
+      "aws_s3_bucket_policy.frontend_s3_policy_42C30805": {
+        "id": "aws_s3_bucket_policy.frontend_s3_policy_42C30805",
+        "resource_type": "aws_s3_bucket_policy",
+        "namespace": "golden_test/tf/cdktf.frontend.out/frontend-dev.tf.json",
+        "meta": {
+          "region": "eu-central-1",
+          "terraform": {
+            "provider_config": {
+              "region": "eu-central-1"
+            },
+            "provider_version_constraint": "4.27.0"
+          }
+        },
+        "attributes": {
+          "bucket": "aws_s3_bucket.frontend_bucket_EFDC2F3F",
+          "policy": "{\"Version\":\"2012-10-17\",\"Id\":\"PolicyForWebsiteEndpointsPublicContent\",\"Statement\":[{\"Sid\":\"PublicRead\",\"Effect\":\"Allow\",\"Principal\":\"*\",\"Action\":[\"s3:GetObject\"],\"Resource\":[\"aws_s3_bucket.frontend_bucket_EFDC2F3F/*\",\"aws_s3_bucket.frontend_bucket_EFDC2F3F\"]}]}"
+        }
+      }
+    },
+    "aws_s3_bucket_website_configuration": {
+      "aws_s3_bucket_website_configuration.frontend_website-configuration_53A72F76": {
+        "id": "aws_s3_bucket_website_configuration.frontend_website-configuration_53A72F76",
+        "resource_type": "aws_s3_bucket_website_configuration",
+        "namespace": "golden_test/tf/cdktf.frontend.out/frontend-dev.tf.json",
+        "meta": {
+          "region": "eu-central-1",
+          "terraform": {
+            "provider_config": {
+              "region": "eu-central-1"
+            },
+            "provider_version_constraint": "4.27.0"
+          }
+        },
+        "attributes": {
+          "bucket": "aws_s3_bucket.frontend_bucket_EFDC2F3F",
+          "error_document": {
+            "key": "index.html"
+          },
+          "index_document": {
+            "suffix": "index.html"
+          }
+        }
+      }
+    },
+    "data.terraform_remote_state": {
+      "data.terraform_remote_state.cross-stack-reference-input-posts-dev": {
+        "id": "data.terraform_remote_state.cross-stack-reference-input-posts-dev",
+        "resource_type": "data.terraform_remote_state",
+        "namespace": "golden_test/tf/cdktf.frontend.out/frontend-dev.tf.json",
+        "meta": {},
+        "attributes": {
+          "backend": "local",
+          "config": {
+            "path": "cdktf-integration-serverless-example/terraform.posts-dev.tfstate"
+          },
+          "workspace": "default"
+        }
+      }
+    },
+    "local_file": {
+      "local_file.frontend_env_FADFC9DB": {
+        "id": "local_file.frontend_env_FADFC9DB",
+        "resource_type": "local_file",
+        "namespace": "golden_test/tf/cdktf.frontend.out/frontend-dev.tf.json",
+        "meta": {
+          "terraform": {
+            "provider_config": {},
+            "provider_version_constraint": "2.2.3"
+          }
+        },
+        "attributes": {
+          "content": "S3_BUCKET_FRONTEND=aws_s3_bucket.frontend_bucket_EFDC2F3F\nREACT_APP_API_ENDPOINT=data.terraform_remote_state.cross-stack-reference-input-posts-dev",
+          "filename": "cdktf-integration-serverless-example/frontend/code/.env.production.local"
+        }
+      }
+    }
+  },
+  "scope": {
+    "filepath": "golden_test/tf/cdktf.frontend.out/frontend-dev.tf.json"
+  }
+}
