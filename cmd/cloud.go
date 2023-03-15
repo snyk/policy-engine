@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"context"
+	"os"
 
 	"github.com/snyk/policy-engine/pkg/input"
 	"github.com/snyk/policy-engine/pkg/input/cloudapi"
@@ -37,12 +38,17 @@ func (c *cloudOptions) enabled() bool {
 	return c.OrgID != ""
 }
 
-func getCloudStates(ctx context.Context, options cloudOptions) ([]models.State, error) {
-	cloudLoader, err := input.NewCloudLoader()
+func getCloudStates(ctx context.Context, options cloudOptions) (*models.State, error) {
+	client, err := cloudapi.NewClient(cloudapi.ClientConfig{
+		URL:     os.Getenv("SNYK_API"),
+		Token:   os.Getenv("SNYK_TOKEN"),
+		Version: os.Getenv("API_VERSION"),
+	})
 	if err != nil {
 		return nil, err
 	}
-	return cloudLoader.GetState(ctx, options.OrgID, cloudapi.ResourcesParameters{
+	loader := input.CloudLoader{client}
+	return loader.GetState(ctx, options.OrgID, cloudapi.ResourcesParameters{
 		EnvironmentID: options.EnvIDs,
 		ResourceType:  options.ResourceTypes,
 		ResourceID:    options.ResourceIDs,

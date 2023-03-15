@@ -2,40 +2,92 @@ package input
 
 import (
 	"context"
-	"os"
+	"errors"
+	"fmt"
 
 	"github.com/snyk/policy-engine/pkg/input/cloudapi"
 	"github.com/snyk/policy-engine/pkg/models"
 )
 
+type CloudClient interface {
+	Resources(ctx context.Context, orgID string, params cloudapi.ResourcesParameters) ([]cloudapi.ResourceObject, error)
+}
+
 type CloudLoader struct {
-	client *cloudapi.Client
+	Client CloudClient
 }
 
-func NewCloudLoader() (*CloudLoader, error) {
-	client, err := cloudapi.NewClient(cloudapi.ClientConfig{
-		URL:     os.Getenv("SNYK_API"),
-		Token:   os.Getenv("SNYK_TOKEN"),
-		Version: os.Getenv("API_VERSION"),
-	})
-	if err != nil {
-		return nil, err
-	}
+var ErrFailedToFetchCloudState = errors.New("failed to fetch cloud state")
 
-	return &CloudLoader{client: client}, nil
+func (l *CloudLoader) GetState(ctx context.Context, orgID string, params cloudapi.ResourcesParameters) (*models.State, error) {
+	cloudResources, err := l.Client.Resources(ctx, orgID, params)
+	if err != nil {
+		return nil, fmt.Errorf("%w: %v", ErrFailedToFetchCloudState, err)
+	}
+	resources := map[string]map[string]models.ResourceState{}
+	for _, r := range cloudResources {
+		attrs := r.Attributes
+		if _, ok := resources[attrs.ResourceType]; !ok {
+			resources[attrs.ResourceType] = map[string]models.ResourceState{}
+		}
+		resources[attrs.ResourceType][attrs.ResourceID] = convertAPIResource(attrs)
+	}
+	return &models.State{
+		InputType:           CloudScan.Name,
+		EnvironmentProvider: "cloud",
+		Scope:               cloudScope(orgID, params),
+		Resources:           resources,
+	}, nil
 }
 
-func (l *CloudLoader) GetState(ctx context.Context, orgID string, params cloudapi.ResourcesParameters) ([]models.State, error) {
-	resources, err := l.client.Resources(ctx, orgID, params)
-	if err != nil {
-		return nil, err
+func cloudScope(orgID string, params cloudapi.ResourcesParameters) map[string]interface{} {
+	scope := map[string]interface{}{
+		"org_id": orgID,
 	}
-	resourceAttributes := make([]cloudapi.ResourceAttributes, len(resources))
-	for idx, r := range resources {
-		resourceAttributes[idx] = r.Attributes
+	if len(params.EnvironmentID) > 0 {
+		scope["environment_id"] = params.EnvironmentID
 	}
-	config := cloudScanConfiguration{
-		resources: resourceAttributes,
+	if len(params.ResourceType) > 0 {
+		scope["resource_type"] = params.ResourceType
 	}
-	return []models.State{config.ToState()}, nil
+	if len(params.ResourceID) > 0 {
+		scope["resource_id"] = params.ResourceID
+	}
+	if len(params.NativeID) > 0 {
+		scope["native_id"] = params.NativeID
+	}
+	if len(params.ID) > 0 {
+		scope["id"] = params.ID
+	}
+	if len(params.Platform) > 0 {
+		scope["platform"] = params.Platform
+	}
+	if len(params.Name) > 0 {
+		scope["name"] = params.Name
+	}
+	if len(params.Location) > 0 {
+		scope["location"] = params.Location
+	}
+	return scope
+}
+
+func convertAPIResource(r cloudapi.ResourceAttributes) models.ResourceState {
+	resource := models.ResourceState{
+		Id:           r.ResourceID,
+		ResourceType: r.ResourceType,
+		Namespace:    r.Namespace,
+		Attributes:   r.State,
+	}
+	if len(r.Tags) > 0 {
+		// We don't support non-string tags in policy-engine atm. Maybe
+		// we'll change this at some point.
+		tags := map[string]string{}
+		for k, v := range r.Tags {
+			if s, ok := v.(string); ok {
+				tags[k] = s
+			}
+		}
+		resource.Tags = tags
+	}
+	return resource
 }

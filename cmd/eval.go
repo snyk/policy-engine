@@ -65,7 +65,7 @@ var evalCmd = &cobra.Command{
 			if err != nil {
 				return err
 			}
-			replInput, err := jsonMarshalUnmarshal(inputState[0])
+			replInput, err := jsonMarshalUnmarshal(inputState)
 			if err != nil {
 				return err
 			}

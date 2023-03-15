@@ -68,11 +68,11 @@ var fixtureCmd = &cobra.Command{
 				packageName = strings.Join(parts, ".")
 			}
 		} else if fixtureFlags.Cloud.enabled() {
-			cloudStates, err := getCloudStates(ctx, fixtureFlags.Cloud)
+			cloudState, err := getCloudStates(ctx, fixtureFlags.Cloud)
 			if err != nil {
 				return err
 			}
-			inputState = &cloudStates[0]
+			inputState = cloudState
 			if packageName == "" {
 				// TODO: Can we generate a good package name for these?
 				packageName = "cloud_scan"

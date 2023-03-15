@@ -129,11 +129,11 @@ var runCmd = &cobra.Command{
 			states = append(states, state)
 		}
 		if runFlags.Cloud.enabled() {
-			cloudStates, err := getCloudStates(ctx, runFlags.Cloud)
+			cloudState, err := getCloudStates(ctx, runFlags.Cloud)
 			if err != nil {
 				return err
 			}
-			states = append(states, cloudStates...)
+			states = append(states, *cloudState)
 		}
 		eng := engine.NewEngine(ctx, &engine.EngineOptions{
 			Providers:     rootCmdRegoProviders(),
