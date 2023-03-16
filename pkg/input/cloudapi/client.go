@@ -8,6 +8,11 @@ import (
 	"regexp"
 )
 
+const (
+	defaultURL     = "https://api.snyk.io"
+	defaultVersion = "2022-04-13~experimental"
+)
+
 type ClientConfig struct {
 	URL     string
 	Token   string
@@ -28,7 +33,7 @@ func NewClient(config ClientConfig) (*Client, error) {
 
 	u := config.URL
 	if u == "" {
-		u = "https://api.snyk.io"
+		u = defaultURL
 	}
 
 	// Prefer https if no scheme is specified, support http
@@ -42,7 +47,7 @@ func NewClient(config ClientConfig) (*Client, error) {
 
 	v := config.Version
 	if v == "" {
-		v = "2022-04-13~experimental"
+		v = defaultVersion
 	}
 
 	parsedURL, err := url.Parse(u)
