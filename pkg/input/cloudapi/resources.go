@@ -87,7 +87,9 @@ func (c *Client) Resources(ctx context.Context, orgID string, params ResourcesPa
 	return resources, nil
 }
 
-func (c *Client) resourcesPage(ctx context.Context, req *http.Request) (results CollectionDocumentRes, e error) {
+func (c *Client) resourcesPage(ctx context.Context, req *http.Request) (CollectionDocumentRes, error) {
+	var results CollectionDocumentRes
+
 	req.Header.Set("Content-Type", "application/vnd.api+json")
 	req.Header.Set("Authorization", c.authorization)
 
@@ -95,12 +97,7 @@ func (c *Client) resourcesPage(ctx context.Context, req *http.Request) (results 
 	if err != nil {
 		return results, err
 	}
-
-	defer func() {
-		if err := res.Body.Close(); err != nil && e == nil {
-			e = err
-		}
-	}()
+	defer res.Body.Close()
 
 	if res.StatusCode != http.StatusOK {
 		return results, fmt.Errorf("invalid status code: %v", res.StatusCode)
