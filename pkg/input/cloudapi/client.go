@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net/http"
 	"net/url"
+	"os"
 	"regexp"
 )
 
@@ -62,4 +63,12 @@ func NewClient(config ClientConfig) (*Client, error) {
 	}
 
 	return &client, nil
+}
+
+func NewClientFromEnv() (*Client, error) {
+	return NewClient(ClientConfig{
+		URL:     os.Getenv("SNYK_API"),
+		Token:   os.Getenv("SNYK_TOKEN"),
+		Version: os.Getenv("SNYK_API_VERSION"),
+	})
 }
