@@ -3,9 +3,11 @@ package cloudapi
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
+	"strings"
 
 	"github.com/google/go-querystring/query"
 )
@@ -46,16 +48,20 @@ type (
 	}
 )
 
+var ErrInitializingResourcesRequest = errors.New("failed to initialize resources request")
+var ErrEncodingResourcesQuery = errors.New("failed to encode resources query")
+var ErrFetchingResources = errors.New("failed to fetch resources")
+
 func (c *Client) Resources(ctx context.Context, orgID string, params ResourcesParameters) (resources []ResourceObject, e error) {
 	url := fmt.Sprintf("%s/rest/orgs/%s/cloud/resources", c.url, orgID)
 
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("%w: %v", ErrInitializingResourcesRequest, err)
 	}
 	q, err := query.Values(params)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("%w: %v", ErrEncodingResourcesQuery, err)
 	}
 	q.Add("version", c.version)
 	// We're hardcoding cloud here just to simplify things for now. If we do end
@@ -67,19 +73,19 @@ func (c *Client) Resources(ctx context.Context, orgID string, params ResourcesPa
 
 	results, err := c.resourcesPage(ctx, req)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("%w: %v", ErrFetchingResources, err)
 	}
 	resources = append(resources, results.Data...)
 
 	for results.Links.Next != "" {
-		url := fmt.Sprintf("%s/%s", c.url, results.Links.Next)
+		url := fmt.Sprintf("%s/%s", c.url, strings.TrimPrefix(results.Links.Next, "/"))
 		req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
 		if err != nil {
-			return nil, err
+			return nil, fmt.Errorf("%w: %v", ErrInitializingResourcesRequest, err)
 		}
 		results, err = c.resourcesPage(ctx, req)
 		if err != nil {
-			return nil, err
+			return nil, fmt.Errorf("%w: %v", ErrFetchingResources, err)
 		}
 		resources = append(resources, results.Data...)
 	}

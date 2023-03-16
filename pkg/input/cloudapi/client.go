@@ -1,6 +1,7 @@
 package cloudapi
 
 import (
+	"errors"
 	"fmt"
 	"net/http"
 	"net/url"
@@ -26,9 +27,12 @@ type Client struct {
 	version       string
 }
 
+var ErrMissingToken = errors.New("no API token provided")
+var ErrInvalidURL = errors.New("invalid URL")
+
 func NewClient(config ClientConfig) (*Client, error) {
 	if config.Token == "" {
-		return nil, fmt.Errorf("no token provided")
+		return nil, ErrMissingToken
 	}
 
 	u := config.URL
@@ -52,7 +56,7 @@ func NewClient(config ClientConfig) (*Client, error) {
 
 	parsedURL, err := url.Parse(u)
 	if err != nil {
-		return nil, fmt.Errorf("invalid URL: %v", err)
+		return nil, fmt.Errorf("%w: %v", ErrInvalidURL, err)
 	}
 
 	sanitizedURL := url.URL{
