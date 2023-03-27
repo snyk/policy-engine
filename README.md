@@ -25,6 +25,8 @@ set of additional documents are:
   * Describes how to use `policy-engine` as a Go library
 * [Notes for policy engine developers](docs/development.md)
   * Describes processes and conventions for working on this repository
+* [Security](docs/security.md)
+  * Describes measures to take when policy-engine on untrusted inputs or code
 
 ## Contributing
 
