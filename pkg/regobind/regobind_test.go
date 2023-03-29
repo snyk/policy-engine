@@ -58,8 +58,12 @@ people = [
 }
 
 type Person struct {
-	Name string `rego:"name"`
-	Age  int    `rego:"age"`
+	Name       string      `rego:"name"`
+	Age        int         `rego:"age"`
+	Aliases    []string    `rego:"aliases"`
+	Attributes interface{} `rego:"attributes"`
+	Hungry     bool        `rego:"hungry"`
+	Nonexist   string      `rego:"nonexist"`
 }
 
 func TestBind2(t *testing.T) {
@@ -69,8 +73,8 @@ func TestBind2(t *testing.T) {
 package example
 
 people = [
-	{"name": "Sam", "age": 30},
-	{"name": "Kim", "age": 40},
+	{"name": "Sam", "age": 30, "aliases": ["Kim", "Tom"], "attributes": {"teeth": 32}, "hungry": true},
+	{"name": "Kim", "age": 40, "aliases": ["Sam", "Tim"], "attributes": {"teeth": 28}, "hungry": false},
 ]`),
 	}
 

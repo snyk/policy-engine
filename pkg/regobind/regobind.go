@@ -2,7 +2,6 @@ package regobind
 
 import (
 	"fmt"
-	"os"
 	"reflect"
 
 	"github.com/open-policy-agent/opa/ast"
@@ -16,35 +15,62 @@ func Bind(src ast.Value, dst interface{}) error {
 
 func bind(src ast.Value, dst reflect.Value) error {
 	ty := dst.Type()
-	if ty.Kind() == reflect.Struct {
+	switch ty.Kind() {
+	case reflect.Pointer:
+		return bind(src, dst.Elem())
+	case reflect.Struct:
 		if srcObject, ok := src.(ast.Object); ok {
 			for i := 0; i < ty.NumField(); i++ {
 				field := ty.Field(i)
 				regoFieldName, ok := field.Tag.Lookup(tag)
 				if ok {
-					fmt.Fprintf(os.Stderr, "binding field %s\n", regoFieldName)
 					regoFieldVal := srcObject.Get(ast.StringTerm(regoFieldName))
-					goFieldVal := dst.Field(i)
-					if err := bind(regoFieldVal.Value, goFieldVal); err != nil {
-						return err
+					if regoFieldVal != nil {
+						goFieldVal := dst.Field(i)
+						if err := bind(regoFieldVal.Value, goFieldVal); err != nil {
+							return fmt.Errorf("writing Rego field \"%s\" to Go field \"%s\": %w", regoFieldName, field.Name, err)
+						}
 					}
 				}
 			}
-		} else {
-			return fmt.Errorf("Expected object")
+			return nil
 		}
-	} else if ty.Kind() == reflect.Pointer {
-		return bind(src, dst.Elem())
-	} else if ty.Kind() == reflect.Int {
+	case reflect.Slice:
+		if srcArray, ok := src.(*ast.Array); ok && dst.CanSet() {
+			dst.Set(reflect.MakeSlice(ty, srcArray.Len(), srcArray.Len()))
+			for i := 0; i < srcArray.Len(); i++ {
+				if err := bind(srcArray.Get(ast.IntNumberTerm(i)).Value, dst.Index(i)); err != nil {
+					return fmt.Errorf("writing value at index %d: %w", i, err)
+				}
+			}
+			return nil
+		}
+	case reflect.Interface:
+		json, err := ast.JSON(src)
+		if err != nil {
+			return fmt.Errorf("writing interface as JSON: %w", err)
+		}
+		if dst.CanSet() {
+			dst.Set(reflect.ValueOf(json))
+			return nil
+		}
+	case reflect.Bool:
+		if boolean, ok := src.(ast.Boolean); ok && dst.CanSet() {
+			dst.SetBool(bool(boolean))
+			return nil
+		}
+	case reflect.Int:
 		if number, ok := src.(ast.Number); ok {
-			if n, ok := number.Int64(); ok {
+			if n, ok := number.Int64(); ok && dst.CanSet() {
 				dst.SetInt(n)
+				return nil
 			}
 		}
-	} else if ty.Kind() == reflect.String {
-		if str, ok := src.(ast.String); ok {
+	case reflect.String:
+		if str, ok := src.(ast.String); ok && dst.CanSet() {
 			dst.SetString(str.String())
+			return nil
 		}
 	}
-	return nil
+	return fmt.Errorf("could not write to type: %s", ty.String())
 }
