@@ -22,16 +22,23 @@ func bind(src ast.Value, dst reflect.Value) error {
 		if srcObject, ok := src.(ast.Object); ok {
 			for i := 0; i < ty.NumField(); i++ {
 				field := ty.Field(i)
+				goFieldVal := dst.Field(i)
+				goFieldVal.Set(reflect.Zero(field.Type)) // Set to zero/nil
 				regoFieldName, ok := field.Tag.Lookup(tag)
 				if ok {
+					// Initialize if pointer
+					if field.Type.Kind() == reflect.Pointer {
+						goFieldVal.Set(reflect.New(field.Type.Elem()))
+					}
+
 					regoFieldVal := srcObject.Get(ast.StringTerm(regoFieldName))
 					if regoFieldVal != nil {
-						goFieldVal := dst.Field(i)
 						if err := bind(regoFieldVal.Value, goFieldVal); err != nil {
 							return fmt.Errorf("writing Rego field \"%s\" to Go field \"%s\": %w", regoFieldName, field.Name, err)
 						}
 					}
 				}
+
 			}
 			return nil
 		}

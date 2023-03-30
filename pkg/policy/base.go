@@ -490,9 +490,9 @@ func unmarshalResultSet(resultSet rego.ResultSet, v interface{}) error {
 }
 
 type policyResultResource struct {
-	ID           string `json:"_id" opa:"_id"`
-	ResourceType string `json:"_type" opa:"_type"`
-	Namespace    string `json:"_namespace" opa:"_namespace"`
+	ID           string `json:"_id" rego:"_id"`
+	ResourceType string `json:"_type" rego:"_type"`
+	Namespace    string `json:"_namespace" rego:"_namespace"`
 }
 
 // This struct represents the common return format for the policy engine policies.
@@ -514,11 +514,11 @@ type policyResult struct {
 }
 
 type resourcesResult struct {
-	Resource        *policyResultResource `json:"resource" opa:"resource"`
-	PrimaryResource *policyResultResource `json:"primary_resource" opa:"primary_resource"`
-	Attributes      [][]interface{}       `json:"attributes" opa:"attributes"`
-	Correlation     string                `json:"correlation" opa:"correlation"`
-	ResourceType    string                `json:"resource_type" opa:"resource_type"`
+	Resource        *policyResultResource `json:"resource" rego:"resource"`
+	PrimaryResource *policyResultResource `json:"primary_resource" rego:"primary_resource"`
+	Attributes      [][]interface{}       `json:"attributes" rego:"attributes"`
+	Correlation     string                `json:"correlation" rego:"correlation"`
+	ResourceType    string                `json:"resource_type" rego:"resource_type"`
 }
 
 // Helper for unique resource identifiers, meant to be used as key in a `map`.
