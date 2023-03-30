@@ -30,6 +30,7 @@ import (
 	"github.com/snyk/policy-engine/pkg/metrics"
 	"github.com/snyk/policy-engine/pkg/models"
 	"github.com/snyk/policy-engine/pkg/policy"
+	"github.com/snyk/policy-engine/pkg/regobind"
 )
 
 type PolicySource string
@@ -45,6 +46,7 @@ type policySet struct {
 	instrumentation *policySetInstrumentation
 	compiler        *ast.Compiler
 	store           storage.Store
+	rego            *regobind.State
 	policies        []policy.Policy
 	name            string
 	source          PolicySource
@@ -154,6 +156,15 @@ func (s *policySet) compile(ctx context.Context) error {
 	s.compiler.Compile(s.Modules)
 	if len(s.compiler.Errors) > 0 {
 		return s.compiler.Errors
+	}
+	var err error
+	s.rego, err = regobind.NewState(&regobind.Options{
+		Modules:      s.Modules,
+		Document:     s.Document,
+		Capabilities: policy.Capabilities(),
+	})
+	if err != nil {
+		return err
 	}
 	return nil
 }

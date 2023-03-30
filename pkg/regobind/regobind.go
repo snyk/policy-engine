@@ -68,7 +68,7 @@ func bind(src ast.Value, dst reflect.Value) error {
 		}
 	case reflect.String:
 		if str, ok := src.(ast.String); ok && dst.CanSet() {
-			dst.SetString(str.String())
+			dst.SetString(string(str))
 			return nil
 		}
 	}
