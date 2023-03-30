@@ -22,6 +22,7 @@ import (
 	"github.com/open-policy-agent/opa/rego"
 	"github.com/snyk/policy-engine/pkg/logging"
 	"github.com/snyk/policy-engine/pkg/models"
+	"github.com/snyk/policy-engine/pkg/regobind"
 	"github.com/snyk/policy-engine/pkg/policy/inferattributes"
 )
 
@@ -55,7 +56,7 @@ func (p *MultiResourcePolicy) Eval(
 		WithField(logging.JUDGEMENT_KEY, p.judgementRule.key)
 	output := models.RuleResults{}
 	output.Package_ = p.pkg
-	metadata, err := p.Metadata(ctx, options.RegoOptions)
+	metadata, err := p.Metadata(ctx, options.RegoOptions, options.RegoState)
 	if err != nil {
 		logger.Error(ctx, "Failed to query metadata")
 		err = fmt.Errorf("%w: %v", FailedToQueryMetadata, err)
@@ -87,7 +88,9 @@ func (p *MultiResourcePolicy) Eval(
 		output.Errors = append(output.Errors, err.Error())
 		return []models.RuleResults{output}, err
 	}
-	resources, err := p.resources(ctx, opts)
+	resources, err := p.resources(ctx, opts, options.RegoState, &regobind.Query{
+    	Builtins: builtins.Implementations(),
+	})
 	if err != nil {
 		logger.Error(ctx, "Failed to query resources")
 		err = fmt.Errorf("%w: %v", FailedToQueryResources, err)

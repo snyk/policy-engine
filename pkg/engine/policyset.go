@@ -159,9 +159,10 @@ func (s *policySet) compile(ctx context.Context) error {
 	}
 	var err error
 	s.rego, err = regobind.NewState(&regobind.Options{
-		Modules:      s.Modules,
-		Document:     s.Document,
-		Capabilities: policy.Capabilities(),
+		Modules:             s.Modules,
+		Document:            s.Document,
+		Capabilities:        policy.Capabilities(),
+		StrictBuiltinErrors: true,
 	})
 	if err != nil {
 		return err
@@ -196,6 +197,7 @@ func (s *policySet) evalPolicy(ctx context.Context, options *evalPolicyOptions) 
 	instrumentation.startEval(ctx)
 	ruleResults, err := pol.Eval(ctx, policy.EvalOptions{
 		RegoOptions:       s.regoOptions(options.regoOptions),
+		RegoState:         s.rego,
 		Logger:            instrumentation.logger,
 		ResourcesResolver: options.resourcesResolver,
 		Input:             options.input,
@@ -239,7 +241,7 @@ func (s *policySet) ruleIDFilter(ctx context.Context, ruleIDs []string, baseOpti
 	}
 	regoOptions := s.regoOptions(baseOptions)
 	return func(pol policy.Policy) bool {
-		id, err := pol.ID(ctx, regoOptions)
+		id, err := pol.ID(ctx, regoOptions, s.rego)
 		if err != nil {
 			s.instrumentation.policyIDError(ctx, pol.Package(), err)
 			return false
@@ -336,7 +338,7 @@ func (s *policySet) metadata(ctx context.Context, baseOptions []func(*rego.Rego)
 	})
 	metadata := make([]MetadataResult, len(policies))
 	for idx, p := range policies {
-		m, err := p.Metadata(ctx, regoOptions)
+		m, err := p.Metadata(ctx, regoOptions, s.rego)
 		result := MetadataResult{
 			Package: p.Package(),
 		}

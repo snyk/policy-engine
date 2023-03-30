@@ -22,6 +22,7 @@ import (
 
 	"github.com/open-policy-agent/opa/ast"
 	"github.com/open-policy-agent/opa/rego"
+	"github.com/open-policy-agent/opa/topdown"
 	"github.com/open-policy-agent/opa/topdown/builtins"
 	"github.com/open-policy-agent/opa/types"
 	"github.com/snyk/policy-engine/pkg/data"
@@ -343,6 +344,14 @@ func (b *Builtins) Rego() []func(*rego.Rego) {
 	return r
 }
 
+func (b *Builtins) Implementations() map[string]*topdown.Builtin {
+	m := map[string]*topdown.Builtin{}
+	for _, f := range b.funcs {
+		m[f.decl().Name] = wrap(f)
+	}
+	return m
+}
+
 func (b *Builtins) ResourceTypes() []string {
 	rts := make([]string, 0, len(b.resourcesQueried))
 	for rt := range b.resourcesQueried {
@@ -350,4 +359,30 @@ func (b *Builtins) ResourceTypes() []string {
 	}
 	sort.Strings(rts)
 	return rts
+}
+
+func wrap(f builtin) *topdown.Builtin {
+	/*
+	 */
+	fdecl := f.decl()
+	return &topdown.Builtin{
+		Decl: &ast.Builtin{
+			Name: fdecl.Name,
+			Decl: fdecl.Decl,
+		},
+		Func: func(bctx topdown.BuiltinContext, operands []*ast.Term, iter func(*ast.Term) error) error {
+			result, err := f.impl(bctx, operands)
+			if err != nil {
+				return &topdown.Error{
+					Code:     topdown.BuiltinErr,
+					Message:  fmt.Sprintf("%v: %v", fdecl.Name, err.Error()),
+					Location: bctx.Location,
+				}
+			}
+			if result == nil {
+				return nil
+			}
+			return iter(result)
+		},
+	}
 }

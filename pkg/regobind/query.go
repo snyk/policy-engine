@@ -34,8 +34,6 @@ func (options *Options) Add(other Options) {
 	if options.Capabilities == nil {
 		options.Capabilities = other.Capabilities
 	}
-
-	options.StrictBuiltinErrors = options.StrictBuiltinErrors || other.StrictBuiltinErrors
 }
 
 type State struct {
@@ -47,12 +45,12 @@ func NewState(options *Options) (*State, error) {
 	compiler := ast.NewCompiler()
 
 	if options.Capabilities != nil {
-    	compiler = compiler.WithCapabilities(options.Capabilities)
+		compiler = compiler.WithCapabilities(options.Capabilities)
 	}
 
 	document := options.Document
 	if document == nil {
-    	document = map[string]interface{}{}
+		document = map[string]interface{}{}
 	}
 
 	compiler.Compile(options.Modules)
@@ -65,14 +63,32 @@ func NewState(options *Options) (*State, error) {
 	}, nil
 }
 
-type QueryOptions struct {
-	tracers []topdown.QueryTracer
+type Query struct {
+	Query               string
+	Builtins            map[string]*topdown.Builtin
+	StrictBuiltinErrors bool
+	Tracers             []topdown.QueryTracer
+}
+
+func (q *Query) Add(other *Query) *Query {
+	if other.Query != "" {
+		q.Query = other.Query
+	}
+	if q.Builtins == nil && other.Builtins != nil {
+		q.Builtins = other.Builtins
+	} else if other.Builtins != nil {
+		for k, builtin := range other.Builtins {
+			q.Builtins[k] = builtin
+		}
+	}
+	q.StrictBuiltinErrors = q.StrictBuiltinErrors || other.StrictBuiltinErrors
+	q.Tracers = append(q.Tracers, other.Tracers...)
+	return q
 }
 
 func (s *State) Query(
 	ctx context.Context,
-	options *QueryOptions,
-	query string,
+	query *Query,
 	buffer interface{},
 	process func() error,
 ) error {
@@ -82,13 +98,13 @@ func (s *State) Query(
 		return fmt.Errorf("non-pointer receiver passed to Query")
 	}
 
-	parsed, err := ast.ParseBody(query)
+	parsed, err := ast.ParseBody(query.Query)
 	if err != nil {
 		return err
 	}
 
 	if len(parsed) > 1 {
-		return fmt.Errorf("query expects a single term but got: %s", query)
+		return fmt.Errorf("query expects a single term but got: %s", query.Query)
 	}
 
 	captureVar := ast.Var("_capture")
@@ -102,7 +118,15 @@ func (s *State) Query(
 		return err
 	}
 
-	q := topdown.NewQuery(compiled).WithCompiler(s.compiler).WithStore(s.store)
+	q := topdown.NewQuery(compiled).
+		WithCompiler(s.compiler).
+		WithStore(s.store).
+		WithBuiltins(query.Builtins)
+
+	for _, tracer := range query.Tracers {
+		q = q.WithQueryTracer(tracer)
+	}
+
 	return q.Iter(ctx, func(qr topdown.QueryResult) error {
 		bufferValue.Elem().Set(reflect.Zero(bufferValue.Type().Elem()))
 

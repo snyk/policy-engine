@@ -9,7 +9,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestBind3(t *testing.T) {
+func TestQuery1(t *testing.T) {
 	ctx := context.Background()
 	modules := map[string]*ast.Module{
 		"example.rego": ast.MustParseModule(`
@@ -26,12 +26,20 @@ people = [
 	})
 	assert.NoError(t, err)
 
+	type Person struct {
+		Name       string      `rego:"name"`
+		Age        int         `rego:"age"`
+		Aliases    []string    `rego:"aliases"`
+		Attributes interface{} `rego:"attributes"`
+		Hungry     bool        `rego:"hungry"`
+		Nonexist   string      `rego:"nonexist"`
+	}
+
 	var people []Person
 	var person Person
 	err = state.Query(
 		ctx,
-		&QueryOptions{},
-		"data.example.people[_]",
+		&Query{Query: "data.example.people[_]"},
 		&person,
 		func() error {
 			people = append(people, person)
@@ -60,4 +68,39 @@ people = [
 		},
 		people,
 	)
+}
+
+func TestQueryStrict(t *testing.T) {
+	ctx := context.Background()
+	modules := map[string]*ast.Module{
+		"example.rego": ast.MustParseModule(`
+package example
+
+people = [
+	{"name": "Sam", "age": 30},
+	{"name": "Kim", "age": 40},
+]`),
+	}
+
+	state, err := NewState(&Options{
+		Modules: modules,
+	})
+	assert.NoError(t, err)
+
+	compiler := ast.NewCompiler()
+	compiler.Compile(modules)
+	assert.Len(t, compiler.Errors, 0)
+
+	var numbers []int
+	var number int
+	assert.NoError(t, state.Query(
+		ctx,
+		&Query{Query: "data.example.people[_].age + 1"},
+		&number,
+		func() error {
+			numbers = append(numbers, number)
+			return nil
+		},
+	))
+	assert.Equal(t, []int{31, 41}, numbers)
 }

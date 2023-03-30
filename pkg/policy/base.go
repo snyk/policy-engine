@@ -25,6 +25,7 @@ import (
 	"github.com/snyk/policy-engine/pkg/input"
 	"github.com/snyk/policy-engine/pkg/logging"
 	"github.com/snyk/policy-engine/pkg/models"
+	"github.com/snyk/policy-engine/pkg/regobind"
 )
 
 // Constants used to determine a policy's type.
@@ -59,6 +60,7 @@ var SupportedInputTypes = input.Types{
 
 type EvalOptions struct {
 	RegoOptions       []func(*rego.Rego)
+	RegoState         *regobind.State
 	Input             *models.State
 	Logger            logging.Logger
 	ResourcesResolver ResourcesResolver
@@ -68,8 +70,8 @@ type EvalOptions struct {
 // with policies.
 type Policy interface {
 	Package() string
-	Metadata(ctx context.Context, options []func(*rego.Rego)) (Metadata, error)
-	ID(ctx context.Context, options []func(*rego.Rego)) (string, error)
+	Metadata(ctx context.Context, options []func(*rego.Rego), state *regobind.State) (Metadata, error)
+	ID(ctx context.Context, options []func(*rego.Rego), state *regobind.State) (string, error)
 	Eval(ctx context.Context, options EvalOptions) ([]models.RuleResults, error)
 	InputType() string
 	InputTypeMatches(inputType string) bool
@@ -330,6 +332,7 @@ func (p *BasePolicy) InputTypeMatches(inputType string) bool {
 func (p *BasePolicy) Metadata(
 	ctx context.Context,
 	options []func(*rego.Rego),
+	state *regobind.State,
 ) (Metadata, error) {
 	if p.cachedMetadata != nil {
 		return *p.cachedMetadata, nil
@@ -381,8 +384,9 @@ func (p *BasePolicy) Metadata(
 func (p *BasePolicy) ID(
 	ctx context.Context,
 	options []func(*rego.Rego),
+	state *regobind.State,
 ) (string, error) {
-	metadata, err := p.Metadata(ctx, options)
+	metadata, err := p.Metadata(ctx, options, state)
 	if err != nil {
 		return "", err
 	}
@@ -392,45 +396,80 @@ func (p *BasePolicy) ID(
 func (p *BasePolicy) resources(
 	ctx context.Context,
 	options []func(*rego.Rego),
+	state *regobind.State,
+	query *regobind.Query,
 ) (map[string]*ruleResultBuilder, error) {
 	r := map[string]*ruleResultBuilder{} // By correlation
 	if p.resourcesRule.name == "" {
 		return r, nil
 	}
-	options = append(
-		options,
-		rego.Query(p.resourcesRule.query()),
+
+	var result resourcesResult
+	err := state.Query(
+		ctx,
+		query.Add(&regobind.Query{
+			Query: p.resourcesRule.query() + "[_]",
+		}),
+		&result,
+		func() error {
+			correlation := result.GetCorrelation()
+			if _, ok := r[correlation]; !ok {
+				r[correlation] = newRuleResultBuilder()
+			}
+			if result.ResourceType != "" {
+				r[correlation].setMissingResourceType(result.ResourceType)
+			}
+			if result.Resource != nil {
+				r[correlation].addResource(result.Resource.Key())
+			}
+			if result.PrimaryResource != nil {
+				r[correlation].setPrimaryResource(result.PrimaryResource.Key())
+			}
+			for _, attr := range result.Attributes {
+				r[correlation].addResourceAttribute(result.GetResource().Key(), attr)
+			}
+			return nil
+		},
 	)
-	query, err := rego.New(options...).PrepareForEval(ctx)
 	if err != nil {
-		return r, err
+		return nil, err
 	}
-	resultSet, err := query.Eval(ctx)
-	if err != nil {
-		return r, err
-	}
-	results := []resourcesResult{}
-	if err := unmarshalResultSet(resultSet, &results); err != nil {
-		return r, err
-	}
-	for _, result := range results {
-		correlation := result.GetCorrelation()
-		if _, ok := r[correlation]; !ok {
-			r[correlation] = newRuleResultBuilder()
+	/*
+		options = append(
+			options,
+			rego.Query(p.resourcesRule.query()),
+		)
+		query, err := rego.New(options...).PrepareForEval(ctx)
+		if err != nil {
+			return r, err
 		}
-		if result.ResourceType != "" {
-			r[correlation].setMissingResourceType(result.ResourceType)
+		resultSet, err := query.Eval(ctx)
+		if err != nil {
+			return r, err
 		}
-		if result.Resource != nil {
-			r[correlation].addResource(result.Resource.Key())
+		results := []resourcesResult{}
+		if err := unmarshalResultSet(resultSet, &results); err != nil {
+			return r, err
 		}
-		if result.PrimaryResource != nil {
-			r[correlation].setPrimaryResource(result.PrimaryResource.Key())
+		for _, result := range results {
+			correlation := result.GetCorrelation()
+			if _, ok := r[correlation]; !ok {
+				r[correlation] = newRuleResultBuilder()
+			}
+			if result.ResourceType != "" {
+				r[correlation].setMissingResourceType(result.ResourceType)
+			}
+			if result.Resource != nil {
+				r[correlation].addResource(result.Resource.Key())
+			}
+			if result.PrimaryResource != nil {
+				r[correlation].setPrimaryResource(result.PrimaryResource.Key())
+			}
+			for _, attr := range result.Attributes {
+				r[correlation].addResourceAttribute(result.GetResource().Key(), attr)
+			}
 		}
-		for _, attr := range result.Attributes {
-			r[correlation].addResourceAttribute(result.GetResource().Key(), attr)
-		}
-	}
+	*/
 	return r, nil
 }
 
@@ -451,9 +490,9 @@ func unmarshalResultSet(resultSet rego.ResultSet, v interface{}) error {
 }
 
 type policyResultResource struct {
-	ID           string `json:"_id"`
-	ResourceType string `json:"_type"`
-	Namespace    string `json:"_namespace"`
+	ID           string `json:"_id" opa:"_id"`
+	ResourceType string `json:"_type" opa:"_type"`
+	Namespace    string `json:"_namespace" opa:"_namespace"`
 }
 
 // This struct represents the common return format for the policy engine policies.
@@ -475,11 +514,11 @@ type policyResult struct {
 }
 
 type resourcesResult struct {
-	Resource        *policyResultResource `json:"resource"`
-	PrimaryResource *policyResultResource `json:"primary_resource"`
-	Attributes      [][]interface{}       `json:"attributes"`
-	Correlation     string                `json:"correlation"`
-	ResourceType    string                `json:"resource_type"`
+	Resource        *policyResultResource `json:"resource" opa:"resource"`
+	PrimaryResource *policyResultResource `json:"primary_resource" opa:"primary_resource"`
+	Attributes      [][]interface{}       `json:"attributes" opa:"attributes"`
+	Correlation     string                `json:"correlation" opa:"correlation"`
+	ResourceType    string                `json:"resource_type" opa:"resource_type"`
 }
 
 // Helper for unique resource identifiers, meant to be used as key in a `map`.
