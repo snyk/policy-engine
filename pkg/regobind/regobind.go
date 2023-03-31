@@ -26,13 +26,13 @@ func bind(src ast.Value, dst reflect.Value) error {
 				goFieldVal.Set(reflect.Zero(field.Type)) // Set to zero/nil
 				regoFieldName, ok := field.Tag.Lookup(tag)
 				if ok {
-					// Initialize if pointer
-					if field.Type.Kind() == reflect.Pointer {
-						goFieldVal.Set(reflect.New(field.Type.Elem()))
-					}
-
 					regoFieldVal := srcObject.Get(ast.StringTerm(regoFieldName))
 					if regoFieldVal != nil {
+						// Initialize if pointer
+						if field.Type.Kind() == reflect.Pointer {
+							goFieldVal.Set(reflect.New(field.Type.Elem()))
+						}
+
 						if err := bind(regoFieldVal.Value, goFieldVal); err != nil {
 							return fmt.Errorf("writing Rego field \"%s\" to Go field \"%s\": %w", regoFieldName, field.Name, err)
 						}
