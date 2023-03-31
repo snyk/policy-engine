@@ -1,6 +1,7 @@
 package regobind
 
 import (
+	"encoding/json"
 	"fmt"
 	"reflect"
 
@@ -58,7 +59,7 @@ func bind(src ast.Value, dst reflect.Value) error {
 			return fmt.Errorf("writing interface as JSON: %w", err)
 		}
 		if dst.CanSet() {
-			dst.Set(reflect.ValueOf(json))
+			dst.Set(reflect.ValueOf(rewriteJsonNumbers(json)))
 			return nil
 		}
 	case reflect.Bool:
@@ -80,4 +81,26 @@ func bind(src ast.Value, dst reflect.Value) error {
 		}
 	}
 	return fmt.Errorf("could not write to type: %s", ty.String())
+}
+
+func rewriteJsonNumbers(value interface{}) interface{} {
+	switch val := value.(type) {
+	case map[string]interface{}:
+		for k, v := range val {
+			val[k] = rewriteJsonNumbers(v)
+		}
+		return val
+	case []interface{}:
+		for i, v := range val {
+			val[i] = rewriteJsonNumbers(v)
+		}
+		return val
+	case json.Number:
+		if n, err := val.Int64(); err == nil {
+			return n
+		} else if f, err := val.Float64(); err == nil {
+			return f
+		}
+	}
+	return value
 }
