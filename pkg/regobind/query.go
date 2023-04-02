@@ -118,9 +118,16 @@ func (s *State) Query(
 		return err
 	}
 
+	txn, err := s.store.NewTransaction(ctx)
+	if err != nil {
+		return err
+	}
+	defer s.store.Abort(ctx, txn)
+
 	q := topdown.NewQuery(compiled).
 		WithCompiler(s.compiler).
 		WithStore(s.store).
+		WithTransaction(txn).
 		WithBuiltins(query.Builtins)
 
 	for _, tracer := range query.Tracers {
