@@ -234,14 +234,13 @@ func (s *policySet) selectPolicies(ctx context.Context, filters []policyFilter) 
 	return subset
 }
 
-func (s *policySet) ruleIDFilter(ctx context.Context, ruleIDs []string, baseOptions []func(*rego.Rego)) policyFilter {
+func (s *policySet) ruleIDFilter(ctx context.Context, ruleIDs []string) policyFilter {
 	ids := map[string]bool{}
 	for _, r := range ruleIDs {
 		ids[r] = true
 	}
-	regoOptions := s.regoOptions(baseOptions)
 	return func(pol policy.Policy) bool {
-		id, err := pol.ID(ctx, regoOptions, s.rego)
+		id, err := pol.ID(ctx, s.rego)
 		if err != nil {
 			s.instrumentation.policyIDError(ctx, pol.Package(), err)
 			return false
@@ -268,7 +267,7 @@ func (s *policySet) eval(ctx context.Context, options *parallelEvalOptions) []mo
 		},
 	}
 	if len(options.ruleIDs) > 0 {
-		filters = append(filters, s.ruleIDFilter(ctx, options.ruleIDs, options.regoOptions))
+		filters = append(filters, s.ruleIDFilter(ctx, options.ruleIDs))
 	}
 	policies := s.selectPolicies(ctx, filters)
 
@@ -327,8 +326,7 @@ func (s *policySet) eval(ctx context.Context, options *parallelEvalOptions) []mo
 	return allRuleResults
 }
 
-func (s *policySet) metadata(ctx context.Context, baseOptions []func(*rego.Rego)) []MetadataResult {
-	regoOptions := s.regoOptions(baseOptions)
+func (s *policySet) metadata(ctx context.Context) []MetadataResult {
 	// Ensure a consistent ordering for policies to make our output
 	// deterministic.
 	policies := make([]policy.Policy, len(s.policies))
@@ -338,7 +336,7 @@ func (s *policySet) metadata(ctx context.Context, baseOptions []func(*rego.Rego)
 	})
 	metadata := make([]MetadataResult, len(policies))
 	for idx, p := range policies {
-		m, err := p.Metadata(ctx, regoOptions, s.rego)
+		m, err := p.Metadata(ctx, s.rego)
 		result := MetadataResult{
 			Package: p.Package(),
 		}

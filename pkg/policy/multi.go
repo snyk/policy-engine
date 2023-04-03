@@ -56,7 +56,7 @@ func (p *MultiResourcePolicy) Eval(
 		WithField(logging.JUDGEMENT_KEY, p.judgementRule.key)
 	output := models.RuleResults{}
 	output.Package_ = p.pkg
-	metadata, err := p.Metadata(ctx, options.RegoOptions, options.RegoState)
+	metadata, err := p.Metadata(ctx, options.RegoState)
 	if err != nil {
 		logger.Error(ctx, "Failed to query metadata")
 		err = fmt.Errorf("%w: %v", FailedToQueryMetadata, err)

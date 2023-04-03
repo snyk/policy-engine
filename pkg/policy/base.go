@@ -70,8 +70,8 @@ type EvalOptions struct {
 // with policies.
 type Policy interface {
 	Package() string
-	Metadata(ctx context.Context, options []func(*rego.Rego), state *regobind.State) (Metadata, error)
-	ID(ctx context.Context, options []func(*rego.Rego), state *regobind.State) (string, error)
+	Metadata(ctx context.Context, state *regobind.State) (Metadata, error)
+	ID(ctx context.Context, state *regobind.State) (string, error)
 	Eval(ctx context.Context, options EvalOptions) ([]models.RuleResults, error)
 	InputType() string
 	InputTypeMatches(inputType string) bool
@@ -331,7 +331,6 @@ func (p *BasePolicy) InputTypeMatches(inputType string) bool {
 
 func (p *BasePolicy) Metadata(
 	ctx context.Context,
-	options []func(*rego.Rego),
 	state *regobind.State,
 ) (Metadata, error) {
 	if p.cachedMetadata != nil {
@@ -341,18 +340,6 @@ func (p *BasePolicy) Metadata(
 	if p.metadataRule.name == "" {
 		p.cachedMetadata = &m
 		return m, nil
-	}
-	options = append(
-		options,
-		rego.Query(p.metadataRule.query()),
-	)
-	query, err := rego.New(options...).PrepareForEval(ctx)
-	if err != nil {
-		return m, err
-	}
-	results, err := query.Eval(ctx)
-	if err != nil {
-		return m, err
 	}
 	switch p.metadataRule.name {
 	case "metadata":
@@ -366,7 +353,12 @@ func (p *BasePolicy) Metadata(
 		}
 	case "__rego__metadoc__":
 		d := metadoc{}
-		if err := unmarshalResultSet(results, &d); err != nil {
+		if err := state.Query(
+			ctx,
+			&regobind.Query{Query: p.metadataRule.query()},
+			&d,
+			func() error { return nil },
+		); err != nil {
 			return m, err
 		}
 		m = Metadata{
@@ -388,10 +380,9 @@ func (p *BasePolicy) Metadata(
 
 func (p *BasePolicy) ID(
 	ctx context.Context,
-	options []func(*rego.Rego),
 	state *regobind.State,
 ) (string, error) {
-	metadata, err := p.Metadata(ctx, options, state)
+	metadata, err := p.Metadata(ctx, state)
 	if err != nil {
 		return "", err
 	}

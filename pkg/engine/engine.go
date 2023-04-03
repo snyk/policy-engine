@@ -235,9 +235,7 @@ type MetadataResult struct {
 func (e *Engine) Metadata(ctx context.Context) []MetadataResult {
 	metadata := []MetadataResult{}
 	for _, p := range e.policySets {
-		m := p.metadata(ctx, []func(*rego.Rego){
-			rego.StrictBuiltinErrors(true),
-		})
+		m := p.metadata(ctx)
 		metadata = append(metadata, m...)
 	}
 	// Ensure a consistent ordering for policies to make our output
