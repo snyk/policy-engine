@@ -66,7 +66,7 @@ func TestExamples(t *testing.T) {
 		},
 		"../examples/main.tf",
 	)
-	bytes, err := json.MarshalIndent(results, "  ", "  ")
+	bytes, err := json.MarshalIndent(results, "", "  ")
 	assert.NoError(t, err)
 	utils.GoldenTest(t, "examples_test.json", bytes)
 }
@@ -83,7 +83,23 @@ func TestBundles(t *testing.T) {
 		"../examples/main.tf",
 	)
 	assert.Len(t, results.Results, 1)
-	bytes, err := json.MarshalIndent(results.Results[0].RuleResults, "  ", "  ")
+	bytes, err := json.MarshalIndent(results.Results[0].RuleResults, "", "  ")
 	assert.NoError(t, err)
 	utils.GoldenTest(t, "bundles_test.json", bytes)
+}
+
+func TestRuleTypes(t *testing.T) {
+	results := RunEngine(
+		t,
+		&engine.EngineOptions{
+			Providers: []data.Provider{
+				data.LocalProvider("ruletypes"),
+			},
+		},
+		"../examples/main.tf",
+	)
+	assert.Len(t, results.Results, 1)
+	bytes, err := json.MarshalIndent(results.Results[0].RuleResults, "", "  ")
+	assert.NoError(t, err)
+	utils.GoldenTest(t, "ruletypes_test.json", bytes)
 }
