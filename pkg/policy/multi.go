@@ -22,8 +22,8 @@ import (
 	"github.com/open-policy-agent/opa/rego"
 	"github.com/snyk/policy-engine/pkg/logging"
 	"github.com/snyk/policy-engine/pkg/models"
-	"github.com/snyk/policy-engine/pkg/regobind"
 	"github.com/snyk/policy-engine/pkg/policy/inferattributes"
+	"github.com/snyk/policy-engine/pkg/regobind"
 )
 
 // ProcessSingleResultSet functions extract RuleResult models from the ResultSet of
@@ -88,8 +88,8 @@ func (p *MultiResourcePolicy) Eval(
 		output.Errors = append(output.Errors, err.Error())
 		return []models.RuleResults{output}, err
 	}
-	resources, err := p.resources(ctx, opts, options.RegoState, &regobind.Query{
-    	Builtins: builtins.Implementations(),
+	resources, err := p.resources(ctx, options.RegoState, &regobind.Query{
+		Builtins: builtins.Implementations(),
 	})
 	if err != nil {
 		logger.Error(ctx, "Failed to query resources")

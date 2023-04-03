@@ -96,9 +96,7 @@ func rewriteJsonNumbers(value interface{}) interface{} {
 		}
 		return val
 	case json.Number:
-		if n, err := val.Int64(); err == nil {
-			return n
-		} else if f, err := val.Float64(); err == nil {
+		if f, err := val.Float64(); err == nil {
 			return f
 		}
 	}

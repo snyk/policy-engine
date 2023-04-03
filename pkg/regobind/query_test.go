@@ -2,7 +2,6 @@ package regobind
 
 import (
 	"context"
-	"encoding/json"
 	"testing"
 
 	"github.com/open-policy-agent/opa/ast"
@@ -53,7 +52,7 @@ people = [
 				Name:       "Sam",
 				Age:        30,
 				Aliases:    []string{"Kim", "Tom"},
-				Attributes: map[string]interface{}{"teeth": json.Number("32")},
+				Attributes: map[string]interface{}{"teeth": 32.0},
 				Hungry:     true,
 				Nonexist:   "",
 			},
@@ -61,7 +60,7 @@ people = [
 				Name:       "Kim",
 				Age:        40,
 				Aliases:    []string{"Sam", "Tim"},
-				Attributes: map[string]interface{}{"teeth": json.Number("28")},
+				Attributes: map[string]interface{}{"teeth": 28.0},
 				Hungry:     false,
 				Nonexist:   "",
 			},

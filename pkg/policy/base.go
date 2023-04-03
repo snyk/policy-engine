@@ -395,7 +395,6 @@ func (p *BasePolicy) ID(
 
 func (p *BasePolicy) resources(
 	ctx context.Context,
-	options []func(*rego.Rego),
 	state *regobind.State,
 	query *regobind.Query,
 ) (map[string]*ruleResultBuilder, error) {
@@ -403,7 +402,6 @@ func (p *BasePolicy) resources(
 	if p.resourcesRule.name == "" {
 		return r, nil
 	}
-
 	var result resourcesResult
 	err := state.Query(
 		ctx,
@@ -434,42 +432,6 @@ func (p *BasePolicy) resources(
 	if err != nil {
 		return nil, err
 	}
-	/*
-		options = append(
-			options,
-			rego.Query(p.resourcesRule.query()),
-		)
-		query, err := rego.New(options...).PrepareForEval(ctx)
-		if err != nil {
-			return r, err
-		}
-		resultSet, err := query.Eval(ctx)
-		if err != nil {
-			return r, err
-		}
-		results := []resourcesResult{}
-		if err := unmarshalResultSet(resultSet, &results); err != nil {
-			return r, err
-		}
-		for _, result := range results {
-			correlation := result.GetCorrelation()
-			if _, ok := r[correlation]; !ok {
-				r[correlation] = newRuleResultBuilder()
-			}
-			if result.ResourceType != "" {
-				r[correlation].setMissingResourceType(result.ResourceType)
-			}
-			if result.Resource != nil {
-				r[correlation].addResource(result.Resource.Key())
-			}
-			if result.PrimaryResource != nil {
-				r[correlation].setPrimaryResource(result.PrimaryResource.Key())
-			}
-			for _, attr := range result.Attributes {
-				r[correlation].addResourceAttribute(result.GetResource().Key(), attr)
-			}
-		}
-	*/
 	return r, nil
 }
 
