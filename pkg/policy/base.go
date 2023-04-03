@@ -131,51 +131,50 @@ var remediationKeys = map[string]string{
 }
 
 type Metadata struct {
-	ID           string                         `json:"id" rego:"id"`
-	Title        string                         `json:"title" rego:"title"`
-	Description  string                         `json:"description" rego:"description"`
-	Platform     []string                       `json:"platform" rego:"platform"`
-	Remediation  map[string]string              `json:"remediation" rego:"remediation"`
-	References   map[string][]MetadataReference `json:"references" rego:"references"`
-	Category     string                         `json:"category" rego:"category"`
-	Labels       []string                       `json:"labels,omitempty" rego:"labels"`
-	ServiceGroup string                         `json:"service_group" rego:"service_group"`
-	Controls     []string                       `json:"controls" rego:"controls"`
-	Severity     string                         `json:"severity" rego:"severity"`
-	Product      []string                       `json:"product" rego:"product"`
+	ID           string                         `json:"id"`
+	Title        string                         `json:"title"`
+	Description  string                         `json:"description"`
+	Platform     []string                       `json:"platform"`
+	Remediation  map[string]string              `json:"remediation"`
+	References   map[string][]MetadataReference `json:"references"`
+	Category     string                         `json:"category"`
+	Labels       []string                       `json:"labels,omitempty"`
+	ServiceGroup string                         `json:"service_group"`
+	Controls     []string                       `json:"controls"`
+	Severity     string                         `json:"severity"`
+	Product      []string                       `json:"product"`
 }
 
-func (m *Metadata) UnmarshalJSON(data []byte) error {
-	compat := struct {
-		ID           string                         `json:"id"`
-		Title        string                         `json:"title"`
-		Description  string                         `json:"description"`
-		Platform     []string                       `json:"platform"`
-		Remediation  map[string]string              `json:"remediation"`
-		References   map[string][]MetadataReference `json:"references"`
-		Category     string                         `json:"category"`
-		Labels       []string                       `json:"labels,omitempty"`
-		ServiceGroup string                         `json:"service_group"`
-		Controls     models.ControlsParser          `json:"controls"`
-		Severity     string                         `json:"severity"`
-		Product      []string                       `json:"product"`
-	}{}
-	if err := json.Unmarshal(data, &compat); err != nil {
-		return err
-	}
-	m.ID = compat.ID
-	m.Title = compat.Title
-	m.Description = compat.Description
-	m.Platform = compat.Platform
-	m.Remediation = compat.Remediation
-	m.References = compat.References
-	m.Category = compat.Category
-	m.Labels = compat.Labels
-	m.ServiceGroup = compat.ServiceGroup
-	m.Controls = compat.Controls.Controls
-	m.Severity = compat.Severity
-	m.Product = compat.Product
-	return nil
+// Auxiliary parsing type.
+type metadataCompat struct {
+	ID           string                         `rego:"id"`
+	Title        string                         `rego:"title"`
+	Description  string                         `rego:"description"`
+	Platform     []string                       `rego:"platform"`
+	Remediation  map[string]string              `rego:"remediation"`
+	References   map[string][]MetadataReference `rego:"references"`
+	Category     string                         `rego:"category"`
+	Labels       []string                       `rego:"labels"`
+	ServiceGroup string                         `rego:"service_group"`
+	Controls     interface{}                    `rego:"controls"`
+	Severity     string                         `rego:"severity"`
+	Product      []string                       `rego:"product"`
+}
+
+func (compat metadataCompat) ToMetadata() (meta Metadata, err error) {
+	meta.ID = compat.ID
+	meta.Title = compat.Title
+	meta.Description = compat.Description
+	meta.Platform = compat.Platform
+	meta.Remediation = compat.Remediation
+	meta.References = compat.References
+	meta.Category = compat.Category
+	meta.Labels = compat.Labels
+	meta.ServiceGroup = compat.ServiceGroup
+	meta.Controls, err = models.ParseControls(compat.Controls)
+	meta.Severity = compat.Severity
+	meta.Product = compat.Product
+	return
 }
 
 func (m Metadata) RemediationFor(inputType string) string {
@@ -343,11 +342,16 @@ func (p *BasePolicy) Metadata(
 	}
 	switch p.metadataRule.name {
 	case "metadata":
+		compat := metadataCompat{}
 		if err := state.Query(
 			ctx,
 			&regobind.Query{Query: p.metadataRule.query()},
-			&m,
-			func() error { return nil },
+			&compat,
+			func() error {
+				var err error
+				m, err = compat.ToMetadata()
+				return err
+			},
 		); err != nil {
 			return m, err
 		}

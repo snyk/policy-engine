@@ -1906,7 +1906,11 @@
             "rule_bundle": {
               "source": "data"
             },
-            "description": "This is rule 7 right here",
+            "description": "This is rule 7, it uses an old control format",
+            "controls": [
+              "Simpsons_v1.0.0_Homer",
+              "Simpsons_v1.0.0_Marge"
+            ],
             "resource_types": [
               "aws_cloudtrail"
             ],
