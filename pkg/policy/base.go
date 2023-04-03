@@ -131,18 +131,18 @@ var remediationKeys = map[string]string{
 }
 
 type Metadata struct {
-	ID           string                         `json:"id"`
-	Title        string                         `json:"title"`
-	Description  string                         `json:"description"`
-	Platform     []string                       `json:"platform"`
-	Remediation  map[string]string              `json:"remediation"`
-	References   map[string][]MetadataReference `json:"references"`
-	Category     string                         `json:"category"`
-	Labels       []string                       `json:"labels,omitempty"`
-	ServiceGroup string                         `json:"service_group"`
-	Controls     []string                       `json:"controls"`
-	Severity     string                         `json:"severity"`
-	Product      []string                       `json:"product"`
+	ID           string                         `json:"id" rego:"id"`
+	Title        string                         `json:"title" rego:"title"`
+	Description  string                         `json:"description" rego:"description"`
+	Platform     []string                       `json:"platform" rego:"platform"`
+	Remediation  map[string]string              `json:"remediation" rego:"remediation"`
+	References   map[string][]MetadataReference `json:"references" rego:"references"`
+	Category     string                         `json:"category" rego:"category"`
+	Labels       []string                       `json:"labels,omitempty" rego:"labels"`
+	ServiceGroup string                         `json:"service_group" rego:"service_group"`
+	Controls     []string                       `json:"controls" rego:"controls"`
+	Severity     string                         `json:"severity" rego:"severity"`
+	Product      []string                       `json:"product" rego:"product"`
 }
 
 func (m *Metadata) UnmarshalJSON(data []byte) error {
@@ -187,8 +187,8 @@ func (m Metadata) RemediationFor(inputType string) string {
 }
 
 type MetadataReference struct {
-	URL   string `json:"url"`
-	Title string `json:"title,omitempty"`
+	URL   string `json:"url" rego:"url"`
+	Title string `json:"title,omitempty" rego:"title"`
 }
 
 func (m Metadata) ReferencesFor(inputType string) []MetadataReference {
@@ -356,7 +356,12 @@ func (p *BasePolicy) Metadata(
 	}
 	switch p.metadataRule.name {
 	case "metadata":
-		if err := unmarshalResultSet(results, &m); err != nil {
+		if err := state.Query(
+			ctx,
+			&regobind.Query{Query: p.metadataRule.query()},
+			&m,
+			func() error { return nil },
+		); err != nil {
 			return m, err
 		}
 	case "__rego__metadoc__":
