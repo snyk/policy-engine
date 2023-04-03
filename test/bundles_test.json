@@ -1,0 +1,193 @@
+[
+    {
+      "id": "EXAMPLE_01",
+      "rule_bundle": {
+        "name": "../pkg/bundle/v1/test_inputs/complete",
+        "source": "bundle_directory"
+      },
+      "title": "Bucket name contains the word 'bucket'",
+      "resource_types": [
+        "aws_s3_bucket"
+      ],
+      "results": [
+        {
+          "passed": true,
+          "ignored": false,
+          "resource_id": "aws_s3_bucket.aes_bucket",
+          "resource_namespace": "../examples/main.tf",
+          "resource_type": "aws_s3_bucket",
+          "resources": [
+            {
+              "id": "aws_s3_bucket.aes_bucket",
+              "type": "aws_s3_bucket",
+              "namespace": "../examples/main.tf",
+              "location": [
+                {
+                  "filepath": "../examples/main.tf",
+                  "line": 41,
+                  "column": 1
+                }
+              ],
+              "attributes": [
+                {
+                  "path": [
+                    "bucket"
+                  ],
+                  "location": {
+                    "filepath": "../examples/main.tf",
+                    "line": 42,
+                    "column": 3
+                  }
+                },
+                {
+                  "path": [
+                    "bucket_prefix"
+                  ],
+                  "location": {
+                    "filepath": "../examples/main.tf",
+                    "line": 41,
+                    "column": 1
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "passed": false,
+          "ignored": false,
+          "resource_id": "aws_s3_bucket.bucket1",
+          "resource_namespace": "../examples/main.tf",
+          "resource_type": "aws_s3_bucket",
+          "resources": [
+            {
+              "id": "aws_s3_bucket.bucket1",
+              "type": "aws_s3_bucket",
+              "namespace": "../examples/main.tf",
+              "location": [
+                {
+                  "filepath": "../examples/main.tf",
+                  "line": 5,
+                  "column": 1
+                }
+              ],
+              "attributes": [
+                {
+                  "path": [
+                    "bucket"
+                  ],
+                  "location": {
+                    "filepath": "../examples/main.tf",
+                    "line": 6,
+                    "column": 3
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "passed": true,
+          "ignored": false,
+          "resource_id": "aws_s3_bucket.bucket2",
+          "resource_namespace": "../examples/main.tf",
+          "resource_type": "aws_s3_bucket",
+          "resources": [
+            {
+              "id": "aws_s3_bucket.bucket2",
+              "type": "aws_s3_bucket",
+              "namespace": "../examples/main.tf",
+              "location": [
+                {
+                  "filepath": "../examples/main.tf",
+                  "line": 9,
+                  "column": 1
+                }
+              ],
+              "attributes": [
+                {
+                  "path": [
+                    "bucket"
+                  ],
+                  "location": {
+                    "filepath": "../examples/main.tf",
+                    "line": 10,
+                    "column": 3
+                  }
+                },
+                {
+                  "path": [
+                    "bucket_prefix"
+                  ],
+                  "location": {
+                    "filepath": "../examples/main.tf",
+                    "line": 9,
+                    "column": 1
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "passed": false,
+          "ignored": false,
+          "resource_id": "aws_s3_bucket.bucket3",
+          "resource_namespace": "../examples/main.tf",
+          "resource_type": "aws_s3_bucket",
+          "resources": [
+            {
+              "id": "aws_s3_bucket.bucket3",
+              "type": "aws_s3_bucket",
+              "namespace": "../examples/main.tf",
+              "location": [
+                {
+                  "filepath": "../examples/main.tf",
+                  "line": 29,
+                  "column": 1
+                }
+              ],
+              "attributes": [
+                {
+                  "path": [
+                    "bucket"
+                  ],
+                  "location": {
+                    "filepath": "../examples/main.tf",
+                    "line": 30,
+                    "column": 3
+                  }
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "package": "data.rules.EXAMPLE_01.terraform"
+    },
+    {
+      "id": "EXAMPLE_02",
+      "rule_bundle": {
+        "name": "../pkg/bundle/v1/test_inputs/complete",
+        "source": "bundle_directory"
+      },
+      "title": "Order includes cheeseburger pizza",
+      "resource_types": [
+        "data.dominos_menu_item"
+      ],
+      "results": [],
+      "package": "data.rules.EXAMPLE_02.terraform"
+    },
+    {
+      "rule_bundle": {
+        "name": "../pkg/bundle/v1/test_inputs/minimal",
+        "source": "bundle_directory"
+      },
+      "title": "Playlist lacks cowbell",
+      "resource_types": [
+        "spotify_playlist"
+      ],
+      "results": [],
+      "package": "data.rules.playlist_guardrails"
+    }
+  ]

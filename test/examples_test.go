@@ -27,42 +27,63 @@ import (
 	"github.com/snyk/policy-engine/pkg/data"
 	"github.com/snyk/policy-engine/pkg/engine"
 	"github.com/snyk/policy-engine/pkg/input"
+	"github.com/snyk/policy-engine/pkg/models"
 	"github.com/snyk/policy-engine/pkg/postprocess"
 	"github.com/snyk/policy-engine/test/utils"
 )
 
-func TestExamples(t *testing.T) {
-	providers := []data.Provider{
-		data.LocalProvider("../examples/metadata/"),
-		data.LocalProvider("../examples/"),
-	}
-	readers := []bundle.Reader{
-		bundle.NewDirReader("../pkg/bundle/v1/test_inputs/complete"),
-		bundle.NewDirReader("../pkg/bundle/v1/test_inputs/minimal"),
-	}
+// Utility to write easy golden tests.
+func RunEngine(t *testing.T, options *engine.EngineOptions, path string) *models.Results {
 	detector, err := input.DetectorByInputTypes(
 		input.Types{input.Auto},
 	)
 	assert.NoError(t, err)
 	loader := input.NewLoader(detector)
 	fsys := afero.OsFs{}
-	detectable, err := input.NewDetectable(fsys, "../examples/main.tf")
+	detectable, err := input.NewDetectable(fsys, path)
 	assert.NoError(t, err)
 	_, err = loader.Load(detectable, input.DetectOptions{})
 	assert.NoError(t, err)
 	ctx := context.Background()
 	states := loader.ToStates()
-	eng := engine.NewEngine(ctx, &engine.EngineOptions{
-		Providers:     providers,
-		BundleReaders: readers,
-	})
-	// assert.Nil(t, eng.InitializationErrors)
+	eng := engine.NewEngine(ctx, options)
+	assert.Nil(t, eng.InitializationErrors)
 	results := eng.Eval(ctx, &engine.EvalOptions{
 		Inputs: states,
 	})
 	postprocess.AddSourceLocs(results, loader)
+	return results
+}
 
+func TestExamples(t *testing.T) {
+	results := RunEngine(
+		t,
+		&engine.EngineOptions{
+			Providers: []data.Provider{
+				data.LocalProvider("../examples/metadata/"),
+				data.LocalProvider("../examples/"),
+			},
+		},
+		"../examples/main.tf",
+	)
 	bytes, err := json.MarshalIndent(results, "  ", "  ")
 	assert.NoError(t, err)
 	utils.GoldenTest(t, "examples_test.json", bytes)
+}
+
+func TestBundles(t *testing.T) {
+	results := RunEngine(
+		t,
+		&engine.EngineOptions{
+			BundleReaders: []bundle.Reader{
+				bundle.NewDirReader("../pkg/bundle/v1/test_inputs/complete"),
+				bundle.NewDirReader("../pkg/bundle/v1/test_inputs/minimal"),
+			},
+		},
+		"../examples/main.tf",
+	)
+	assert.Len(t, results.Results, 1)
+	bytes, err := json.MarshalIndent(results.Results[0].RuleResults, "  ", "  ")
+	assert.NoError(t, err)
+	utils.GoldenTest(t, "bundles_test.json", bytes)
 }
