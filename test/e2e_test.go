@@ -47,7 +47,7 @@ func RunEngine(t *testing.T, options *engine.EngineOptions, path string) *models
 	ctx := context.Background()
 	states := loader.ToStates()
 	eng := engine.NewEngine(ctx, options)
-	assert.Nil(t, eng.InitializationErrors)
+	assert.Len(t, eng.InitializationErrors, 0)
 	results := eng.Eval(ctx, &engine.EvalOptions{
 		Inputs: states,
 	})
@@ -88,7 +88,7 @@ func TestBundles(t *testing.T) {
 	utils.GoldenTest(t, "bundles.json", bytes)
 }
 
-func TestRuleTypes(t *testing.T) {
+func TestFugueRules(t *testing.T) {
 	results := RunEngine(
 		t,
 		&engine.EngineOptions{
@@ -102,4 +102,20 @@ func TestRuleTypes(t *testing.T) {
 	bytes, err := json.MarshalIndent(results.Results[0].RuleResults, "", "  ")
 	assert.NoError(t, err)
 	utils.GoldenTest(t, "fuguerules.json", bytes)
+}
+
+func TestSnykRules(t *testing.T) {
+	results := RunEngine(
+		t,
+		&engine.EngineOptions{
+			Providers: []data.Provider{
+				data.LocalProvider("snykrules"),
+			},
+		},
+		"../examples/main.tf",
+	)
+	assert.Len(t, results.Results, 1)
+	bytes, err := json.MarshalIndent(results.Results[0].RuleResults, "", "  ")
+	assert.NoError(t, err)
+	utils.GoldenTest(t, "snykrules.json", bytes)
 }
