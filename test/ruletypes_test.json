@@ -212,6 +212,151 @@
         "message": "bucket should not contain the word bucket, it's implied",
         "resource_id": "aws_s3_bucket.bucket1",
         "resource_namespace": "../examples/main.tf",
+        "resource_type": "aws_s3_bucket",
+        "resources": [
+          {
+            "id": "aws_s3_bucket.bucket1",
+            "type": "aws_s3_bucket",
+            "namespace": "../examples/main.tf",
+            "location": [
+              {
+                "filepath": "../examples/main.tf",
+                "line": 5,
+                "column": 1
+              }
+            ],
+            "attributes": [
+              {
+                "path": [
+                  "bucket"
+                ],
+                "location": {
+                  "filepath": "../examples/main.tf",
+                  "line": 6,
+                  "column": 3
+                }
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "passed": true,
+        "ignored": false,
+        "resource_id": "aws_s3_bucket.bucket2",
+        "resource_namespace": "../examples/main.tf",
+        "resource_type": "aws_s3_bucket",
+        "resources": [
+          {
+            "id": "aws_s3_bucket.bucket2",
+            "type": "aws_s3_bucket",
+            "namespace": "../examples/main.tf",
+            "location": [
+              {
+                "filepath": "../examples/main.tf",
+                "line": 9,
+                "column": 1
+              }
+            ],
+            "attributes": [
+              {
+                "path": [
+                  "bucket"
+                ],
+                "location": {
+                  "filepath": "../examples/main.tf",
+                  "line": 10,
+                  "column": 3
+                }
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "passed": false,
+        "ignored": false,
+        "message": "bucket should not contain the word bucket, it's implied",
+        "resource_id": "aws_s3_bucket.bucket3",
+        "resource_namespace": "../examples/main.tf",
+        "resource_type": "aws_s3_bucket",
+        "resources": [
+          {
+            "id": "aws_s3_bucket.bucket3",
+            "type": "aws_s3_bucket",
+            "namespace": "../examples/main.tf",
+            "location": [
+              {
+                "filepath": "../examples/main.tf",
+                "line": 29,
+                "column": 1
+              }
+            ],
+            "attributes": [
+              {
+                "path": [
+                  "bucket"
+                ],
+                "location": {
+                  "filepath": "../examples/main.tf",
+                  "line": 30,
+                  "column": 3
+                }
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "package": "data.rules.fugue_simple_deny_info"
+  },
+  {
+    "rule_bundle": {
+      "source": "data"
+    },
+    "resource_types": [
+      "aws_s3_bucket"
+    ],
+    "results": [
+      {
+        "passed": true,
+        "ignored": false,
+        "resource_id": "aws_s3_bucket.aes_bucket",
+        "resource_namespace": "../examples/main.tf",
+        "resource_type": "aws_s3_bucket",
+        "resources": [
+          {
+            "id": "aws_s3_bucket.aes_bucket",
+            "type": "aws_s3_bucket",
+            "namespace": "../examples/main.tf",
+            "location": [
+              {
+                "filepath": "../examples/main.tf",
+                "line": 41,
+                "column": 1
+              }
+            ],
+            "attributes": [
+              {
+                "path": [
+                  "bucket"
+                ],
+                "location": {
+                  "filepath": "../examples/main.tf",
+                  "line": 42,
+                  "column": 3
+                }
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "passed": false,
+        "ignored": false,
+        "message": "bucket should not contain the word bucket, it's implied",
+        "resource_id": "aws_s3_bucket.bucket1",
+        "resource_namespace": "../examples/main.tf",
         "resource_type": "aws_s3_bucket"
       },
       {
