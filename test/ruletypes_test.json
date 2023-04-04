@@ -102,10 +102,24 @@
         "resource_type": "aws_s3_bucket"
       },
       {
+        "passed": false,
+        "ignored": false,
+        "resource_id": "aws_s3_bucket.bucket1",
+        "resource_namespace": "../examples/main.tf",
+        "resource_type": "aws_s3_bucket"
+      },
+      {
         "passed": true,
         "ignored": false,
         "message": "this bucket is okay folks",
         "resource_id": "aws_s3_bucket.bucket2",
+        "resource_namespace": "../examples/main.tf",
+        "resource_type": "aws_s3_bucket"
+      },
+      {
+        "passed": false,
+        "ignored": false,
+        "resource_id": "aws_s3_bucket.bucket3",
         "resource_namespace": "../examples/main.tf",
         "resource_type": "aws_s3_bucket"
       }
