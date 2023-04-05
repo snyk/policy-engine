@@ -35,12 +35,14 @@ people = [
 	}
 
 	var people []Person
-	var person Person
 	err = state.Query(
 		ctx,
 		&Query{Query: "data.example.people[_]"},
-		&person,
-		func() error {
+		func(val ast.Value) error {
+			var person Person
+			if err := Bind(val, &person); err != nil {
+				return err
+			}
 			people = append(people, person)
 			return nil
 		},
@@ -91,12 +93,14 @@ people = [
 	assert.Len(t, compiler.Errors, 0)
 
 	var numbers []int
-	var number int
 	assert.NoError(t, state.Query(
 		ctx,
 		&Query{Query: "data.example.people[_].age + 1"},
-		&number,
-		func() error {
+		func(val ast.Value) error {
+			var number int
+			if err := Bind(val, &number); err != nil {
+				return err
+			}
 			numbers = append(numbers, number)
 			return nil
 		},

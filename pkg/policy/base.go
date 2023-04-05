@@ -342,13 +342,15 @@ func (p *BasePolicy) Metadata(
 	}
 	switch p.metadataRule.name {
 	case "metadata":
-		compat := metadataCompat{}
 		if err := state.Query(
 			ctx,
 			&regobind.Query{Query: p.metadataRule.query()},
-			&compat,
-			func() error {
-				var err error
+			func(val ast.Value) error {
+				compat := metadataCompat{}
+				err := regobind.Bind(val, &compat)
+				if err != nil {
+					return err
+				}
 				m, err = compat.ToMetadata()
 				return err
 			},
@@ -360,8 +362,7 @@ func (p *BasePolicy) Metadata(
 		if err := state.Query(
 			ctx,
 			&regobind.Query{Query: p.metadataRule.query()},
-			&d,
-			func() error { return nil },
+			func(val ast.Value) error { return regobind.Bind(val, &d) },
 		); err != nil {
 			return m, err
 		}
@@ -402,14 +403,16 @@ func (p *BasePolicy) resources(
 	if p.resourcesRule.name == "" {
 		return r, nil
 	}
-	var result resourcesResult
 	err := state.Query(
 		ctx,
 		query.Add(&regobind.Query{
 			Query: p.resourcesRule.query() + "[_]",
 		}),
-		&result,
-		func() error {
+		func(val ast.Value) error {
+			var result resourcesResult
+			if err := regobind.Bind(val, &result); err != nil {
+				return err
+			}
 			correlation := result.GetCorrelation()
 			if _, ok := r[correlation]; !ok {
 				r[correlation] = newRuleResultBuilder()

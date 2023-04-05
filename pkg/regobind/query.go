@@ -3,7 +3,6 @@ package regobind
 import (
 	"context"
 	"fmt"
-	"reflect"
 
 	"github.com/open-policy-agent/opa/ast"
 	"github.com/open-policy-agent/opa/storage"
@@ -89,15 +88,8 @@ func (q *Query) Add(other *Query) *Query {
 func (s *State) Query(
 	ctx context.Context,
 	query *Query,
-	buffer interface{},
-	process func() error,
+	process func(ast.Value) error,
 ) error {
-	bufferValue := reflect.ValueOf(buffer)
-	bufferKind := bufferValue.Type().Kind()
-	if bufferKind != reflect.Pointer {
-		return fmt.Errorf("non-pointer receiver passed to Query")
-	}
-
 	parsed, err := ast.ParseBody(query.Query)
 	if err != nil {
 		return err
@@ -135,15 +127,8 @@ func (s *State) Query(
 	}
 
 	return q.Iter(ctx, func(qr topdown.QueryResult) error {
-		bufferValue.Elem().Set(reflect.Zero(bufferValue.Type().Elem()))
-
 		regoValue := qr[captureVar]
-		err := Bind(regoValue.Value, buffer)
-		if err != nil {
-			return err
-		}
-
-		return process()
+		return process(regoValue.Value)
 	})
 }
 
