@@ -61,8 +61,8 @@ func PolicyFactory(moduleSet ModuleSet) (Policy, error) {
 		case "deny":
 			if base.judgementRule.hasKey() {
 				return &SingleResourcePolicy{
-					BasePolicy:       base,
-					processResultSet: processSingleDenyPolicyResult,
+					BasePolicy:           base,
+					resultBuilderFactory: NewSingleDenyResultBuilder,
 				}, nil
 			} else {
 				return &SingleResourcePolicy{

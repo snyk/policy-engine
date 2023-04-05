@@ -469,20 +469,20 @@ type policyResultResource struct {
 
 // This struct represents the common return format for the policy engine policies.
 type policyResult struct {
-	Message         string                `json:"message"`
-	Resource        *policyResultResource `json:"resource"`
-	PrimaryResource *policyResultResource `json:"primary_resource"`
-	ResourceType    string                `json:"resource_type"`
-	Remediation     string                `json:"remediation"`
-	Severity        string                `json:"severity"`
-	Attributes      [][]interface{}       `json:"attributes"`
-	Correlation     string                `json:"correlation"`
+	Message         string                `json:"message" rego:"message"`
+	Resource        *policyResultResource `json:"resource" rego:"resource"`
+	PrimaryResource *policyResultResource `json:"primary_resource" rego:"primary_resource"`
+	ResourceType    string                `json:"resource_type" rego:"resource_type"`
+	Remediation     string                `json:"remediation" rego:"remediation"`
+	Severity        string                `json:"severity" rego:"severity"`
+	Attributes      [][]interface{}       `json:"attributes" rego:"attributes"`
+	Correlation     string                `json:"correlation" rego:"correlation"`
 
 	// Backwards compatibility
-	FugueValid             bool   `json:"valid"`
-	FugueID                string `json:"id"`
-	FugueResourceType      string `json:"type"`
-	FugueResourceNamespace string `json:"namespace"`
+	FugueValid             bool   `json:"valid" rego:"valid"`
+	FugueID                string `json:"id" rego:"id"`
+	FugueResourceType      string `json:"type" rego:"type"`
+	FugueResourceNamespace string `json:"namespace" rego:"namespace"`
 }
 
 type resourcesResult struct {

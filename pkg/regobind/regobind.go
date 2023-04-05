@@ -52,6 +52,16 @@ func bind(src ast.Value, dst reflect.Value) error {
 				}
 			}
 			return nil
+		} else if srcSet, ok := src.(ast.Set); ok && dst.CanSet() {
+			dst.Set(reflect.MakeSlice(ty, srcSet.Len(), srcSet.Len()))
+			i := 0
+			return srcSet.Iter(func(elem *ast.Term) error {
+				if err := bind(elem.Value, dst.Index(i)); err != nil {
+					return fmt.Errorf("writing set value at index %d: %w", i, err)
+				}
+				i += 1
+				return nil
+			})
 		}
 	case reflect.Map:
 		if ty.Key().Kind() == reflect.String {

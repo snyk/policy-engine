@@ -64,6 +64,7 @@ func NewState(options *Options) (*State, error) {
 
 type Query struct {
 	Query               string
+	Input               ast.Value
 	Builtins            map[string]*topdown.Builtin
 	StrictBuiltinErrors bool
 	Tracers             []topdown.QueryTracer
@@ -72,6 +73,9 @@ type Query struct {
 func (q *Query) Add(other *Query) *Query {
 	if other.Query != "" {
 		q.Query = other.Query
+	}
+	if other.Input != nil {
+		q.Input = other.Input
 	}
 	if q.Builtins == nil && other.Builtins != nil {
 		q.Builtins = other.Builtins
@@ -120,7 +124,8 @@ func (s *State) Query(
 		WithCompiler(s.compiler).
 		WithStore(s.store).
 		WithTransaction(txn).
-		WithBuiltins(query.Builtins)
+		WithBuiltins(query.Builtins).
+		WithInput(&ast.Term{Value: query.Input})
 
 	for _, tracer := range query.Tracers {
 		q = q.WithQueryTracer(tracer)
