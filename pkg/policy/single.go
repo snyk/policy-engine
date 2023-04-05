@@ -19,11 +19,13 @@ import (
 	"fmt"
 	"sort"
 
+	"github.com/open-policy-agent/opa/ast"
 	"github.com/open-policy-agent/opa/rego"
 
 	"github.com/snyk/policy-engine/pkg/logging"
 	"github.com/snyk/policy-engine/pkg/models"
 	"github.com/snyk/policy-engine/pkg/policy/inferattributes"
+	"github.com/snyk/policy-engine/pkg/regobind"
 )
 
 // ProcessSingleResultSet functions extract RuleResult models from the ResultSet of
@@ -39,6 +41,7 @@ type ProcessSingleResultSet func(
 type SingleResourcePolicy struct {
 	*BasePolicy
 	processResultSet ProcessSingleResultSet
+	resultBuilder    ResultBuilder
 }
 
 // Eval will evaluate the policy on the given input.
@@ -183,4 +186,67 @@ func processSingleDenyPolicyResult(
 	}
 
 	return results, nil
+}
+
+type ResultBuilder interface {
+	Process(ast.Value) error
+	Results() []models.RuleResult
+}
+
+type SingleDenyResultBuilder struct {
+	Resource           *models.ResourceState
+	Metadata           *Metadata
+	DefaultRemediation string
+
+	results []models.RuleResult
+}
+
+func (b *SingleDenyResultBuilder) resourceKey() ResourceKey {
+	return ResourceKey{
+		ID:        b.Resource.Id,
+		Type:      b.Resource.ResourceType,
+		Namespace: b.Resource.Namespace,
+	}
+}
+
+func (b *SingleDenyResultBuilder) Process(val ast.Value) error {
+	policyResult := policyResult{}
+	if err := regobind.Bind(val, policyResult); err != nil {
+		// TODO: Fallback?
+		return err
+	}
+
+	rk := b.resourceKey()
+	result := newRuleResultBuilder()
+	result.setPrimaryResource(rk)
+	for _, attr := range policyResult.Attributes {
+		result.addResourceAttribute(rk, attr)
+	}
+
+	result.messages = append(result.messages, policyResult.Message)
+	if policyResult.Severity != "" {
+		result.severity = policyResult.Severity
+	} else {
+		result.severity = b.Metadata.Severity
+	}
+	if policyResult.Remediation != "" {
+		result.remediation = policyResult.Remediation
+	} else {
+		result.remediation = b.DefaultRemediation
+	}
+	b.results = append(b.results, result.toRuleResult())
+	return nil
+}
+
+func (b *SingleDenyResultBuilder) Results() []models.RuleResult {
+	if len(b.results) == 0 {
+		// No denies: generate an allow
+		result := newRuleResultBuilder()
+		result.setPrimaryResource(b.resourceKey())
+		result.passed = true
+		result.severity = b.Metadata.Severity
+		return []models.RuleResult{result.toRuleResult()}
+	} else {
+		return b.results
+	}
 }
