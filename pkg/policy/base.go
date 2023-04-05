@@ -357,25 +357,32 @@ func (p *BasePolicy) Metadata(
 		); err != nil {
 			return m, err
 		}
+
 	case "__rego__metadoc__":
-		d := metadoc{}
 		if err := state.Query(
 			ctx,
 			&regobind.Query{Query: p.metadataRule.query()},
-			func(val ast.Value) error { return regobind.Bind(val, &d) },
+			func(val ast.Value) error {
+				d := metadoc{}
+				if err := regobind.Bind(val, &d); err != nil {
+					return err
+				}
+				m = Metadata{
+					ID:          d.Id,
+					Title:       d.Title,
+					Description: d.Description,
+				}
+				if d.Custom != nil {
+					// It's not necessary to process controls here, because this path is only
+					// for backwards compatibility with custom rules.
+					m.Severity = d.Custom.Severity
+				}
+				return nil
+			},
 		); err != nil {
 			return m, err
 		}
-		m = Metadata{
-			ID:          d.Id,
-			Title:       d.Title,
-			Description: d.Description,
-		}
-		if d.Custom != nil {
-			// It's not necessary to process controls here, because this path is only
-			// for backwards compatibility with custom rules.
-			m.Severity = d.Custom.Severity
-		}
+
 	default:
 		return m, fmt.Errorf("Unrecognized metadata rule: %s", p.metadataRule.name)
 	}

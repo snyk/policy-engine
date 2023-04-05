@@ -182,16 +182,16 @@ func processFugueAllowPolicyResult(
 }
 
 type metadocCustom struct {
-	Severity  string              `json:"severity"`
-	Controls  map[string][]string `json:"controls"`
-	Families  []string            `json:"families"`
-	Provider  string              `json:"provider"`
-	Providers []string            `json:"providers"`
+	Severity  string              `json:"severity" rego:"severity"`
+	Controls  map[string][]string `json:"controls" rego:"controls"`
+	Families  []string            `json:"families" rego:"families"`
+	Provider  string              `json:"provider" rego:"provider"`
+	Providers []string            `json:"providers" rego:"providers"`
 }
 
 type metadoc struct {
-	Id          string         `json:"id"`
-	Title       string         `json:"title"`
-	Description string         `json:"description"`
-	Custom      *metadocCustom `json:"custom,omitempty"`
+	Id          string         `json:"id" rego:"id"`
+	Title       string         `json:"title" rego:"title"`
+	Description string         `json:"description" rego:"description"`
+	Custom      *metadocCustom `json:"custom,omitempty" rego:"custom"`
 }
