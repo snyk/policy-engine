@@ -1,0 +1,56 @@
+[
+  {
+    "id": "CUSTOM-RULE-1",
+    "rule_bundle": {
+      "source": "data"
+    },
+    "title": "Has bucket in bucket name",
+    "results": [
+      {
+        "passed": false,
+        "ignored": false,
+        "resource_id": "aws_s3_bucket.bucket1",
+        "resource_namespace": "../examples/main.tf",
+        "resource_type": "aws_s3_bucket",
+        "severity": "medium",
+        "resources": [
+          {
+            "id": "aws_s3_bucket.bucket1",
+            "type": "aws_s3_bucket",
+            "namespace": "../examples/main.tf",
+            "location": [
+              {
+                "filepath": "../examples/main.tf",
+                "line": 5,
+                "column": 1
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "passed": false,
+        "ignored": false,
+        "resource_id": "aws_s3_bucket.bucket3",
+        "resource_namespace": "../examples/main.tf",
+        "resource_type": "aws_s3_bucket",
+        "severity": "medium",
+        "resources": [
+          {
+            "id": "aws_s3_bucket.bucket3",
+            "type": "aws_s3_bucket",
+            "namespace": "../examples/main.tf",
+            "location": [
+              {
+                "filepath": "../examples/main.tf",
+                "line": 29,
+                "column": 1
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "package": "data.rules"
+  }
+]

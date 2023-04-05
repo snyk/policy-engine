@@ -20,10 +20,12 @@ resource_type = "aws_s3_bucket"
 
 # We now populate the attributes so we can use them in `deny`.
 bucket_name_paths[["bucket"]] {
+	is_string(input.bucket)
 	contains(input.bucket, "bucket")
 }
 
 bucket_name_paths[["bucket_prefix"]] {
+	is_string(input.bucket_prefix)
 	contains(input.bucket_prefix, "bucket")
 }
 

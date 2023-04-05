@@ -165,6 +165,19 @@ func processFugueAllowPolicyResult(
 		}
 		results = append(results, result)
 	}
+
+	if len(results) == 0 {
+		// No allows: generate a deny
+		result := models.RuleResult{
+			Passed:            false,
+			ResourceId:        resource.Id,
+			ResourceType:      resource.ResourceType,
+			ResourceNamespace: resource.Namespace,
+			Severity:          metadata.Severity,
+		}
+		results = append(results, result)
+	}
+
 	return results, nil
 }
 

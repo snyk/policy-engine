@@ -27,13 +27,15 @@ import (
 	"github.com/open-policy-agent/opa/storage/inmem"
 	"github.com/snyk/policy-engine/pkg/data"
 	"github.com/snyk/policy-engine/pkg/engine"
+	"github.com/snyk/policy-engine/pkg/models"
 	"github.com/snyk/policy-engine/pkg/snapshot_testing"
 	"github.com/spf13/cobra"
 )
 
-var (
-	cmdReplInit []string
-)
+var replFlags struct {
+	Init  []string
+	Cloud cloudOptions
+}
 
 var replCmd = &cobra.Command{
 	Use:   "repl [-d <rules/metadata>...] [input]",
@@ -43,27 +45,31 @@ var replCmd = &cobra.Command{
 		logger := cmdLogger()
 		snapshot_testing.GlobalRegisterNoop()
 		consumer := engine.NewPolicyConsumer()
+		var inputState *models.State
+		var err error
 		if len(args) > 1 {
-			return fmt.Errorf("Expected at most 1 input")
+			return fmt.Errorf("expected at most 1 input")
 		} else if len(args) == 1 {
-			inputState, err := loadSingleInput(ctx, logger, args[0])
-			if err != nil {
-				return err
-			}
-			replInput, err := jsonMarshalUnmarshal(inputState)
-			if err != nil {
-				return err
-			}
-			consumer.DataDocument(
-				ctx,
-				"repl/input/state.json",
-				map[string]interface{}{
-					"repl": map[string]interface{}{
-						"input": replInput,
-					},
-				},
-			)
+			inputState, err = loadSingleInput(ctx, logger, args[0])
+		} else if replFlags.Cloud.enabled() {
+			inputState, err = getCloudStates(ctx, replFlags.Cloud)
 		}
+		if err != nil {
+			return err
+		}
+		replInput, err := jsonMarshalUnmarshal(inputState)
+		if err != nil {
+			return err
+		}
+		consumer.DataDocument(
+			ctx,
+			"repl/input/state.json",
+			map[string]interface{}{
+				"repl": map[string]interface{}{
+					"input": replInput,
+				},
+			},
+		)
 		providers := []data.Provider{
 			data.PureRegoBuiltinsProvider(),
 			data.PureRegoLibProvider(),
@@ -103,7 +109,7 @@ var replCmd = &cobra.Command{
 		)
 
 		r.OneShot(ctx, "strict-builtin-errors")
-		for _, command := range cmdReplInit {
+		for _, command := range replFlags.Init {
 			if err := r.OneShot(ctx, command); err != nil {
 				return err
 			}
@@ -127,5 +133,6 @@ func jsonMarshalUnmarshal(v interface{}) (map[string]interface{}, error) {
 }
 
 func init() {
-	replCmd.Flags().StringSliceVarP(&cmdReplInit, "init", "i", nil, "execute Rego statement(s) before starting REPL")
+	replCmd.Flags().StringSliceVarP(&replFlags.Init, "init", "i", nil, "execute Rego statement(s) before starting REPL")
+	replFlags.Cloud.addFlags(replCmd)
 }

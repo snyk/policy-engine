@@ -32,9 +32,10 @@ import (
 	"github.com/snyk/policy-engine/pkg/snapshot_testing"
 )
 
-var (
-	cmdEvalInput []string
-)
+var evalFlags struct {
+	Input []string
+	Cloud cloudOptions
+}
 
 var evalCmd = &cobra.Command{
 	Use:   "eval [-d <rules/metadata>...] eval [-i input] [query]",
@@ -47,10 +48,20 @@ var evalCmd = &cobra.Command{
 
 		regoOptions := []func(r *rego.Rego){}
 
-		if len(cmdEvalInput) > 1 {
-			return fmt.Errorf("Expected at most 1 input")
-		} else if len(cmdEvalInput) == 1 {
-			inputState, err := loadSingleInput(ctx, logger, cmdEvalInput[0])
+		if len(evalFlags.Input) > 1 {
+			return fmt.Errorf("expected at most 1 input")
+		} else if len(evalFlags.Input) == 1 {
+			inputState, err := loadSingleInput(ctx, logger, evalFlags.Input[0])
+			if err != nil {
+				return err
+			}
+			replInput, err := jsonMarshalUnmarshal(inputState)
+			if err != nil {
+				return err
+			}
+			regoOptions = append(regoOptions, rego.Input(replInput))
+		} else if evalFlags.Cloud.enabled() {
+			inputState, err := getCloudStates(ctx, evalFlags.Cloud)
 			if err != nil {
 				return err
 			}
@@ -114,5 +125,6 @@ var evalCmd = &cobra.Command{
 }
 
 func init() {
-	evalCmd.Flags().StringSliceVarP(&cmdEvalInput, "input", "i", nil, "input file or directory")
+	evalCmd.Flags().StringSliceVarP(&evalFlags.Input, "input", "i", nil, "input file or directory")
+	evalFlags.Cloud.addFlags(evalCmd)
 }

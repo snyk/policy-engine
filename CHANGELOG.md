@@ -2,6 +2,18 @@
 
 
 
+## v0.19.0 - 2023-03-16
+### Added
+* explicit --log-level flag
+* --input-type flag for fixture command
+* support for cloud resources in run, fixture, and eval commands
+### Fixed
+* complete bundle example
+* bug where HCL syntax errors were being treated as non-fatal
+### Updated
+* .snyk MPL 2.0 ignores
+* Copyright headers
+
 ## v0.18.3 - 2023-02-20
 ### Changed
 * upgrade go-getter to v1.7.0
