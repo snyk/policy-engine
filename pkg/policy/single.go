@@ -20,7 +20,6 @@ import (
 	"sort"
 
 	"github.com/open-policy-agent/opa/ast"
-	"github.com/open-policy-agent/opa/rego"
 	"github.com/open-policy-agent/opa/topdown"
 
 	"github.com/snyk/policy-engine/pkg/logging"
@@ -29,19 +28,9 @@ import (
 	"github.com/snyk/policy-engine/pkg/regobind"
 )
 
-// ProcessSingleResultSet functions extract RuleResult models from the ResultSet of
-// single-resource type rules.
-type ProcessSingleResultSet func(
-	resultSet rego.ResultSet,
-	resource *models.ResourceState,
-	metadata Metadata,
-	defaultRemediation string,
-) ([]models.RuleResult, error)
-
 // SingleResourcePolicy represents a policy that takes a single resource as input.
 type SingleResourcePolicy struct {
 	*BasePolicy
-	processResultSet     ProcessSingleResultSet
 	resultBuilderFactory func(
 		resource *models.ResourceState,
 		metadata *Metadata,
@@ -82,17 +71,6 @@ func (p *SingleResourcePolicy) Eval(
 		return []models.RuleResults{output}, err
 	}
 	metadata.copyToRuleResults(options.Input.InputType, &output)
-	opts := append(
-		options.RegoOptions,
-		rego.Query(p.judgementRule.query()),
-	)
-	query, err := rego.New(opts...).PrepareForEval(ctx)
-	if err != nil {
-		logger.Error(ctx, "Failed to prepare for eval")
-		err = fmt.Errorf("%w: %v", FailedToPrepareForEval, err)
-		output.Errors = append(output.Errors, err.Error())
-		return []models.RuleResults{output}, err
-	}
 	ruleResults := []models.RuleResult{}
 	rt := p.resourceType
 	output.ResourceTypes = []string{rt}
@@ -118,42 +96,29 @@ func (p *SingleResourcePolicy) Eval(
 			// problem is that we lose the top-level location on the term. We might be able to use
 			// the fact that the term references `input` instead.
 			var results []models.RuleResult
-			if p.resultBuilderFactory == nil {
-				resultSet, err := query.Eval(ctx, rego.EvalQueryTracer(tracer), rego.EvalParsedInput(inputDoc.Value))
-				if err != nil {
-					logger.Error(ctx, "Failed to evaluate rule for resource")
-					err = fmt.Errorf("%w '%s': %v", FailedToEvaluateResource, resource.Id, err)
-					output.Errors = append(output.Errors, err.Error())
-					return []models.RuleResults{output}, err
-				}
-				results, err = p.processResultSet(
-					resultSet,
-					&resource,
-					metadata,
-					defaultRemediation,
-				)
-			} else {
-				resultBuilder := p.resultBuilderFactory(
-					&resource,
-					&metadata,
-					defaultRemediation,
-				)
-				err := options.RegoState.Query(
-					ctx,
-					&regobind.Query{
-						Tracers: []topdown.QueryTracer{tracer},
-						Query:   p.judgementRule.query2(),
-						Input:   inputDoc.Value,
-					},
-					func(val ast.Value) error {
-						return resultBuilder.Process(val)
-					},
-				)
-				if err != nil {
-					return nil, err
-				}
-				results = resultBuilder.Results()
+			resultBuilder := p.resultBuilderFactory(
+				&resource,
+				&metadata,
+				defaultRemediation,
+			)
+			err = options.RegoState.Query(
+				ctx,
+				&regobind.Query{
+					Tracers: []topdown.QueryTracer{tracer},
+					Query:   p.judgementRule.query2(),
+					Input:   inputDoc.Value,
+				},
+				func(val ast.Value) error {
+					return resultBuilder.Process(val)
+				},
+			)
+			if err != nil {
+				logger.Error(ctx, "Failed to evaluate rule for resource")
+				err = fmt.Errorf("%w '%s': %v", FailedToEvaluateResource, resource.Id, err)
+				output.Errors = append(output.Errors, err.Error())
+				return []models.RuleResults{output}, err
 			}
+			results = resultBuilder.Results()
 
 			// Fill in paths inferred using the tracer.
 			tracer.InferAttributes(results)
