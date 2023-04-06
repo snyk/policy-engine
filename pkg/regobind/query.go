@@ -11,10 +11,9 @@ import (
 )
 
 type Options struct {
-	Modules             map[string]*ast.Module
-	Document            map[string]interface{}
-	Capabilities        *ast.Capabilities
-	StrictBuiltinErrors bool
+	Modules      map[string]*ast.Module
+	Document     map[string]interface{}
+	Capabilities *ast.Capabilities
 }
 
 func (options *Options) Add(other Options) {
@@ -66,7 +65,7 @@ type Query struct {
 	Query               string
 	Input               ast.Value
 	Builtins            map[string]*topdown.Builtin
-	StrictBuiltinErrors bool
+	StrictBuiltinErrors *bool // Defaults to true for us.
 	Tracers             []topdown.QueryTracer
 }
 
@@ -84,7 +83,9 @@ func (q *Query) Add(other *Query) *Query {
 			q.Builtins[k] = builtin
 		}
 	}
-	q.StrictBuiltinErrors = q.StrictBuiltinErrors || other.StrictBuiltinErrors
+	if other.StrictBuiltinErrors != nil {
+		q.StrictBuiltinErrors = other.StrictBuiltinErrors
+	}
 	q.Tracers = append(q.Tracers, other.Tracers...)
 	return q
 }
@@ -125,6 +126,7 @@ func (s *State) Query(
 		WithStore(s.store).
 		WithTransaction(txn).
 		WithBuiltins(query.Builtins).
+		WithStrictBuiltinErrors(query.StrictBuiltinErrors == nil || *query.StrictBuiltinErrors).
 		WithInput(&ast.Term{Value: query.Input})
 
 	for _, tracer := range query.Tracers {

@@ -159,10 +159,9 @@ func (s *policySet) compile(ctx context.Context) error {
 	}
 	var err error
 	s.rego, err = regobind.NewState(&regobind.Options{
-		Modules:             s.Modules,
-		Document:            s.Document,
-		Capabilities:        policy.Capabilities(),
-		StrictBuiltinErrors: true,
+		Modules:      s.Modules,
+		Document:     s.Document,
+		Capabilities: policy.Capabilities(),
 	})
 	if err != nil {
 		return err
