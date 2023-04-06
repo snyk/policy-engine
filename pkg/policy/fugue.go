@@ -90,51 +90,6 @@ func (b *fugueDenyBooleanResultBuilder) Results() []models.RuleResult {
 	}
 }
 
-type fugueAllowStringResultBuilder struct {
-	resource *models.ResourceState
-	severity string
-	messages []string
-}
-
-func NewFugueAllowStringResultBuilder(
-	resource *models.ResourceState,
-	metadata *Metadata,
-	defaultRemediation string,
-) ResultBuilder {
-	return &fugueAllowStringResultBuilder{
-		resource: resource,
-		severity: metadata.Severity,
-	}
-}
-
-func (b *fugueAllowStringResultBuilder) Process(val ast.Value) error {
-	var message string
-	if err := regobind.Bind(val, &message); err != nil {
-		return err
-	}
-	b.messages = append(b.messages, message)
-	return nil
-}
-
-func (b *fugueAllowStringResultBuilder) Results() []models.RuleResult {
-	var message string
-	var allow bool
-	if len(b.messages) > 0 {
-		allow = true
-		message = b.messages[0]
-	}
-	return []models.RuleResult{
-		{
-			Passed:            allow,
-			Message:           message,
-			ResourceId:        b.resource.Id,
-			ResourceType:      b.resource.ResourceType,
-			ResourceNamespace: b.resource.Namespace,
-			Severity:          b.severity,
-		},
-	}
-}
-
 func processFuguePolicyResultSet(
 	resultSet rego.ResultSet,
 	metadata Metadata,
