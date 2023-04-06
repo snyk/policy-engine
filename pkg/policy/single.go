@@ -49,6 +49,12 @@ type SingleResourcePolicy struct {
 	) ResultBuilder
 }
 
+// ResultBuilder can turn rego results into the results model we want.
+type ResultBuilder interface {
+	Process(ast.Value) error
+	Results() []models.RuleResult
+}
+
 // Eval will evaluate the policy on the given input.
 func (p *SingleResourcePolicy) Eval(
 	ctx context.Context,
@@ -136,7 +142,7 @@ func (p *SingleResourcePolicy) Eval(
 					ctx,
 					&regobind.Query{
 						Tracers: []topdown.QueryTracer{tracer},
-						Query:   p.judgementRule.query() + "[_]",
+						Query:   p.judgementRule.query2(),
 						Input:   inputDoc.Value,
 					},
 					func(val ast.Value) error {
@@ -163,11 +169,6 @@ func (p *SingleResourcePolicy) Eval(
 	}
 	output.Results = ruleResults
 	return []models.RuleResults{output}, nil
-}
-
-type ResultBuilder interface {
-	Process(ast.Value) error
-	Results() []models.RuleResult
 }
 
 type SingleDenyResultBuilder struct {

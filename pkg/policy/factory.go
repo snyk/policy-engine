@@ -53,8 +53,8 @@ func PolicyFactory(moduleSet ModuleSet) (Policy, error) {
 				}, nil
 			} else {
 				return &SingleResourcePolicy{
-					BasePolicy:       base,
-					processResultSet: processFugueAllowBoolean,
+					BasePolicy:           base,
+					resultBuilderFactory: NewFugueAllowBooleanResultBuilder,
 				}, nil
 			}
 

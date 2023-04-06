@@ -15,31 +15,46 @@
 package policy
 
 import (
+	"github.com/open-policy-agent/opa/ast"
 	"github.com/open-policy-agent/opa/rego"
+
 	"github.com/snyk/policy-engine/pkg/models"
+	"github.com/snyk/policy-engine/pkg/regobind"
 )
 
 // This file contains code for backwards compatibility with Fugue rules.
 
-func processFugueAllowBoolean(
-	resultSet rego.ResultSet,
+type fugueAllowBooleanResultBuilder struct {
+	resource *models.ResourceState
+	severity string
+	allow    bool
+}
+
+func NewFugueAllowBooleanResultBuilder(
 	resource *models.ResourceState,
-	metadata Metadata,
-	_ string,
-) ([]models.RuleResult, error) {
-	var allow bool
-	if err := unmarshalResultSet(resultSet, &allow); err != nil {
-		return nil, err
+	metadata *Metadata,
+	defaultRemediation string,
+) ResultBuilder {
+	return &fugueAllowBooleanResultBuilder{
+		resource: resource,
+		severity: metadata.Severity,
 	}
-	// TODO: propagate remediation from metadata
-	result := models.RuleResult{
-		Passed:            allow,
-		ResourceId:        resource.Id,
-		ResourceType:      resource.ResourceType,
-		ResourceNamespace: resource.Namespace,
-		Severity:          metadata.Severity,
+}
+
+func (b *fugueAllowBooleanResultBuilder) Process(val ast.Value) error {
+	return regobind.Bind(val, &b.allow)
+}
+
+func (b *fugueAllowBooleanResultBuilder) Results() []models.RuleResult {
+	return []models.RuleResult{
+		{
+			Passed:            b.allow,
+			ResourceId:        b.resource.Id,
+			ResourceType:      b.resource.ResourceType,
+			ResourceNamespace: b.resource.Namespace,
+			Severity:          b.severity,
+		},
 	}
-	return []models.RuleResult{result}, nil
 }
 
 func processFugueDenyBoolean(
