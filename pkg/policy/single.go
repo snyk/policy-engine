@@ -171,7 +171,7 @@ func (p *SingleResourcePolicy) Eval(
 	return []models.RuleResults{output}, nil
 }
 
-type SingleDenyResultBuilder struct {
+type singleDenyResultBuilder struct {
 	resource           *models.ResourceState
 	metadata           *Metadata
 	defaultRemediation string
@@ -183,14 +183,14 @@ func NewSingleDenyResultBuilder(
 	metadata *Metadata,
 	defaultRemediation string,
 ) ResultBuilder {
-	return &SingleDenyResultBuilder{
+	return &singleDenyResultBuilder{
 		resource:           resource,
 		metadata:           metadata,
 		defaultRemediation: defaultRemediation,
 	}
 }
 
-func (b *SingleDenyResultBuilder) resourceKey() ResourceKey {
+func (b *singleDenyResultBuilder) resourceKey() ResourceKey {
 	return ResourceKey{
 		ID:        b.resource.Id,
 		Type:      b.resource.ResourceType,
@@ -198,7 +198,7 @@ func (b *SingleDenyResultBuilder) resourceKey() ResourceKey {
 	}
 }
 
-func (b *SingleDenyResultBuilder) Process(val ast.Value) error {
+func (b *singleDenyResultBuilder) Process(val ast.Value) error {
 	policyResult := policyResult{}
 	if err := regobind.Bind(val, &policyResult); err != nil {
 		// It might be a fugue deny[msg] style rule in this case. Try that as a
@@ -232,7 +232,7 @@ func (b *SingleDenyResultBuilder) Process(val ast.Value) error {
 	return nil
 }
 
-func (b *SingleDenyResultBuilder) Results() []models.RuleResult {
+func (b *singleDenyResultBuilder) Results() []models.RuleResult {
 	if len(b.results) == 0 {
 		// No denies: generate an allow
 		result := newRuleResultBuilder()

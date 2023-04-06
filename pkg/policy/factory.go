@@ -48,8 +48,8 @@ func PolicyFactory(moduleSet ModuleSet) (Policy, error) {
 		case "allow":
 			if base.judgementRule.hasKey() {
 				return &SingleResourcePolicy{
-					BasePolicy:       base,
-					processResultSet: processFugueAllowPolicyResult,
+					BasePolicy:           base,
+					resultBuilderFactory: NewFugueAllowInfoResultBuilder,
 				}, nil
 			} else {
 				return &SingleResourcePolicy{
@@ -66,8 +66,8 @@ func PolicyFactory(moduleSet ModuleSet) (Policy, error) {
 				}, nil
 			} else {
 				return &SingleResourcePolicy{
-					BasePolicy:       base,
-					processResultSet: processFugueDenyBoolean,
+					BasePolicy:           base,
+					resultBuilderFactory: NewFugueDenyBooleanResultBuilder,
 				}, nil
 			}
 		}
