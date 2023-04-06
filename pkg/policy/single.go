@@ -31,15 +31,15 @@ import (
 // SingleResourcePolicy represents a policy that takes a single resource as input.
 type SingleResourcePolicy struct {
 	*BasePolicy
-	resultBuilderFactory func(
+	processorFactory func(
 		resource *models.ResourceState,
 		metadata *Metadata,
 		defaultRemediation string,
-	) ResultBuilder
+	) SingleResourceProcessor
 }
 
-// ResultBuilder can turn rego results into the results model we want.
-type ResultBuilder interface {
+// SingleResourceProcessor can turn rego results into the results model we want.
+type SingleResourceProcessor interface {
 	Process(ast.Value) error
 	Results() []models.RuleResult
 }
@@ -96,7 +96,7 @@ func (p *SingleResourcePolicy) Eval(
 			// problem is that we lose the top-level location on the term. We might be able to use
 			// the fact that the term references `input` instead.
 			var results []models.RuleResult
-			resultBuilder := p.resultBuilderFactory(
+			processor := p.processorFactory(
 				&resource,
 				&metadata,
 				defaultRemediation,
@@ -109,7 +109,7 @@ func (p *SingleResourcePolicy) Eval(
 					Input:   inputDoc.Value,
 				},
 				func(val ast.Value) error {
-					return resultBuilder.Process(val)
+					return processor.Process(val)
 				},
 			)
 			if err != nil {
@@ -118,7 +118,7 @@ func (p *SingleResourcePolicy) Eval(
 				output.Errors = append(output.Errors, err.Error())
 				return []models.RuleResults{output}, err
 			}
-			results = resultBuilder.Results()
+			results = processor.Results()
 
 			// Fill in paths inferred using the tracer.
 			tracer.InferAttributes(results)
@@ -136,26 +136,26 @@ func (p *SingleResourcePolicy) Eval(
 	return []models.RuleResults{output}, nil
 }
 
-type singleDenyResultBuilder struct {
+type singleDenyProcessor struct {
 	resource           *models.ResourceState
 	metadata           *Metadata
 	defaultRemediation string
 	results            []models.RuleResult
 }
 
-func NewSingleDenyResultBuilder(
+func NewSingleDenyProcessor(
 	resource *models.ResourceState,
 	metadata *Metadata,
 	defaultRemediation string,
-) ResultBuilder {
-	return &singleDenyResultBuilder{
+) SingleResourceProcessor {
+	return &singleDenyProcessor{
 		resource:           resource,
 		metadata:           metadata,
 		defaultRemediation: defaultRemediation,
 	}
 }
 
-func (b *singleDenyResultBuilder) resourceKey() ResourceKey {
+func (b *singleDenyProcessor) resourceKey() ResourceKey {
 	return ResourceKey{
 		ID:        b.resource.Id,
 		Type:      b.resource.ResourceType,
@@ -163,7 +163,7 @@ func (b *singleDenyResultBuilder) resourceKey() ResourceKey {
 	}
 }
 
-func (b *singleDenyResultBuilder) Process(val ast.Value) error {
+func (b *singleDenyProcessor) Process(val ast.Value) error {
 	policyResult := policyResult{}
 	if err := regobind.Bind(val, &policyResult); err != nil {
 		// It might be a fugue deny[msg] style rule in this case. Try that as a
@@ -197,7 +197,7 @@ func (b *singleDenyResultBuilder) Process(val ast.Value) error {
 	return nil
 }
 
-func (b *singleDenyResultBuilder) Results() []models.RuleResult {
+func (b *singleDenyProcessor) Results() []models.RuleResult {
 	if len(b.results) == 0 {
 		// No denies: generate an allow
 		result := newRuleResultBuilder()

@@ -48,26 +48,26 @@ func PolicyFactory(moduleSet ModuleSet) (Policy, error) {
 		case "allow":
 			if base.judgementRule.hasKey() {
 				return &SingleResourcePolicy{
-					BasePolicy:           base,
-					resultBuilderFactory: NewFugueAllowInfoResultBuilder,
+					BasePolicy:       base,
+					processorFactory: NewFugueAllowInfoProcessor,
 				}, nil
 			} else {
 				return &SingleResourcePolicy{
-					BasePolicy:           base,
-					resultBuilderFactory: NewFugueAllowBooleanResultBuilder,
+					BasePolicy:       base,
+					processorFactory: NewFugueAllowBooleanProcessor,
 				}, nil
 			}
 
 		case "deny":
 			if base.judgementRule.hasKey() {
 				return &SingleResourcePolicy{
-					BasePolicy:           base,
-					resultBuilderFactory: NewSingleDenyResultBuilder,
+					BasePolicy:       base,
+					processorFactory: NewSingleDenyProcessor,
 				}, nil
 			} else {
 				return &SingleResourcePolicy{
-					BasePolicy:           base,
-					resultBuilderFactory: NewFugueDenyBooleanResultBuilder,
+					BasePolicy:       base,
+					processorFactory: NewFugueDenyBooleanProcessor,
 				}, nil
 			}
 		}

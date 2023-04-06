@@ -24,28 +24,28 @@ import (
 
 // This file contains code for backwards compatibility with Fugue rules.
 
-type fugueAllowBooleanResultBuilder struct {
+type fugueAllowBooleanProcessor struct {
 	resource *models.ResourceState
 	severity string
 	allow    bool
 }
 
-func NewFugueAllowBooleanResultBuilder(
+func NewFugueAllowBooleanProcessor(
 	resource *models.ResourceState,
 	metadata *Metadata,
 	defaultRemediation string,
-) ResultBuilder {
-	return &fugueAllowBooleanResultBuilder{
+) SingleResourceProcessor {
+	return &fugueAllowBooleanProcessor{
 		resource: resource,
 		severity: metadata.Severity,
 	}
 }
 
-func (b *fugueAllowBooleanResultBuilder) Process(val ast.Value) error {
+func (b *fugueAllowBooleanProcessor) Process(val ast.Value) error {
 	return regobind.Bind(val, &b.allow)
 }
 
-func (b *fugueAllowBooleanResultBuilder) Results() []models.RuleResult {
+func (b *fugueAllowBooleanProcessor) Results() []models.RuleResult {
 	return []models.RuleResult{
 		{
 			Passed:            b.allow,
@@ -57,28 +57,28 @@ func (b *fugueAllowBooleanResultBuilder) Results() []models.RuleResult {
 	}
 }
 
-type fugueDenyBooleanResultBuilder struct {
+type fugueDenyBooleanProcessor struct {
 	resource *models.ResourceState
 	severity string
 	deny     bool
 }
 
-func NewFugueDenyBooleanResultBuilder(
+func NewFugueDenyBooleanProcessor(
 	resource *models.ResourceState,
 	metadata *Metadata,
 	defaultRemediation string,
-) ResultBuilder {
-	return &fugueDenyBooleanResultBuilder{
+) SingleResourceProcessor {
+	return &fugueDenyBooleanProcessor{
 		resource: resource,
 		severity: metadata.Severity,
 	}
 }
 
-func (b *fugueDenyBooleanResultBuilder) Process(val ast.Value) error {
+func (b *fugueDenyBooleanProcessor) Process(val ast.Value) error {
 	return regobind.Bind(val, &b.deny)
 }
 
-func (b *fugueDenyBooleanResultBuilder) Results() []models.RuleResult {
+func (b *fugueDenyBooleanProcessor) Results() []models.RuleResult {
 	return []models.RuleResult{
 		{
 			Passed:            !b.deny,
@@ -117,24 +117,24 @@ func processFuguePolicyResultSet(
 
 // This is a ProcessSingleResultSet func for the old allow[info] and
 // allow[msg] style rules.
-type fugueAllowInfoResultBuilder struct {
+type fugueAllowInfoProcessor struct {
 	resource *models.ResourceState
 	severity string
 	results  []models.RuleResult
 }
 
-func NewFugueAllowInfoResultBuilder(
+func NewFugueAllowInfoProcessor(
 	resource *models.ResourceState,
 	metadata *Metadata,
 	defaultRemediation string,
-) ResultBuilder {
-	return &fugueAllowInfoResultBuilder{
+) SingleResourceProcessor {
+	return &fugueAllowInfoProcessor{
 		resource: resource,
 		severity: metadata.Severity,
 	}
 }
 
-func (b *fugueAllowInfoResultBuilder) Process(val ast.Value) error {
+func (b *fugueAllowInfoProcessor) Process(val ast.Value) error {
 	var r policyResult
 	if err := regobind.Bind(val, &r); err != nil {
 		// It might be a fugue allow[msg] style rule in this case. Try that as a
@@ -155,7 +155,7 @@ func (b *fugueAllowInfoResultBuilder) Process(val ast.Value) error {
 	return nil
 }
 
-func (b *fugueAllowInfoResultBuilder) Results() []models.RuleResult {
+func (b *fugueAllowInfoProcessor) Results() []models.RuleResult {
 	if len(b.results) == 0 {
 		// No allows: generate a deny
 		return []models.RuleResult{
