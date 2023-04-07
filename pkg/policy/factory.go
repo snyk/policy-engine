@@ -35,12 +35,12 @@ func PolicyFactory(moduleSet ModuleSet) (Policy, error) {
 		case "deny":
 			return &MultiResourcePolicy{
 				BasePolicy:       base,
-				processResultSet: processMultiDenyPolicyResult,
+				processorFactory: NewMultiDenyProcessor,
 			}, nil
 		case "policy":
 			return &MultiResourcePolicy{
 				BasePolicy:       base,
-				processResultSet: processFuguePolicyResultSet,
+				processorFactory: NewFuguePolicyProcessor,
 			}, nil
 		}
 	} else {

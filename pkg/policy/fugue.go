@@ -16,7 +16,6 @@ package policy
 
 import (
 	"github.com/open-policy-agent/opa/ast"
-	"github.com/open-policy-agent/opa/rego"
 
 	"github.com/snyk/policy-engine/pkg/models"
 	"github.com/snyk/policy-engine/pkg/regobind"
@@ -90,29 +89,39 @@ func (b *fugueDenyBooleanProcessor) Results() []models.RuleResult {
 	}
 }
 
-func processFuguePolicyResultSet(
-	resultSet rego.ResultSet,
-	metadata Metadata,
-	_ string,
-	_ map[string]*ruleResultBuilder,
-) ([]models.RuleResult, error) {
-	policyResults := []policyResult{}
-	if err := unmarshalResultSet(resultSet, &policyResults); err != nil {
-		return nil, err
+type fuguePolicyProcessor struct {
+	metadata Metadata
+	results  []models.RuleResult
+}
+
+func NewFuguePolicyProcessor(metadata Metadata, defaultRemediation string) MultiResourceProcessor {
+	return &fuguePolicyProcessor{
+		metadata: metadata,
 	}
-	results := []models.RuleResult{}
-	for _, p := range policyResults {
-		result := models.RuleResult{
-			Passed:            p.FugueValid,
-			ResourceId:        p.FugueID,
-			ResourceType:      p.FugueResourceType,
-			ResourceNamespace: p.FugueResourceNamespace,
-			Message:           p.Message,
-			Severity:          metadata.Severity,
-		}
-		results = append(results, result)
+}
+
+func (p *fuguePolicyProcessor) ProcessValue(val ast.Value) error {
+	var result policyResult
+	if err := regobind.Bind(val, &result); err != nil {
+		return err
 	}
-	return results, nil
+	p.results = append(p.results, models.RuleResult{
+		Passed:            result.FugueValid,
+		ResourceId:        result.FugueID,
+		ResourceType:      result.FugueResourceType,
+		ResourceNamespace: result.FugueResourceNamespace,
+		Message:           result.Message,
+		Severity:          p.metadata.Severity,
+	})
+	return nil
+}
+
+func (p *fuguePolicyProcessor) ProcessResource(val ast.Value) error {
+	return nil
+}
+
+func (p *fuguePolicyProcessor) Results() []models.RuleResult {
+	return p.results
 }
 
 // This is a ProcessSingleResultSet func for the old allow[info] and
