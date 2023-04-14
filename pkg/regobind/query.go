@@ -16,13 +16,18 @@ type Options struct {
 	Capabilities *ast.Capabilities
 }
 
-func (options *Options) Add(other Options) {
+func (options Options) Add(other Options) Options {
 	if options.Modules == nil && other.Modules != nil {
 		options.Modules = other.Modules
 	} else if other.Modules != nil {
-		for k, mod := range other.Modules {
-			options.Modules[k] = mod
+		mods := map[string]*ast.Module{}
+		for k, mod := range options.Modules {
+			mods[k] = mod
 		}
+		for k, mod := range other.Modules {
+			mods[k] = mod
+		}
+		options.Modules = mods
 	}
 
 	if options.Document == nil {
@@ -32,6 +37,8 @@ func (options *Options) Add(other Options) {
 	if options.Capabilities == nil {
 		options.Capabilities = other.Capabilities
 	}
+
+	return options
 }
 
 type State struct {
@@ -39,7 +46,7 @@ type State struct {
 	store    storage.Store
 }
 
-func NewState(options *Options) (*State, error) {
+func NewState(options Options) (*State, error) {
 	compiler := ast.NewCompiler()
 
 	if options.Capabilities != nil {
@@ -69,7 +76,7 @@ type Query struct {
 	Tracers             []topdown.QueryTracer
 }
 
-func (q *Query) Add(other *Query) *Query {
+func (q Query) Add(other Query) Query {
 	if other.Query != "" {
 		q.Query = other.Query
 	}
@@ -79,20 +86,32 @@ func (q *Query) Add(other *Query) *Query {
 	if q.Builtins == nil && other.Builtins != nil {
 		q.Builtins = other.Builtins
 	} else if other.Builtins != nil {
+		builtins := map[string]*topdown.Builtin{}
+		for k, builtin := range q.Builtins {
+			q.Builtins[k] = builtin
+		}
 		for k, builtin := range other.Builtins {
 			q.Builtins[k] = builtin
 		}
+		q.Builtins = builtins
 	}
 	if other.StrictBuiltinErrors != nil {
 		q.StrictBuiltinErrors = other.StrictBuiltinErrors
 	}
-	q.Tracers = append(q.Tracers, other.Tracers...)
+	if len(q.Tracers) == 0 && len(other.Tracers) > 0 {
+		q.Tracers = other.Tracers
+	} else if len(other.Tracers) > 0 {
+		tracers := []topdown.QueryTracer{}
+		tracers = append(tracers, q.Tracers...)
+		tracers = append(tracers, other.Tracers...)
+		q.Tracers = tracers
+	}
 	return q
 }
 
 func (s *State) Query(
 	ctx context.Context,
-	query *Query,
+	query Query,
 	process func(ast.Value) error,
 ) error {
 	parsed, err := ast.ParseBody(query.Query)

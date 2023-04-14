@@ -103,7 +103,7 @@ func (p *SingleResourcePolicy) Eval(
 			)
 			err = options.RegoState.Query(
 				ctx,
-				&regobind.Query{
+				regobind.Query{
 					Tracers: []topdown.QueryTracer{tracer},
 					Query:   p.judgementRule.query2(),
 					Input:   inputDoc.Value,

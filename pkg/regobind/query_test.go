@@ -20,7 +20,7 @@ people = [
 ]`),
 	}
 
-	state, err := NewState(&Options{
+	state, err := NewState(Options{
 		Modules: modules,
 	})
 	assert.NoError(t, err)
@@ -37,7 +37,7 @@ people = [
 	var people []Person
 	err = state.Query(
 		ctx,
-		&Query{Query: "data.example.people[_]"},
+		Query{Query: "data.example.people[_]"},
 		func(val ast.Value) error {
 			var person Person
 			if err := Bind(val, &person); err != nil {
@@ -83,7 +83,7 @@ people = [
 ]`),
 	}
 
-	state, err := NewState(&Options{
+	state, err := NewState(Options{
 		Modules: modules,
 	})
 	assert.NoError(t, err)
@@ -95,7 +95,7 @@ people = [
 	var numbers []int
 	assert.NoError(t, state.Query(
 		ctx,
-		&Query{Query: "data.example.people[_].age + 1"},
+		Query{Query: "data.example.people[_].age + 1"},
 		func(val ast.Value) error {
 			var number int
 			if err := Bind(val, &number); err != nil {

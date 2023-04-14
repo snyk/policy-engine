@@ -87,7 +87,7 @@ func (p *LegacyIaCPolicy) Eval(
 		}
 		builtins := NewBuiltins(options.Input, options.ResourcesResolver)
 		strictBuiltinErrors := false
-		queryOptions := regobind.Query{
+		query := regobind.Query{
 			Builtins:            builtins.Implementations(),
 			Query:               p.judgementRule.query2(),
 			Input:               inputValue,
@@ -102,7 +102,7 @@ func (p *LegacyIaCPolicy) Eval(
 		}
 		if err := options.RegoState.Query(
 			ctx,
-			&queryOptions,
+			query,
 			func(val ast.Value) error {
 				return processor.Process(val)
 			},

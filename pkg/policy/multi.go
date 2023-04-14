@@ -76,7 +76,7 @@ func (p *MultiResourcePolicy) Eval(
 	builtins := NewBuiltins(options.Input, options.ResourcesResolver)
 	tracer := inferattributes.NewTracer()
 
-	queryOpts := regobind.Query{
+	query := regobind.Query{
 		Query:    p.judgementRule.query2(),
 		Builtins: builtins.Implementations(),
 		Tracers:  []topdown.QueryTracer{tracer},
@@ -87,7 +87,7 @@ func (p *MultiResourcePolicy) Eval(
 	processor := p.processorFactory(metadata, defaultRemediation)
 	err = options.RegoState.Query(
 		ctx,
-		&queryOpts,
+		query,
 		processor.ProcessValue,
 	)
 	if err != nil {
@@ -98,7 +98,7 @@ func (p *MultiResourcePolicy) Eval(
 	}
 	err = options.RegoState.Query(
 		ctx,
-		queryOpts.Add(&regobind.Query{Query: p.resourcesRule.query2()}),
+		query.Add(regobind.Query{Query: p.resourcesRule.query2()}),
 		processor.ProcessResource,
 	)
 	if err != nil {

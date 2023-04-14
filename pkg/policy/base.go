@@ -354,7 +354,7 @@ func (p *BasePolicy) Metadata(
 	case "metadata":
 		if err := state.Query(
 			ctx,
-			&regobind.Query{Query: p.metadataRule.query()},
+			regobind.Query{Query: p.metadataRule.query()},
 			func(val ast.Value) error {
 				compat := metadataCompat{}
 				err := regobind.Bind(val, &compat)
@@ -371,7 +371,7 @@ func (p *BasePolicy) Metadata(
 	case "__rego__metadoc__":
 		if err := state.Query(
 			ctx,
-			&regobind.Query{Query: p.metadataRule.query()},
+			regobind.Query{Query: p.metadataRule.query()},
 			func(val ast.Value) error {
 				d := metadoc{}
 				if err := regobind.Bind(val, &d); err != nil {
@@ -422,7 +422,7 @@ func (p *BasePolicy) resources(
 	}
 	err := state.Query(
 		ctx,
-		query.Add(&regobind.Query{
+		query.Add(regobind.Query{
 			Query: p.resourcesRule.query() + "[_]",
 		}),
 		func(val ast.Value) error {
