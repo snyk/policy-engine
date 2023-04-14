@@ -411,50 +411,6 @@ func (p *BasePolicy) ID(
 	return metadata.ID, nil
 }
 
-func (p *BasePolicy) resources(
-	ctx context.Context,
-	state *regobind.State,
-	query *regobind.Query,
-) (map[string]*ruleResultBuilder, error) {
-	r := map[string]*ruleResultBuilder{} // By correlation
-	if p.resourcesRule.name == "" {
-		return r, nil
-	}
-	err := state.Query(
-		ctx,
-		query.Add(regobind.Query{
-			Query: p.resourcesRule.query() + "[_]",
-		}),
-		func(val ast.Value) error {
-			var result resourcesResult
-			if err := regobind.Bind(val, &result); err != nil {
-				return err
-			}
-			correlation := result.GetCorrelation()
-			if _, ok := r[correlation]; !ok {
-				r[correlation] = newRuleResultBuilder()
-			}
-			if result.ResourceType != "" {
-				r[correlation].setMissingResourceType(result.ResourceType)
-			}
-			if result.Resource != nil {
-				r[correlation].addResource(result.Resource.Key())
-			}
-			if result.PrimaryResource != nil {
-				r[correlation].setPrimaryResource(result.PrimaryResource.Key())
-			}
-			for _, attr := range result.Attributes {
-				r[correlation].addResourceAttribute(result.GetResource().Key(), attr)
-			}
-			return nil
-		},
-	)
-	if err != nil {
-		return nil, err
-	}
-	return r, nil
-}
-
 // unmarshalResultSet is a small utility function to extract the correct types out of
 // a ResultSet.
 func unmarshalResultSet(resultSet rego.ResultSet, v interface{}) error {
