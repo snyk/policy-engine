@@ -180,7 +180,8 @@ func Capabilities() *ast.Capabilities {
 }
 
 type builtin interface {
-	decl() *rego.Function
+	name() string
+	decl() *types.Function
 	impl(bctx rego.BuiltinContext, operands []*ast.Term) (*ast.Term, error)
 }
 
@@ -189,12 +190,12 @@ type resourcesByType struct {
 	input      *models.State
 }
 
-func (r *resourcesByType) decl() *rego.Function {
-	return &rego.Function{
-		Name:    resourcesByTypeName,
-		Decl:    builtinDeclarations[resourcesByTypeName],
-		Memoize: true,
-	}
+func (r *resourcesByType) name() string {
+	return resourcesByTypeName
+}
+
+func (r *resourcesByType) decl() *types.Function {
+	return builtinDeclarations[resourcesByTypeName]
 }
 
 func (r *resourcesByType) impl(
@@ -272,12 +273,12 @@ type currentInputType struct {
 	input *models.State
 }
 
-func (c *currentInputType) decl() *rego.Function {
-	return &rego.Function{
-		Name:    currentInputTypeName,
-		Decl:    builtinDeclarations[currentInputTypeName],
-		Memoize: true,
-	}
+func (c *currentInputType) name() string {
+	return currentInputTypeName
+}
+
+func (c *currentInputType) decl() *types.Function {
+	return builtinDeclarations[currentInputTypeName]
 }
 
 func (c *currentInputType) impl(
@@ -291,12 +292,12 @@ type inputResourceTypes struct {
 	input *models.State
 }
 
-func (c *inputResourceTypes) decl() *rego.Function {
-	return &rego.Function{
-		Name:    inputResourceTypesName,
-		Decl:    builtinDeclarations[inputResourceTypesName],
-		Memoize: true,
-	}
+func (c *inputResourceTypes) name() string {
+	return inputResourceTypesName
+}
+
+func (c *inputResourceTypes) decl() *types.Function {
+	return builtinDeclarations[inputResourceTypesName]
 }
 
 func (c *inputResourceTypes) impl(
@@ -339,7 +340,10 @@ func NewBuiltins(input *models.State, resourcesResolver ResourcesResolver) *Buil
 func (b *Builtins) Rego() []func(*rego.Rego) {
 	r := make([]func(*rego.Rego), len(b.funcs))
 	for idx, f := range b.funcs {
-		r[idx] = rego.FunctionDyn(f.decl(), f.impl)
+		r[idx] = rego.FunctionDyn(&rego.Function{
+			Name: f.name(),
+			Decl: f.decl(),
+		}, f.impl)
 	}
 	return r
 }
@@ -347,7 +351,28 @@ func (b *Builtins) Rego() []func(*rego.Rego) {
 func (b *Builtins) Implementations() map[string]*topdown.Builtin {
 	m := map[string]*topdown.Builtin{}
 	for _, f := range b.funcs {
-		m[f.decl().Name] = wrap(f)
+		name := f.name()
+		impl := f.impl
+		m[f.name()] = &topdown.Builtin{
+			Decl: &ast.Builtin{
+				Name: name,
+				Decl: f.decl(),
+			},
+			Func: func(bctx topdown.BuiltinContext, operands []*ast.Term, iter func(*ast.Term) error) error {
+				result, err := impl(bctx, operands)
+				if err != nil {
+					return &topdown.Error{
+						Code:     topdown.BuiltinErr,
+						Message:  fmt.Sprintf("%v: %v", name, err.Error()),
+						Location: bctx.Location,
+					}
+				}
+				if result == nil {
+					return nil
+				}
+				return iter(result)
+			},
+		}
 	}
 	return m
 }
@@ -359,30 +384,4 @@ func (b *Builtins) ResourceTypes() []string {
 	}
 	sort.Strings(rts)
 	return rts
-}
-
-func wrap(f builtin) *topdown.Builtin {
-	/*
-	 */
-	fdecl := f.decl()
-	return &topdown.Builtin{
-		Decl: &ast.Builtin{
-			Name: fdecl.Name,
-			Decl: fdecl.Decl,
-		},
-		Func: func(bctx topdown.BuiltinContext, operands []*ast.Term, iter func(*ast.Term) error) error {
-			result, err := f.impl(bctx, operands)
-			if err != nil {
-				return &topdown.Error{
-					Code:     topdown.BuiltinErr,
-					Message:  fmt.Sprintf("%v: %v", fdecl.Name, err.Error()),
-					Location: bctx.Location,
-				}
-			}
-			if result == nil {
-				return nil
-			}
-			return iter(result)
-		},
-	}
 }

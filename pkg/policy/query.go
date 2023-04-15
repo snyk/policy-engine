@@ -21,6 +21,7 @@ import (
 	"github.com/open-policy-agent/opa/ast"
 	"github.com/open-policy-agent/opa/rego"
 	"github.com/open-policy-agent/opa/topdown/builtins"
+	"github.com/open-policy-agent/opa/types"
 	"github.com/snyk/policy-engine/pkg/models"
 )
 
@@ -28,12 +29,12 @@ type Query struct {
 	ResourcesResolver ResourcesResolver
 }
 
-func (*Query) decl() *rego.Function {
-	return &rego.Function{
-		Name:    queryName,
-		Decl:    builtinDeclarations[queryName],
-		Memoize: true,
-	}
+func (*Query) name() string {
+    return queryName
+}
+
+func (*Query) decl() *types.Function {
+    return  builtinDeclarations[queryName]
 }
 
 func (q *Query) impl(bctx rego.BuiltinContext, operands []*ast.Term) (*ast.Term, error) {
