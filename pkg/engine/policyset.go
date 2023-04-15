@@ -23,7 +23,6 @@ import (
 
 	"github.com/hashicorp/go-multierror"
 	"github.com/open-policy-agent/opa/ast"
-	"github.com/open-policy-agent/opa/rego"
 	"github.com/open-policy-agent/opa/storage"
 	"github.com/open-policy-agent/opa/storage/inmem"
 	"github.com/snyk/policy-engine/pkg/data"
@@ -175,18 +174,9 @@ func (s *policySet) initStore(ctx context.Context) {
 	s.store = inmem.NewFromObject(s.Document)
 }
 
-func (s *policySet) regoOptions(base []func(*rego.Rego)) []func(*rego.Rego) {
-	regoOptions := []func(*rego.Rego){
-		rego.Compiler(s.compiler),
-		rego.Store(s.store),
-	}
-	return append(regoOptions, base...)
-}
-
 type evalPolicyOptions struct {
 	resourcesResolver policy.ResourcesResolver
 	policy            policy.Policy
-	regoOptions       []func(*rego.Rego)
 	input             *models.State
 }
 
@@ -195,7 +185,6 @@ func (s *policySet) evalPolicy(ctx context.Context, options *evalPolicyOptions) 
 	instrumentation := s.instrumentation.policyEvalInstrumentation(pol)
 	instrumentation.startEval(ctx)
 	ruleResults, err := pol.Eval(ctx, policy.EvalOptions{
-		RegoOptions:       s.regoOptions(options.regoOptions),
 		RegoState:         s.rego,
 		Logger:            instrumentation.logger,
 		ResourcesResolver: options.resourcesResolver,
@@ -250,7 +239,6 @@ func (s *policySet) ruleIDFilter(ctx context.Context, ruleIDs []string) policyFi
 
 type parallelEvalOptions struct {
 	resourcesResolver policy.ResourcesResolver
-	regoOptions       []func(*rego.Rego)
 	workers           int
 	input             *models.State
 	ruleIDs           []string
@@ -295,7 +283,6 @@ func (s *policySet) eval(ctx context.Context, options *parallelEvalOptions) []mo
 						return
 					}
 					resultsChan <- s.evalPolicy(ctx, &evalPolicyOptions{
-						regoOptions:       options.regoOptions,
 						resourcesResolver: options.resourcesResolver,
 						policy:            p,
 						input:             options.input,

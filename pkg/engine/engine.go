@@ -19,7 +19,6 @@ import (
 	"fmt"
 	"sort"
 
-	"github.com/open-policy-agent/opa/rego"
 	"github.com/snyk/policy-engine/pkg/bundle"
 	"github.com/snyk/policy-engine/pkg/bundle/base"
 	"github.com/snyk/policy-engine/pkg/data"
@@ -175,9 +174,6 @@ func (e *Engine) Eval(ctx context.Context, options *EvalOptions) *models.Results
 		for _, p := range e.policySets {
 			ruleResults := p.eval(ctx, &parallelEvalOptions{
 				resourcesResolver: options.ResourcesResolver,
-				regoOptions: []func(*rego.Rego){
-					rego.StrictBuiltinErrors(true),
-				},
 				input:        &input,
 				ruleIDs:      options.RuleIDs,
 				workers:      options.Workers,

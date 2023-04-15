@@ -16,12 +16,10 @@ package policy
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"strings"
 
 	"github.com/open-policy-agent/opa/ast"
-	"github.com/open-policy-agent/opa/rego"
 	"github.com/snyk/policy-engine/pkg/input"
 	"github.com/snyk/policy-engine/pkg/logging"
 	"github.com/snyk/policy-engine/pkg/models"
@@ -59,7 +57,6 @@ var SupportedInputTypes = input.Types{
 }
 
 type EvalOptions struct {
-	RegoOptions       []func(*rego.Rego)
 	RegoState         *regobind.State
 	Input             *models.State
 	Logger            logging.Logger
@@ -409,22 +406,6 @@ func (p *BasePolicy) ID(
 		return "", err
 	}
 	return metadata.ID, nil
-}
-
-// unmarshalResultSet is a small utility function to extract the correct types out of
-// a ResultSet.
-func unmarshalResultSet(resultSet rego.ResultSet, v interface{}) error {
-	if len(resultSet) < 1 {
-		return nil
-	}
-	if len(resultSet[0].Expressions) < 1 {
-		return nil
-	}
-	data, err := json.Marshal(resultSet[0].Expressions[0].Value)
-	if err != nil {
-		return err
-	}
-	return json.Unmarshal(data, v)
 }
 
 type policyResultResource struct {

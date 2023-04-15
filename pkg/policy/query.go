@@ -19,7 +19,7 @@ import (
 	"fmt"
 
 	"github.com/open-policy-agent/opa/ast"
-	"github.com/open-policy-agent/opa/rego"
+	"github.com/open-policy-agent/opa/topdown"
 	"github.com/open-policy-agent/opa/topdown/builtins"
 	"github.com/open-policy-agent/opa/types"
 	"github.com/snyk/policy-engine/pkg/models"
@@ -30,14 +30,14 @@ type Query struct {
 }
 
 func (*Query) name() string {
-    return queryName
+	return queryName
 }
 
 func (*Query) decl() *types.Function {
-    return  builtinDeclarations[queryName]
+	return builtinDeclarations[queryName]
 }
 
-func (q *Query) impl(bctx rego.BuiltinContext, operands []*ast.Term) (*ast.Term, error) {
+func (q *Query) impl(bctx topdown.BuiltinContext, operands []*ast.Term) (*ast.Term, error) {
 	scopeOpaObj, err := builtins.ObjectOperand(operands[0].Value, 0)
 	if err != nil {
 		return nil, err
