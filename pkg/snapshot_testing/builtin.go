@@ -25,6 +25,7 @@ import (
 	"github.com/hexops/gotextdiff/span"
 	"github.com/open-policy-agent/opa/ast"
 	"github.com/open-policy-agent/opa/rego"
+	"github.com/open-policy-agent/opa/topdown"
 	"github.com/open-policy-agent/opa/topdown/builtins"
 	"github.com/open-policy-agent/opa/types"
 )
@@ -44,7 +45,7 @@ var MatchBuiltin = &ast.Builtin{
 // for actual testing.
 func MatchNoopImpl() rego.BuiltinDyn {
 	return func(
-		bctx rego.BuiltinContext,
+		bctx topdown.BuiltinContext,
 		operands []*ast.Term,
 	) (*ast.Term, error) {
 		return ast.BooleanTerm(true), nil
@@ -65,7 +66,7 @@ func MatchTestImpl(updateSnapshots bool) rego.BuiltinDyn {
 	updatedSnapshots := map[string]string{}
 
 	return func(
-		bctx rego.BuiltinContext,
+		bctx topdown.BuiltinContext,
 		operands []*ast.Term,
 	) (*ast.Term, error) {
 		if len(operands) != 2 {

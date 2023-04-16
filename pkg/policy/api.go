@@ -182,7 +182,7 @@ func Capabilities() *ast.Capabilities {
 type builtin interface {
 	name() string
 	decl() *types.Function
-	impl(bctx rego.BuiltinContext, operands []*ast.Term) (*ast.Term, error)
+	impl(bctx topdown.BuiltinContext, operands []*ast.Term) (*ast.Term, error)
 }
 
 type resourcesByType struct {
@@ -199,7 +199,7 @@ func (r *resourcesByType) decl() *types.Function {
 }
 
 func (r *resourcesByType) impl(
-	bctx rego.BuiltinContext,
+	bctx topdown.BuiltinContext,
 	operands []*ast.Term,
 ) (*ast.Term, error) {
 	if len(operands) != 2 {
@@ -282,7 +282,7 @@ func (c *currentInputType) decl() *types.Function {
 }
 
 func (c *currentInputType) impl(
-	bctx rego.BuiltinContext,
+	bctx topdown.BuiltinContext,
 	operands []*ast.Term,
 ) (*ast.Term, error) {
 	return ast.StringTerm(c.input.InputType), nil
@@ -301,7 +301,7 @@ func (c *inputResourceTypes) decl() *types.Function {
 }
 
 func (c *inputResourceTypes) impl(
-	bctx rego.BuiltinContext,
+	bctx topdown.BuiltinContext,
 	operands []*ast.Term,
 ) (*ast.Term, error) {
 	rts := make([]*ast.Term, 0, len(c.input.Resources))
