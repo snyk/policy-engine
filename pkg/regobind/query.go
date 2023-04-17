@@ -16,31 +16,6 @@ type Options struct {
 	Capabilities *ast.Capabilities
 }
 
-func (options Options) Add(other Options) Options {
-	if options.Modules == nil && other.Modules != nil {
-		options.Modules = other.Modules
-	} else if other.Modules != nil {
-		mods := map[string]*ast.Module{}
-		for k, mod := range options.Modules {
-			mods[k] = mod
-		}
-		for k, mod := range other.Modules {
-			mods[k] = mod
-		}
-		options.Modules = mods
-	}
-
-	if options.Document == nil {
-		options.Document = other.Document
-	}
-
-	if options.Capabilities == nil {
-		options.Capabilities = other.Capabilities
-	}
-
-	return options
-}
-
 type State struct {
 	compiler *ast.Compiler
 	store    storage.Store
@@ -68,6 +43,7 @@ func NewState(options Options) (*State, error) {
 	}, nil
 }
 
+// Query options can be extended in an associative way using Add.
 type Query struct {
 	Query               string
 	Input               ast.Value

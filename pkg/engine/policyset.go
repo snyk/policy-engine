@@ -23,8 +23,6 @@ import (
 
 	"github.com/hashicorp/go-multierror"
 	"github.com/open-policy-agent/opa/ast"
-	"github.com/open-policy-agent/opa/storage"
-	"github.com/open-policy-agent/opa/storage/inmem"
 	"github.com/snyk/policy-engine/pkg/data"
 	"github.com/snyk/policy-engine/pkg/metrics"
 	"github.com/snyk/policy-engine/pkg/models"
@@ -44,7 +42,6 @@ type policySet struct {
 	PolicyConsumer
 	instrumentation *policySetInstrumentation
 	compiler        *ast.Compiler
-	store           storage.Store
 	rego            *regobind.State
 	policies        []policy.Policy
 	name            string
@@ -105,7 +102,6 @@ func newPolicySet(ctx context.Context, options policySetOptions) (*policySet, er
 	if err := s.compile(ctx); err != nil {
 		return nil, newRuleBundleError(s.ruleBundle(), fmt.Errorf("%w: %v", FailedToCompile, err))
 	}
-	s.initStore(ctx)
 	return s, nil
 }
 
@@ -166,12 +162,6 @@ func (s *policySet) compile(ctx context.Context) error {
 		return err
 	}
 	return nil
-}
-
-func (s *policySet) initStore(ctx context.Context) {
-	s.instrumentation.startInitStore(ctx)
-	defer s.instrumentation.finishInitStore(ctx)
-	s.store = inmem.NewFromObject(s.Document)
 }
 
 type evalPolicyOptions struct {
@@ -400,14 +390,6 @@ func (i *policySetInstrumentation) startCompile(ctx context.Context) {
 
 func (i *policySetInstrumentation) finishCompile(ctx context.Context) {
 	i.finishPhase(ctx, "compile")
-}
-
-func (i *policySetInstrumentation) startInitStore(ctx context.Context) {
-	i.startPhase(ctx, "init_store")
-}
-
-func (i *policySetInstrumentation) finishInitStore(ctx context.Context) {
-	i.finishPhase(ctx, "init_store")
 }
 
 func (i *policySetInstrumentation) startPolicySelection(ctx context.Context) {
