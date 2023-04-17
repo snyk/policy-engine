@@ -102,6 +102,13 @@ func bind(src ast.Value, dst reflect.Value) error {
 				return nil
 			}
 		}
+	case reflect.Float64:
+		if number, ok := src.(ast.Number); ok {
+			if f, ok := number.Float64(); ok && dst.CanSet() {
+				dst.SetFloat(f)
+				return nil
+			}
+		}
 	case reflect.String:
 		if str, ok := src.(ast.String); ok && dst.CanSet() {
 			dst.SetString(string(str))
