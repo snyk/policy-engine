@@ -105,7 +105,7 @@ func (p *SingleResourcePolicy) Eval(
 				ctx,
 				regobind.Query{
 					Tracers: []topdown.QueryTracer{tracer},
-					Query:   p.judgementRule.query2(),
+					Query:   p.judgementRule.query(),
 					Input:   inputDoc.Value,
 				},
 				func(val ast.Value) error {

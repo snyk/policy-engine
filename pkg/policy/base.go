@@ -105,21 +105,15 @@ func (i *ruleInfo) add(r *ast.Rule) error {
 	return nil
 }
 
-// TODO: Remove in favor of query2?
 func (i *ruleInfo) query() string {
 	if len(i.rules) < 1 {
 		return ""
 	}
-	return i.rules[0].Path().String()
-}
-
-func (i *ruleInfo) query2() string {
+	q := i.rules[0].Path().String()
 	if i.hasKey() {
-		return i.query() + "[_]"
-	} else {
-		return i.query()
+		q += "[_]"
 	}
-
+	return q
 }
 
 func (i *ruleInfo) hasKey() bool {

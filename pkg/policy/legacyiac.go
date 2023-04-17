@@ -89,7 +89,7 @@ func (p *LegacyIaCPolicy) Eval(
 		strictBuiltinErrors := false
 		query := regobind.Query{
 			Builtins:            builtins.Implementations(),
-			Query:               p.judgementRule.query2(),
+			Query:               p.judgementRule.query(),
 			Input:               inputValue,
 			StrictBuiltinErrors: &strictBuiltinErrors,
 		}
