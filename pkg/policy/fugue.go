@@ -18,7 +18,7 @@ import (
 	"github.com/open-policy-agent/opa/ast"
 
 	"github.com/snyk/policy-engine/pkg/models"
-	"github.com/snyk/policy-engine/pkg/regobind"
+	"github.com/snyk/policy-engine/pkg/rego"
 )
 
 // This file contains code for backwards compatibility with Fugue rules.
@@ -41,7 +41,7 @@ func NewFugueAllowBooleanProcessor(
 }
 
 func (b *fugueAllowBooleanProcessor) Process(val ast.Value) error {
-	return regobind.Bind(val, &b.allow)
+	return rego.Bind(val, &b.allow)
 }
 
 func (b *fugueAllowBooleanProcessor) Results() []models.RuleResult {
@@ -74,7 +74,7 @@ func NewFugueDenyBooleanProcessor(
 }
 
 func (b *fugueDenyBooleanProcessor) Process(val ast.Value) error {
-	return regobind.Bind(val, &b.deny)
+	return rego.Bind(val, &b.deny)
 }
 
 func (b *fugueDenyBooleanProcessor) Results() []models.RuleResult {
@@ -102,7 +102,7 @@ func NewFuguePolicyProcessor(metadata Metadata, defaultRemediation string) Multi
 
 func (p *fuguePolicyProcessor) ProcessValue(val ast.Value) error {
 	var result policyResult
-	if err := regobind.Bind(val, &result); err != nil {
+	if err := rego.Bind(val, &result); err != nil {
 		return err
 	}
 	p.results = append(p.results, models.RuleResult{
@@ -145,10 +145,10 @@ func NewFugueAllowInfoProcessor(
 
 func (b *fugueAllowInfoProcessor) Process(val ast.Value) error {
 	var r policyResult
-	if err := regobind.Bind(val, &r); err != nil {
+	if err := rego.Bind(val, &r); err != nil {
 		// It might be a fugue allow[msg] style rule in this case. Try that as a
 		// fallback.
-		if strErr := regobind.Bind(val, &r.Message); strErr != nil {
+		if strErr := rego.Bind(val, &r.Message); strErr != nil {
 			return err
 		}
 	}

@@ -25,7 +25,7 @@ import (
 	"github.com/snyk/policy-engine/pkg/logging"
 	"github.com/snyk/policy-engine/pkg/models"
 	"github.com/snyk/policy-engine/pkg/policy/inferattributes"
-	"github.com/snyk/policy-engine/pkg/regobind"
+	"github.com/snyk/policy-engine/pkg/rego"
 )
 
 // ProcessSingleResultSet functions extract RuleResult models from the ResultSet of
@@ -76,7 +76,7 @@ func (p *MultiResourcePolicy) Eval(
 	builtins := NewBuiltins(options.Input, options.ResourcesResolver)
 	tracer := inferattributes.NewTracer()
 
-	query := regobind.Query{
+	query := rego.Query{
 		Query:    p.judgementRule.query(),
 		Builtins: builtins.Implementations(),
 		Tracers:  []topdown.QueryTracer{tracer},
@@ -98,7 +98,7 @@ func (p *MultiResourcePolicy) Eval(
 	}
 	err = options.RegoState.Query(
 		ctx,
-		query.Add(regobind.Query{Query: p.resourcesRule.query()}),
+		query.Add(rego.Query{Query: p.resourcesRule.query()}),
 		processor.ProcessResource,
 	)
 	if err != nil {
@@ -132,7 +132,7 @@ func NewMultiDenyProcessor(metadata Metadata, defaultRemediation string) MultiRe
 
 func (p *multiDenyProcessor) ProcessValue(val ast.Value) error {
 	var result policyResult
-	if err := regobind.Bind(val, &result); err != nil {
+	if err := rego.Bind(val, &result); err != nil {
 		return err
 	}
 
@@ -175,7 +175,7 @@ func (p *multiDenyProcessor) ProcessValue(val ast.Value) error {
 
 func (p *multiDenyProcessor) ProcessResource(val ast.Value) error {
 	var result resourcesResult
-	if err := regobind.Bind(val, &result); err != nil {
+	if err := rego.Bind(val, &result); err != nil {
 		return err
 	}
 	correlation := result.GetCorrelation()

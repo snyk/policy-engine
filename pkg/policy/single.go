@@ -25,7 +25,7 @@ import (
 	"github.com/snyk/policy-engine/pkg/logging"
 	"github.com/snyk/policy-engine/pkg/models"
 	"github.com/snyk/policy-engine/pkg/policy/inferattributes"
-	"github.com/snyk/policy-engine/pkg/regobind"
+	"github.com/snyk/policy-engine/pkg/rego"
 )
 
 // SingleResourcePolicy represents a policy that takes a single resource as input.
@@ -103,7 +103,7 @@ func (p *SingleResourcePolicy) Eval(
 			)
 			err = options.RegoState.Query(
 				ctx,
-				regobind.Query{
+				rego.Query{
 					Tracers: []topdown.QueryTracer{tracer},
 					Query:   p.judgementRule.query(),
 					Input:   inputDoc.Value,
@@ -165,11 +165,11 @@ func (b *singleDenyProcessor) resourceKey() ResourceKey {
 
 func (b *singleDenyProcessor) Process(val ast.Value) error {
 	policyResult := policyResult{}
-	if err := regobind.Bind(val, &policyResult); err != nil {
+	if err := rego.Bind(val, &policyResult); err != nil {
 		// It might be a fugue deny[msg] style rule in this case. Try that as a
 		// fallback.
 		var denyString string
-		if strErr := regobind.Bind(val, &denyString); strErr != nil {
+		if strErr := rego.Bind(val, &denyString); strErr != nil {
 			return err
 		}
 		policyResult.Message = denyString

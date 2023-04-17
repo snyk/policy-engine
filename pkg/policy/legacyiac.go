@@ -25,7 +25,7 @@ import (
 	"github.com/snyk/policy-engine/pkg/logging"
 	"github.com/snyk/policy-engine/pkg/models"
 	"github.com/snyk/policy-engine/pkg/policy/legacyiac"
-	"github.com/snyk/policy-engine/pkg/regobind"
+	"github.com/snyk/policy-engine/pkg/rego"
 )
 
 // This file contains code for backwards compatibility with legacy Snyk IaC rules
@@ -87,7 +87,7 @@ func (p *LegacyIaCPolicy) Eval(
 		}
 		builtins := NewBuiltins(options.Input, options.ResourcesResolver)
 		strictBuiltinErrors := false
-		query := regobind.Query{
+		query := rego.Query{
 			Builtins:            builtins.Implementations(),
 			Query:               p.judgementRule.query(),
 			Input:               inputValue,
@@ -135,7 +135,7 @@ type legacyIaCProcessor struct {
 
 func (r *legacyIaCProcessor) Process(val ast.Value) error {
 	var ir legacyIaCResult
-	if err := regobind.Bind(val, &ir); err != nil {
+	if err := rego.Bind(val, &ir); err != nil {
 		return err
 	}
 

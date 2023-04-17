@@ -1,4 +1,4 @@
-package regobind
+package rego
 
 import (
 	"context"

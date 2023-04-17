@@ -23,7 +23,7 @@ import (
 	"github.com/snyk/policy-engine/pkg/input"
 	"github.com/snyk/policy-engine/pkg/logging"
 	"github.com/snyk/policy-engine/pkg/models"
-	"github.com/snyk/policy-engine/pkg/regobind"
+	"github.com/snyk/policy-engine/pkg/rego"
 )
 
 // Constants used to determine a policy's type.
@@ -57,7 +57,7 @@ var SupportedInputTypes = input.Types{
 }
 
 type EvalOptions struct {
-	RegoState         *regobind.State
+	RegoState         *rego.State
 	Input             *models.State
 	Logger            logging.Logger
 	ResourcesResolver ResourcesResolver
@@ -67,8 +67,8 @@ type EvalOptions struct {
 // with policies.
 type Policy interface {
 	Package() string
-	Metadata(ctx context.Context, state *regobind.State) (Metadata, error)
-	ID(ctx context.Context, state *regobind.State) (string, error)
+	Metadata(ctx context.Context, state *rego.State) (Metadata, error)
+	ID(ctx context.Context, state *rego.State) (string, error)
 	Eval(ctx context.Context, options EvalOptions) ([]models.RuleResults, error)
 	InputType() string
 	InputTypeMatches(inputType string) bool
@@ -331,7 +331,7 @@ func (p *BasePolicy) InputTypeMatches(inputType string) bool {
 
 func (p *BasePolicy) Metadata(
 	ctx context.Context,
-	state *regobind.State,
+	state *rego.State,
 ) (Metadata, error) {
 	if p.cachedMetadata != nil {
 		return *p.cachedMetadata, nil
@@ -345,10 +345,10 @@ func (p *BasePolicy) Metadata(
 	case "metadata":
 		if err := state.Query(
 			ctx,
-			regobind.Query{Query: p.metadataRule.query()},
+			rego.Query{Query: p.metadataRule.query()},
 			func(val ast.Value) error {
 				compat := metadataCompat{}
-				err := regobind.Bind(val, &compat)
+				err := rego.Bind(val, &compat)
 				if err != nil {
 					return err
 				}
@@ -362,10 +362,10 @@ func (p *BasePolicy) Metadata(
 	case "__rego__metadoc__":
 		if err := state.Query(
 			ctx,
-			regobind.Query{Query: p.metadataRule.query()},
+			rego.Query{Query: p.metadataRule.query()},
 			func(val ast.Value) error {
 				d := metadoc{}
-				if err := regobind.Bind(val, &d); err != nil {
+				if err := rego.Bind(val, &d); err != nil {
 					return err
 				}
 				m = Metadata{
@@ -393,7 +393,7 @@ func (p *BasePolicy) Metadata(
 
 func (p *BasePolicy) ID(
 	ctx context.Context,
-	state *regobind.State,
+	state *rego.State,
 ) (string, error) {
 	metadata, err := p.Metadata(ctx, state)
 	if err != nil {
