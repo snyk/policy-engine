@@ -64,22 +64,20 @@ func bind(src ast.Value, dst reflect.Value) error {
 			})
 		}
 	case reflect.Map:
-		if ty.Key().Kind() == reflect.String {
-			if srcObject, ok := src.(ast.Object); ok && dst.CanSet() {
-				dst.Set(reflect.MakeMap(ty))
-				return srcObject.Iter(func(k, v *ast.Term) error {
-					key := reflect.New(ty.Key())
-					if err := bind(k.Value, key); err != nil {
-						return err
-					}
-					val := reflect.New(ty.Elem())
-					if err := bind(v.Value, val); err != nil {
-						return err
-					}
-					dst.SetMapIndex(key.Elem(), val.Elem())
-					return nil
-				})
-			}
+		if srcObject, ok := src.(ast.Object); ok && dst.CanSet() {
+			dst.Set(reflect.MakeMap(ty))
+			return srcObject.Iter(func(k, v *ast.Term) error {
+				key := reflect.New(ty.Key())
+				if err := bind(k.Value, key); err != nil {
+					return err
+				}
+				val := reflect.New(ty.Elem())
+				if err := bind(v.Value, val); err != nil {
+					return err
+				}
+				dst.SetMapIndex(key.Elem(), val.Elem())
+				return nil
+			})
 		}
 	case reflect.Interface:
 		json, err := ast.JSON(src)
