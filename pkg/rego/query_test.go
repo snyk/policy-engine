@@ -88,10 +88,6 @@ people = [
 	})
 	assert.NoError(t, err)
 
-	compiler := ast.NewCompiler()
-	compiler.Compile(modules)
-	assert.Len(t, compiler.Errors, 0)
-
 	var numbers []int
 	assert.NoError(t, state.Query(
 		ctx,

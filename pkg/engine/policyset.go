@@ -41,7 +41,6 @@ const (
 type policySet struct {
 	PolicyConsumer
 	instrumentation *policySetInstrumentation
-	compiler        *ast.Compiler // DELETE ME
 	rego            *rego.State
 	policies        []policy.Policy
 	name            string
@@ -147,11 +146,6 @@ func (s *policySet) extractPolicies(ctx context.Context) {
 func (s *policySet) compile(ctx context.Context) error {
 	s.instrumentation.startCompile(ctx)
 	defer s.instrumentation.finishCompile(ctx)
-	s.compiler = ast.NewCompiler().WithCapabilities(policy.Capabilities())
-	s.compiler.Compile(s.Modules)
-	if len(s.compiler.Errors) > 0 {
-		return s.compiler.Errors
-	}
 	var err error
 	s.rego, err = rego.NewState(rego.Options{
 		Modules:      s.Modules,
