@@ -21,6 +21,14 @@ resource "aws_s3_bucket_server_side_encryption_configuration" "bucket2" {
   }
 }
 
+resource "aws_s3_bucket_ownership_controls" "bucket2" {
+  bucket = aws_s3_bucket.bucket2.bucket
+
+  rule {
+    object_ownership = "ObjectWriter"
+  }
+}
+
 resource "aws_kms_key" "key" {
   description             = "This key is used to encrypt bucket objects"
   deletion_window_in_days = 10
@@ -35,6 +43,14 @@ resource "aws_s3_bucket" "bucket3" {
         sse_algorithm     = "aws:kms"
       }
     }
+  }
+}
+
+resource "aws_s3_bucket_ownership_controls" "bucket3" {
+  bucket = aws_s3_bucket.bucket3.bucket
+
+  rule {
+    object_ownership = "BucketOwnerEnforced"
   }
 }
 

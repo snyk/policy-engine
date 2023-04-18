@@ -28,7 +28,7 @@
                 "location": [
                   {
                     "filepath": "../examples/main.tf",
-                    "line": 55,
+                    "line": 71,
                     "column": 1
                   }
                 ],
@@ -56,7 +56,7 @@
                 "location": [
                   {
                     "filepath": "../examples/main.tf",
-                    "line": 24,
+                    "line": 32,
                     "column": 1
                   }
                 ],
@@ -82,7 +82,7 @@
                 "location": [
                   {
                     "filepath": "../examples/main.tf",
-                    "line": 41,
+                    "line": 57,
                     "column": 1
                   }
                 ],
@@ -151,7 +151,7 @@
                 "location": [
                   {
                     "filepath": "../examples/main.tf",
-                    "line": 29,
+                    "line": 37,
                     "column": 1
                   }
                 ],
@@ -181,6 +181,64 @@
               }
             }
           },
+          "aws_s3_bucket_ownership_controls": {
+            "aws_s3_bucket_ownership_controls.bucket2": {
+              "id": "aws_s3_bucket_ownership_controls.bucket2",
+              "resource_type": "aws_s3_bucket_ownership_controls",
+              "namespace": "../examples/main.tf",
+              "meta": {
+                "location": [
+                  {
+                    "filepath": "../examples/main.tf",
+                    "line": 24,
+                    "column": 1
+                  }
+                ],
+                "region": "us-east-1",
+                "terraform": {
+                  "provider_config": {
+                    "region": "us-east-1"
+                  }
+                }
+              },
+              "attributes": {
+                "bucket": "dumb",
+                "rule": [
+                  {
+                    "object_ownership": "ObjectWriter"
+                  }
+                ]
+              }
+            },
+            "aws_s3_bucket_ownership_controls.bucket3": {
+              "id": "aws_s3_bucket_ownership_controls.bucket3",
+              "resource_type": "aws_s3_bucket_ownership_controls",
+              "namespace": "../examples/main.tf",
+              "meta": {
+                "location": [
+                  {
+                    "filepath": "../examples/main.tf",
+                    "line": 49,
+                    "column": 1
+                  }
+                ],
+                "region": "us-east-1",
+                "terraform": {
+                  "provider_config": {
+                    "region": "us-east-1"
+                  }
+                }
+              },
+              "attributes": {
+                "bucket": "bucket3",
+                "rule": [
+                  {
+                    "object_ownership": "BucketOwnerEnforced"
+                  }
+                ]
+              }
+            }
+          },
           "aws_s3_bucket_server_side_encryption_configuration": {
             "aws_s3_bucket_server_side_encryption_configuration.aes_bucket": {
               "id": "aws_s3_bucket_server_side_encryption_configuration.aes_bucket",
@@ -190,7 +248,7 @@
                 "location": [
                   {
                     "filepath": "../examples/main.tf",
-                    "line": 45,
+                    "line": 61,
                     "column": 1
                   }
                 ],
@@ -257,7 +315,7 @@
                 "location": [
                   {
                     "filepath": "../examples/main.tf",
-                    "line": 62,
+                    "line": 78,
                     "column": 1
                   }
                 ]
@@ -398,7 +456,7 @@
                   "location": [
                     {
                       "filepath": "../examples/main.tf",
-                      "line": 41,
+                      "line": 57,
                       "column": 1
                     }
                   ],
@@ -409,7 +467,7 @@
                       ],
                       "location": {
                         "filepath": "../examples/main.tf",
-                        "line": 42,
+                        "line": 58,
                         "column": 3
                       }
                     }
@@ -504,7 +562,7 @@
                   "location": [
                     {
                       "filepath": "../examples/main.tf",
-                      "line": 29,
+                      "line": 37,
                       "column": 1
                     }
                   ],
@@ -515,7 +573,7 @@
                       ],
                       "location": {
                         "filepath": "../examples/main.tf",
-                        "line": 30,
+                        "line": 38,
                         "column": 3
                       }
                     }
@@ -548,7 +606,7 @@
                   "location": [
                     {
                       "filepath": "../examples/main.tf",
-                      "line": 41,
+                      "line": 57,
                       "column": 1
                     }
                   ],
@@ -559,7 +617,7 @@
                       ],
                       "location": {
                         "filepath": "../examples/main.tf",
-                        "line": 42,
+                        "line": 58,
                         "column": 3
                       }
                     }
@@ -649,7 +707,7 @@
                   "location": [
                     {
                       "filepath": "../examples/main.tf",
-                      "line": 29,
+                      "line": 37,
                       "column": 1
                     }
                   ],
@@ -660,7 +718,7 @@
                       ],
                       "location": {
                         "filepath": "../examples/main.tf",
-                        "line": 30,
+                        "line": 38,
                         "column": 3
                       }
                     }
@@ -728,7 +786,7 @@
                   "location": [
                     {
                       "filepath": "../examples/main.tf",
-                      "line": 29,
+                      "line": 37,
                       "column": 1
                     }
                   ],
@@ -739,7 +797,7 @@
                       ],
                       "location": {
                         "filepath": "../examples/main.tf",
-                        "line": 30,
+                        "line": 38,
                         "column": 3
                       }
                     }
@@ -772,7 +830,7 @@
                   "location": [
                     {
                       "filepath": "../examples/main.tf",
-                      "line": 41,
+                      "line": 57,
                       "column": 1
                     }
                   ],
@@ -783,7 +841,7 @@
                       ],
                       "location": {
                         "filepath": "../examples/main.tf",
-                        "line": 42,
+                        "line": 58,
                         "column": 3
                       }
                     },
@@ -793,7 +851,7 @@
                       ],
                       "location": {
                         "filepath": "../examples/main.tf",
-                        "line": 41,
+                        "line": 57,
                         "column": 1
                       }
                     }
@@ -893,7 +951,7 @@
                   "location": [
                     {
                       "filepath": "../examples/main.tf",
-                      "line": 29,
+                      "line": 37,
                       "column": 1
                     }
                   ],
@@ -904,7 +962,7 @@
                       ],
                       "location": {
                         "filepath": "../examples/main.tf",
-                        "line": 30,
+                        "line": 38,
                         "column": 3
                       }
                     }
@@ -938,7 +996,7 @@
                   "location": [
                     {
                       "filepath": "../examples/main.tf",
-                      "line": 41,
+                      "line": 57,
                       "column": 1
                     }
                   ],
@@ -949,7 +1007,7 @@
                       ],
                       "location": {
                         "filepath": "../examples/main.tf",
-                        "line": 42,
+                        "line": 58,
                         "column": 3
                       }
                     },
@@ -959,7 +1017,7 @@
                       ],
                       "location": {
                         "filepath": "../examples/main.tf",
-                        "line": 41,
+                        "line": 57,
                         "column": 1
                       }
                     }
@@ -972,7 +1030,7 @@
                   "location": [
                     {
                       "filepath": "../examples/main.tf",
-                      "line": 45,
+                      "line": 61,
                       "column": 1
                     }
                   ],
@@ -983,7 +1041,7 @@
                       ],
                       "location": {
                         "filepath": "../examples/main.tf",
-                        "line": 46,
+                        "line": 62,
                         "column": 3
                       }
                     }
@@ -1116,7 +1174,7 @@
                   "location": [
                     {
                       "filepath": "../examples/main.tf",
-                      "line": 29,
+                      "line": 37,
                       "column": 1
                     }
                   ],
@@ -1127,7 +1185,7 @@
                       ],
                       "location": {
                         "filepath": "../examples/main.tf",
-                        "line": 30,
+                        "line": 38,
                         "column": 3
                       }
                     },
@@ -1143,7 +1201,7 @@
                       ],
                       "location": {
                         "filepath": "../examples/main.tf",
-                        "line": 35,
+                        "line": 43,
                         "column": 9
                       }
                     }
@@ -1160,6 +1218,7 @@
           },
           "resource_types": [
             "aws_s3_bucket",
+            "aws_s3_bucket_ownership_controls",
             "aws_s3_bucket_server_side_encryption_configuration"
           ],
           "results": [
@@ -1177,7 +1236,7 @@
                   "location": [
                     {
                       "filepath": "../examples/main.tf",
-                      "line": 41,
+                      "line": 57,
                       "column": 1
                     }
                   ],
@@ -1188,7 +1247,7 @@
                       ],
                       "location": {
                         "filepath": "../examples/main.tf",
-                        "line": 42,
+                        "line": 58,
                         "column": 3
                       }
                     },
@@ -1198,7 +1257,7 @@
                       ],
                       "location": {
                         "filepath": "../examples/main.tf",
-                        "line": 41,
+                        "line": 57,
                         "column": 1
                       }
                     }
@@ -1211,7 +1270,7 @@
                   "location": [
                     {
                       "filepath": "../examples/main.tf",
-                      "line": 45,
+                      "line": 61,
                       "column": 1
                     }
                   ],
@@ -1222,7 +1281,7 @@
                       ],
                       "location": {
                         "filepath": "../examples/main.tf",
-                        "line": 46,
+                        "line": 62,
                         "column": 3
                       }
                     }
@@ -1355,7 +1414,7 @@
                   "location": [
                     {
                       "filepath": "../examples/main.tf",
-                      "line": 29,
+                      "line": 37,
                       "column": 1
                     }
                   ],
@@ -1366,7 +1425,7 @@
                       ],
                       "location": {
                         "filepath": "../examples/main.tf",
-                        "line": 30,
+                        "line": 38,
                         "column": 3
                       }
                     },
@@ -1382,7 +1441,7 @@
                       ],
                       "location": {
                         "filepath": "../examples/main.tf",
-                        "line": 35,
+                        "line": 43,
                         "column": 9
                       }
                     }
@@ -1399,6 +1458,7 @@
           },
           "resource_types": [
             "aws_s3_bucket",
+            "aws_s3_bucket_ownership_controls",
             "aws_s3_bucket_server_side_encryption_configuration"
           ],
           "results": [
@@ -1416,7 +1476,7 @@
                   "location": [
                     {
                       "filepath": "../examples/main.tf",
-                      "line": 41,
+                      "line": 57,
                       "column": 1
                     }
                   ],
@@ -1427,7 +1487,7 @@
                       ],
                       "location": {
                         "filepath": "../examples/main.tf",
-                        "line": 42,
+                        "line": 58,
                         "column": 3
                       }
                     },
@@ -1437,7 +1497,7 @@
                       ],
                       "location": {
                         "filepath": "../examples/main.tf",
-                        "line": 41,
+                        "line": 57,
                         "column": 1
                       }
                     }
@@ -1450,7 +1510,7 @@
                   "location": [
                     {
                       "filepath": "../examples/main.tf",
-                      "line": 45,
+                      "line": 61,
                       "column": 1
                     }
                   ],
@@ -1461,7 +1521,7 @@
                       ],
                       "location": {
                         "filepath": "../examples/main.tf",
-                        "line": 46,
+                        "line": 62,
                         "column": 3
                       }
                     }
@@ -1594,7 +1654,7 @@
                   "location": [
                     {
                       "filepath": "../examples/main.tf",
-                      "line": 29,
+                      "line": 37,
                       "column": 1
                     }
                   ],
@@ -1605,7 +1665,7 @@
                       ],
                       "location": {
                         "filepath": "../examples/main.tf",
-                        "line": 30,
+                        "line": 38,
                         "column": 3
                       }
                     },
@@ -1621,7 +1681,7 @@
                       ],
                       "location": {
                         "filepath": "../examples/main.tf",
-                        "line": 35,
+                        "line": 43,
                         "column": 9
                       }
                     }
@@ -1655,7 +1715,7 @@
                   "location": [
                     {
                       "filepath": "../examples/main.tf",
-                      "line": 62,
+                      "line": 78,
                       "column": 1
                     }
                   ],
@@ -1672,7 +1732,7 @@
                       ],
                       "location": {
                         "filepath": "../examples/main.tf",
-                        "line": 103,
+                        "line": 119,
                         "column": 9
                       }
                     },
@@ -1688,7 +1748,7 @@
                       ],
                       "location": {
                         "filepath": "../examples/main.tf",
-                        "line": 117,
+                        "line": 133,
                         "column": 9
                       }
                     }
@@ -1726,7 +1786,7 @@
                   "location": [
                     {
                       "filepath": "../examples/main.tf",
-                      "line": 55,
+                      "line": 71,
                       "column": 1
                     }
                   ],
@@ -1737,7 +1797,7 @@
                       ],
                       "location": {
                         "filepath": "../examples/main.tf",
-                        "line": 59,
+                        "line": 75,
                         "column": 3
                       }
                     }
@@ -1754,6 +1814,7 @@
           },
           "resource_types": [
             "aws_s3_bucket",
+            "aws_s3_bucket_ownership_controls",
             "aws_s3_bucket_server_side_encryption_configuration"
           ],
           "results": [
@@ -1771,7 +1832,7 @@
                   "location": [
                     {
                       "filepath": "../examples/main.tf",
-                      "line": 41,
+                      "line": 57,
                       "column": 1
                     }
                   ],
@@ -1782,7 +1843,7 @@
                       ],
                       "location": {
                         "filepath": "../examples/main.tf",
-                        "line": 42,
+                        "line": 58,
                         "column": 3
                       }
                     }
@@ -1795,7 +1856,7 @@
                   "location": [
                     {
                       "filepath": "../examples/main.tf",
-                      "line": 45,
+                      "line": 61,
                       "column": 1
                     }
                   ],
@@ -1809,7 +1870,7 @@
                       ],
                       "location": {
                         "filepath": "../examples/main.tf",
-                        "line": 49,
+                        "line": 65,
                         "column": 5
                       }
                     }
@@ -1879,6 +1940,223 @@
             }
           ],
           "package": "data.rules.snyk_009.tf"
+        },
+        {
+          "rule_bundle": {
+            "source": "data"
+          },
+          "resource_types": [
+            "aws_s3_bucket",
+            "aws_s3_bucket_ownership_controls",
+            "aws_s3_bucket_server_side_encryption_configuration"
+          ],
+          "results": [
+            {
+              "passed": false,
+              "ignored": false,
+              "resource_id": "aws_s3_bucket.aes_bucket",
+              "resource_namespace": "../examples/main.tf",
+              "resource_type": "aws_s3_bucket",
+              "resources": [
+                {
+                  "id": "aws_s3_bucket.aes_bucket",
+                  "type": "aws_s3_bucket",
+                  "namespace": "../examples/main.tf",
+                  "location": [
+                    {
+                      "filepath": "../examples/main.tf",
+                      "line": 57,
+                      "column": 1
+                    }
+                  ],
+                  "attributes": [
+                    {
+                      "path": [
+                        "bucket"
+                      ],
+                      "location": {
+                        "filepath": "../examples/main.tf",
+                        "line": 58,
+                        "column": 3
+                      }
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "passed": false,
+              "ignored": false,
+              "resource_id": "aws_s3_bucket.bucket1",
+              "resource_namespace": "../examples/main.tf",
+              "resource_type": "aws_s3_bucket",
+              "resources": [
+                {
+                  "id": "aws_s3_bucket.bucket1",
+                  "type": "aws_s3_bucket",
+                  "namespace": "../examples/main.tf",
+                  "location": [
+                    {
+                      "filepath": "../examples/main.tf",
+                      "line": 5,
+                      "column": 1
+                    }
+                  ],
+                  "attributes": [
+                    {
+                      "path": [
+                        "bucket"
+                      ],
+                      "location": {
+                        "filepath": "../examples/main.tf",
+                        "line": 6,
+                        "column": 3
+                      }
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "passed": false,
+              "ignored": false,
+              "resource_id": "aws_s3_bucket.bucket2",
+              "resource_namespace": "../examples/main.tf",
+              "resource_type": "aws_s3_bucket",
+              "resources": [
+                {
+                  "id": "aws_s3_bucket.bucket2",
+                  "type": "aws_s3_bucket",
+                  "namespace": "../examples/main.tf",
+                  "location": [
+                    {
+                      "filepath": "../examples/main.tf",
+                      "line": 9,
+                      "column": 1
+                    }
+                  ],
+                  "attributes": [
+                    {
+                      "path": [
+                        "bucket"
+                      ],
+                      "location": {
+                        "filepath": "../examples/main.tf",
+                        "line": 10,
+                        "column": 3
+                      }
+                    }
+                  ]
+                },
+                {
+                  "id": "aws_s3_bucket_ownership_controls.bucket2",
+                  "type": "aws_s3_bucket_ownership_controls",
+                  "namespace": "../examples/main.tf",
+                  "location": [
+                    {
+                      "filepath": "../examples/main.tf",
+                      "line": 24,
+                      "column": 1
+                    }
+                  ],
+                  "attributes": [
+                    {
+                      "path": [
+                        "bucket"
+                      ],
+                      "location": {
+                        "filepath": "../examples/main.tf",
+                        "line": 25,
+                        "column": 3
+                      }
+                    },
+                    {
+                      "path": [
+                        "rule",
+                        0,
+                        "object_ownership"
+                      ],
+                      "location": {
+                        "filepath": "../examples/main.tf",
+                        "line": 28,
+                        "column": 5
+                      }
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "passed": true,
+              "ignored": false,
+              "resource_id": "aws_s3_bucket.bucket3",
+              "resource_namespace": "../examples/main.tf",
+              "resource_type": "aws_s3_bucket",
+              "resources": [
+                {
+                  "id": "aws_s3_bucket.bucket3",
+                  "type": "aws_s3_bucket",
+                  "namespace": "../examples/main.tf",
+                  "location": [
+                    {
+                      "filepath": "../examples/main.tf",
+                      "line": 37,
+                      "column": 1
+                    }
+                  ],
+                  "attributes": [
+                    {
+                      "path": [
+                        "bucket"
+                      ],
+                      "location": {
+                        "filepath": "../examples/main.tf",
+                        "line": 38,
+                        "column": 3
+                      }
+                    }
+                  ]
+                },
+                {
+                  "id": "aws_s3_bucket_ownership_controls.bucket3",
+                  "type": "aws_s3_bucket_ownership_controls",
+                  "namespace": "../examples/main.tf",
+                  "location": [
+                    {
+                      "filepath": "../examples/main.tf",
+                      "line": 49,
+                      "column": 1
+                    }
+                  ],
+                  "attributes": [
+                    {
+                      "path": [
+                        "bucket"
+                      ],
+                      "location": {
+                        "filepath": "../examples/main.tf",
+                        "line": 50,
+                        "column": 3
+                      }
+                    },
+                    {
+                      "path": [
+                        "rule",
+                        0,
+                        "object_ownership"
+                      ],
+                      "location": {
+                        "filepath": "../examples/main.tf",
+                        "line": 53,
+                        "column": 5
+                      }
+                    }
+                  ]
+                }
+              ]
+            }
+          ],
+          "package": "data.rules.snyk_010.tf"
         }
       ]
     }

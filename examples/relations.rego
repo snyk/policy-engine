@@ -33,3 +33,18 @@ relations[info] {
 		},
 	}
 }
+
+# The snyk library provides a helper function to define the most common type of
+# relation where we're simly checking that a field on one resource is equal to
+# a field on another resource.
+relations[info] {
+	info := snyk.relation_from_fields(
+		# Just like above, this is the name of the relation:
+		"aws_s3_bucket.ownership_controls",
+		# This is the "left" resource. We can provide multiple field names here like
+		# in the above example:
+		{"aws_s3_bucket": ["id", "bucket"]},
+		# Finally, we specify the "right" resource:
+		{"aws_s3_bucket_ownership_controls": ["bucket"]},
+	)
+}
