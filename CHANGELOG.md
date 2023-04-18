@@ -2,6 +2,14 @@
 
 
 
+## v0.20.0 - 2023-04-18
+### Added
+* cloud resources options to repl command
+* docs around security aspects
+* snyk.relation_from_fields helper function for writing relations rules
+### Fixed
+* missing denied resources in one case for fugue rules
+
 ## v0.19.0 - 2023-03-16
 ### Added
 * explicit --log-level flag
