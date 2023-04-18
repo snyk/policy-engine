@@ -24,7 +24,7 @@
             "location": [
               {
                 "filepath": "../examples/main.tf",
-                "line": 41,
+                "line": 57,
                 "column": 1
               }
             ],
@@ -35,7 +35,7 @@
                 ],
                 "location": {
                   "filepath": "../examples/main.tf",
-                  "line": 42,
+                  "line": 58,
                   "column": 3
                 }
               },
@@ -45,7 +45,7 @@
                 ],
                 "location": {
                   "filepath": "../examples/main.tf",
-                  "line": 41,
+                  "line": 57,
                   "column": 1
                 }
               }
@@ -143,7 +143,7 @@
             "location": [
               {
                 "filepath": "../examples/main.tf",
-                "line": 29,
+                "line": 37,
                 "column": 1
               }
             ],
@@ -154,7 +154,7 @@
                 ],
                 "location": {
                   "filepath": "../examples/main.tf",
-                  "line": 30,
+                  "line": 38,
                   "column": 3
                 }
               }

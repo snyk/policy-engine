@@ -264,6 +264,42 @@ policy-engine -d rego
 > {i.name | data.relations.relations[i]}
 ```
 
+### Helper function
+
+Many relationships are defined by a simple equality between a field on one
+resource with a field on another resource. For example, an `aws_s3_bucket`
+resource is related to an `aws_s3_bucket_logging` resource when the bucket's
+`id` or `bucket` property is equal to the logging resource's `bucket` property.
+We provide a helper function that makes it much easier to write `relations`
+rules for these types of relationships:
+
+```open-policy-agent
+# Note that the list of properties for both the left and right resource can
+# contain any number of properties to compare. As long as at least one left
+# property is equal to a right property, we'll consider those resources to be
+# related.
+relations[info] {
+	info := snyk.relation_from_fields(
+		"<relation name>",
+		{"<left resource>": ["<left property 1>", "<left property 2>"]},
+		{"<right resource>": ["<right property 1>", "<right property 2>"]},
+	)
+}
+```
+
+Using this function, we could define the `aws_s3_bucket_logging` relationship
+like so:
+
+```open-policy-agent
+relations[info] {
+	info := snyk.relation_from_fields(
+		"aws_s3_bucket.logging",
+		{"aws_s3_bucket": ["id", "bucket"]},
+		{"aws_s3_bucket_logging": ["bucket"]},
+	)
+}
+```
+
 ## Benefits
 
 This proposal has three distinct benefits:

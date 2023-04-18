@@ -43,7 +43,7 @@
             "location": [
               {
                 "filepath": "../examples/main.tf",
-                "line": 29,
+                "line": 37,
                 "column": 1
               }
             ]
