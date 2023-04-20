@@ -15,6 +15,7 @@
 package snyk
 
 import data.snyk.internal.relations
+import data.snyk
 
 relates(resource, name) = ret {
 	ret := relations.forward[[name, relations.make_resource_key(resource)]]
@@ -26,4 +27,22 @@ back_relates(name, resource) = ret {
 	ret := relations.backward[[name, relations.make_resource_key(resource)]]
 } else = [] {
 	true
+}
+
+relation_from_fields(name, left, right) = info {
+	info := {
+		"name": name,
+		"keys": {
+			"left": [[resource, resource[field]] |
+				fields := left[resource_type]
+				resource := snyk.resources(resource_type)[_]
+				field := fields[_]
+			],
+			"right": [[resource, resource[field]] |
+				fields := right[resource_type]
+				resource := snyk.resources(resource_type)[_]
+				field := fields[_]
+			],
+		},
+	}
 }
