@@ -174,10 +174,10 @@ func (e *Engine) Eval(ctx context.Context, options *EvalOptions) *models.Results
 		for _, p := range e.policySets {
 			ruleResults := p.eval(ctx, &parallelEvalOptions{
 				resourcesResolver: options.ResourcesResolver,
-				input:        &input,
-				ruleIDs:      options.RuleIDs,
-				workers:      options.Workers,
-				loggerFields: loggerFields,
+				input:             &input,
+				ruleIDs:           options.RuleIDs,
+				workers:           options.Workers,
+				loggerFields:      loggerFields,
 			})
 			allRuleResults = append(allRuleResults, ruleResults...)
 			for _, r := range ruleResults {
@@ -241,6 +241,18 @@ func (e *Engine) Metadata(ctx context.Context) []MetadataResult {
 	})
 
 	return metadata
+}
+
+// Query runs the given query against all policy sets and invokes the result
+// processor on each result.
+func (e *Engine) Query(ctx context.Context, options *QueryOptions) error {
+	for _, p := range e.policySets {
+		err := p.query(ctx, options)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 type engineInstrumentation struct {
