@@ -35,12 +35,12 @@ func PolicyFactory(moduleSet ModuleSet) (Policy, error) {
 		case "deny":
 			return &MultiResourcePolicy{
 				BasePolicy:       base,
-				processResultSet: processMultiDenyPolicyResult,
+				processorFactory: NewMultiDenyProcessor,
 			}, nil
 		case "policy":
 			return &MultiResourcePolicy{
 				BasePolicy:       base,
-				processResultSet: processFuguePolicyResultSet,
+				processorFactory: NewFuguePolicyProcessor,
 			}, nil
 		}
 	} else {
@@ -49,12 +49,12 @@ func PolicyFactory(moduleSet ModuleSet) (Policy, error) {
 			if base.judgementRule.hasKey() {
 				return &SingleResourcePolicy{
 					BasePolicy:       base,
-					processResultSet: processFugueAllowPolicyResult,
+					processorFactory: NewFugueAllowInfoProcessor,
 				}, nil
 			} else {
 				return &SingleResourcePolicy{
 					BasePolicy:       base,
-					processResultSet: processFugueAllowBoolean,
+					processorFactory: NewFugueAllowBooleanProcessor,
 				}, nil
 			}
 
@@ -62,12 +62,12 @@ func PolicyFactory(moduleSet ModuleSet) (Policy, error) {
 			if base.judgementRule.hasKey() {
 				return &SingleResourcePolicy{
 					BasePolicy:       base,
-					processResultSet: processSingleDenyPolicyResult,
+					processorFactory: NewSingleDenyProcessor,
 				}, nil
 			} else {
 				return &SingleResourcePolicy{
 					BasePolicy:       base,
-					processResultSet: processFugueDenyBoolean,
+					processorFactory: NewFugueDenyBooleanProcessor,
 				}, nil
 			}
 		}

@@ -128,6 +128,8 @@ func (node *hclSourceNode) getDescendant(path []interface{}) (*hclSourceNode, er
 		child, err = node.getKey(k)
 	case int:
 		child, err = node.getIndex(k)
+	case int64:
+		child, err = node.getIndex(int(k))
 	case float64:
 		child, err = node.getIndex(int(k))
 	}

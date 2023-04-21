@@ -19,26 +19,29 @@ import (
 	"fmt"
 	"sort"
 
-	"github.com/open-policy-agent/opa/rego"
+	"github.com/open-policy-agent/opa/ast"
+	"github.com/open-policy-agent/opa/topdown"
 
 	"github.com/snyk/policy-engine/pkg/logging"
 	"github.com/snyk/policy-engine/pkg/models"
 	"github.com/snyk/policy-engine/pkg/policy/inferattributes"
+	"github.com/snyk/policy-engine/pkg/rego"
 )
-
-// ProcessSingleResultSet functions extract RuleResult models from the ResultSet of
-// single-resource type rules.
-type ProcessSingleResultSet func(
-	resultSet rego.ResultSet,
-	resource *models.ResourceState,
-	metadata Metadata,
-	defaultRemediation string,
-) ([]models.RuleResult, error)
 
 // SingleResourcePolicy represents a policy that takes a single resource as input.
 type SingleResourcePolicy struct {
 	*BasePolicy
-	processResultSet ProcessSingleResultSet
+	processorFactory func(
+		resource *models.ResourceState,
+		metadata *Metadata,
+		defaultRemediation string,
+	) SingleResourceProcessor
+}
+
+// SingleResourceProcessor can turn rego results into the results model we want.
+type SingleResourceProcessor interface {
+	Process(ast.Value) error
+	Results() []models.RuleResult
 }
 
 // Eval will evaluate the policy on the given input.
@@ -60,7 +63,7 @@ func (p *SingleResourcePolicy) Eval(
 	output.Package_ = p.pkg
 
 	tracer := inferattributes.NewTracer()
-	metadata, err := p.Metadata(ctx, options.RegoOptions)
+	metadata, err := p.Metadata(ctx, options.RegoState)
 	if err != nil {
 		logger.Error(ctx, "Failed to query metadata")
 		err = fmt.Errorf("%w: %v", FailedToQueryMetadata, err)
@@ -68,17 +71,6 @@ func (p *SingleResourcePolicy) Eval(
 		return []models.RuleResults{output}, err
 	}
 	metadata.copyToRuleResults(options.Input.InputType, &output)
-	opts := append(
-		options.RegoOptions,
-		rego.Query(p.judgementRule.query()),
-	)
-	query, err := rego.New(opts...).PrepareForEval(ctx)
-	if err != nil {
-		logger.Error(ctx, "Failed to prepare for eval")
-		err = fmt.Errorf("%w: %v", FailedToPrepareForEval, err)
-		output.Errors = append(output.Errors, err.Error())
-		return []models.RuleResults{output}, err
-	}
 	ruleResults := []models.RuleResult{}
 	rt := p.resourceType
 	output.ResourceTypes = []string{rt}
@@ -103,22 +95,33 @@ func (p *SingleResourcePolicy) Eval(
 			// TODO: We need a different strategy for unset properties in single-resource rules. The
 			// problem is that we lose the top-level location on the term. We might be able to use
 			// the fact that the term references `input` instead.
-			resultSet, err := query.Eval(ctx, rego.EvalQueryTracer(tracer), rego.EvalParsedInput(inputDoc.Value))
+			var results []models.RuleResult
+			processor := p.processorFactory(
+				&resource,
+				&metadata,
+				defaultRemediation,
+			)
+			err = options.RegoState.Query(
+				ctx,
+				rego.Query{
+					Tracers: []topdown.QueryTracer{tracer},
+					Query:   p.judgementRule.query(),
+					Input:   inputDoc.Value,
+				},
+				func(val ast.Value) error {
+					return processor.Process(val)
+				},
+			)
 			if err != nil {
 				logger.Error(ctx, "Failed to evaluate rule for resource")
 				err = fmt.Errorf("%w '%s': %v", FailedToEvaluateResource, resource.Id, err)
 				output.Errors = append(output.Errors, err.Error())
 				return []models.RuleResults{output}, err
 			}
-			ruleResult, err := p.processResultSet(
-				resultSet,
-				&resource,
-				metadata,
-				defaultRemediation,
-			)
+			results = processor.Results()
 
 			// Fill in paths inferred using the tracer.
-			tracer.InferAttributes(ruleResult)
+			tracer.InferAttributes(results)
 
 			if err != nil {
 				logger.Error(ctx, "Failed to process results")
@@ -126,61 +129,83 @@ func (p *SingleResourcePolicy) Eval(
 				output.Errors = append(output.Errors, err.Error())
 				return []models.RuleResults{output}, err
 			}
-			ruleResults = append(ruleResults, ruleResult...)
+			ruleResults = append(ruleResults, results...)
 		}
 	}
 	output.Results = ruleResults
 	return []models.RuleResults{output}, nil
 }
 
-// This is a ProcessSingleResultSet func for the new deny[info] style rules
-func processSingleDenyPolicyResult(
-	resultSet rego.ResultSet,
+type singleDenyProcessor struct {
+	resource           *models.ResourceState
+	metadata           *Metadata
+	defaultRemediation string
+	results            []models.RuleResult
+}
+
+func NewSingleDenyProcessor(
 	resource *models.ResourceState,
-	metadata Metadata,
+	metadata *Metadata,
 	defaultRemediation string,
-) ([]models.RuleResult, error) {
-	policyResults := []policyResult{}
-	if err := unmarshalResultSet(resultSet, &policyResults); err != nil {
+) SingleResourceProcessor {
+	return &singleDenyProcessor{
+		resource:           resource,
+		metadata:           metadata,
+		defaultRemediation: defaultRemediation,
+	}
+}
+
+func (b *singleDenyProcessor) resourceKey() ResourceKey {
+	return ResourceKey{
+		ID:        b.resource.Id,
+		Type:      b.resource.ResourceType,
+		Namespace: b.resource.Namespace,
+	}
+}
+
+func (b *singleDenyProcessor) Process(val ast.Value) error {
+	policyResult := policyResult{}
+	if err := rego.Bind(val, &policyResult); err != nil {
 		// It might be a fugue deny[msg] style rule in this case. Try that as a
 		// fallback.
-		return processFugueDenyString(resultSet, resource, metadata)
-	}
-	results := []models.RuleResult{}
-	resourceKey := ResourceKey{
-		ID:        resource.Id,
-		Type:      resource.ResourceType,
-		Namespace: resource.Namespace,
-	}
-	for _, r := range policyResults {
-		result := newRuleResultBuilder()
-		result.setPrimaryResource(resourceKey)
-		for _, attr := range r.Attributes {
-			result.addResourceAttribute(resourceKey, attr)
+		var denyString string
+		if strErr := rego.Bind(val, &denyString); strErr != nil {
+			return err
 		}
-
-		result.messages = append(result.messages, r.Message)
-		if r.Severity != "" {
-			result.severity = r.Severity
-		} else {
-			result.severity = metadata.Severity
-		}
-		if r.Remediation != "" {
-			result.remediation = r.Remediation
-		} else {
-			result.remediation = defaultRemediation
-		}
-		results = append(results, result.toRuleResult())
+		policyResult.Message = denyString
 	}
 
-	if len(results) == 0 {
+	rk := b.resourceKey()
+	result := newRuleResultBuilder()
+	result.setPrimaryResource(rk)
+	for _, attr := range policyResult.Attributes {
+		result.addResourceAttribute(rk, attr)
+	}
+
+	result.messages = append(result.messages, policyResult.Message)
+	if policyResult.Severity != "" {
+		result.severity = policyResult.Severity
+	} else {
+		result.severity = b.metadata.Severity
+	}
+	if policyResult.Remediation != "" {
+		result.remediation = policyResult.Remediation
+	} else {
+		result.remediation = b.defaultRemediation
+	}
+	b.results = append(b.results, result.toRuleResult())
+	return nil
+}
+
+func (b *singleDenyProcessor) Results() []models.RuleResult {
+	if len(b.results) == 0 {
 		// No denies: generate an allow
 		result := newRuleResultBuilder()
-		result.setPrimaryResource(resourceKey)
+		result.setPrimaryResource(b.resourceKey())
 		result.passed = true
-		result.severity = metadata.Severity
-		results = append(results, result.toRuleResult())
+		result.severity = b.metadata.Severity
+		return []models.RuleResult{result.toRuleResult()}
+	} else {
+		return b.results
 	}
-
-	return results, nil
 }

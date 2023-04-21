@@ -8,42 +8,51 @@ import (
 
 // Compatibility type to unmarshal controls in the old (map-based) as well
 // as the new (array-based) format.
-type ControlsParser struct {
-	Controls []string
-}
-
-func (r *ControlsParser) UnmarshalJSON(data []byte) error {
-	old := map[string]map[string][]string{}
+func ParseControls(data interface{}) ([]string, error) {
 	controls := []string{}
-	if err := json.Unmarshal(data, &old); err == nil {
+	if familyMap, ok := data.(map[string]interface{}); ok {
 		families := []string{}
-		for family := range old {
+		for family := range familyMap {
 			families = append(families, family)
 		}
 		sort.Strings(families)
 		for _, family := range families {
-			versions := []string{}
-			for version := range old[family] {
-				versions = append(versions, version)
-			}
-			sort.Strings(versions)
-			for _, version := range versions {
-				for _, section := range old[family][version] {
-					control := fmt.Sprintf("%s_%s_%s", family, version, section)
-					controls = append(controls, control)
+			if versionMap, ok := familyMap[family].(map[string]interface{}); ok {
+				versions := []string{}
+				for version := range versionMap {
+					versions = append(versions, version)
 				}
+				sort.Strings(versions)
+				for _, version := range versions {
+					if sections, ok := versionMap[version].([]interface{}); ok {
+						for _, section := range sections {
+							if section, ok := section.(string); ok {
+								control := fmt.Sprintf("%s_%s_%s", family, version, section)
+								controls = append(controls, control)
+							} else {
+								return nil, fmt.Errorf("controls section should be string")
+							}
+						}
+					} else {
+						return nil, fmt.Errorf("controls version should contain array")
+					}
+				}
+			} else {
+				return nil, fmt.Errorf("controls family should contain object")
 			}
 		}
-		r.Controls = controls
-		return nil
-	} else {
-		if err := json.Unmarshal(data, &controls); err != nil {
-			return err
-		} else {
-			r.Controls = controls
-			return nil
+	} else if controlSlice, ok := data.([]interface{}); ok {
+		for _, control := range controlSlice {
+			if control := control.(string); ok {
+				controls = append(controls, control)
+			} else {
+				return nil, fmt.Errorf("control should be string")
+			}
 		}
+	} else if data != nil {
+		return nil, fmt.Errorf("controls should contain array or object")
 	}
+	return controls, nil
 }
 
 func (r *RuleResults) UnmarshalJSON(data []byte) error {
@@ -56,13 +65,14 @@ func (r *RuleResults) UnmarshalJSON(data []byte) error {
 		Category      string                 `json:"category,omitempty"`
 		Labels        []string               `json:"labels,omitempty"`
 		ServiceGroup  string                 `json:"service_group,omitempty"`
-		Controls      ControlsParser         `json:"controls"`
+		Controls      interface{}            `json:"controls"`
 		ResourceTypes []string               `json:"resource_types,omitempty"`
 		Results       []RuleResult           `json:"results"`
 		Errors        []string               `json:"errors,omitempty"`
 		Package_      string                 `json:"package,omitempty"`
 	}{}
-	if err := json.Unmarshal(data, &compat); err != nil {
+	err := json.Unmarshal(data, &compat)
+	if err != nil {
 		return err
 	}
 	r.Id = compat.Id
@@ -73,7 +83,9 @@ func (r *RuleResults) UnmarshalJSON(data []byte) error {
 	r.Category = compat.Category
 	r.Labels = compat.Labels
 	r.ServiceGroup = compat.ServiceGroup
-	r.Controls = compat.Controls.Controls
+	if r.Controls, err = ParseControls(compat.Controls); err != nil {
+		return err
+	}
 	r.ResourceTypes = compat.ResourceTypes
 	r.Results = compat.Results
 	r.Errors = compat.Errors

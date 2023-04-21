@@ -15,183 +15,183 @@
 package policy
 
 import (
-	"github.com/open-policy-agent/opa/rego"
+	"github.com/open-policy-agent/opa/ast"
+
 	"github.com/snyk/policy-engine/pkg/models"
+	"github.com/snyk/policy-engine/pkg/rego"
 )
 
 // This file contains code for backwards compatibility with Fugue rules.
 
-func processFugueAllowBoolean(
-	resultSet rego.ResultSet,
-	resource *models.ResourceState,
-	metadata Metadata,
-	_ string,
-) ([]models.RuleResult, error) {
-	var allow bool
-	if err := unmarshalResultSet(resultSet, &allow); err != nil {
-		return nil, err
-	}
-	// TODO: propagate remediation from metadata
-	result := models.RuleResult{
-		Passed:            allow,
-		ResourceId:        resource.Id,
-		ResourceType:      resource.ResourceType,
-		ResourceNamespace: resource.Namespace,
-		Severity:          metadata.Severity,
-	}
-	return []models.RuleResult{result}, nil
+type fugueAllowBooleanProcessor struct {
+	resource *models.ResourceState
+	severity string
+	allow    bool
 }
 
-func processFugueDenyBoolean(
-	resultSet rego.ResultSet,
+func NewFugueAllowBooleanProcessor(
 	resource *models.ResourceState,
-	metadata Metadata,
-	_ string,
-) ([]models.RuleResult, error) {
-	var deny bool
-	if err := unmarshalResultSet(resultSet, &deny); err != nil {
-		return nil, err
+	metadata *Metadata,
+	defaultRemediation string,
+) SingleResourceProcessor {
+	return &fugueAllowBooleanProcessor{
+		resource: resource,
+		severity: metadata.Severity,
 	}
-	result := models.RuleResult{
-		Passed:            !deny,
-		ResourceId:        resource.Id,
-		ResourceType:      resource.ResourceType,
-		ResourceNamespace: resource.Namespace,
-		Severity:          metadata.Severity,
-	}
-	return []models.RuleResult{result}, nil
 }
 
-func processFugueAllowString(
-	resultSet rego.ResultSet,
-	resource *models.ResourceState,
-	metadata Metadata,
-	_ string,
-) ([]models.RuleResult, error) {
-	messages := []string{}
-	if err := unmarshalResultSet(resultSet, &messages); err != nil {
-		return nil, err
-	}
-	var allow bool
-	var message string
-	if len(messages) > 0 {
-		allow = true
-		message = messages[0]
-	}
-	result := models.RuleResult{
-		Passed:            allow,
-		ResourceId:        resource.Id,
-		ResourceType:      resource.ResourceType,
-		ResourceNamespace: resource.Namespace,
-		Severity:          metadata.Severity,
-		Message:           message,
-	}
-	return []models.RuleResult{result}, nil
+func (b *fugueAllowBooleanProcessor) Process(val ast.Value) error {
+	return rego.Bind(val, &b.allow)
 }
 
-func processFugueDenyString(
-	resultSet rego.ResultSet,
-	resource *models.ResourceState,
-	metadata Metadata,
-) ([]models.RuleResult, error) {
-	messages := []string{}
-	if err := unmarshalResultSet(resultSet, &messages); err != nil {
-		return nil, err
+func (b *fugueAllowBooleanProcessor) Results() []models.RuleResult {
+	return []models.RuleResult{
+		{
+			Passed:            b.allow,
+			ResourceId:        b.resource.Id,
+			ResourceType:      b.resource.ResourceType,
+			ResourceNamespace: b.resource.Namespace,
+			Severity:          b.severity,
+		},
 	}
-	var deny bool
-	var message string
-	if len(messages) > 0 {
-		deny = true
-		message = messages[0]
-	}
-	result := models.RuleResult{
-		Passed:            !deny,
-		ResourceId:        resource.Id,
-		ResourceType:      resource.ResourceType,
-		ResourceNamespace: resource.Namespace,
-		Severity:          metadata.Severity,
-		Message:           message,
-	}
-	return []models.RuleResult{result}, nil
 }
 
-func processFuguePolicyResultSet(
-	resultSet rego.ResultSet,
-	metadata Metadata,
-	_ string,
-	_ map[string]*ruleResultBuilder,
-) ([]models.RuleResult, error) {
-	policyResults := []policyResult{}
-	if err := unmarshalResultSet(resultSet, &policyResults); err != nil {
-		return nil, err
-	}
-	results := []models.RuleResult{}
-	for _, p := range policyResults {
-		result := models.RuleResult{
-			Passed:            p.FugueValid,
-			ResourceId:        p.FugueID,
-			ResourceType:      p.FugueResourceType,
-			ResourceNamespace: p.FugueResourceNamespace,
-			Message:           p.Message,
-			Severity:          metadata.Severity,
-		}
-		results = append(results, result)
-	}
-	return results, nil
+type fugueDenyBooleanProcessor struct {
+	resource *models.ResourceState
+	severity string
+	deny     bool
 }
 
-// This is a ProcessSingleResultSet func for the old allow[info] style rules
-func processFugueAllowPolicyResult(
-	resultSet rego.ResultSet,
+func NewFugueDenyBooleanProcessor(
 	resource *models.ResourceState,
-	metadata Metadata,
-	_ string,
-) ([]models.RuleResult, error) {
-	policyResults := []policyResult{}
-	if err := unmarshalResultSet(resultSet, &policyResults); err != nil {
+	metadata *Metadata,
+	defaultRemediation string,
+) SingleResourceProcessor {
+	return &fugueDenyBooleanProcessor{
+		resource: resource,
+		severity: metadata.Severity,
+	}
+}
+
+func (b *fugueDenyBooleanProcessor) Process(val ast.Value) error {
+	return rego.Bind(val, &b.deny)
+}
+
+func (b *fugueDenyBooleanProcessor) Results() []models.RuleResult {
+	return []models.RuleResult{
+		{
+			Passed:            !b.deny,
+			ResourceId:        b.resource.Id,
+			ResourceType:      b.resource.ResourceType,
+			ResourceNamespace: b.resource.Namespace,
+			Severity:          b.severity,
+		},
+	}
+}
+
+type fuguePolicyProcessor struct {
+	metadata Metadata
+	results  []models.RuleResult
+}
+
+func NewFuguePolicyProcessor(metadata Metadata, defaultRemediation string) MultiResourceProcessor {
+	return &fuguePolicyProcessor{
+		metadata: metadata,
+	}
+}
+
+func (p *fuguePolicyProcessor) ProcessValue(val ast.Value) error {
+	var result policyResult
+	if err := rego.Bind(val, &result); err != nil {
+		return err
+	}
+	p.results = append(p.results, models.RuleResult{
+		Passed:            result.FugueValid,
+		ResourceId:        result.FugueID,
+		ResourceType:      result.FugueResourceType,
+		ResourceNamespace: result.FugueResourceNamespace,
+		Message:           result.Message,
+		Severity:          p.metadata.Severity,
+	})
+	return nil
+}
+
+func (p *fuguePolicyProcessor) ProcessResource(val ast.Value) error {
+	return nil
+}
+
+func (p *fuguePolicyProcessor) Results() []models.RuleResult {
+	return p.results
+}
+
+// This is a ProcessSingleResultSet func for the old allow[info] and
+// allow[msg] style rules.
+type fugueAllowInfoProcessor struct {
+	resource *models.ResourceState
+	severity string
+	results  []models.RuleResult
+}
+
+func NewFugueAllowInfoProcessor(
+	resource *models.ResourceState,
+	metadata *Metadata,
+	defaultRemediation string,
+) SingleResourceProcessor {
+	return &fugueAllowInfoProcessor{
+		resource: resource,
+		severity: metadata.Severity,
+	}
+}
+
+func (b *fugueAllowInfoProcessor) Process(val ast.Value) error {
+	var r policyResult
+	if err := rego.Bind(val, &r); err != nil {
 		// It might be a fugue allow[msg] style rule in this case. Try that as a
 		// fallback.
-		return processFugueAllowString(resultSet, resource, metadata, "")
-	}
-	results := []models.RuleResult{}
-	for _, r := range policyResults {
-		result := models.RuleResult{
-			Passed:            true,
-			Message:           r.Message,
-			ResourceId:        resource.Id,
-			ResourceType:      resource.ResourceType,
-			ResourceNamespace: resource.Namespace,
-			Severity:          metadata.Severity,
+		if strErr := rego.Bind(val, &r.Message); strErr != nil {
+			return err
 		}
-		results = append(results, result)
 	}
 
-	if len(results) == 0 {
+	b.results = append(b.results, models.RuleResult{
+		Passed:            true,
+		Message:           r.Message,
+		ResourceId:        b.resource.Id,
+		ResourceType:      b.resource.ResourceType,
+		ResourceNamespace: b.resource.Namespace,
+		Severity:          b.severity,
+	})
+	return nil
+}
+
+func (b *fugueAllowInfoProcessor) Results() []models.RuleResult {
+	if len(b.results) == 0 {
 		// No allows: generate a deny
-		result := models.RuleResult{
-			Passed:            false,
-			ResourceId:        resource.Id,
-			ResourceType:      resource.ResourceType,
-			ResourceNamespace: resource.Namespace,
-			Severity:          metadata.Severity,
+		return []models.RuleResult{
+			{
+				Passed:            false,
+				ResourceId:        b.resource.Id,
+				ResourceType:      b.resource.ResourceType,
+				ResourceNamespace: b.resource.Namespace,
+				Severity:          b.severity,
+			},
 		}
-		results = append(results, result)
+	} else {
+		return b.results
 	}
-
-	return results, nil
 }
 
 type metadocCustom struct {
-	Severity  string              `json:"severity"`
-	Controls  map[string][]string `json:"controls"`
-	Families  []string            `json:"families"`
-	Provider  string              `json:"provider"`
-	Providers []string            `json:"providers"`
+	Severity  string              `json:"severity" rego:"severity"`
+	Controls  map[string][]string `json:"controls" rego:"controls"`
+	Families  []string            `json:"families" rego:"families"`
+	Provider  string              `json:"provider" rego:"provider"`
+	Providers []string            `json:"providers" rego:"providers"`
 }
 
 type metadoc struct {
-	Id          string         `json:"id"`
-	Title       string         `json:"title"`
-	Description string         `json:"description"`
-	Custom      *metadocCustom `json:"custom,omitempty"`
+	Id          string         `json:"id" rego:"id"`
+	Title       string         `json:"title" rego:"title"`
+	Description string         `json:"description" rego:"description"`
+	Custom      *metadocCustom `json:"custom,omitempty" rego:"custom"`
 }

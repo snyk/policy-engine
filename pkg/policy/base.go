@@ -16,15 +16,14 @@ package policy
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"strings"
 
 	"github.com/open-policy-agent/opa/ast"
-	"github.com/open-policy-agent/opa/rego"
 	"github.com/snyk/policy-engine/pkg/input"
 	"github.com/snyk/policy-engine/pkg/logging"
 	"github.com/snyk/policy-engine/pkg/models"
+	"github.com/snyk/policy-engine/pkg/rego"
 )
 
 // Constants used to determine a policy's type.
@@ -58,7 +57,7 @@ var SupportedInputTypes = input.Types{
 }
 
 type EvalOptions struct {
-	RegoOptions       []func(*rego.Rego)
+	RegoState         *rego.State
 	Input             *models.State
 	Logger            logging.Logger
 	ResourcesResolver ResourcesResolver
@@ -68,8 +67,8 @@ type EvalOptions struct {
 // with policies.
 type Policy interface {
 	Package() string
-	Metadata(ctx context.Context, options []func(*rego.Rego)) (Metadata, error)
-	ID(ctx context.Context, options []func(*rego.Rego)) (string, error)
+	Metadata(ctx context.Context, state *rego.State) (Metadata, error)
+	ID(ctx context.Context, state *rego.State) (string, error)
 	Eval(ctx context.Context, options EvalOptions) ([]models.RuleResults, error)
 	InputType() string
 	InputTypeMatches(inputType string) bool
@@ -110,7 +109,11 @@ func (i *ruleInfo) query() string {
 	if len(i.rules) < 1 {
 		return ""
 	}
-	return i.rules[0].Path().String()
+	q := i.rules[0].Path().String()
+	if i.hasKey() {
+		q += "[_]"
+	}
+	return q
 }
 
 func (i *ruleInfo) hasKey() bool {
@@ -143,37 +146,36 @@ type Metadata struct {
 	Product      []string                       `json:"product"`
 }
 
-func (m *Metadata) UnmarshalJSON(data []byte) error {
-	compat := struct {
-		ID           string                         `json:"id"`
-		Title        string                         `json:"title"`
-		Description  string                         `json:"description"`
-		Platform     []string                       `json:"platform"`
-		Remediation  map[string]string              `json:"remediation"`
-		References   map[string][]MetadataReference `json:"references"`
-		Category     string                         `json:"category"`
-		Labels       []string                       `json:"labels,omitempty"`
-		ServiceGroup string                         `json:"service_group"`
-		Controls     models.ControlsParser          `json:"controls"`
-		Severity     string                         `json:"severity"`
-		Product      []string                       `json:"product"`
-	}{}
-	if err := json.Unmarshal(data, &compat); err != nil {
-		return err
-	}
-	m.ID = compat.ID
-	m.Title = compat.Title
-	m.Description = compat.Description
-	m.Platform = compat.Platform
-	m.Remediation = compat.Remediation
-	m.References = compat.References
-	m.Category = compat.Category
-	m.Labels = compat.Labels
-	m.ServiceGroup = compat.ServiceGroup
-	m.Controls = compat.Controls.Controls
-	m.Severity = compat.Severity
-	m.Product = compat.Product
-	return nil
+// Auxiliary parsing type.
+type metadataCompat struct {
+	ID           string                         `rego:"id"`
+	Title        string                         `rego:"title"`
+	Description  string                         `rego:"description"`
+	Platform     []string                       `rego:"platform"`
+	Remediation  map[string]string              `rego:"remediation"`
+	References   map[string][]MetadataReference `rego:"references"`
+	Category     string                         `rego:"category"`
+	Labels       []string                       `rego:"labels"`
+	ServiceGroup string                         `rego:"service_group"`
+	Controls     interface{}                    `rego:"controls"`
+	Severity     string                         `rego:"severity"`
+	Product      []string                       `rego:"product"`
+}
+
+func (compat metadataCompat) ToMetadata() (meta Metadata, err error) {
+	meta.ID = compat.ID
+	meta.Title = compat.Title
+	meta.Description = compat.Description
+	meta.Platform = compat.Platform
+	meta.Remediation = compat.Remediation
+	meta.References = compat.References
+	meta.Category = compat.Category
+	meta.Labels = compat.Labels
+	meta.ServiceGroup = compat.ServiceGroup
+	meta.Controls, err = models.ParseControls(compat.Controls)
+	meta.Severity = compat.Severity
+	meta.Product = compat.Product
+	return
 }
 
 func (m Metadata) RemediationFor(inputType string) string {
@@ -185,8 +187,8 @@ func (m Metadata) RemediationFor(inputType string) string {
 }
 
 type MetadataReference struct {
-	URL   string `json:"url"`
-	Title string `json:"title,omitempty"`
+	URL   string `json:"url" rego:"url"`
+	Title string `json:"title,omitempty" rego:"title"`
 }
 
 func (m Metadata) ReferencesFor(inputType string) []MetadataReference {
@@ -329,7 +331,7 @@ func (p *BasePolicy) InputTypeMatches(inputType string) bool {
 
 func (p *BasePolicy) Metadata(
 	ctx context.Context,
-	options []func(*rego.Rego),
+	state *rego.State,
 ) (Metadata, error) {
 	if p.cachedMetadata != nil {
 		return *p.cachedMetadata, nil
@@ -339,38 +341,49 @@ func (p *BasePolicy) Metadata(
 		p.cachedMetadata = &m
 		return m, nil
 	}
-	options = append(
-		options,
-		rego.Query(p.metadataRule.query()),
-	)
-	query, err := rego.New(options...).PrepareForEval(ctx)
-	if err != nil {
-		return m, err
-	}
-	results, err := query.Eval(ctx)
-	if err != nil {
-		return m, err
-	}
 	switch p.metadataRule.name {
 	case "metadata":
-		if err := unmarshalResultSet(results, &m); err != nil {
+		if err := state.Query(
+			ctx,
+			rego.Query{Query: p.metadataRule.query()},
+			func(val ast.Value) error {
+				compat := metadataCompat{}
+				err := rego.Bind(val, &compat)
+				if err != nil {
+					return err
+				}
+				m, err = compat.ToMetadata()
+				return err
+			},
+		); err != nil {
 			return m, err
 		}
+
 	case "__rego__metadoc__":
-		d := metadoc{}
-		if err := unmarshalResultSet(results, &d); err != nil {
+		if err := state.Query(
+			ctx,
+			rego.Query{Query: p.metadataRule.query()},
+			func(val ast.Value) error {
+				d := metadoc{}
+				if err := rego.Bind(val, &d); err != nil {
+					return err
+				}
+				m = Metadata{
+					ID:          d.Id,
+					Title:       d.Title,
+					Description: d.Description,
+				}
+				if d.Custom != nil {
+					// It's not necessary to process controls here, because this path is only
+					// for backwards compatibility with custom rules.
+					m.Severity = d.Custom.Severity
+				}
+				return nil
+			},
+		); err != nil {
 			return m, err
 		}
-		m = Metadata{
-			ID:          d.Id,
-			Title:       d.Title,
-			Description: d.Description,
-		}
-		if d.Custom != nil {
-			// It's not necessary to process controls here, because this path is only
-			// for backwards compatibility with custom rules.
-			m.Severity = d.Custom.Severity
-		}
+
 	default:
 		return m, fmt.Errorf("Unrecognized metadata rule: %s", p.metadataRule.name)
 	}
@@ -380,106 +393,45 @@ func (p *BasePolicy) Metadata(
 
 func (p *BasePolicy) ID(
 	ctx context.Context,
-	options []func(*rego.Rego),
+	state *rego.State,
 ) (string, error) {
-	metadata, err := p.Metadata(ctx, options)
+	metadata, err := p.Metadata(ctx, state)
 	if err != nil {
 		return "", err
 	}
 	return metadata.ID, nil
 }
 
-func (p *BasePolicy) resources(
-	ctx context.Context,
-	options []func(*rego.Rego),
-) (map[string]*ruleResultBuilder, error) {
-	r := map[string]*ruleResultBuilder{} // By correlation
-	if p.resourcesRule.name == "" {
-		return r, nil
-	}
-	options = append(
-		options,
-		rego.Query(p.resourcesRule.query()),
-	)
-	query, err := rego.New(options...).PrepareForEval(ctx)
-	if err != nil {
-		return r, err
-	}
-	resultSet, err := query.Eval(ctx)
-	if err != nil {
-		return r, err
-	}
-	results := []resourcesResult{}
-	if err := unmarshalResultSet(resultSet, &results); err != nil {
-		return r, err
-	}
-	for _, result := range results {
-		correlation := result.GetCorrelation()
-		if _, ok := r[correlation]; !ok {
-			r[correlation] = newRuleResultBuilder()
-		}
-		if result.ResourceType != "" {
-			r[correlation].setMissingResourceType(result.ResourceType)
-		}
-		if result.Resource != nil {
-			r[correlation].addResource(result.Resource.Key())
-		}
-		if result.PrimaryResource != nil {
-			r[correlation].setPrimaryResource(result.PrimaryResource.Key())
-		}
-		for _, attr := range result.Attributes {
-			r[correlation].addResourceAttribute(result.GetResource().Key(), attr)
-		}
-	}
-	return r, nil
-}
-
-// unmarshalResultSet is a small utility function to extract the correct types out of
-// a ResultSet.
-func unmarshalResultSet(resultSet rego.ResultSet, v interface{}) error {
-	if len(resultSet) < 1 {
-		return nil
-	}
-	if len(resultSet[0].Expressions) < 1 {
-		return nil
-	}
-	data, err := json.Marshal(resultSet[0].Expressions[0].Value)
-	if err != nil {
-		return err
-	}
-	return json.Unmarshal(data, v)
-}
-
 type policyResultResource struct {
-	ID           string `json:"_id"`
-	ResourceType string `json:"_type"`
-	Namespace    string `json:"_namespace"`
+	ID           string `json:"_id" rego:"_id"`
+	ResourceType string `json:"_type" rego:"_type"`
+	Namespace    string `json:"_namespace" rego:"_namespace"`
 }
 
 // This struct represents the common return format for the policy engine policies.
 type policyResult struct {
-	Message         string                `json:"message"`
-	Resource        *policyResultResource `json:"resource"`
-	PrimaryResource *policyResultResource `json:"primary_resource"`
-	ResourceType    string                `json:"resource_type"`
-	Remediation     string                `json:"remediation"`
-	Severity        string                `json:"severity"`
-	Attributes      [][]interface{}       `json:"attributes"`
-	Correlation     string                `json:"correlation"`
+	Message         string                `json:"message" rego:"message"`
+	Resource        *policyResultResource `json:"resource" rego:"resource"`
+	PrimaryResource *policyResultResource `json:"primary_resource" rego:"primary_resource"`
+	ResourceType    string                `json:"resource_type" rego:"resource_type"`
+	Remediation     string                `json:"remediation" rego:"remediation"`
+	Severity        string                `json:"severity" rego:"severity"`
+	Attributes      [][]interface{}       `json:"attributes" rego:"attributes"`
+	Correlation     string                `json:"correlation" rego:"correlation"`
 
 	// Backwards compatibility
-	FugueValid             bool   `json:"valid"`
-	FugueID                string `json:"id"`
-	FugueResourceType      string `json:"type"`
-	FugueResourceNamespace string `json:"namespace"`
+	FugueValid             bool   `json:"valid" rego:"valid"`
+	FugueID                string `json:"id" rego:"id"`
+	FugueResourceType      string `json:"type" rego:"type"`
+	FugueResourceNamespace string `json:"namespace" rego:"namespace"`
 }
 
 type resourcesResult struct {
-	Resource        *policyResultResource `json:"resource"`
-	PrimaryResource *policyResultResource `json:"primary_resource"`
-	Attributes      [][]interface{}       `json:"attributes"`
-	Correlation     string                `json:"correlation"`
-	ResourceType    string                `json:"resource_type"`
+	Resource        *policyResultResource `json:"resource" rego:"resource"`
+	PrimaryResource *policyResultResource `json:"primary_resource" rego:"primary_resource"`
+	Attributes      [][]interface{}       `json:"attributes" rego:"attributes"`
+	Correlation     string                `json:"correlation" rego:"correlation"`
+	ResourceType    string                `json:"resource_type" rego:"resource_type"`
 }
 
 // Helper for unique resource identifiers, meant to be used as key in a `map`.

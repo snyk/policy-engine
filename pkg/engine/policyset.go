@@ -23,13 +23,11 @@ import (
 
 	"github.com/hashicorp/go-multierror"
 	"github.com/open-policy-agent/opa/ast"
-	"github.com/open-policy-agent/opa/rego"
-	"github.com/open-policy-agent/opa/storage"
-	"github.com/open-policy-agent/opa/storage/inmem"
 	"github.com/snyk/policy-engine/pkg/data"
 	"github.com/snyk/policy-engine/pkg/metrics"
 	"github.com/snyk/policy-engine/pkg/models"
 	"github.com/snyk/policy-engine/pkg/policy"
+	"github.com/snyk/policy-engine/pkg/rego"
 )
 
 type PolicySource string
@@ -43,8 +41,7 @@ const (
 type policySet struct {
 	PolicyConsumer
 	instrumentation *policySetInstrumentation
-	compiler        *ast.Compiler
-	store           storage.Store
+	rego            *rego.State
 	policies        []policy.Policy
 	name            string
 	source          PolicySource
@@ -104,7 +101,6 @@ func newPolicySet(ctx context.Context, options policySetOptions) (*policySet, er
 	if err := s.compile(ctx); err != nil {
 		return nil, newRuleBundleError(s.ruleBundle(), fmt.Errorf("%w: %v", FailedToCompile, err))
 	}
-	s.initStore(ctx)
 	return s, nil
 }
 
@@ -150,32 +146,21 @@ func (s *policySet) extractPolicies(ctx context.Context) {
 func (s *policySet) compile(ctx context.Context) error {
 	s.instrumentation.startCompile(ctx)
 	defer s.instrumentation.finishCompile(ctx)
-	s.compiler = ast.NewCompiler().WithCapabilities(policy.Capabilities())
-	s.compiler.Compile(s.Modules)
-	if len(s.compiler.Errors) > 0 {
-		return s.compiler.Errors
+	var err error
+	s.rego, err = rego.NewState(rego.Options{
+		Modules:      s.Modules,
+		Document:     s.Document,
+		Capabilities: policy.Capabilities(),
+	})
+	if err != nil {
+		return err
 	}
 	return nil
-}
-
-func (s *policySet) initStore(ctx context.Context) {
-	s.instrumentation.startInitStore(ctx)
-	defer s.instrumentation.finishInitStore(ctx)
-	s.store = inmem.NewFromObject(s.Document)
-}
-
-func (s *policySet) regoOptions(base []func(*rego.Rego)) []func(*rego.Rego) {
-	regoOptions := []func(*rego.Rego){
-		rego.Compiler(s.compiler),
-		rego.Store(s.store),
-	}
-	return append(regoOptions, base...)
 }
 
 type evalPolicyOptions struct {
 	resourcesResolver policy.ResourcesResolver
 	policy            policy.Policy
-	regoOptions       []func(*rego.Rego)
 	input             *models.State
 }
 
@@ -184,7 +169,7 @@ func (s *policySet) evalPolicy(ctx context.Context, options *evalPolicyOptions) 
 	instrumentation := s.instrumentation.policyEvalInstrumentation(pol)
 	instrumentation.startEval(ctx)
 	ruleResults, err := pol.Eval(ctx, policy.EvalOptions{
-		RegoOptions:       s.regoOptions(options.regoOptions),
+		RegoState:         s.rego,
 		Logger:            instrumentation.logger,
 		ResourcesResolver: options.resourcesResolver,
 		Input:             options.input,
@@ -221,14 +206,13 @@ func (s *policySet) selectPolicies(ctx context.Context, filters []policyFilter) 
 	return subset
 }
 
-func (s *policySet) ruleIDFilter(ctx context.Context, ruleIDs []string, baseOptions []func(*rego.Rego)) policyFilter {
+func (s *policySet) ruleIDFilter(ctx context.Context, ruleIDs []string) policyFilter {
 	ids := map[string]bool{}
 	for _, r := range ruleIDs {
 		ids[r] = true
 	}
-	regoOptions := s.regoOptions(baseOptions)
 	return func(pol policy.Policy) bool {
-		id, err := pol.ID(ctx, regoOptions)
+		id, err := pol.ID(ctx, s.rego)
 		if err != nil {
 			s.instrumentation.policyIDError(ctx, pol.Package(), err)
 			return false
@@ -239,7 +223,6 @@ func (s *policySet) ruleIDFilter(ctx context.Context, ruleIDs []string, baseOpti
 
 type parallelEvalOptions struct {
 	resourcesResolver policy.ResourcesResolver
-	regoOptions       []func(*rego.Rego)
 	workers           int
 	input             *models.State
 	ruleIDs           []string
@@ -255,7 +238,7 @@ func (s *policySet) eval(ctx context.Context, options *parallelEvalOptions) []mo
 		},
 	}
 	if len(options.ruleIDs) > 0 {
-		filters = append(filters, s.ruleIDFilter(ctx, options.ruleIDs, options.regoOptions))
+		filters = append(filters, s.ruleIDFilter(ctx, options.ruleIDs))
 	}
 	policies := s.selectPolicies(ctx, filters)
 
@@ -284,7 +267,6 @@ func (s *policySet) eval(ctx context.Context, options *parallelEvalOptions) []mo
 						return
 					}
 					resultsChan <- s.evalPolicy(ctx, &evalPolicyOptions{
-						regoOptions:       options.regoOptions,
 						resourcesResolver: options.resourcesResolver,
 						policy:            p,
 						input:             options.input,
@@ -314,8 +296,7 @@ func (s *policySet) eval(ctx context.Context, options *parallelEvalOptions) []mo
 	return allRuleResults
 }
 
-func (s *policySet) metadata(ctx context.Context, baseOptions []func(*rego.Rego)) []MetadataResult {
-	regoOptions := s.regoOptions(baseOptions)
+func (s *policySet) metadata(ctx context.Context) []MetadataResult {
 	// Ensure a consistent ordering for policies to make our output
 	// deterministic.
 	policies := make([]policy.Policy, len(s.policies))
@@ -325,7 +306,7 @@ func (s *policySet) metadata(ctx context.Context, baseOptions []func(*rego.Rego)
 	})
 	metadata := make([]MetadataResult, len(policies))
 	for idx, p := range policies {
-		m, err := p.Metadata(ctx, regoOptions)
+		m, err := p.Metadata(ctx, s.rego)
 		result := MetadataResult{
 			Package: p.Package(),
 		}
@@ -403,14 +384,6 @@ func (i *policySetInstrumentation) startCompile(ctx context.Context) {
 
 func (i *policySetInstrumentation) finishCompile(ctx context.Context) {
 	i.finishPhase(ctx, "compile")
-}
-
-func (i *policySetInstrumentation) startInitStore(ctx context.Context) {
-	i.startPhase(ctx, "init_store")
-}
-
-func (i *policySetInstrumentation) finishInitStore(ctx context.Context) {
-	i.finishPhase(ctx, "init_store")
 }
 
 func (i *policySetInstrumentation) startPolicySelection(ctx context.Context) {
