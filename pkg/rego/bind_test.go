@@ -43,6 +43,7 @@ type Collections struct {
 	Slice     []Primitives   `rego:"slice"`
 	MapString map[string]int `rego:"mapstring"`
 	MapInt    map[int]string `rego:"mapint"`
+	SetInt    []int          `rego:"setint"`
 }
 
 func TestBindCollections(t *testing.T) {
@@ -69,12 +70,20 @@ func TestBindCollections(t *testing.T) {
 				[2]*ast.Term{ast.IntNumberTerm(2), ast.StringTerm("two")},
 			)),
 		},
+		[2]*ast.Term{
+			ast.StringTerm("setint"),
+			ast.NewTerm(ast.NewSet(
+				ast.IntNumberTerm(1),
+				ast.IntNumberTerm(2),
+			)),
+		},
 	), &actual))
 	assert.Equal(t,
 		Collections{
 			Slice:     []Primitives{{String: "one!"}, {String: "two!"}},
 			MapString: map[string]int{"one": 1, "two": 2},
 			MapInt:    map[int]string{1: "one", 2: "two"},
+			SetInt:    []int{1, 2},
 		},
 		actual,
 	)
