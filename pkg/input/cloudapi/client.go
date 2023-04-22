@@ -15,9 +15,10 @@ const (
 )
 
 type ClientConfig struct {
-	URL     string
-	Token   string
-	Version string
+	HTTPClient *http.Client
+	URL        string
+	Token      string
+	Version    string
 }
 
 type Client struct {
@@ -27,11 +28,19 @@ type Client struct {
 	version       string
 }
 
+func (c *Client) Do(req *http.Request) (*http.Response, error) {
+	if c.authorization != "" {
+		req.Header.Set("Authorization", c.authorization)
+	}
+	return c.httpClient.Do(req)
+}
+
 var ErrMissingToken = errors.New("no API token provided")
 var ErrInvalidURL = errors.New("invalid URL")
 
 func NewClient(config ClientConfig) (*Client, error) {
-	if config.Token == "" {
+	// Authorization can either come from a pre-configured client or a token.
+	if config.HTTPClient == nil && config.Token == "" {
 		return nil, ErrMissingToken
 	}
 
@@ -64,8 +73,13 @@ func NewClient(config ClientConfig) (*Client, error) {
 		Host:   parsedURL.Host,
 	}
 
+	httpClient := config.HTTPClient
+	if httpClient == nil {
+		httpClient = http.DefaultClient
+	}
+
 	client := Client{
-		httpClient:    http.DefaultClient,
+		httpClient:    httpClient,
 		url:           sanitizedURL.String(),
 		authorization: config.Token,
 		version:       v,
