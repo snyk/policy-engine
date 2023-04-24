@@ -68,6 +68,7 @@ func TestReadBundle(t *testing.T) {
 				Manifest: base.Manifest{
 					BundleFormatVersion: v1.VERSION,
 				},
+				Name:                "acme_complete_bundle",
 				PolicyEngineVersion: "v0.15.0",
 				Revision:            "924d418a9f8f05a66c7dab87989fad631abc291d",
 				VCS: v1.VCSMetadata{

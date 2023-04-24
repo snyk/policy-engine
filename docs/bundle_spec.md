@@ -34,6 +34,7 @@ metadata contains identifying information about the policy bundle.
 | Field                   |  Type  | Required | Description                                                                  |
 | :---------------------- | :----: | :------: | :--------------------------------------------------------------------------- |
 | `bundle_format_version` | string |   yes    | The version of policy engine bundle format that this bundle conforms to      |
+| `name`                  | string |    no    | A descriptive name for the rule bundle                                       |
 | `policy_engine_version` | string |    no    | The version of policy engine used to develop or build this bundle            |
 | `revision`              | string |    no    | The revision of the bundle, e.g. a Git hash                                  |
 | `vcs`                   | object |    no    | Version control system (VCS) information                                     |
@@ -78,6 +79,7 @@ libraries and may be overwritten by Snyk tooling.
 ```json
 {
     "bundle_format_version": "v1",
+    "name": "acme_complete_bundle",
     "policy_engine_version": "v0.15.0",
     "revision": "22e2f3bccb6fd28733bfbf445ba41e26e0fc32af",
     "vcs": {
