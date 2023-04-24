@@ -39,6 +39,7 @@ type VCSMetadata struct {
 
 type Manifest struct {
 	base.Manifest
+	Name                string      `json:"name"`
 	PolicyEngineVersion string      `json:"policy_engine_version"`
 	Revision            string      `json:"revision"`
 	VCS                 VCSMetadata `json:"vcs"`
@@ -185,6 +186,11 @@ func ReadBundle(p base.FileProducer) (base.Bundle, error) {
 
 type ManifestOption func(m *Manifest)
 
+// Options we parse from manifest.json.
+type sanitizedManifest struct {
+	Name string `json:"name"`
+}
+
 func BuildBundle(p base.FileProducer, opts ...ManifestOption) (base.Bundle, error) {
 	manifest := Manifest{}
 	for _, opt := range opts {
@@ -201,6 +207,11 @@ func BuildBundle(p base.FileProducer, opts ...ManifestOption) (base.Bundle, erro
 		path := f.Info.Path
 		raw := f.Raw
 		if f.Info.Path == "manifest.json" {
+			var sanitized sanitizedManifest
+			if err := json.Unmarshal(raw, &sanitized); err != nil {
+				return err
+			}
+			bundle.manifest.Name = sanitized.Name
 			return nil
 		}
 		switch filepath.Ext(f.Info.Path) {
