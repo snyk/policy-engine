@@ -99,7 +99,7 @@ func (c *Client) resourcesPage(ctx context.Context, req *http.Request) (Collecti
 	req.Header.Set("Content-Type", "application/vnd.api+json")
 	req.Header.Set("Authorization", c.authorization)
 
-	res, err := c.httpClient.Do(req)
+	res, err := c.Do(req)
 	if err != nil {
 		return results, err
 	}
