@@ -320,6 +320,38 @@ func (s *policySet) metadata(ctx context.Context) []MetadataResult {
 	return metadata
 }
 
+// QueryOptions contain options for Engine.Query
+type QueryOptions struct {
+	// Query is a rego query
+	Query string
+	// Input is an optional state to query against
+	Input *models.State
+	// ResourceResolver is an optional function that returns a resource state
+	// for the given ResourceRequest. Multiple ResourcesResolvers can be
+	// composed with And() and Or().
+	ResourcesResolver policy.ResourcesResolver
+	// ResultProcessor is a function that is run on every result returned by the
+	// query.
+	ResultProcessor func(ast.Value) error
+}
+
+func (s *policySet) query(ctx context.Context, options *QueryOptions) error {
+	input := options.Input
+	if input == nil {
+		input = &models.State{}
+	}
+	builtins := policy.NewBuiltins(input, options.ResourcesResolver)
+	return s.rego.Query(ctx, rego.Query{
+		Query:    options.Query,
+		Builtins: builtins.Implementations(),
+		// TODO: remove once we're no longer looking at input.resources in
+		// Snyk rules
+		Input: ast.NewObject(
+			[2]*ast.Term{ast.StringTerm("resources"), ast.ObjectTerm()},
+		),
+	}, options.ResultProcessor)
+}
+
 func (s *policySet) ruleBundle() *models.RuleBundle {
 	return &models.RuleBundle{
 		Name:     s.name,
