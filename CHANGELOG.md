@@ -2,6 +2,15 @@
 
 
 
+## v0.21.0 - 2023-04-25
+### Added
+* Engine.Query() method to support arbitrary queries
+* alternate method to configure authorization for cloudapi.Client
+* add name to bundle manifest
+* pkg/test to easily run rego tests
+### Changed
+* Switch to using opa/topdown rather than opa/rego
+
 ## v0.20.0 - 2023-04-18
 ### Added
 * cloud resources options to repl command
