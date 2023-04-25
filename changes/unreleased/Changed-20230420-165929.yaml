@@ -1,3 +1,0 @@
-kind: Changed
-body: "Switch to using opa/topdown rather than opa/rego"
-time: 2023-04-20T16:59:29.968243803+02:00
