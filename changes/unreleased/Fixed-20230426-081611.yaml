@@ -1,0 +1,3 @@
+kind: Fixed
+body: bug where paths, e.g. /api, were dropped from cloudapi.ClientConfig.URL
+time: 2023-04-26T08:16:11.678605-04:00

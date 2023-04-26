@@ -51,7 +51,7 @@ func TestClient(t *testing.T) {
 				URL:   "https://api.dev.snyk.io/api/v1",
 				Token: "some-token",
 			},
-			expectedURL:           "https://api.dev.snyk.io",
+			expectedURL:           "https://api.dev.snyk.io/api/v1",
 			expectedAuthorization: "some-token",
 			expectedVersion:       defaultVersion,
 		},
