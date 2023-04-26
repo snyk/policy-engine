@@ -77,7 +77,7 @@ func (p *MultiResourcePolicy) Eval(
 	tracer := inferattributes.NewTracer()
 
 	query := rego.Query{
-		Query:    p.judgementRule.query(),
+		Query:    p.judgementRule.queryElem(),
 		Builtins: builtins.Implementations(),
 		Tracers:  []topdown.QueryTracer{tracer},
 		Input: ast.NewObject(
@@ -98,7 +98,7 @@ func (p *MultiResourcePolicy) Eval(
 	}
 	err = options.RegoState.Query(
 		ctx,
-		query.Add(rego.Query{Query: p.resourcesRule.query()}),
+		query.Add(rego.Query{Query: p.resourcesRule.queryElem()}),
 		processor.ProcessResource,
 	)
 	if err != nil {

@@ -46,14 +46,28 @@ func PolicyFactory(moduleSet ModuleSet) (Policy, error) {
 	} else {
 		switch base.judgementRule.name {
 		case "allow":
+			// NOTE(jaspervdj): hasKey() doesn't really work here, since it
+			// only deals with the _syntax_ of the code, and we want to talk
+			// about the _types_.
+			//
+			// For example, these are two ways to express the same `allow[info]`
+			// rule:
+			//
+			//     allow[info] { info = "message" }
+			//     allow = {"message"}
+			//
+			// However, `hasKey()` will classify them differently.  This is
+			// currently a known issue.
 			if base.judgementRule.hasKey() {
 				return &SingleResourcePolicy{
 					BasePolicy:       base,
+					Query:            base.judgementRule.queryElem(),
 					processorFactory: NewFugueAllowInfoProcessor,
 				}, nil
 			} else {
 				return &SingleResourcePolicy{
 					BasePolicy:       base,
+					Query:            base.judgementRule.query(),
 					processorFactory: NewFugueAllowBooleanProcessor,
 				}, nil
 			}
@@ -62,11 +76,13 @@ func PolicyFactory(moduleSet ModuleSet) (Policy, error) {
 			if base.judgementRule.hasKey() {
 				return &SingleResourcePolicy{
 					BasePolicy:       base,
+					Query:            base.judgementRule.queryElem(),
 					processorFactory: NewSingleDenyProcessor,
 				}, nil
 			} else {
 				return &SingleResourcePolicy{
 					BasePolicy:       base,
+					Query:            base.judgementRule.query(),
 					processorFactory: NewFugueDenyBooleanProcessor,
 				}, nil
 			}

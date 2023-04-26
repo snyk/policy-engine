@@ -119,3 +119,19 @@ func TestSnykRules(t *testing.T) {
 	assert.NoError(t, err)
 	utils.GoldenTest(t, "snykrules.json", bytes)
 }
+
+func TestRegression(t *testing.T) {
+	results := RunEngine(
+		t,
+		&engine.EngineOptions{
+			Providers: []data.Provider{
+				data.LocalProvider("regression"),
+			},
+		},
+		"../examples/main.tf",
+	)
+	assert.Len(t, results.Results, 1)
+	bytes, err := json.MarshalIndent(results.Results[0].RuleResults, "", "  ")
+	assert.NoError(t, err)
+	utils.GoldenTest(t, "regression.json", bytes)
+}

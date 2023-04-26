@@ -109,11 +109,16 @@ func (i *ruleInfo) query() string {
 	if len(i.rules) < 1 {
 		return ""
 	}
-	q := i.rules[0].Path().String()
-	if i.hasKey() {
-		q += "[_]"
+	return i.rules[0].Path().String()
+}
+
+func (i *ruleInfo) queryElem() string {
+	q := i.query()
+	if q == "" {
+		return q
+	} else {
+		return q + "[_]"
 	}
-	return q
 }
 
 func (i *ruleInfo) hasKey() bool {
