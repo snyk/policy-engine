@@ -31,6 +31,7 @@ import (
 // SingleResourcePolicy represents a policy that takes a single resource as input.
 type SingleResourcePolicy struct {
 	*BasePolicy
+	Query            string
 	processorFactory func(
 		resource *models.ResourceState,
 		metadata *Metadata,
@@ -105,7 +106,7 @@ func (p *SingleResourcePolicy) Eval(
 				ctx,
 				rego.Query{
 					Tracers: []topdown.QueryTracer{tracer},
-					Query:   p.judgementRule.query(),
+					Query:   p.Query,
 					Input:   inputDoc.Value,
 				},
 				func(val ast.Value) error {

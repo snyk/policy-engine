@@ -1,0 +1,81 @@
+[
+  {
+    "rule_bundle": {
+      "source": "data"
+    },
+    "resource_types": [
+      "aws_s3_bucket"
+    ],
+    "results": [
+      {
+        "passed": false,
+        "ignored": false,
+        "message": "Bucket names should not contain bucket",
+        "resource_id": "aws_s3_bucket.bucket1",
+        "resource_namespace": "../examples/main.tf",
+        "resource_type": "aws_s3_bucket",
+        "resources": [
+          {
+            "id": "aws_s3_bucket.bucket1",
+            "type": "aws_s3_bucket",
+            "namespace": "../examples/main.tf",
+            "location": [
+              {
+                "filepath": "../examples/main.tf",
+                "line": 5,
+                "column": 1
+              }
+            ],
+            "attributes": [
+              {
+                "path": [
+                  "bucket"
+                ],
+                "location": {
+                  "filepath": "../examples/main.tf",
+                  "line": 6,
+                  "column": 3
+                }
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "passed": false,
+        "ignored": false,
+        "message": "Bucket names should not contain bucket",
+        "resource_id": "aws_s3_bucket.bucket3",
+        "resource_namespace": "../examples/main.tf",
+        "resource_type": "aws_s3_bucket",
+        "resources": [
+          {
+            "id": "aws_s3_bucket.bucket3",
+            "type": "aws_s3_bucket",
+            "namespace": "../examples/main.tf",
+            "location": [
+              {
+                "filepath": "../examples/main.tf",
+                "line": 37,
+                "column": 1
+              }
+            ],
+            "attributes": [
+              {
+                "path": [
+                  "bucket"
+                ],
+                "location": {
+                  "filepath": "../examples/main.tf",
+                  "line": 38,
+                  "column": 3
+                }
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "package": "data.rules.norulekey"
+  }
+]
