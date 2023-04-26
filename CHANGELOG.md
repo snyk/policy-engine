@@ -2,6 +2,10 @@
 
 
 
+## v0.21.1 - 2023-04-26
+### Fixed
+* deny parsing for key-less rules
+
 ## v0.21.0 - 2023-04-25
 ### Added
 * Engine.Query() method to support arbitrary queries
