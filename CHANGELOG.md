@@ -2,6 +2,11 @@
 
 
 
+## v0.21.1 - 2023-04-26
+### Fixed
+* deny parsing for key-less rules
+* bug where paths, e.g. /api, were dropped from cloudapi.ClientConfig.URL
+
 ## v0.21.0 - 2023-04-25
 ### Added
 * Engine.Query() method to support arbitrary queries
