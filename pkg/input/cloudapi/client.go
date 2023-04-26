@@ -71,6 +71,7 @@ func NewClient(config ClientConfig) (*Client, error) {
 	sanitizedURL := url.URL{
 		Scheme: parsedURL.Scheme,
 		Host:   parsedURL.Host,
+		Path:   parsedURL.Path,
 	}
 
 	httpClient := config.HTTPClient
