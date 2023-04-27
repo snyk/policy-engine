@@ -1,0 +1,4 @@
+kind: Fixed
+body: rules without messages produce messages containing '\n\n' when they produce
+  multiple results
+time: 2023-04-27T15:24:28.827257-04:00
