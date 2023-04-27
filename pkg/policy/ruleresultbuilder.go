@@ -114,9 +114,18 @@ func (builder *ruleResultBuilder) toRuleResult() models.RuleResult {
 		resources = append(resources, builder.resources[k])
 	}
 
-	// Gather messages.
-	messages := make([]string, len(builder.messages))
-	copy(messages, builder.messages)
+	// Gather unique, non-blank messages.
+	var messages []string
+	seenMessages := map[string]bool{}
+	for _, m := range builder.messages {
+		if m == "" {
+			continue
+		}
+		if _, seen := seenMessages[m]; !seen {
+			messages = append(messages, m)
+			seenMessages[m] = true
+		}
+	}
 	sort.Strings(messages)
 
 	// Infer primary resource.
