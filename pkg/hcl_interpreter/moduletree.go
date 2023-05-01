@@ -184,18 +184,9 @@ func (mtree *ModuleTree) Errors() []error {
 	missingModules := mtree.meta.MissingRemoteModules
 	if len(missingModules) > 0 {
 		missingModulesList := strings.Join(missingModules, ", ")
-		firstSentence := "Could not load some remote submodules"
-		if mtree.meta.Dir != "." {
-			firstSentence += fmt.Sprintf(
-				" that are used by '%s'",
-				mtree.meta.Dir,
-			)
-		}
 
 		errors = append(errors, fmt.Errorf(
-			"%s. Run 'terraform init' if you would like to include them in the evaluation: %s",
-			firstSentence,
-			missingModulesList,
+			"%w: %s: %s", ErrLoadRemoteSubmodules, mtree.meta.Dir, missingModulesList,
 		))
 	}
 

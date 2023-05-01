@@ -18,6 +18,7 @@ package hcl_interpreter
 
 import (
 	"fmt"
+
 	"github.com/hashicorp/hcl/v2"
 	"github.com/spf13/afero"
 	"github.com/zclconf/go-cty/cty"
@@ -267,7 +268,7 @@ func (v *Evaluation) evaluate() error {
 		})
 
 		if diags.HasErrors() {
-			v.errors = append(v.errors, fmt.Errorf("evaluate: error: %s", diags))
+			v.errors = append(v.errors, fmt.Errorf("%w: %v", ErrEvaluation, diags))
 		}
 
 		v.resourceAttributes[name.ToString()] = val
@@ -385,10 +386,10 @@ func (v *Evaluation) Resources() []Resource {
 func (e *Evaluation) Errors() []error {
 	errors := []error{}
 	for badKey := range e.Analysis.badKeys {
-		errors = append(errors, fmt.Errorf("Bad dependency key: %s", badKey))
+		errors = append(errors, fmt.Errorf("%w: %v", ErrBadDependencyKey, badKey))
 	}
 	for missingTerm := range e.Analysis.missingTerms {
-		errors = append(errors, fmt.Errorf(`Missing term for "%s", substituted in as string`, missingTerm))
+		errors = append(errors, fmt.Errorf("%w: %v", ErrMissingTerm, missingTerm))
 	}
 	errors = append(errors, e.errors...)
 	return errors
