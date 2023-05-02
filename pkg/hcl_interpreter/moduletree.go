@@ -183,11 +183,7 @@ func (mtree *ModuleTree) Errors() []error {
 
 	missingModules := mtree.meta.MissingRemoteModules
 	if len(missingModules) > 0 {
-		missingModulesList := strings.Join(missingModules, ", ")
-
-		errors = append(errors, fmt.Errorf(
-			"%w: %s: %s", ErrLoadRemoteSubmodules, mtree.meta.Dir, missingModulesList,
-		))
+		errors = append(errors, MissingRemoteSubmodulesError{mtree.meta.Dir, missingModules})
 	}
 
 	for _, child := range mtree.children {

@@ -16,14 +16,35 @@ package hcl_interpreter
 
 import (
 	"errors"
+
+	"github.com/hashicorp/hcl/v2"
 )
 
-var ErrLoadRemoteSubmodules = errors.New("Could not load some remote submodules")
+type MissingRemoteSubmodulesError struct {
+	Dir            string
+	MissingModules []string
+}
 
-var ErrEvaluation = errors.New("Evaluation error")
+func (err MissingRemoteSubmodulesError) Error() string {
+	return "Could not load some remote submodules"
+}
 
-var ErrUnhandledValueType = errors.New("Unhandled value type")
+type EvaluationError struct {
+	Diags hcl.Diagnostics
+}
 
-var ErrBadDependencyKey = errors.New("Bad dependency key")
+func (err EvaluationError) Error() string {
+	return "Evaluation error"
+}
 
-var ErrMissingTerm = errors.New("Missing term")
+type MissingTermError struct {
+	Term string
+}
+
+func (err MissingTermError) Error() string {
+	return "Missing term " + err.Term
+}
+
+var errUnhandledValueType = errors.New("Unhandled value type")
+
+var errBadDependencyKey = errors.New("Bad dependency key")

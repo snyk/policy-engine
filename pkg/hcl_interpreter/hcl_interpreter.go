@@ -268,7 +268,7 @@ func (v *Evaluation) evaluate() error {
 		})
 
 		if diags.HasErrors() {
-			v.errors = append(v.errors, fmt.Errorf("%w: %v", ErrEvaluation, diags))
+			v.errors = append(v.errors, EvaluationError{diags})
 		}
 
 		v.resourceAttributes[name.ToString()] = val
@@ -386,10 +386,10 @@ func (v *Evaluation) Resources() []Resource {
 func (e *Evaluation) Errors() []error {
 	errors := []error{}
 	for badKey := range e.Analysis.badKeys {
-		errors = append(errors, fmt.Errorf("%w: %v", ErrBadDependencyKey, badKey))
+		errors = append(errors, fmt.Errorf("%w: %v", errBadDependencyKey, badKey))
 	}
 	for missingTerm := range e.Analysis.missingTerms {
-		errors = append(errors, fmt.Errorf("%w: %v", ErrMissingTerm, missingTerm))
+		errors = append(errors, MissingTermError{missingTerm})
 	}
 	errors = append(errors, e.errors...)
 	return errors

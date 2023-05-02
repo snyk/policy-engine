@@ -89,5 +89,5 @@ func ValueToInterface(val cty.Value) (interface{}, []error) {
 		return object, nil
 	}
 
-	return nil, []error{fmt.Errorf("%w: %v", ErrUnhandledValueType, val.Type().GoString())}
+	return nil, []error{fmt.Errorf("%w: %v", errUnhandledValueType, val.Type().GoString())}
 }
