@@ -19,7 +19,6 @@ import (
 	"embed"
 	"fmt"
 	"sort"
-	"os"
 
 	"github.com/open-policy-agent/opa/ast"
 	"github.com/open-policy-agent/opa/rego"
@@ -169,7 +168,6 @@ func Capabilities() *ast.Capabilities {
 	}
 	base := ast.CapabilitiesForThisVersion()
 	for _, builtin := range base.Builtins {
-    	fmt.Fprintf(os.Stderr, "%s\n", builtin.Name)
 		if _, unsafe := unsafeBuiltins[builtin.Name]; !unsafe {
 			builtins = append(builtins, builtin)
 		}
