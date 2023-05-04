@@ -30,11 +30,6 @@ import (
 	"github.com/snyk/policy-engine/pkg/policy/inferattributes"
 )
 
-// Builtins not available to policy runners.
-var unsafeBuiltins = map[string]struct{}{
-	"http.send": {},
-}
-
 //go:embed regoapi
 var regoApi embed.FS
 
@@ -168,7 +163,7 @@ func Capabilities() *ast.Capabilities {
 	}
 	base := ast.CapabilitiesForThisVersion()
 	for _, builtin := range base.Builtins {
-		if _, unsafe := unsafeBuiltins[builtin.Name]; !unsafe {
+		if _, ok := allowedBuiltins[builtin.Name]; ok {
 			builtins = append(builtins, builtin)
 		}
 	}
