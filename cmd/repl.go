@@ -25,11 +25,13 @@ import (
 	"github.com/open-policy-agent/opa/repl"
 	"github.com/open-policy-agent/opa/storage"
 	"github.com/open-policy-agent/opa/storage/inmem"
+	"github.com/spf13/cobra"
+
 	"github.com/snyk/policy-engine/pkg/data"
 	"github.com/snyk/policy-engine/pkg/engine"
 	"github.com/snyk/policy-engine/pkg/models"
+	"github.com/snyk/policy-engine/pkg/policy"
 	"github.com/snyk/policy-engine/pkg/snapshot_testing"
-	"github.com/spf13/cobra"
 )
 
 var replFlags struct {
@@ -106,7 +108,7 @@ var replCmd = &cobra.Command{
 			"pretty",
 			ast.CompileErrorLimitDefault,
 			"",
-		)
+		).WithCapabilities(policy.Capabilities())
 
 		r.OneShot(ctx, "strict-builtin-errors")
 		for _, command := range replFlags.Init {
