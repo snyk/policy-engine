@@ -165,7 +165,7 @@ func ParseFiles(
 						} else {
 							errors = append(
 								errors,
-								fmt.Errorf("Error loading submodule '%s': %s", key, err),
+								SubmoduleLoadingError{key, err},
 							)
 						}
 					}
