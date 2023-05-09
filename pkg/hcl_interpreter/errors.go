@@ -16,9 +16,19 @@ package hcl_interpreter
 
 import (
 	"errors"
+	"strings"
 
 	"github.com/hashicorp/hcl/v2"
 )
+
+type SubmoduleLoadingError struct {
+	Module string
+	Err    error
+}
+
+func (err SubmoduleLoadingError) Error() string {
+	return "Error loading submodule " + err.Module + ": " + err.Err.Error()
+}
 
 type MissingRemoteSubmodulesError struct {
 	Dir            string
@@ -26,7 +36,7 @@ type MissingRemoteSubmodulesError struct {
 }
 
 func (err MissingRemoteSubmodulesError) Error() string {
-	return "Could not load some remote submodules"
+	return "Could not load remote submodules in " + err.Dir + ": " + strings.Join(err.MissingModules, ", ")
 }
 
 type EvaluationError struct {
@@ -34,7 +44,7 @@ type EvaluationError struct {
 }
 
 func (err EvaluationError) Error() string {
-	return "Evaluation error"
+	return "Evaluation error: " + err.Diags.Error()
 }
 
 type MissingTermError struct {
