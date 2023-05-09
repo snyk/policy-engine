@@ -18,7 +18,8 @@ import (
 	"runtime/debug"
 	"strings"
 
-	"github.com/open-policy-agent/opa/version"
+	opaversion "github.com/open-policy-agent/opa/version"
+	tfversion "github.com/snyk/policy-engine/pkg/internal/terraform/version"
 )
 
 // Default build-time variables.
@@ -29,13 +30,18 @@ var (
 )
 
 // OPAVersion is the canonical version of OPA that is embedded in policy-engine
-var OPAVersion = version.Version
+var OPAVersion = opaversion.Version
+
+// Terraform holds the embedded version of terraform.
+var TerraformVersion = tfversion.Version
 
 type VersionInfo struct {
 	// Version is set to the most recent tag at build time
 	Version string
 	// OPAversion is the canonical version of OPA that is embedded in policy-engine
 	OPAVersion string
+	// Terraform holds the embedded version of terraform.
+	TerraformVersion string
 	// Revision is the git commit hash at build time
 	Revision string
 	// HasChanges reflects whether or not the source tree had changes at build time
@@ -44,8 +50,9 @@ type VersionInfo struct {
 
 func GetVersionInfo() VersionInfo {
 	v := VersionInfo{
-		Version:    Version,
-		OPAVersion: OPAVersion,
+		Version:          Version,
+		OPAVersion:       OPAVersion,
+		TerraformVersion: TerraformVersion,
 	}
 	if info, ok := debug.ReadBuildInfo(); ok {
 		for _, setting := range info.Settings {

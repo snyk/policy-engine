@@ -17,6 +17,7 @@ package cmd
 import (
 	"fmt"
 	"os"
+	"strings"
 
 	"github.com/snyk/policy-engine/pkg/version"
 	"github.com/spf13/cobra"
@@ -27,13 +28,32 @@ var versionCmd = &cobra.Command{
 	Short: "Display version",
 	RunE: func(cmd *cobra.Command, args []string) error {
 		v := version.GetVersionInfo()
-		fmt.Fprintf(os.Stdout, "Version:\t%s\n", v.Version)
-		fmt.Fprintf(os.Stdout, "OPA Version:\t%s\n", v.OPAVersion)
+
+		table := [][2]string{}
+		table = append(table, [2]string{"Version", v.Version})
+		table = append(table, [2]string{"OPA Version", v.OPAVersion})
+		table = append(table, [2]string{"Terraform Version", v.TerraformVersion})
 		revision := v.Revision
 		if v.HasChanges {
 			revision = fmt.Sprintf("%s*", revision)
 		}
-		fmt.Fprintf(os.Stdout, "Revision:\t%s\n", revision)
+		table = append(table, [2]string{"Revision", revision})
+
+		padding := 0
+		for _, row := range table {
+			if len(row[0]) > padding {
+				padding = len(row[0])
+			}
+		}
+
+		for _, row := range table {
+			fmt.Fprintf(os.Stdout, "%s:%s%s\n",
+				row[0],
+				strings.Repeat(" ", padding-len(row[0])+1),
+				row[1],
+			)
+		}
+
 		return nil
 	},
 }
