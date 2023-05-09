@@ -83,6 +83,7 @@ func (p *MultiResourcePolicy) Eval(
 		Input: ast.NewObject(
 			[2]*ast.Term{ast.StringTerm("resources"), ast.ObjectTerm()},
 		),
+		Timeout: options.Timeout,
 	}
 	processor := p.processorFactory(metadata, defaultRemediation)
 	err = options.RegoState.Query(
@@ -91,7 +92,7 @@ func (p *MultiResourcePolicy) Eval(
 		processor.ProcessValue,
 	)
 	if err != nil {
-		logger.Error(ctx, "Failed to evaluate rule")
+		logger.WithError(err).Error(ctx, "failed to evaluate rule")
 		err = fmt.Errorf("%w: %v", FailedToEvaluateRule, err)
 		output.Errors = append(output.Errors, err.Error())
 		return []models.RuleResults{output}, err

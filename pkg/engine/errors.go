@@ -33,3 +33,12 @@ var FailedToCompile = errors.New("Failed to compile rules")
 // ErrFailedToReadBundle indicates that an error occurred while consuming a
 // bundle.Reader.
 var ErrFailedToReadBundle = errors.New("failed to load bundle")
+
+// ErrInitTimedOut indicates that initialization took too long and was cancelled.
+var ErrInitTimedOut = errors.New("initialization timed out")
+
+// ErrEvalTimedOut indicates that evaluation took too long and was cancelled.
+var ErrEvalTimedOut = errors.New("evaluation timed out")
+
+// ErrQueryTimedOut indicates that a query took too long and was cancelled.
+var ErrQueryTimedOut = errors.New("query timed out")

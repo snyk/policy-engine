@@ -18,6 +18,7 @@ import (
 	"context"
 	"fmt"
 	"strings"
+	"time"
 
 	"github.com/open-policy-agent/opa/ast"
 	"github.com/snyk/policy-engine/pkg/input"
@@ -61,6 +62,7 @@ type EvalOptions struct {
 	Input             *models.State
 	Logger            logging.Logger
 	ResourcesResolver ResourcesResolver
+	Timeout           time.Duration
 }
 
 // Policy is an interface that supports all of the ways we want to interact

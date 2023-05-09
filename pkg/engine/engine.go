@@ -18,14 +18,22 @@ import (
 	"context"
 	"fmt"
 	"sort"
+	"time"
 
 	"github.com/snyk/policy-engine/pkg/bundle"
 	"github.com/snyk/policy-engine/pkg/bundle/base"
 	"github.com/snyk/policy-engine/pkg/data"
+	"github.com/snyk/policy-engine/pkg/internal/withtimeout"
 	"github.com/snyk/policy-engine/pkg/logging"
 	"github.com/snyk/policy-engine/pkg/metrics"
 	"github.com/snyk/policy-engine/pkg/models"
 	"github.com/snyk/policy-engine/pkg/policy"
+)
+
+const (
+	DefaultInitTimeout  = 30 * time.Second
+	DefaultEvalTimeout  = 5 * time.Minute
+	DefaultQueryTimeout = 45 * time.Second
 )
 
 // Engine is responsible for evaluating some States with a given set of rules.
@@ -34,6 +42,9 @@ type Engine struct {
 	InitializationErrors []error
 	instrumentation      *engineInstrumentation
 	policySets           []*policySet
+	initTimeout          time.Duration
+	evalTimeout          time.Duration
+	queryTimeout         time.Duration
 }
 
 // EngineOptions contains options for initializing an Engine instance
@@ -49,6 +60,19 @@ type EngineOptions struct {
 
 	// Metrics is an optional instance of the metrics.Metrics interface
 	Metrics metrics.Metrics
+
+	// InitTimeout sets the maximum duration that the engine can take to
+	// initialize. This timeout is applied per bundle or policy set.
+	InitTimeout time.Duration
+
+	// EvalTimeout sets the maximum duration that the engine can take to
+	// evaluate an input. This timeout is applied per bundle or policy set.
+	EvalTimeout time.Duration
+
+	// QueryTimeout sets the maximum duration that the engine can take to
+	// evaluate any single query. This timeout is applied while evaluating
+	// individual policies, querying metadata, or running ad-hoc queries.
+	QueryTimeout time.Duration
 }
 
 // NewEngine constructs a new Engine instance.
@@ -61,6 +85,18 @@ func NewEngine(ctx context.Context, options *EngineOptions) *Engine {
 	if m == nil {
 		m = metrics.NewLocalMetrics(logger)
 	}
+	initTimeout := options.InitTimeout
+	if initTimeout < 1 {
+		initTimeout = DefaultInitTimeout
+	}
+	evalTimeout := options.EvalTimeout
+	if evalTimeout < 1 {
+		evalTimeout = DefaultEvalTimeout
+	}
+	queryTimeout := options.QueryTimeout
+	if queryTimeout < 1 {
+		queryTimeout = DefaultQueryTimeout
+	}
 	eng := &Engine{
 		instrumentation: &engineInstrumentation{
 			instrumentation: newInstrumentation(instrumentationOptions{
@@ -69,8 +105,11 @@ func NewEngine(ctx context.Context, options *EngineOptions) *Engine {
 				metrics:   m,
 			}),
 		},
+		initTimeout:  initTimeout,
+		evalTimeout:  evalTimeout,
+		queryTimeout: queryTimeout,
 	}
-	eng.instrumentation.startInitialization(ctx)
+	eng.instrumentation.startInitialization(ctx, eng)
 	eng.initPolicySets(ctx, options.Providers, options.BundleReaders)
 	eng.instrumentation.finishInitialization(ctx, eng)
 	return eng
@@ -89,6 +128,8 @@ func (e *Engine) initPolicySets(ctx context.Context, providers []data.Provider, 
 				info,
 				withField("policy_set_source", string(POLICY_SOURCE_DATA)),
 			),
+			initTimeout:  e.initTimeout,
+			queryTimeout: e.queryTimeout,
 		})
 		if err != nil {
 			e.InitializationErrors = append(e.InitializationErrors, err)
@@ -109,7 +150,7 @@ func (e *Engine) initPolicySets(ctx context.Context, providers []data.Provider, 
 		if err != nil {
 			e.InitializationErrors = append(e.InitializationErrors,
 				newRuleBundleError(
-					&models.RuleBundle{
+					models.RuleBundle{
 						Name:     sourceInfo.FileInfo.Path,
 						Source:   string(policySource),
 						Checksum: sourceInfo.FileInfo.Checksum,
@@ -127,6 +168,8 @@ func (e *Engine) initPolicySets(ctx context.Context, providers []data.Provider, 
 				string(policySource),
 				sourceInfo,
 			),
+			initTimeout:  e.initTimeout,
+			queryTimeout: e.queryTimeout,
 		})
 		if err != nil {
 			e.InitializationErrors = append(e.InitializationErrors, err)
@@ -166,22 +209,33 @@ type EvalOptions struct {
 func (e *Engine) Eval(ctx context.Context, options *EvalOptions) *models.Results {
 	e.instrumentation.startEvaluate(ctx)
 	results := []models.Result{}
+	ruleBundleErrors := map[models.RuleBundle][]string{}
 	for _, input := range options.Inputs {
 		loggerFields := inputFields(&input)
 		e.instrumentation.startEvaluateInput(ctx, loggerFields)
 		allRuleResults := []models.RuleResults{}
 		totalResults := 0
 		for _, p := range e.policySets {
-			ruleResults := p.eval(ctx, &parallelEvalOptions{
-				resourcesResolver: options.ResourcesResolver,
-				input:             &input,
-				ruleIDs:           options.RuleIDs,
-				workers:           options.Workers,
-				loggerFields:      loggerFields,
+			err := withtimeout.Do(ctx, e.evalTimeout, ErrEvalTimedOut, func(ctx context.Context) error {
+				ruleResults, err := p.eval(ctx, &parallelEvalOptions{
+					resourcesResolver: options.ResourcesResolver,
+					input:             &input,
+					ruleIDs:           options.RuleIDs,
+					workers:           options.Workers,
+					loggerFields:      loggerFields,
+				})
+				if err != nil {
+					return err
+				}
+				allRuleResults = append(allRuleResults, ruleResults...)
+				for _, r := range ruleResults {
+					totalResults += len(r.Results)
+				}
+				return nil
 			})
-			allRuleResults = append(allRuleResults, ruleResults...)
-			for _, r := range ruleResults {
-				totalResults += len(r.Results)
+			if err != nil {
+				bundle := p.ruleBundle()
+				ruleBundleErrors[bundle] = append(ruleBundleErrors[bundle], err.Error())
 			}
 		}
 		// Ensure deterministic output.
@@ -202,8 +256,10 @@ func (e *Engine) Eval(ctx context.Context, options *EvalOptions) *models.Results
 	e.instrumentation.finishEvaluate(ctx)
 	ruleBundles := []models.RuleBundleInfo{}
 	for _, p := range e.policySets {
+		bundle := p.ruleBundle()
 		ruleBundles = append(ruleBundles, models.RuleBundleInfo{
-			RuleBundle: p.ruleBundle(),
+			RuleBundle: &bundle,
+			Errors:     ruleBundleErrors[bundle],
 		})
 	}
 	for _, err := range e.InitializationErrors {
@@ -228,10 +284,13 @@ type MetadataResult struct {
 
 // Metadata returns the metadata of all Policies that have been loaded into this
 // Engine instance.
-func (e *Engine) Metadata(ctx context.Context) []MetadataResult {
+func (e *Engine) Metadata(ctx context.Context) ([]MetadataResult, error) {
 	metadata := []MetadataResult{}
 	for _, p := range e.policySets {
-		m := p.metadata(ctx)
+		m, err := p.metadata(ctx)
+		if err != nil {
+			return nil, fmt.Errorf("failed to query metadata: %w", err)
+		}
 		metadata = append(metadata, m...)
 	}
 	// Ensure a consistent ordering for policies to make our output
@@ -240,7 +299,7 @@ func (e *Engine) Metadata(ctx context.Context) []MetadataResult {
 		return metadata[i].Package < metadata[j].Package
 	})
 
-	return metadata
+	return metadata, nil
 }
 
 // Query runs the given query against all policy sets and invokes the result
@@ -259,8 +318,11 @@ type engineInstrumentation struct {
 	instrumentation
 }
 
-func (i *engineInstrumentation) startInitialization(ctx context.Context) {
-	i.startPhase(ctx, "initialize_engine")
+func (i *engineInstrumentation) startInitialization(ctx context.Context, eng *Engine) {
+	i.startPhase(ctx, "initialize_engine",
+		withField("init_timeout", eng.initTimeout),
+		withField("eval_timeout", eng.evalTimeout),
+		withField("query_timeout", eng.queryTimeout))
 }
 
 func (i *engineInstrumentation) finishInitialization(ctx context.Context, eng *Engine) {

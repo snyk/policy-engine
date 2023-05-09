@@ -20,10 +20,12 @@ import (
 	"runtime"
 	"sort"
 	"sync"
+	"time"
 
 	"github.com/hashicorp/go-multierror"
 	"github.com/open-policy-agent/opa/ast"
 	"github.com/snyk/policy-engine/pkg/data"
+	"github.com/snyk/policy-engine/pkg/internal/withtimeout"
 	"github.com/snyk/policy-engine/pkg/metrics"
 	"github.com/snyk/policy-engine/pkg/models"
 	"github.com/snyk/policy-engine/pkg/policy"
@@ -46,6 +48,7 @@ type policySet struct {
 	name            string
 	source          PolicySource
 	checksum        string
+	queryTimeout    time.Duration
 }
 
 type policySetOptions struct {
@@ -54,6 +57,8 @@ type policySetOptions struct {
 	instrumentation instrumentation
 	name            string
 	checksum        string
+	initTimeout     time.Duration
+	queryTimeout    time.Duration
 }
 
 type RuleBundleError struct {
@@ -72,9 +77,9 @@ func (p *RuleBundleError) ToModel() models.RuleBundleInfo {
 	}
 }
 
-func newRuleBundleError(ruleBundle *models.RuleBundle, err error) error {
+func newRuleBundleError(ruleBundle models.RuleBundle, err error) error {
 	return &RuleBundleError{
-		ruleBundle: ruleBundle,
+		ruleBundle: &ruleBundle,
 		err:        err,
 	}
 }
@@ -88,19 +93,29 @@ func newPolicySet(ctx context.Context, options policySetOptions) (*policySet, er
 		name:           options.name,
 		source:         options.source,
 		checksum:       options.checksum,
+		queryTimeout:   options.queryTimeout,
 	}
 	s.instrumentation.startInitialization(ctx)
 	defer s.instrumentation.finishInitialization(ctx, s)
-	if err := s.loadRegoAPI(ctx); err != nil {
-		return nil, newRuleBundleError(s.ruleBundle(), fmt.Errorf("%w: %v", FailedToLoadRegoAPI, err))
+
+	err := withtimeout.Do(ctx, options.initTimeout, ErrInitTimedOut, func(ctx context.Context) error {
+		if err := s.loadRegoAPI(ctx); err != nil {
+			return fmt.Errorf("%w: %v", FailedToLoadRegoAPI, err)
+		}
+		if err := s.consumeProviders(ctx, options.providers); err != nil {
+			return fmt.Errorf("%w: %v", FailedToLoadRules, err)
+		}
+		s.extractPolicies(ctx)
+		if err := s.compile(ctx); err != nil {
+			return fmt.Errorf("%w: %v", FailedToCompile, err)
+		}
+		return nil
+	})
+
+	if err != nil {
+		return nil, newRuleBundleError(s.ruleBundle(), err)
 	}
-	if err := s.consumeProviders(ctx, options.providers); err != nil {
-		return nil, newRuleBundleError(s.ruleBundle(), fmt.Errorf("%w: %v", FailedToLoadRules, err))
-	}
-	s.extractPolicies(ctx)
-	if err := s.compile(ctx); err != nil {
-		return nil, newRuleBundleError(s.ruleBundle(), fmt.Errorf("%w: %v", FailedToCompile, err))
-	}
+
 	return s, nil
 }
 
@@ -168,56 +183,73 @@ func (s *policySet) evalPolicy(ctx context.Context, options *evalPolicyOptions) 
 	pol := options.policy
 	instrumentation := s.instrumentation.policyEvalInstrumentation(pol)
 	instrumentation.startEval(ctx)
+
 	ruleResults, err := pol.Eval(ctx, policy.EvalOptions{
 		RegoState:         s.rego,
 		Logger:            instrumentation.logger,
 		ResourcesResolver: options.resourcesResolver,
 		Input:             options.input,
+		Timeout:           s.queryTimeout,
 	})
 	totalResults := 0
 	for idx, r := range ruleResults {
-		ruleResults[idx].RuleBundle = s.ruleBundle()
+		bundle := s.ruleBundle()
+		ruleResults[idx].RuleBundle = &bundle
 		totalResults += len(r.Results)
 	}
 	instrumentation.finishEval(ctx, totalResults)
+	// We always want to return results, because that's how policy-level errors
+	// are communicated into the output right now.
 	return policyResults{
 		ruleResults: ruleResults,
 		err:         err,
 	}
 }
 
-type policyFilter func(pol policy.Policy) bool
+type policyFilter func(ctx context.Context, pol policy.Policy) (bool, error)
 
-func (s *policySet) selectPolicies(ctx context.Context, filters []policyFilter) []policy.Policy {
+func (s *policySet) selectPolicies(ctx context.Context, filters []policyFilter) ([]policy.Policy, error) {
 	s.instrumentation.startPolicySelection(ctx)
-	subset := []policy.Policy{}
-	for _, pol := range s.policies {
-		matches := true
-		for _, filter := range filters {
-			if !filter(pol) {
-				matches = false
+	var subset []policy.Policy
+	err := withtimeout.Do(ctx, s.queryTimeout, ErrQueryTimedOut, func(ctx context.Context) error {
+		for _, pol := range s.policies {
+			include := true
+			for _, filter := range filters {
+				matches, err := filter(ctx, pol)
+				if err != nil {
+					return err
+				}
+				if !matches {
+					include = false
+					break
+				}
+			}
+			if include {
+				subset = append(subset, pol)
 			}
 		}
-		if matches {
-			subset = append(subset, pol)
-		}
+		return nil
+	})
+	if err != nil {
+		return nil, err
+
 	}
 	s.instrumentation.finishPolicySelection(ctx, len(subset))
-	return subset
+	return subset, nil
 }
 
-func (s *policySet) ruleIDFilter(ctx context.Context, ruleIDs []string) policyFilter {
+func (s *policySet) ruleIDFilter(ruleIDs []string) policyFilter {
 	ids := map[string]bool{}
 	for _, r := range ruleIDs {
 		ids[r] = true
 	}
-	return func(pol policy.Policy) bool {
+	return func(ctx context.Context, pol policy.Policy) (bool, error) {
 		id, err := pol.ID(ctx, s.rego)
 		if err != nil {
 			s.instrumentation.policyIDError(ctx, pol.Package(), err)
-			return false
+			return false, err
 		}
-		return ids[id]
+		return ids[id], nil
 	}
 }
 
@@ -229,18 +261,24 @@ type parallelEvalOptions struct {
 	loggerFields      []loggerOption
 }
 
-func (s *policySet) eval(ctx context.Context, options *parallelEvalOptions) []models.RuleResults {
+func (s *policySet) eval(ctx context.Context, options *parallelEvalOptions) ([]models.RuleResults, error) {
 	// Get list of policies to evaluate
 
 	filters := []policyFilter{
-		func(pol policy.Policy) bool {
-			return pol.InputTypeMatches(options.input.InputType)
+		func(_ context.Context, pol policy.Policy) (bool, error) {
+			return pol.InputTypeMatches(options.input.InputType), nil
 		},
 	}
 	if len(options.ruleIDs) > 0 {
-		filters = append(filters, s.ruleIDFilter(ctx, options.ruleIDs))
+		filters = append(filters, s.ruleIDFilter(options.ruleIDs))
 	}
-	policies := s.selectPolicies(ctx, filters)
+	policies, err := s.selectPolicies(ctx, filters)
+	if err != nil {
+		return nil, newRuleBundleError(
+			s.ruleBundle(),
+			fmt.Errorf("error during policy selection: %w", err),
+		)
+	}
 
 	// Spin off N workers to go through the list
 
@@ -287,16 +325,17 @@ func (s *policySet) eval(ctx context.Context, options *parallelEvalOptions) []mo
 			break
 		}
 		s.instrumentation.countPolicyEval(ctx)
+		// TODO: how do errors get out of here?
 		if policyResults.err != nil {
 			s.instrumentation.countPolicyEvalError(ctx)
 		}
 		allRuleResults = append(allRuleResults, policyResults.ruleResults...)
 	}
 
-	return allRuleResults
+	return allRuleResults, nil
 }
 
-func (s *policySet) metadata(ctx context.Context) []MetadataResult {
+func (s *policySet) metadata(ctx context.Context) ([]MetadataResult, error) {
 	// Ensure a consistent ordering for policies to make our output
 	// deterministic.
 	policies := make([]policy.Policy, len(s.policies))
@@ -305,19 +344,25 @@ func (s *policySet) metadata(ctx context.Context) []MetadataResult {
 		return policies[i].Package() < policies[j].Package()
 	})
 	metadata := make([]MetadataResult, len(policies))
-	for idx, p := range policies {
-		m, err := p.Metadata(ctx, s.rego)
-		result := MetadataResult{
-			Package: p.Package(),
+	err := withtimeout.Do(ctx, s.queryTimeout, ErrQueryTimedOut, func(ctx context.Context) error {
+		for idx, p := range policies {
+			m, err := p.Metadata(ctx, s.rego)
+			result := MetadataResult{
+				Package: p.Package(),
+			}
+			if err != nil {
+				result.Error = err.Error()
+			} else {
+				result.Metadata = m
+			}
+			metadata[idx] = result
 		}
-		if err != nil {
-			result.Error = err.Error()
-		} else {
-			result.Metadata = m
-		}
-		metadata[idx] = result
+		return nil
+	})
+	if err != nil {
+		return nil, err
 	}
-	return metadata
+	return metadata, nil
 }
 
 // QueryOptions contain options for Engine.Query
@@ -349,11 +394,12 @@ func (s *policySet) query(ctx context.Context, options *QueryOptions) error {
 		Input: ast.NewObject(
 			[2]*ast.Term{ast.StringTerm("resources"), ast.ObjectTerm()},
 		),
+		Timeout: s.queryTimeout,
 	}, options.ResultProcessor)
 }
 
-func (s *policySet) ruleBundle() *models.RuleBundle {
-	return &models.RuleBundle{
+func (s *policySet) ruleBundle() models.RuleBundle {
+	return models.RuleBundle{
 		Name:     s.name,
 		Source:   string(s.source),
 		Checksum: s.checksum,
