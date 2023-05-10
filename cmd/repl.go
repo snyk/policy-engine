@@ -18,20 +18,11 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"os"
-	"path/filepath"
 
-	"github.com/open-policy-agent/opa/ast"
-	"github.com/open-policy-agent/opa/repl"
-	"github.com/open-policy-agent/opa/storage"
-	"github.com/open-policy-agent/opa/storage/inmem"
 	"github.com/spf13/cobra"
 
-	"github.com/snyk/policy-engine/pkg/data"
-	"github.com/snyk/policy-engine/pkg/engine"
 	"github.com/snyk/policy-engine/pkg/models"
-	"github.com/snyk/policy-engine/pkg/policy"
-	"github.com/snyk/policy-engine/pkg/snapshot_testing"
+	"github.com/snyk/policy-engine/pkg/rego/repl"
 )
 
 var replFlags struct {
@@ -45,8 +36,6 @@ var replCmd = &cobra.Command{
 	RunE: func(cmd *cobra.Command, args []string) error {
 		ctx := context.Background()
 		logger := cmdLogger()
-		snapshot_testing.GlobalRegisterNoop()
-		consumer := engine.NewPolicyConsumer()
 		var inputState *models.State
 		var err error
 		if len(args) > 1 {
@@ -63,61 +52,15 @@ var replCmd = &cobra.Command{
 		if err != nil {
 			return err
 		}
-		consumer.DataDocument(
-			ctx,
-			"repl/input/state.json",
-			map[string]interface{}{
-				"repl": map[string]interface{}{
-					"input": replInput,
-				},
-			},
-		)
-		providers := []data.Provider{
-			data.PureRegoBuiltinsProvider(),
-			data.PureRegoLibProvider(),
-		}
-		providers = append(providers, rootCmdRegoProviders()...)
-		for _, provider := range providers {
-			if err := provider(ctx, consumer); err != nil {
-				return err
-			}
-		}
-		store := inmem.NewFromObject(consumer.Document)
-		txn, err := store.NewTransaction(ctx, storage.TransactionParams{
-			Write: true,
+		err = repl.Repl(ctx, repl.Options{
+			Providers: rootCmdRegoProviders(),
+			Init:      replFlags.Init,
+			Input:     replInput,
 		})
 		if err != nil {
 			return err
 		}
-		for p, m := range consumer.Modules {
-			store.UpsertPolicy(ctx, txn, p, []byte(m.String()))
-		}
-		if err = store.Commit(ctx, txn); err != nil {
-			return err
-		}
-		var historyPath string
-		if homeDir, err := os.UserHomeDir(); err == nil {
-			historyPath = filepath.Join(homeDir, ".engine-history")
-		} else {
-			historyPath = filepath.Join(".", ".engine-history")
-		}
-		r := repl.New(
-			store,
-			historyPath,
-			os.Stdout,
-			"pretty",
-			ast.CompileErrorLimitDefault,
-			"",
-		).WithCapabilities(policy.Capabilities())
 
-		r.OneShot(ctx, "strict-builtin-errors")
-		for _, command := range replFlags.Init {
-			if err := r.OneShot(ctx, command); err != nil {
-				return err
-			}
-		}
-
-		r.Loop(ctx)
 		return nil
 	},
 }
