@@ -2,6 +2,18 @@
 
 
 
+## v0.22.0 - 2023-05-11
+### Added
+* sentiel errors for non-fatal errors
+* expose the embedded version info for terraform
+* Added a new sentinel error when we recieve an error when loading a submodule
+* expose repl as a library
+### Changed
+* use allowlist rather than denylist for OPA builtins
+### Fixed
+* rules without messages produce messages containing '\n\n' when they produce multiple results
+* set capabilities in REPL
+
 ## v0.21.1 - 2023-04-26
 ### Fixed
 * deny parsing for key-less rules
