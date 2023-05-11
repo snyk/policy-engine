@@ -1,3 +1,0 @@
-kind: Changed
-body: use allowlist rather than denylist for OPA builtins
-time: 2023-05-04T16:11:17.804482623+02:00
