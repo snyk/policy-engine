@@ -61,3 +61,29 @@ relations[info] {
 		},
 	}
 }
+
+# Relations for unit tests.
+# This relation is annotated on the edges.
+relations[info] {
+	# Only include these relations when this input flag is specified as a safety
+	# measure.
+	input.snyk_relations_test
+	info := {
+		"name": "security_group",
+		"keys": {
+			"left": array.concat(
+    			[[r, egress.security_group_id, ann] |
+    				r := snyk.resources("security_group")[_]
+    				egress := r.egress[_]
+    				ann := {"type": "egress", "port": egress.port}
+    			],
+    			[[r, ingress.security_group_id, ann] |
+    				r := snyk.resources("security_group")[_]
+    				ingress := r.ingress[_]
+    				ann := {"type": "ingress", "port": ingress.port}
+    			],
+			),
+			"right": [[r, r.id] | r := snyk.resources("security_group")[_]],
+		},
+	}
+}

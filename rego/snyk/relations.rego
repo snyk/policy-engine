@@ -18,6 +18,12 @@ import data.snyk.internal.relations
 import data.snyk
 
 relates(resource, name) = ret {
+	ret := [right_resource |
+		[right_resource, _] := relations.forward[[name, relations.make_resource_key(resource)]][_]
+	]
+}
+
+relates_with(resource, name) = ret {
 	ret := relations.forward[[name, relations.make_resource_key(resource)]]
 } else = [] {
 	true
