@@ -22,28 +22,27 @@ check_relations {
 	bucket_1.id == "bucket_1"
 
 	settings_1 := snyk.relates(bucket_1, "bucket_settings")
-	trace(json.marshal(settings_1))
 	count(settings_1) == 1
 
-	# settings_1_bucket := snyk.back_relates("bucket_settings", settings_1[_])
-	# count(settings_1_bucket) == 1
-	# settings_1_bucket[_] == bucket_1
+	settings_1_bucket := snyk.back_relates("bucket_settings", settings_1[_])
+	count(settings_1_bucket) == 1
+	settings_1_bucket[_] == bucket_1
 
 	logging_1 := snyk.relates(bucket_1, "bucket_logging")
 	count(logging_1) == 1
 
-	# logging_1_bucket := snyk.back_relates("bucket_logging", logging_1[_])
-	# count(logging_1_bucket) == 1
-	# logging_1_bucket[_] == bucket_1
+	logging_1_bucket := snyk.back_relates("bucket_logging", logging_1[_])
+	count(logging_1_bucket) == 1
+	logging_1_bucket[_] == bucket_1
 
-	# every _, acl in snyk.resources("bucket_acl") {
-	# 	acl_bucket := snyk.back_relates("bucket_acl", acl)
-	# 	count(acl_bucket) == 1
+	every _, acl in snyk.resources("bucket_acl") {
+		acl_bucket := snyk.back_relates("bucket_acl", acl)
+		count(acl_bucket) == 1
 
-	# 	acl_bucket_acl := snyk.relates(acl_bucket[_], "bucket_acl")
-	# 	count(acl_bucket_acl) == 1
-	# 	acl_bucket_acl[_] == acl
-	# }
+		acl_bucket_acl := snyk.relates(acl_bucket[_], "bucket_acl")
+		count(acl_bucket_acl) == 1
+		acl_bucket_acl[_] == acl
+	}
 
 	# Check that we return empty arrays when appropriate.
 	non_existing_relation := snyk.relates(bucket_1, "bucket_foobar")
@@ -52,18 +51,23 @@ check_relations {
 }
 
 check_annotated_relations {
-	sg_1 := snyk.resources("security_group")[_]
-	out := snyk.relates_with(sg_1, "security_group")[_]
+	sg1 := snyk.resources("security_group")[_]
+	out := snyk.relates_with(sg1, "security_group")[_]
 
-	[sg_1_egress, sg_1_egress_ann] := snyk.relates_with(sg_1, "security_group")[_]
-	sg_1_egress.id == "security_group_2"
-	sg_1_egress_ann.type == "egress"
-	sg_1_egress_ann.port == 1
+	[sg1_egress, sg1_egress_ann] := snyk.relates_with(sg1, "security_group")[_]
+	sg1_egress.id == "security_group_2"
+	sg1_egress_ann.type == "egress"
+	sg1_egress_ann.port == 1
 
-	[sg_1_ingress, sg_1_ingress_ann] := snyk.relates_with(sg_1, "security_group")[_]
-	sg_1_ingress.id == "security_group_3"
-	sg_1_ingress_ann.type == "ingress"
-	sg_1_ingress_ann.port == 1
+	[back_to_sg1, back_to_sg1_ann] := snyk.back_relates_with("security_group", sg1_egress)[_]
+	back_to_sg1 == sg1
+	back_to_sg1_ann.type == "egress"
+	back_to_sg1_ann.port == 1
+
+	[sg1_ingress, sg1_ingress_ann] := snyk.relates_with(sg1, "security_group")[_]
+	sg1_ingress.id == "security_group_3"
+	sg1_ingress_ann.type == "ingress"
+	sg1_ingress_ann.port == 1
 }
 
 test_relations {
@@ -192,9 +196,7 @@ mock_input_annotated_relations := ret {
 
 	ret := {
 		"snyk_relations_test": true,
-		"resources": {
-			"security_group": security_group,
-		},
+		"resources": {"security_group": security_group},
 	}
 }
 

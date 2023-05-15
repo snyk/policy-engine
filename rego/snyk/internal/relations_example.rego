@@ -72,16 +72,16 @@ relations[info] {
 		"name": "security_group",
 		"keys": {
 			"left": array.concat(
-    			[[r, egress.security_group_id, ann] |
-    				r := snyk.resources("security_group")[_]
-    				egress := r.egress[_]
-    				ann := {"type": "egress", "port": egress.port}
-    			],
-    			[[r, ingress.security_group_id, ann] |
-    				r := snyk.resources("security_group")[_]
-    				ingress := r.ingress[_]
-    				ann := {"type": "ingress", "port": ingress.port}
-    			],
+				[[r, egress.security_group_id, ann] |
+					r := snyk.resources("security_group")[_]
+					egress := r.egress[_]
+					ann := {"type": "egress", "port": egress.port}
+				],
+				[[r, ingress.security_group_id, ann] |
+					r := snyk.resources("security_group")[_]
+					ingress := r.ingress[_]
+					ann := {"type": "ingress", "port": ingress.port}
+				],
 			),
 			"right": [[r, r.id] | r := snyk.resources("security_group")[_]],
 		},

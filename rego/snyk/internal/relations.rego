@@ -94,57 +94,58 @@ forward := {idx: right_resource_ann_tuples |
 }
 
 # NOTE: comprehension idx triggers here, this is important.
-# backward_right_foreign_keys := {idx: ret |
-# 	relation := data.relations.relations[_]
-# 	[right_resource, _] := relation.keys.right[_]
-# 	idx := [relation.name, make_resource_key(right_resource)]
-# 	ret := {k |
-# 		relation := data.relations.relations[_]
-# 		[right_resource, k] := relation.keys.right[_]
-# 		idx == [relation.name, make_resource_key(right_resource)]
-# 	}
-# }
+backward_right_foreign_keys := {idx: ret |
+	relation := data.relations.relations[_]
+	[right_resource, _, _] := make_annotated(relation.keys.right[_])
+	idx := [relation.name, make_resource_key(right_resource)]
+	ret := {[k, ann] |
+		relation := data.relations.relations[_]
+		[right_resource, k, ann] := make_annotated(relation.keys.right[_])
+		idx == [relation.name, make_resource_key(right_resource)]
+	}
+}
 
 # NOTE: comprehension idx triggers here, this is important.
-# backward_left_foreign_keys := {idx: ret |
-# 	relation := data.relations.relations[_]
-# 	[_, key] := relation.keys.left[_]
-# 	idx := [relation.name, key]
-# 	ret := {left_resource |
-# 		relation := data.relations.relations[_]
-# 		[left_resource, k] := relation.keys.left[_]
-# 		idx == [relation.name, k]
-# 	}
-# }
+backward_left_foreign_keys := {idx: ret |
+	relation := data.relations.relations[_]
+	[_, key, _] := make_annotated(relation.keys.left[_])
+	idx := [relation.name, key]
+	ret := {[left_resource, ann] |
+		relation := data.relations.relations[_]
+		[left_resource, k, ann] := make_annotated(relation.keys.left[_])
+		idx == [relation.name, k]
+	}
+}
 
-# # NOTE: comprehension idx not strictly necessary here.
-# backward_keys := {idx: left_resources |
-# 	keys := backward_right_foreign_keys[idx]
-# 	left_resources := [left_resource |
-# 		k := keys[_]
-# 		[name, _] := idx
-# 		left_resource := backward_left_foreign_keys[[name, k]][_]
-# 	]
-# }
+# NOTE: comprehension idx not strictly necessary here.
+backward_keys := {idx: left_resource_ann_tuples |
+	keys := backward_right_foreign_keys[idx]
+	left_resource_ann_tuples := [[left_resource, ann] |
+		[k, ann1] := keys[_]
+		[name, _] := idx
+		[left_resource, ann2] := backward_left_foreign_keys[[name, k]][_]
+		ann := merge_annotations(ann2, ann1)
+	]
+}
 
-# backward_explicit := {idx: left_resources |
-# 	relation := data.relations.relations[_]
-# 	pairs := object.get(relation, "explicit", [])
-# 	[_, right_resource] := pairs[_]
-# 	idx := [relation.name, make_resource_key(right_resource)]
-# 	left_resources := {left_resource |
-# 		relation := data.relations.relations[_]
-# 		pairs := object.get(relation, "explicit", [])
-# 		[left_resource, r] := pairs[_]
-# 		idx == [relation.name, make_resource_key(r)]
-# 	}
-# }
+backward_explicit := {idx: left_resource_ann_tuples |
+	relation := data.relations.relations[_]
+	pairs := object.get(relation, "explicit", [])
+	[_, right_resource] := pairs[_]
+	idx := [relation.name, make_resource_key(right_resource)]
+	left_resource_ann_tuples := {[left_resource, null] |
+		relation := data.relations.relations[_]
+		pairs := object.get(relation, "explicit", [])
+		[left_resource, r] := pairs[_]
+		idx == [relation.name, make_resource_key(r)]
+	}
+}
 
-# backward := {idx: left_resources |
-# 	idxs := {k | _ := backward_keys[k]} | {k | _ := backward_explicit[k]}
-# 	idx := idxs[_]
-# 	left_resources := array.concat(
-# 		[r | r := backward_keys[idx][_]],
-# 		[r | r := backward_explicit[idx][_]],
-# 	)
-# }
+backward := {idx: left_resource_ann_tuples |
+	idxs := {k | _ := backward_keys[k]} | {k | _ := backward_explicit[k]}
+	idx := idxs[_]
+	left_resource_ann_tuples := array.concat(
+		[r | r := backward_keys[idx][_]],
+		[r | r := backward_explicit[idx][_]],
+	)
+}
