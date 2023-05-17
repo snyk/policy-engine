@@ -41,7 +41,10 @@ var metadataCmd = &cobra.Command{
 			err := &multierror.Error{}
 			return multierror.Append(err, eng.InitializationErrors...)
 		}
-		metadata := eng.Metadata(ctx)
+		metadata, err := eng.Metadata(ctx)
+		if err != nil {
+			return err
+		}
 		bytes, err := json.MarshalIndent(metadata, "  ", "  ")
 		if err != nil {
 			return err

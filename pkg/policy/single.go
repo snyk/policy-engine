@@ -108,13 +108,14 @@ func (p *SingleResourcePolicy) Eval(
 					Tracers: []topdown.QueryTracer{tracer},
 					Query:   p.Query,
 					Input:   inputDoc.Value,
+					Timeout: options.Timeout,
 				},
 				func(val ast.Value) error {
 					return processor.Process(val)
 				},
 			)
 			if err != nil {
-				logger.Error(ctx, "Failed to evaluate rule for resource")
+				logger.WithError(err).Error(ctx, "failed to evaluate rule for resource")
 				err = fmt.Errorf("%w '%s': %v", FailedToEvaluateResource, resource.Id, err)
 				output.Errors = append(output.Errors, err.Error())
 				return []models.RuleResults{output}, err

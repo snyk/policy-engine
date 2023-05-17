@@ -103,3 +103,33 @@ people = [
 	))
 	assert.Equal(t, []int{31, 41}, numbers)
 }
+
+func TestQueryTimeout(t *testing.T) {
+	ctx := context.Background()
+	modules := map[string]*ast.Module{
+		"example.rego": ast.MustParseModule(`
+package example
+
+people = [
+	{"name": "Sam", "age": 30},
+	{"name": "Kim", "age": 40},
+]`),
+	}
+
+	state, err := NewState(Options{
+		Modules: modules,
+	})
+	assert.NoError(t, err)
+
+	err = state.Query(
+		ctx,
+		Query{
+			Query:   "data.example.people[_]",
+			Timeout: 1,
+		},
+		func(val ast.Value) error {
+			return nil
+		},
+	)
+	assert.ErrorIs(t, err, ErrQueryTimedOut)
+}
