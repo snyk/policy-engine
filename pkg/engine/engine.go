@@ -42,9 +42,40 @@ type Engine struct {
 	InitializationErrors []error
 	instrumentation      *engineInstrumentation
 	policySets           []*policySet
-	initTimeout          time.Duration
-	evalTimeout          time.Duration
-	queryTimeout         time.Duration
+	timeouts             Timeouts
+}
+
+type Timeouts struct {
+	// Init sets the maximum duration that the engine can take to initialize.
+	// This timeout is applied per bundle or policy set.
+	Init time.Duration
+
+	// Eval sets the maximum duration that the engine can take to evaluate an
+	// input. This timeout is applied per bundle or policy set.
+	Eval time.Duration
+
+	// Query sets the maximum duration that the engine can take to evaluate any
+	// single query. This timeout is applied while evaluating individual
+	// policies, querying metadata, or running ad-hoc queries.
+	Query time.Duration
+}
+
+func (t Timeouts) withDefaults() Timeouts {
+	new := Timeouts{
+		Init:  t.Init,
+		Eval:  t.Eval,
+		Query: t.Query,
+	}
+	if new.Init < 1 {
+		new.Init = DefaultInitTimeout
+	}
+	if new.Eval < 1 {
+		new.Eval = DefaultEvalTimeout
+	}
+	if new.Query < 1 {
+		new.Query = DefaultQueryTimeout
+	}
+	return new
 }
 
 // EngineOptions contains options for initializing an Engine instance
@@ -61,18 +92,8 @@ type EngineOptions struct {
 	// Metrics is an optional instance of the metrics.Metrics interface
 	Metrics metrics.Metrics
 
-	// InitTimeout sets the maximum duration that the engine can take to
-	// initialize. This timeout is applied per bundle or policy set.
-	InitTimeout time.Duration
-
-	// EvalTimeout sets the maximum duration that the engine can take to
-	// evaluate an input. This timeout is applied per bundle or policy set.
-	EvalTimeout time.Duration
-
-	// QueryTimeout sets the maximum duration that the engine can take to
-	// evaluate any single query. This timeout is applied while evaluating
-	// individual policies, querying metadata, or running ad-hoc queries.
-	QueryTimeout time.Duration
+	// Timeouts controls timeouts for different engine operations.
+	Timeouts Timeouts
 }
 
 // NewEngine constructs a new Engine instance.
@@ -85,18 +106,6 @@ func NewEngine(ctx context.Context, options *EngineOptions) *Engine {
 	if m == nil {
 		m = metrics.NewLocalMetrics(logger)
 	}
-	initTimeout := options.InitTimeout
-	if initTimeout < 1 {
-		initTimeout = DefaultInitTimeout
-	}
-	evalTimeout := options.EvalTimeout
-	if evalTimeout < 1 {
-		evalTimeout = DefaultEvalTimeout
-	}
-	queryTimeout := options.QueryTimeout
-	if queryTimeout < 1 {
-		queryTimeout = DefaultQueryTimeout
-	}
 	eng := &Engine{
 		instrumentation: &engineInstrumentation{
 			instrumentation: newInstrumentation(instrumentationOptions{
@@ -105,9 +114,7 @@ func NewEngine(ctx context.Context, options *EngineOptions) *Engine {
 				metrics:   m,
 			}),
 		},
-		initTimeout:  initTimeout,
-		evalTimeout:  evalTimeout,
-		queryTimeout: queryTimeout,
+		timeouts: options.Timeouts.withDefaults(),
 	}
 	eng.instrumentation.startInitialization(ctx, eng)
 	eng.initPolicySets(ctx, options.Providers, options.BundleReaders)
@@ -128,8 +135,7 @@ func (e *Engine) initPolicySets(ctx context.Context, providers []data.Provider, 
 				info,
 				withField("policy_set_source", string(POLICY_SOURCE_DATA)),
 			),
-			initTimeout:  e.initTimeout,
-			queryTimeout: e.queryTimeout,
+			timeouts: e.timeouts,
 		})
 		if err != nil {
 			e.InitializationErrors = append(e.InitializationErrors, err)
@@ -168,8 +174,7 @@ func (e *Engine) initPolicySets(ctx context.Context, providers []data.Provider, 
 				string(policySource),
 				sourceInfo,
 			),
-			initTimeout:  e.initTimeout,
-			queryTimeout: e.queryTimeout,
+			timeouts: e.timeouts,
 		})
 		if err != nil {
 			e.InitializationErrors = append(e.InitializationErrors, err)
@@ -216,7 +221,7 @@ func (e *Engine) Eval(ctx context.Context, options *EvalOptions) *models.Results
 		allRuleResults := []models.RuleResults{}
 		totalResults := 0
 		for _, p := range e.policySets {
-			err := withtimeout.Do(ctx, e.evalTimeout, ErrEvalTimedOut, func(ctx context.Context) error {
+			err := withtimeout.Do(ctx, e.timeouts.Eval, ErrEvalTimedOut, func(ctx context.Context) error {
 				ruleResults, err := p.eval(ctx, &parallelEvalOptions{
 					resourcesResolver: options.ResourcesResolver,
 					input:             &input,
@@ -320,9 +325,9 @@ type engineInstrumentation struct {
 
 func (i *engineInstrumentation) startInitialization(ctx context.Context, eng *Engine) {
 	i.startPhase(ctx, "initialize_engine",
-		withField("init_timeout", eng.initTimeout),
-		withField("eval_timeout", eng.evalTimeout),
-		withField("query_timeout", eng.queryTimeout))
+		withField("init_timeout", eng.timeouts.Init),
+		withField("eval_timeout", eng.timeouts.Eval),
+		withField("query_timeout", eng.timeouts.Query))
 }
 
 func (i *engineInstrumentation) finishInitialization(ctx context.Context, eng *Engine) {

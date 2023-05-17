@@ -20,7 +20,6 @@ import (
 	"runtime"
 	"sort"
 	"sync"
-	"time"
 
 	"github.com/hashicorp/go-multierror"
 	"github.com/open-policy-agent/opa/ast"
@@ -48,7 +47,7 @@ type policySet struct {
 	name            string
 	source          PolicySource
 	checksum        string
-	queryTimeout    time.Duration
+	timeouts        Timeouts
 }
 
 type policySetOptions struct {
@@ -57,8 +56,7 @@ type policySetOptions struct {
 	instrumentation instrumentation
 	name            string
 	checksum        string
-	initTimeout     time.Duration
-	queryTimeout    time.Duration
+	timeouts        Timeouts
 }
 
 type RuleBundleError struct {
@@ -93,12 +91,12 @@ func newPolicySet(ctx context.Context, options policySetOptions) (*policySet, er
 		name:           options.name,
 		source:         options.source,
 		checksum:       options.checksum,
-		queryTimeout:   options.queryTimeout,
+		timeouts:       options.timeouts,
 	}
 	s.instrumentation.startInitialization(ctx)
 	defer s.instrumentation.finishInitialization(ctx, s)
 
-	err := withtimeout.Do(ctx, options.initTimeout, ErrInitTimedOut, func(ctx context.Context) error {
+	err := withtimeout.Do(ctx, options.timeouts.Init, ErrInitTimedOut, func(ctx context.Context) error {
 		if err := s.loadRegoAPI(ctx); err != nil {
 			return fmt.Errorf("%w: %v", FailedToLoadRegoAPI, err)
 		}
@@ -189,7 +187,7 @@ func (s *policySet) evalPolicy(ctx context.Context, options *evalPolicyOptions) 
 		Logger:            instrumentation.logger,
 		ResourcesResolver: options.resourcesResolver,
 		Input:             options.input,
-		Timeout:           s.queryTimeout,
+		Timeout:           s.timeouts.Query,
 	})
 	totalResults := 0
 	for idx, r := range ruleResults {
@@ -211,7 +209,7 @@ type policyFilter func(ctx context.Context, pol policy.Policy) (bool, error)
 func (s *policySet) selectPolicies(ctx context.Context, filters []policyFilter) ([]policy.Policy, error) {
 	s.instrumentation.startPolicySelection(ctx)
 	var subset []policy.Policy
-	err := withtimeout.Do(ctx, s.queryTimeout, ErrQueryTimedOut, func(ctx context.Context) error {
+	err := withtimeout.Do(ctx, s.timeouts.Query, ErrQueryTimedOut, func(ctx context.Context) error {
 		for _, pol := range s.policies {
 			include := true
 			for _, filter := range filters {
@@ -344,7 +342,7 @@ func (s *policySet) metadata(ctx context.Context) ([]MetadataResult, error) {
 		return policies[i].Package() < policies[j].Package()
 	})
 	metadata := make([]MetadataResult, len(policies))
-	err := withtimeout.Do(ctx, s.queryTimeout, ErrQueryTimedOut, func(ctx context.Context) error {
+	err := withtimeout.Do(ctx, s.timeouts.Query, ErrQueryTimedOut, func(ctx context.Context) error {
 		for idx, p := range policies {
 			m, err := p.Metadata(ctx, s.rego)
 			result := MetadataResult{
@@ -394,7 +392,7 @@ func (s *policySet) query(ctx context.Context, options *QueryOptions) error {
 		Input: ast.NewObject(
 			[2]*ast.Term{ast.StringTerm("resources"), ast.ObjectTerm()},
 		),
-		Timeout: s.queryTimeout,
+		Timeout: s.timeouts.Query,
 	}, options.ResultProcessor)
 }
 
