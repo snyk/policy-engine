@@ -1,0 +1,124 @@
+{
+  "format": "",
+  "format_version": "",
+  "input_type": "tf_hcl",
+  "environment_provider": "iac",
+  "meta": {
+    "filepath": "golden_test/tf/dynamic-block-william"
+  },
+  "resources": {
+    "aws_s3_bucket": {
+      "aws_s3_bucket.one": {
+        "id": "aws_s3_bucket.one",
+        "resource_type": "aws_s3_bucket",
+        "namespace": "golden_test/tf/dynamic-block-william",
+        "meta": {},
+        "attributes": {
+          "bucket": "one"
+        }
+      },
+      "aws_s3_bucket.two": {
+        "id": "aws_s3_bucket.two",
+        "resource_type": "aws_s3_bucket",
+        "namespace": "golden_test/tf/dynamic-block-william",
+        "meta": {},
+        "attributes": {
+          "bucket": "two"
+        }
+      }
+    },
+    "aws_s3_bucket_lifecycle_configuration": {
+      "aws_s3_bucket_lifecycle_configuration.one": {
+        "id": "aws_s3_bucket_lifecycle_configuration.one",
+        "resource_type": "aws_s3_bucket_lifecycle_configuration",
+        "namespace": "golden_test/tf/dynamic-block-william",
+        "meta": {},
+        "attributes": {
+          "bucket": "aws_s3_bucket.one",
+          "rule": [
+            {
+              "expiration": [
+                {
+                  "days": 90
+                }
+              ],
+              "id": "foo",
+              "status": "Enabled",
+              "transition": [
+                {
+                  "days": 30,
+                  "storage_class": "STANDARD_IA"
+                },
+                {
+                  "days": 60,
+                  "storage_class": "GLACIER"
+                }
+              ]
+            },
+            {
+              "expiration": [
+                {
+                  "days": 365
+                }
+              ],
+              "id": "bar",
+              "status": "Enabled"
+            }
+          ]
+        }
+      },
+      "aws_s3_bucket_lifecycle_configuration.two": {
+        "id": "aws_s3_bucket_lifecycle_configuration.two",
+        "resource_type": "aws_s3_bucket_lifecycle_configuration",
+        "namespace": "golden_test/tf/dynamic-block-william",
+        "meta": {},
+        "attributes": {
+          "bucket": "aws_s3_bucket.two",
+          "dynamic": [],
+          "rule": [
+            {
+              "dynamic": [],
+              "expiration": [
+                {
+                  "date": null,
+                  "days": 90,
+                  "expired_object_delete_marker": null
+                }
+              ],
+              "id": "foo",
+              "status": "Enabled",
+              "transition": [
+                {
+                  "date": null,
+                  "days": 30,
+                  "storage_class": "STANDARD_IA"
+                },
+                {
+                  "date": null,
+                  "days": 60,
+                  "storage_class": "GLACIER"
+                }
+              ]
+            },
+            {
+              "dynamic": [],
+              "expiration": [
+                {
+                  "date": null,
+                  "days": 365,
+                  "expired_object_delete_marker": null
+                }
+              ],
+              "id": "bar",
+              "status": "Enabled",
+              "transition": []
+            }
+          ]
+        }
+      }
+    }
+  },
+  "scope": {
+    "filepath": "golden_test/tf/dynamic-block-william"
+  }
+}
