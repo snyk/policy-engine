@@ -32,7 +32,7 @@ This document describes the contract and API for policies that run in the policy
     - [`snyk.query(<query>)`](#snykqueryquery)
     - [`snyk.relates(<resource>, <relation name>)`](#snykrelatesresource-relation-name)
       - [`snyk.back_relates(<relation name>, <resource>`](#snykback_relatesrelation-name-resource)
-      - [`snyk.relates_with(<relation name>, <resource>`](#snykrelates_withrelation-name-resource)
+      - [`snyk.relates_with(<relation name>, <resource>`](#snykrelates_withresource-relation-name)
       - [`snyk.back_relates_with(<relation name>, <resource>`](#snykback_relates_withrelation-name-resource)
     - [`snyk.input_resource_types`](#snykinput_resource_types)
       - [Example snyk.input_resource_types usage](#example-snykinput_resource_types-usage)
@@ -517,13 +517,15 @@ For more info, see:
 `snyk.back_relates` is the inverse of `snyk.relates`, and returns a list of left
 resources that match the given right resource and relationship name.
 
-#### `snyk.relates_with(<relation name>, <resource>)`
+#### `snyk.relates_with(<resource>, <relation name>)`
 
-TODO
+`snyk.relates_with` is a version of `snyk.relates` that returns a list of
+pairs of `[resource, annotation]` rather than just a list of resources.
 
 #### `snyk.back_relates_with(<relation name>, <resource>)`
 
-TODO
+`snyk.back_relates_with` is a version of `snyk.back_relates` that returns a list
+of pairs of `[resource, annotation]` rather than just a list of resources.
 
 ### `snyk.input_resource_types`
 
