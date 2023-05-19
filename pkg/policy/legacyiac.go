@@ -92,6 +92,7 @@ func (p *LegacyIaCPolicy) Eval(
 			Query:               p.judgementRule.queryElem(),
 			Input:               inputValue,
 			StrictBuiltinErrors: &strictBuiltinErrors,
+			Timeout:             options.Timeout,
 		}
 		processor := legacyIaCProcessor{
 			pkg:                      p.pkg,
@@ -107,7 +108,7 @@ func (p *LegacyIaCPolicy) Eval(
 				return processor.Process(val)
 			},
 		); err != nil {
-			logger.Error(ctx, "Failed to evaluate query")
+			logger.WithError(err).Error(ctx, "Failed to evaluate query")
 			return p.errorOutput(err)
 		}
 		ruleResults = append(ruleResults, processor.Results()...)

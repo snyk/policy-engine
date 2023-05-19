@@ -2,13 +2,18 @@ package rego
 
 import (
 	"context"
+	"errors"
 	"fmt"
+	"time"
 
 	"github.com/open-policy-agent/opa/ast"
 	"github.com/open-policy-agent/opa/storage"
 	"github.com/open-policy-agent/opa/storage/inmem"
 	"github.com/open-policy-agent/opa/topdown"
+	"github.com/snyk/policy-engine/pkg/internal/withtimeout"
 )
+
+var ErrQueryTimedOut = errors.New("query timed out")
 
 type Options struct {
 	Modules      map[string]*ast.Module
@@ -50,6 +55,7 @@ type Query struct {
 	Builtins            map[string]*topdown.Builtin
 	StrictBuiltinErrors *bool // Defaults to true for us.
 	Tracers             []topdown.QueryTracer
+	Timeout             time.Duration
 }
 
 func (q Query) Add(other Query) Query {
@@ -128,10 +134,18 @@ func (s *State) Query(
 		q = q.WithQueryTracer(tracer)
 	}
 
-	return q.Iter(ctx, func(qr topdown.QueryResult) error {
-		regoValue := qr[captureVar]
-		return process(regoValue.Value)
-	})
+	do := func(ctx context.Context) error {
+		return q.Iter(ctx, func(qr topdown.QueryResult) error {
+			regoValue := qr[captureVar]
+			return process(regoValue.Value)
+		})
+	}
+
+	if query.Timeout > 0 {
+		return withtimeout.Do(ctx, query.Timeout, ErrQueryTimedOut, do)
+	} else {
+		return do(ctx)
+	}
 }
 
 func capture(variable ast.Var, body ast.Body) error {
