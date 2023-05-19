@@ -330,3 +330,103 @@ This proposal has three distinct benefits:
 
 [comprehension indexing]: https://www.openpolicyagent.org/docs/latest/policy-performance/#comprehension-indexing
 [RDF stores]: https://en.wikipedia.org/wiki/Triplestore
+
+## Extension: annotated relationships
+
+### Problem statement
+
+Even though relations can be named, and thus multiple relations between two
+resources can exist, this is sometimes not enough.  Consider the following
+example using an hypothetical cloud service provider:
+
+```
+load_balancer "my_loadbalancer" {
+    action {
+        port       = 22
+        forward_to = application_1
+    }
+
+    action {
+        port       = 80
+        forward_to = application_2
+    }
+
+    ...
+}
+
+application "my_application_1" {
+    ...
+}
+
+application "my_application_2" {
+    ...
+}
+```
+
+We can construct the following triplets:
+
+    (my_loadbalancer, "forwards_to", my_application_1)
+    (my_loadbalancer, "forwards_to", my_application_2)
+
+However, all additional information (in this case, which port we're talking
+about) is not stored in the relation.
+
+If some policy needs this data, it needs to recover that data by first querying
+for relations, and then matching the the results of that query against the
+`forward_to` field.  This is a lot of work and breaks many benefits we gained
+from using relations in the first place (convenience, performance, having a
+single way to query these).
+
+### Solution
+
+In order to support these scenarios, all relations can be _annotated_ with
+some additional data.  This data can be any value in OPA, defaulting to `null`
+in case no annotations are specified.
+
+In the example above, we could annotate the relations with a single integer
+representing the port number, but to be a bit more self-explanatory and
+future-compatible we'll use an object instead, e.g. `{"port": 80}`.
+
+### Building relations
+
+Adding annotations is simple: they can be added as a third, optional element
+for the entries in either the `"left"` or `"right"` parts of the relation.
+Continuing the example above, we get:
+
+```rego
+relations[info] {
+	info := {
+		"name": "forwards_to",
+		"keys": {
+			"left": [[r, forward.forward_to, ann] |
+				r := snyk.resources("load_balancer")[_]
+				forward := r.forward_to[_]
+				ann := {"port": forward.port}
+			],
+			"right": [[r, r.id] |
+                r := snyk.resources("load_balancer")[_]
+			],
+		},
+	}
+}
+```
+
+### Querying relations
+
+Once the relation is defined, it still can be queried using the regular
+`snyk.relates` and `snyk.back_relates`, which do not return the annotations:
+
+```rego
+lb := snyk.resources("load_balancer")[_]
+app := snyk.relates(lb, "forward_to")[_]
+```
+
+If the annotations are desired, instead use `snyk.relates_with` and
+`snyk.back_relates_with` instead, which each return the annotations in addition
+to the resources:
+
+```rego
+lb := snyk.resources("load_balancer")[_]
+[app, ann] := snyk.relates(lb, "forward_to")[_]
+ann.port == 80
+```

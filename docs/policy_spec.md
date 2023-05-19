@@ -32,6 +32,8 @@ This document describes the contract and API for policies that run in the policy
     - [`snyk.query(<query>)`](#snykqueryquery)
     - [`snyk.relates(<resource>, <relation name>)`](#snykrelatesresource-relation-name)
       - [`snyk.back_relates(<relation name>, <resource>`](#snykback_relatesrelation-name-resource)
+      - [`snyk.relates_with(<relation name>, <resource>`](#snykrelates_withrelation-name-resource)
+      - [`snyk.back_relates_with(<relation name>, <resource>`](#snykback_relates_withrelation-name-resource)
     - [`snyk.input_resource_types`](#snykinput_resource_types)
       - [Example snyk.input_resource_types usage](#example-snykinput_resource_types-usage)
     - [`snyk.input_type`](#snykinput_type)
@@ -515,6 +517,14 @@ For more info, see:
 `snyk.back_relates` is the inverse of `snyk.relates`, and returns a list of left
 resources that match the given right resource and relationship name.
 
+#### `snyk.relates_with(<relation name>, <resource>)`
+
+TODO
+
+#### `snyk.back_relates_with(<relation name>, <resource>)`
+
+TODO
+
 ### `snyk.input_resource_types`
 
 `snyk.input_resource_types` is a `set` of all resource types in the input. This can be
@@ -633,11 +643,11 @@ relations[info] {
 
 `info` has the following properties:
 
-| Field       |  Type  | Description                                                                 |
-| :---------- | :----: | :-------------------------------------------------------------------------- |
-| `name`      | string | Name for the relationship                                                   |
-| `keys`      | object | An object with `left` and `right` arrays containing `[resource, key]` pairs |
-| `explicit`  | array  | An explicit of list of `[left, right]` resource pairs.                      |
+| Field       |  Type  | Description                                                                                                  |
+| :---------- | :----: | :----------------------------------------------------------------------------------------------------------- |
+| `name`      | string | Name for the relationship                                                                                    |
+| `keys`      | object | An object with `left` and `right` arrays containing `[resource, key]` or `[resource, key, annotation]` items |
+| `explicit`  | array  | An explicit of list of `[left, right]` resource pairs.                                                       |
 
 `name` is required, and one of `keys` and `explicit` must be specified.
 
