@@ -649,7 +649,7 @@ relations[info] {
 | :---------- | :----: | :----------------------------------------------------------------------------------------------------------- |
 | `name`      | string | Name for the relationship                                                                                    |
 | `keys`      | object | An object with `left` and `right` arrays containing `[resource, key]` or `[resource, key, annotation]` items |
-| `explicit`  | array  | An explicit of list of `[left, right]` resource pairs.                                                       |
+| `explicit`  | array  | An explicit of list of `[left, right]` or `[left_resource, right_resource, annotation]` items                |
 
 `name` is required, and one of `keys` and `explicit` must be specified.
 

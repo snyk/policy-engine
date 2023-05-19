@@ -4,7 +4,7 @@
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
 #
-#     http://www.apache.org/licenses/LICENSE-2.0
+#	 http://www.apache.org/licenses/LICENSE-2.0
 #
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
@@ -65,9 +65,14 @@ check_annotated_relations {
 	back_to_sg1_ann.port == 1
 
 	[sg1_ingress, sg1_ingress_ann] := snyk.relates_with(sg1, "security_group")[_]
-	sg1_ingress.id == "security_group_3"
+	sg1_ingress.id == "security_group_1000"
 	sg1_ingress_ann.type == "ingress"
 	sg1_ingress_ann.port == 1
+
+	lb := snyk.resources("load_balancer")[_]
+	[app, app_ann] := snyk.relates_with(lb, "forwards_to")[_]
+	app_ann.port == 80
+	app.id == "application_1"
 }
 
 test_relations {
@@ -81,11 +86,10 @@ test_annotated_relations {
 }
 
 mock_input_relations := ret {
-	num_buckets := 10
-	num_bucket_settings := 10 # Keyed and fast
+	num_buckets := 1000
+	num_bucket_settings := 1000 # Keyed and fast
 	num_bucket_logging := 10 # Explicit and slow
 	num_bucket_acl := 10
-	num_security_group := 3
 
 	buckets := {id: r |
 		i := numbers.range(1, num_buckets)[_]
@@ -135,28 +139,6 @@ mock_input_relations := ret {
 		}
 	}
 
-	security_group := {id: r |
-		i := numbers.range(1, num_security_group)[_]
-		id := sprintf("security_group_%d", [i])
-		prev := sprintf("security_group_%d", [ring_prev(i, num_security_group)])
-		next := sprintf("security_group_%d", [ring_next(i, num_security_group)])
-		r := {
-			"id": id,
-			"type": "security_group",
-			"namespace": "ns",
-			"attributes": {
-				"ingress": [{
-					"port": i,
-					"security_group_id": prev,
-				}],
-				"egress": [{
-					"port": i,
-					"security_group_id": next,
-				}],
-			},
-		}
-	}
-
 	ret := {
 		"snyk_relations_test": true,
 		"resources": {
@@ -164,13 +146,12 @@ mock_input_relations := ret {
 			"bucket_settings": bucket_settings,
 			"bucket_logging": bucket_logging,
 			"bucket_acl": bucket_acl,
-			"security_group": security_group,
 		},
 	}
 }
 
 mock_input_annotated_relations := ret {
-	num_security_group := 3
+	num_security_group := 1000
 
 	security_group := {id: r |
 		i := numbers.range(1, num_security_group)[_]
@@ -194,9 +175,44 @@ mock_input_annotated_relations := ret {
 		}
 	}
 
+	load_balancer := {"my_loadbalancer": {
+		"id": "load_balancer",
+		"type": "load_balancer",
+		"namespace": "ns",
+		"attributes": {"forward": [
+			{
+				"port": 80,
+				"application": "application_1",
+			},
+			{
+				"port": 443,
+				"application": "application_2",
+			},
+		]},
+	}}
+
+	application := {
+		"application_1": {
+			"id": "application_1",
+			"type": "application",
+			"namespace": "ns",
+			"attributes": {},
+		},
+		"application_2": {
+			"id": "application_2",
+			"type": "application",
+			"namespace": "ns",
+			"attributes": {},
+		},
+	}
+
 	ret := {
 		"snyk_relations_test": true,
-		"resources": {"security_group": security_group},
+		"resources": {
+			"security_group": security_group,
+			"load_balancer": load_balancer,
+			"application": application,
+		},
 	}
 }
 

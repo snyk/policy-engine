@@ -29,12 +29,12 @@ make_annotated(val) = ret {
 	ret := val
 }
 
-merge_annotations(ann1, ann2) = null {
-	ann1 == null
-	ann2 == null
-} else = ann1 {
-	ann2 == null
-} else = ann2
+merge_annotations(left, right) = null {
+	left == null
+	right == null
+} else = left {
+	right == null
+} else = right
 
 # NOTE: comprehension idx triggers here, this is important.
 forward_left_foreign_keys := {idx: ret |
@@ -74,12 +74,12 @@ forward_keys := {idx: right_resource_ann_tuples |
 forward_explicit := {idx: right_resource_ann_tuples |
 	relation := data.relations.relations[_]
 	pairs := object.get(relation, "explicit", [])
-	[left_resource, _] := pairs[_]
+	[left_resource, _, _] := make_annotated(pairs[_])
 	idx := [relation.name, make_resource_key(left_resource)]
-	right_resource_ann_tuples := {[right_resource, null] |
+	right_resource_ann_tuples := {[right_resource, ann] |
 		relation := data.relations.relations[_]
 		pairs := object.get(relation, "explicit", [])
-		[l, right_resource] := pairs[_]
+		[l, right_resource, ann] := make_annotated(pairs[_])
 		idx == [relation.name, make_resource_key(l)]
 	}
 }

@@ -87,3 +87,21 @@ relations[info] {
 		},
 	}
 }
+
+# Relations for unit tests.
+# This tests annotated explicit relations
+relations[info] {
+	# Only include these relations when this input flag is specified as a safety
+	# measure.
+	input.snyk_relations_test
+	info := {
+		"name": "forwards_to",
+		"explicit": [[l, r, ann] |
+			l := snyk.resources("load_balancer")[_]
+			forward := l.forward[_]
+			r := snyk.resources("application")[_]
+			forward.application == r.id
+			ann := {"port": forward.port}
+		],
+	}
+}

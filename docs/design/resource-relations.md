@@ -391,7 +391,7 @@ future-compatible we'll use an object instead, e.g. `{"port": 80}`.
 
 Adding annotations is simple: they can be added as a third, optional element
 for the entries in either the `"left"` or `"right"` parts of the relation.
-Continuing the example above, we get:
+Continuing with the example above, we get:
 
 ```rego
 relations[info] {
@@ -404,11 +404,26 @@ relations[info] {
 				ann := {"port": forward.port}
 			],
 			"right": [[r, r.id] |
-                r := snyk.resources("load_balancer")[_]
+				r := snyk.resources("load_balancer")[_]
 			],
 		},
 	}
 }
+```
+
+If annotations are specified in both the `left` and `right` properties, the
+`right` one takes precedence.
+
+For `"explicit"`-ly defined relations, you also the annotation as a third
+element in each entry:
+
+```rego
+"explicit": [[bucket, logging, annotation] |
+	bucket := snyk.resources("aws_s3_bucket")[_]
+	logging := snyk.resources("aws_s3_bucket_logging")[_]
+	bucket.id == logging.bucket
+	annotation := ...
+],
 ```
 
 ### Querying relations
