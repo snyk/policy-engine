@@ -337,7 +337,7 @@ This proposal has three distinct benefits:
 
 Even though relations can be named, and thus multiple relations between two
 resources can exist, this is sometimes not enough.  Consider the following
-example using an hypothetical cloud service provider:
+example using a hypothetical cloud service provider:
 
 ```
 load_balancer "my_loadbalancer" {
@@ -379,9 +379,9 @@ single way to query these).
 
 ### Solution
 
-In order to support these scenarios, all relations can be _annotated_ with
-some additional data.  This data can be any value in OPA, defaulting to `null`
-in case no annotations are specified.
+In order to support these scenarios, all relations can be _annotated_ with some
+additional data.  This data can be any Rego value, defaulting to `null` in case
+no annotations are specified.
 
 In the example above, we could annotate the relations with a single integer
 representing the port number, but to be a bit more self-explanatory and
