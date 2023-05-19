@@ -96,50 +96,48 @@ type dependency struct {
 
 func (v *Analysis) dependencies(name FullName, term Term) []dependency {
 	deps := []dependency{}
-	term.VisitExpressions(func(expr hcl.Expression) {
-		for _, traversal := range expr.Variables() {
-			local, err := TraversalToLocalName(traversal)
-			if err != nil {
-				v.badKeys[TraversalToString(traversal)] = struct{}{}
-				continue
-			}
+	for _, traversal := range term.Dependencies() {
+		local, err := TraversalToLocalName(traversal)
+		if err != nil {
+			v.badKeys[TraversalToString(traversal)] = struct{}{}
+			continue
+		}
 
-			full := FullName{Module: name.Module, Local: local}
+		full := FullName{Module: name.Module, Local: local}
 
-			if prefix, _ := v.Terms.LookupByPrefix(full); prefix != nil {
-				deps = append(deps, dependency{nil, prefix, nil})
-				continue
-			}
+		if prefix, _ := v.Terms.LookupByPrefix(full); prefix != nil {
+			deps = append(deps, dependency{nil, prefix, nil})
+			continue
+		}
 
-			if moduleOutput := full.AsModuleOutput(); moduleOutput != nil {
-				deps = append(deps, dependency{&full, moduleOutput, nil})
-				continue
-			}
+		if moduleOutput := full.AsModuleOutput(); moduleOutput != nil {
+			deps = append(deps, dependency{&full, moduleOutput, nil})
+			continue
+		}
 
-			if asVariable, asVar, _ := full.AsVariable(); asVar != nil {
-				// Rewrite variables either as default, or as module input.
-				asModuleInput := full.AsModuleInput()
-				if asModuleInput != nil {
-					if mtp, _ := v.Terms.LookupByPrefix(*asModuleInput); mtp != nil {
-						deps = append(deps, dependency{asVar, mtp, nil})
-						continue
-					}
-				}
-
-				// Not module input, check that default is set.
-				if prefix, _ := v.Terms.LookupByPrefix(*asVariable); prefix != nil {
-					deps = append(deps, dependency{asVar, asVariable, nil})
+		if asVariable, asVar, _ := full.AsVariable(); asVar != nil {
+			// Rewrite variables either as default, or as module input.
+			asModuleInput := full.AsModuleInput()
+			if asModuleInput != nil {
+				if mtp, _ := v.Terms.LookupByPrefix(*asModuleInput); mtp != nil {
+					deps = append(deps, dependency{asVar, mtp, nil})
 					continue
 				}
 			}
 
-			// In other cases, just use the local name.  This is sort of
-			// a catch-all and we should try to not rely on this too much.
-			v.missingTerms[full.ToString()] = struct{}{}
-			val := cty.StringVal(LocalNameToString(local))
-			deps = append(deps, dependency{&full, nil, &val})
+			// Not module input, check that default is set.
+			if prefix, _ := v.Terms.LookupByPrefix(*asVariable); prefix != nil {
+				deps = append(deps, dependency{asVar, asVariable, nil})
+				continue
+			}
 		}
-	})
+
+		// In other cases, just use the local name.  This is sort of
+		// a catch-all and we should try to not rely on this too much.
+		v.missingTerms[full.ToString()] = struct{}{}
+		val := cty.StringVal(LocalNameToString(local))
+		deps = append(deps, dependency{&full, nil, &val})
+	}
 	return deps
 }
 

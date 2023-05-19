@@ -55,9 +55,6 @@ resource "aws_s3_bucket_lifecycle_configuration" "two" {
         for_each = try(flatten([rule.value.expiration]), [])
 
         content {
-          # NOTE(jaspervdj): This `try` is currently picking the wrong branch
-          # since we insert "expiration.value.date" as an identifier string,
-          # which we shouldn't do in this case.
           date                         = try(expiration.value.date, null)
           days                         = try(expiration.value.days, null)
           expired_object_delete_marker = try(expiration.value.expired_object_delete_marker, null)
@@ -69,9 +66,6 @@ resource "aws_s3_bucket_lifecycle_configuration" "two" {
         for_each = try(flatten([rule.value.transition]), [])
 
         content {
-          # NOTE(jaspervdj): This `try` is currently picking the wrong branch
-          # since we insert "expiration.value.date" as an identifier string,
-          # which we shouldn't do in this case.
           date          = try(transition.value.date, null)
           days          = try(transition.value.days, null)
           storage_class = transition.value.storage_class

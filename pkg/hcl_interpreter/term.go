@@ -77,7 +77,7 @@ func termFromDynamicBlock(body *hclsyntax.Body, defaultIterator string) Term {
 	if iterator, ok := body.Attributes["iterator"]; ok {
 		expr := iterator.Expr
 		vars := expr.Variables()
-		if len(vars) == 1 {
+		if len(vars) == 1 && !vars[0].IsRelative() {
 			term.iterator = vars[0].RootName()
 		}
 	}
@@ -127,17 +127,14 @@ func (t Term) WithForEach(expr hcl.Expression) Term {
 	return t
 }
 
-func (t Term) VisitExpressions(f func(hcl.Expression)) {
+// shallowVisitExpressions visits all expressions in the term but will not
+// recursively descend into child terms.
+func (t Term) shallowVisitExpressions(f func(hcl.Expression)) {
 	if t.expr != nil {
 		f(*t.expr)
 	} else {
 		for _, attr := range t.attrs {
 			f(attr)
-		}
-		for _, blocks := range t.blocks {
-			for _, block := range blocks {
-				block.VisitExpressions(f)
-			}
 		}
 		if t.count != nil {
 			f(*t.count)
@@ -148,11 +145,45 @@ func (t Term) VisitExpressions(f func(hcl.Expression)) {
 	}
 }
 
+// VisitExpressions recursively visits all expressions in a tree of terms.
+func (t Term) VisitExpressions(f func(hcl.Expression)) {
+	t.shallowVisitExpressions(f)
+	for _, blocks := range t.blocks {
+		for _, block := range blocks {
+			block.VisitExpressions(f)
+		}
+	}
+}
+
 func (t Term) Dependencies() []hcl.Traversal {
+	// If the variable matches the iterator, it is not a real dependency
+	// and we can filter it out.
+	filter := func(v hcl.Traversal) bool { return false }
+	if t.iterator != "" {
+		filter = func(v hcl.Traversal) bool {
+			return !v.IsRelative() && v.RootName() == t.iterator
+		}
+	}
+
 	dependencies := []hcl.Traversal{}
-	t.VisitExpressions(func(e hcl.Expression) {
-		dependencies = append(dependencies, e.Variables()...)
+	t.shallowVisitExpressions(func(e hcl.Expression) {
+		for _, variable := range e.Variables() {
+			if !filter(variable) {
+				dependencies = append(dependencies, variable)
+			}
+		}
 	})
+
+	for _, blocks := range t.blocks {
+		for _, block := range blocks {
+			for _, variable := range block.Dependencies() {
+				if !filter(variable) {
+					dependencies = append(dependencies, variable)
+				}
+			}
+		}
+	}
+
 	return dependencies
 }
 

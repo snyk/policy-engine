@@ -80,21 +80,21 @@
               "dynamic": [],
               "expiration": [
                 {
-                  "date": "expiration.value.date",
+                  "date": null,
                   "days": 90,
-                  "expired_object_delete_marker": false
+                  "expired_object_delete_marker": null
                 }
               ],
               "id": "foo",
               "status": "Enabled",
               "transition": [
                 {
-                  "date": "transition.value.date",
+                  "date": null,
                   "days": 30,
                   "storage_class": "STANDARD_IA"
                 },
                 {
-                  "date": "transition.value.date",
+                  "date": null,
                   "days": 60,
                   "storage_class": "GLACIER"
                 }
@@ -104,20 +104,14 @@
               "dynamic": [],
               "expiration": [
                 {
-                  "date": "expiration.value.date",
+                  "date": null,
                   "days": 365,
-                  "expired_object_delete_marker": false
+                  "expired_object_delete_marker": null
                 }
               ],
               "id": "bar",
               "status": "Enabled",
-              "transition": [
-                {
-                  "date": null,
-                  "days": null,
-                  "storage_class": null
-                }
-              ]
+              "transition": []
             }
           ]
         }
