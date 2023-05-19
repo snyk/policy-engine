@@ -1,0 +1,90 @@
+{
+  "format": "",
+  "format_version": "",
+  "input_type": "tf_hcl",
+  "environment_provider": "iac",
+  "meta": {
+    "filepath": "golden_test/tf/dynamic-block/dynamic-block.tf"
+  },
+  "resources": {
+    "aws_security_group": {
+      "aws_security_group.example": {
+        "id": "aws_security_group.example",
+        "resource_type": "aws_security_group",
+        "namespace": "golden_test/tf/dynamic-block/dynamic-block.tf",
+        "meta": {},
+        "attributes": {
+          "dynamic": [],
+          "egress": [
+            {
+              "cidr_blocks": [
+                "0.0.0.0/0"
+              ],
+              "from_port": 443,
+              "protocol": "tcp",
+              "to_port": 443
+            },
+            {
+              "cidr_blocks": [
+                "0.0.0.0/0"
+              ],
+              "from_port": 80,
+              "protocol": "tcp",
+              "to_port": 80
+            },
+            {
+              "cidr_blocks": [
+                "0.0.0.0/0"
+              ],
+              "from_port": 22,
+              "protocol": "tcp",
+              "to_port": 22
+            }
+          ],
+          "ingress": [
+            {
+              "cidr_blocks": [
+                "0.0.0.0/0"
+              ],
+              "from_port": 443,
+              "protocol": "tcp",
+              "to_port": 443
+            },
+            {
+              "cidr_blocks": [
+                "0.0.0.0/0"
+              ],
+              "from_port": 80,
+              "protocol": "tcp",
+              "to_port": 80
+            },
+            {
+              "cidr_blocks": [
+                "0.0.0.0/0"
+              ],
+              "from_port": 22,
+              "protocol": "tcp",
+              "to_port": 22
+            }
+          ],
+          "name": "example",
+          "vpc_id": "aws_vpc.example"
+        }
+      }
+    },
+    "aws_vpc": {
+      "aws_vpc.example": {
+        "id": "aws_vpc.example",
+        "resource_type": "aws_vpc",
+        "namespace": "golden_test/tf/dynamic-block/dynamic-block.tf",
+        "meta": {},
+        "attributes": {
+          "cidr_block": "11.0.0.0/16"
+        }
+      }
+    }
+  },
+  "scope": {
+    "filepath": "golden_test/tf/dynamic-block/dynamic-block.tf"
+  }
+}

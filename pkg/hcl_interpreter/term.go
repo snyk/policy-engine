@@ -31,8 +31,9 @@ type Term struct {
 	blocks map[string][]Term
 
 	// Meta-expressions
-	count   *hcl.Expression
-	forEach *hcl.Expression
+	count    *hcl.Expression
+	forEach  *hcl.Expression
+	iterator string
 }
 
 func TermFromExpr(expr hcl.Expression) Term {
@@ -62,6 +63,32 @@ func termFromJustAttributes(body hcl.Body) Term {
 	}
 }
 
+func termFromDynamicBlock(body *hclsyntax.Body, defaultIterator string) Term {
+	// Pull out content
+	term := TermFromBody(body)
+	for _, b := range body.Blocks {
+		if b.Type == "content" {
+			term = termFromBlock(b.Body)
+		}
+	}
+
+	// Pull out iterator
+	term.iterator = defaultIterator
+	if iterator, ok := body.Attributes["iterator"]; ok {
+		expr := iterator.Expr
+		vars := expr.Variables()
+		if len(vars) == 1 {
+			term.iterator = vars[0].RootName()
+		}
+	}
+
+	// Pull out for_each
+	var forEach hcl.Expression = body.Attributes["for_each"].Expr
+	term.forEach = &forEach
+
+	return term
+}
+
 func termFromBlock(body *hclsyntax.Body) Term {
 	attrs := map[string]hcl.Expression{}
 	for _, attribute := range body.Attributes {
@@ -70,10 +97,18 @@ func termFromBlock(body *hclsyntax.Body) Term {
 
 	blocks := map[string][]Term{}
 	for _, block := range body.Blocks {
-		if _, ok := blocks[block.Type]; !ok {
-			blocks[block.Type] = []Term{}
+		blockType := block.Type
+		if _, ok := blocks[blockType]; !ok {
+			blocks[blockType] = []Term{}
 		}
-		blocks[block.Type] = append(blocks[block.Type], TermFromBody(block.Body))
+		var blockTerm Term
+		if block.Type == "dynamic" && len(block.Labels) > 0 {
+			blockType = block.Labels[0]
+			blockTerm = termFromDynamicBlock(block.Body, blockType)
+		} else {
+			blockTerm = TermFromBody(block.Body)
+		}
+		blocks[blockType] = append(blocks[blockType], blockTerm)
 	}
 
 	return Term{
@@ -142,7 +177,13 @@ func (t Term) evaluateExpr(
 			for _, block := range blocks {
 				val, diags := block.Evaluate(evalExpr)
 				diagnostics = append(diagnostics, diags...)
-				blists[k] = append(blists[k], val)
+				// If we are dealing with a block that has a forEach on it, we
+				// allow it to return multiple elements.
+				if block.forEach != nil && val.IsKnown() && !val.IsNull() && val.CanIterateElements() {
+					blists[k] = append(blists[k], val.AsValueSlice()...)
+				} else {
+					blists[k] = append(blists[k], val)
+				}
 			}
 		}
 		for k, blocks := range blists {
@@ -221,12 +262,23 @@ func (t Term) Evaluate(
 					})
 					eaches = append(eaches, each)
 				}
+			} else if forEachVal.Type().IsTupleType() || forEachVal.Type().IsListType() {
+				for _, v := range forEachVal.AsValueSlice() {
+					each := cty.ObjectVal(map[string]cty.Value{
+						"value": v,
+					})
+					eaches = append(eaches, each)
+				}
 			}
 
 			arr := []cty.Value{}
 			for _, each := range eaches {
+				iterator := "each"
+				if t.iterator != "" {
+					iterator = t.iterator
+				}
 				val, diags := t.evaluateExpr(func(e hcl.Expression, v cty.Value) (cty.Value, hcl.Diagnostics) {
-					v = MergeVal(v, NestVal(LocalName{"each"}, each))
+					v = MergeVal(v, NestVal(LocalName{iterator}, each))
 					return evalExpr(e, v)
 				})
 				diagnostics = append(diagnostics, diags...)
