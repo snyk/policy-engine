@@ -343,12 +343,12 @@ example using a hypothetical cloud service provider:
 load_balancer "my_loadbalancer" {
     action {
         port       = 22
-        forward_to = application_1
+        forward_to = my_application_1
     }
 
     action {
         port       = 80
-        forward_to = application_2
+        forward_to = my_application_2
     }
 
     ...
@@ -365,8 +365,8 @@ application "my_application_2" {
 
 We can construct the following triplets:
 
-    (my_loadbalancer, "forwards_to", my_application_1)
-    (my_loadbalancer, "forwards_to", my_application_2)
+    (my_loadbalancer, "forward_to", my_application_1)
+    (my_loadbalancer, "forward_to", my_application_2)
 
 However, all additional information (in this case, which port we're talking
 about) is not stored in the relation.
@@ -396,7 +396,7 @@ Continuing with the example above, we get:
 ```rego
 relations[info] {
 	info := {
-		"name": "forwards_to",
+		"name": "forward_to",
 		"keys": {
 			"left": [[r, forward.forward_to, ann] |
 				r := snyk.resources("load_balancer")[_]
@@ -442,6 +442,6 @@ to the resources:
 
 ```rego
 lb := snyk.resources("load_balancer")[_]
-[app, ann] := snyk.relates(lb, "forward_to")[_]
+[app, ann] := snyk.relates_with(lb, "forward_to")[_]
 ann.port == 80
 ```
