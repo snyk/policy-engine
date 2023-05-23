@@ -404,7 +404,7 @@ relations[info] {
 				ann := {"port": forward.port}
 			],
 			"right": [[r, r.id] |
-				r := snyk.resources("load_balancer")[_]
+				r := snyk.resources("application")[_]
 			],
 		},
 	}
