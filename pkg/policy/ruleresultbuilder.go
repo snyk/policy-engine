@@ -36,6 +36,7 @@ type ruleResultBuilder struct {
 	remediation       string
 	severity          string
 	context           map[string]interface{}
+	evidence          map[string]interface{}
 	resources         map[ResourceKey]*models.RuleResultResource
 }
 
@@ -151,6 +152,7 @@ func (builder *ruleResultBuilder) toRuleResult() models.RuleResult {
 		Remediation:       builder.remediation,
 		Severity:          builder.severity,
 		Context:           builder.context,
+		Evidence:          builder.evidence,
 		Resources:         resources,
 	}
 }

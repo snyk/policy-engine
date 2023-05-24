@@ -278,6 +278,10 @@ components:
           type: object
           description: An arbitrary key-value map that a rule can return in its result.
           additionalProperties: {}
+        evidence:
+          type: object
+          description: An arbitrary key-value map containing evidence for the result.
+          additionalProperties: {}
         resources:
           type: array
           description: |

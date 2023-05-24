@@ -171,6 +171,9 @@ func (p *multiDenyProcessor) ProcessValue(val ast.Value) error {
 	if result.Severity != "" {
 		builder.severity = result.Severity
 	}
+	if len(result.Evidence) > 0 {
+		builder.evidence = result.Evidence
+	}
 	return nil
 }
 

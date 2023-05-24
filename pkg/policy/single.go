@@ -195,6 +195,9 @@ func (b *singleDenyProcessor) Process(val ast.Value) error {
 	} else {
 		result.remediation = b.defaultRemediation
 	}
+	if len(policyResult.Evidence) > 0 {
+		result.evidence = policyResult.Evidence
+	}
 	b.results = append(b.results, result.toRuleResult())
 	return nil
 }

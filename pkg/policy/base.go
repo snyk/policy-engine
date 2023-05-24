@@ -417,14 +417,15 @@ type policyResultResource struct {
 
 // This struct represents the common return format for the policy engine policies.
 type policyResult struct {
-	Message         string                `json:"message" rego:"message"`
-	Resource        *policyResultResource `json:"resource" rego:"resource"`
-	PrimaryResource *policyResultResource `json:"primary_resource" rego:"primary_resource"`
-	ResourceType    string                `json:"resource_type" rego:"resource_type"`
-	Remediation     string                `json:"remediation" rego:"remediation"`
-	Severity        string                `json:"severity" rego:"severity"`
-	Attributes      [][]interface{}       `json:"attributes" rego:"attributes"`
-	Correlation     string                `json:"correlation" rego:"correlation"`
+	Message         string                 `json:"message" rego:"message"`
+	Resource        *policyResultResource  `json:"resource" rego:"resource"`
+	PrimaryResource *policyResultResource  `json:"primary_resource" rego:"primary_resource"`
+	ResourceType    string                 `json:"resource_type" rego:"resource_type"`
+	Remediation     string                 `json:"remediation" rego:"remediation"`
+	Severity        string                 `json:"severity" rego:"severity"`
+	Attributes      [][]interface{}        `json:"attributes" rego:"attributes"`
+	Correlation     string                 `json:"correlation" rego:"correlation"`
+	Evidence        map[string]interface{} `json:"evidence" rego:"evidence"`
 
 	// Backwards compatibility
 	FugueValid             bool   `json:"valid" rego:"valid"`

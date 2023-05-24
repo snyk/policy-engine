@@ -28,6 +28,8 @@ type RuleResult struct {
 	Severity string `json:"severity,omitempty"`
 	// An arbitrary key-value map that a rule can return in its result.
 	Context map[string]interface{} `json:"context,omitempty"`
+	// An arbitrary key-value map containing evidence for the result.
+	Evidence map[string]interface{} `json:"evidence,omitempty"`
 	// A resource objects associated with this result.
 	Resources []*RuleResultResource `json:"resources,omitempty"`
 }
