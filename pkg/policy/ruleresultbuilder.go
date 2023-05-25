@@ -113,14 +113,14 @@ func (builder *ruleResultBuilder) addGraph(edges []policyResultEdge) *ruleResult
 		graph[idx] = models.Edge{
 			Label: edge.Label,
 			Source: &models.Node{
-				Id:           source.ID,
-				ResourceType: source.ResourceType,
-				Namespace:    source.Namespace,
+				Id:        source.ID,
+				Type:      source.Type,
+				Namespace: source.Namespace,
 			},
 			Target: &models.Node{
-				Id:           target.ID,
-				ResourceType: target.ResourceType,
-				Namespace:    target.Namespace,
+				Id:        target.ID,
+				Type:      target.Type,
+				Namespace: target.Namespace,
 			},
 		}
 	}

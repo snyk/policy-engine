@@ -402,7 +402,7 @@ components:
       properties:
         id:
           type: string
-        resource_type:
+        type:
           type: string
         namespace:
           type: string

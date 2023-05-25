@@ -2327,12 +2327,12 @@
                     "label": "exposes",
                     "source": {
                       "id": "kubernetes_ingress.ingress",
-                      "resource_type": "kubernetes_ingress",
+                      "type": "kubernetes_ingress",
                       "namespace": "../examples/main.tf"
                     },
                     "target": {
                       "id": "kubernetes_service_v1.service",
-                      "resource_type": "kubernetes_service_v1",
+                      "type": "kubernetes_service_v1",
                       "namespace": "../examples/main.tf"
                     }
                   },
@@ -2340,12 +2340,12 @@
                     "label": "exposes",
                     "source": {
                       "id": "kubernetes_service_v1.service",
-                      "resource_type": "kubernetes_service_v1",
+                      "type": "kubernetes_service_v1",
                       "namespace": "../examples/main.tf"
                     },
                     "target": {
                       "id": "kubernetes_pod.multiple_containers",
-                      "resource_type": "kubernetes_pod",
+                      "type": "kubernetes_pod",
                       "namespace": "../examples/main.tf"
                     }
                   }

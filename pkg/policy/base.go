@@ -417,9 +417,9 @@ func (p *BasePolicy) ID(
 }
 
 type policyResultResource struct {
-	ID           string `json:"_id" rego:"_id"`
-	ResourceType string `json:"_type" rego:"_type"`
-	Namespace    string `json:"_namespace" rego:"_namespace"`
+	ID        string `json:"_id" rego:"_id"`
+	Type      string `json:"_type" rego:"_type"`
+	Namespace string `json:"_namespace" rego:"_namespace"`
 }
 
 type policyResultEdge struct {
@@ -524,7 +524,7 @@ func (resource *policyResultResource) Key() ResourceKey {
 	// whereas the former is just a way to uniquely identify resources.
 	return ResourceKey{
 		Namespace: resource.Namespace,
-		Type:      resource.ResourceType,
+		Type:      resource.Type,
 		ID:        resource.ID,
 	}
 }

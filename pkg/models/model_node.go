@@ -10,7 +10,7 @@ package models
 
 // A graph node that describes a resource
 type Node struct {
-	Id           string `json:"id,omitempty"`
-	ResourceType string `json:"resource_type"`
-	Namespace    string `json:"namespace,omitempty"`
+	Id        string `json:"id,omitempty"`
+	Type      string `json:"type,omitempty"`
+	Namespace string `json:"namespace,omitempty"`
 }
