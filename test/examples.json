@@ -2277,6 +2277,7 @@
             "source": "data"
           },
           "title": "Kubernetes pod is connected to ingress",
+          "category": "public_exposure",
           "resource_types": [
             "aws_s3_bucket",
             "aws_s3_bucket_ownership_controls",

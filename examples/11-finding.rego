@@ -6,6 +6,7 @@ metadata := {
   "id": "EXAMPLE-011",
   "title": "Kubernetes pod is connected to ingress",
   "kind": "finding",
+  "category": "public_exposure",
 }
 
 pods := snyk.resources("kubernetes_pod")
