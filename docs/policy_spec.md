@@ -18,6 +18,7 @@ This document describes the contract and API for policies that run in the policy
     - [`resources[info]`](#resourcesinfo)
       - [`info` object properties](#info-object-properties-1)
       - [Correlation IDs](#correlation-ids)
+      - [Graph](#graph)
       - [Examples](#examples)
   - [Policy archetypes](#policy-archetypes)
     - [Single-resource policy](#single-resource-policy)
@@ -31,11 +32,11 @@ This document describes the contract and API for policies that run in the policy
       - [Example `snyk.resources` call and output](#example-snykresources-call-and-output)
     - [`snyk.query(<query>)`](#snykqueryquery)
     - [`snyk.relates(<resource>, <relation name>)`](#snykrelatesresource-relation-name)
-      - [`snyk.back_relates(<relation name>, <resource>`](#snykback_relatesrelation-name-resource)
-      - [`snyk.relates_with(<relation name>, <resource>`](#snykrelates_withresource-relation-name)
-      - [`snyk.back_relates_with(<relation name>, <resource>`](#snykback_relates_withrelation-name-resource)
+      - [`snyk.back_relates(<relation name>, <resource>)`](#snykback_relatesrelation-name-resource)
+      - [`snyk.relates_with(<resource>, <relation name>)`](#snykrelates_withresource-relation-name)
+      - [`snyk.back_relates_with(<relation name>, <resource>)`](#snykback_relates_withrelation-name-resource)
     - [`snyk.input_resource_types`](#snykinput_resource_types)
-      - [Example snyk.input_resource_types usage](#example-snykinput_resource_types-usage)
+      - [Example snyk.input\_resource\_types usage](#example-snykinput_resource_types-usage)
     - [`snyk.input_type`](#snykinput_type)
       - [Example `snyk.input_type` usage](#example-snykinput_type-usage)
     - [`snyk.terraform.resource_provider_version_constraint(<resource>, <constraint>)`](#snykterraformresource_provider_version_constraintresource-constraint)
@@ -104,6 +105,7 @@ archetypes would use it.
 | `severity`         | string | The severity of the issue identified by this `deny` rule                           |        ✓        |       ✓        |        ✓         |
 | `attributes`       | array  | An array of [attribute paths](#attribute-paths)                                    |        ✓        |       ✓        |                  |
 | `correlation`      | string | A manually-specified [correlation ID](#correlation-ids)                            |                 |       ✓        |        ✓         |
+| `graph`            | object | A list of labeled edges that relate two resources, see [Graph](#graph)             |                 |       ✓        |                  |
 
 ##### `primary_resource` vs `resource`
 
@@ -200,12 +202,14 @@ to clarify the intent of each field.
 | `controls`      | array  | An array of control IDs to map to a compliance control                                                           |
 | `severity`      | string | The severity of the issue identified by this policy                                                              |
 | `product`       | array  | An array of the products this policy supports                                                                    |
+| `kind`          | string | The kind of results that the policy produces. Defaults to `vulnerability` if unset.                              |
 
 Example with all fields populated:
 
 ```open-policy-agent
 metadata := {
     "id": "COMPANY_0001",
+    "kind": "vulnerability",
     "title": "S3 bucket name contains the word 'bucket'",
     "description": "It is unnecessary for resource names to contain their type.",
     "platform": ["AWS"],
@@ -303,6 +307,31 @@ in the `primary_resource` attribute (if specified) or the `resource` attribute.
 
 The policy engine will relate `resources` results with `deny` results that have the same
 identifier.
+
+#### Graph
+
+The `graph` attribute is way for policies to output graph of resources that contributed
+to a result. The graph is represented by a list of labeled edges that describe the
+relationship between a `source` and a `target`. For example, a policy that tests whether
+an application is connected to a load balancer could include this `graph` in its result
+to describe which resources are involved in that connection and how they are related:
+
+```open-policy-agent
+{
+  "graph": [
+    {
+      "source": load_balancer,
+      "label": "exposes",
+      "target": target_group,
+    },
+    {
+      "source": target_group,
+      "label": "exposes",
+      "target": application,
+    },
+  ]
+}
+```
 
 #### Examples
 
@@ -645,11 +674,11 @@ relations[info] {
 
 `info` has the following properties:
 
-| Field       |  Type  | Description                                                                                                  |
-| :---------- | :----: | :----------------------------------------------------------------------------------------------------------- |
-| `name`      | string | Name for the relationship                                                                                    |
-| `keys`      | object | An object with `left` and `right` arrays containing `[resource, key]` or `[resource, key, annotation]` items |
-| `explicit`  | array  | An explicit of list of `[left, right]` or `[left_resource, right_resource, annotation]` items                |
+| Field      |  Type  | Description                                                                                                  |
+| :--------- | :----: | :----------------------------------------------------------------------------------------------------------- |
+| `name`     | string | Name for the relationship                                                                                    |
+| `keys`     | object | An object with `left` and `right` arrays containing `[resource, key]` or `[resource, key, annotation]` items |
+| `explicit` | array  | An explicit of list of `[left, right]` or `[left_resource, right_resource, annotation]` items                |
 
 `name` is required, and one of `keys` and `explicit` must be specified.
 

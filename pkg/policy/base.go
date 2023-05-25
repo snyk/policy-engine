@@ -151,6 +151,7 @@ type Metadata struct {
 	Controls     []string                       `json:"controls"`
 	Severity     string                         `json:"severity"`
 	Product      []string                       `json:"product"`
+	Kind         string                         `json:"kind"`
 }
 
 // Auxiliary parsing type.
@@ -167,6 +168,7 @@ type metadataCompat struct {
 	Controls     interface{}                    `rego:"controls"`
 	Severity     string                         `rego:"severity"`
 	Product      []string                       `rego:"product"`
+	Kind         string                         `rego:"kind"`
 }
 
 func (compat metadataCompat) ToMetadata() (meta Metadata, err error) {
@@ -182,6 +184,7 @@ func (compat metadataCompat) ToMetadata() (meta Metadata, err error) {
 	meta.Controls, err = models.ParseControls(compat.Controls)
 	meta.Severity = compat.Severity
 	meta.Product = compat.Product
+	meta.Kind = compat.Kind
 	return
 }
 
@@ -224,6 +227,7 @@ func (m Metadata) copyToRuleResults(inputType string, output *models.RuleResults
 	output.Labels = m.Labels
 	output.ServiceGroup = m.ServiceGroup
 	output.Controls = m.Controls
+	output.Kind = m.Kind
 
 	output.References = []models.RuleResultsReference{}
 	for _, ref := range m.ReferencesFor(inputType) {
@@ -359,6 +363,9 @@ func (p *BasePolicy) Metadata(
 				if err != nil {
 					return err
 				}
+				if compat.Kind == "" {
+					compat.Kind = "vulnerability"
+				}
 				m, err = compat.ToMetadata()
 				return err
 			},
@@ -415,6 +422,12 @@ type policyResultResource struct {
 	Namespace    string `json:"_namespace" rego:"_namespace"`
 }
 
+type policyResultEdge struct {
+	Label  string                `json:"label" rego:"label"`
+	Source *policyResultResource `json:"source" rego:"source"`
+	Target *policyResultResource `json:"target" rego:"target"`
+}
+
 // This struct represents the common return format for the policy engine policies.
 type policyResult struct {
 	Message         string                `json:"message" rego:"message"`
@@ -425,6 +438,7 @@ type policyResult struct {
 	Severity        string                `json:"severity" rego:"severity"`
 	Attributes      [][]interface{}       `json:"attributes" rego:"attributes"`
 	Correlation     string                `json:"correlation" rego:"correlation"`
+	Graph           []policyResultEdge    `json:"graph" rego:"graph"`
 
 	// Backwards compatibility
 	FugueValid             bool   `json:"valid" rego:"valid"`

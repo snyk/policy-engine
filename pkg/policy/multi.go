@@ -171,6 +171,7 @@ func (p *multiDenyProcessor) ProcessValue(val ast.Value) error {
 	if result.Severity != "" {
 		builder.severity = result.Severity
 	}
+	builder.addGraph(result.Graph)
 	return nil
 }
 
