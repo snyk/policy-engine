@@ -183,10 +183,7 @@ components:
             The Rule ID, e.g. SNYK_00503 or 608f97c3-a11a-4154-a88e-a2fcd18c75b0
         kind:
           type: string
-          description: The kind of result that this rule produces
-          enum:
-            - vulnerability
-            - finding
+          description: The kind of result that this rule produces, e.g "vulnerability"
         rule_bundle:
           description: The rule bundle that provided this rule
           $ref: '#/components/schemas/RuleBundle'
