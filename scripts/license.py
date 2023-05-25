@@ -60,7 +60,7 @@ def license_file(path, comment_prefix):
     copyrights_list = reversed(sorted(list(copyrights.items()), key=lambda x: x[1][1]))
     for (holder, (start_year, end_year)) in copyrights_list:
         years = start_year if start_year == end_year else f"{start_year}-{end_year}"
-        new_lines.append(f"{comment_prefix} Copyright {years} {holder}\n")
+        new_lines.append(f"{comment_prefix} © {years} {holder}\n")
     if copyrights_end is not None:
         new_lines += lines[copyrights_end:]
     else:
