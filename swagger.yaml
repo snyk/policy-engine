@@ -289,9 +289,10 @@ components:
             $ref: '#/components/schemas/RuleResultResource'
         graphs:
           type: array
-          description: A list of list of graph edges returned by the rule
+          description: A list of graphs returned by the rule
           items:
             type: array
+            description: A graph represented by an array of edges between resources
             items:
               $ref: '#/components/schemas/Edge'
     RuleResultResource:
