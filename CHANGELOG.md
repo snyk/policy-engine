@@ -2,6 +2,14 @@
 
 
 
+## v0.24.0 - 2023-05-26
+### Added
+* allow annotations on resource relations
+* `kind` and `graph` fields to policies
+### Fixed
+* typos in relation annotation docs
+* small bug in license script
+
 ## v0.23.0 - 2023-05-23
 ### Added
 * Configurable timeouts to the engine package
