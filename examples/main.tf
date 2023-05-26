@@ -78,6 +78,9 @@ resource "aws_cloudtrail" "cloudtrail1" {
 resource "kubernetes_pod" "multiple_containers" {
   metadata {
     name = "multiple-containers"
+    labels = {
+      app = "myapp-1"
+    }
   }
 
   spec {
@@ -132,6 +135,55 @@ resource "kubernetes_pod" "multiple_containers" {
       security_context {
         privileged = true
       }
+    }
+  }
+}
+
+
+resource "kubernetes_service_v1" "service" {
+  metadata {
+    name = "myapp-1"
+  }
+  spec {
+    selector = {
+      app = kubernetes_pod.multiple_containers.metadata.0.labels.app
+    }
+    session_affinity = "ClientIP"
+    port {
+      port        = 8080
+      target_port = 80
+    }
+
+    type = "NodePort"
+  }
+}
+
+resource "kubernetes_ingress" "ingress" {
+  metadata {
+    name = "example-ingress"
+  }
+
+  spec {
+    backend {
+      service_name = kubernetes_service_v1.service.metadata.0.name
+      service_port = 8080
+    }
+
+    rule {
+      http {
+        path {
+          backend {
+            service_name = kubernetes_service_v1.service.metadata.0.name
+            service_port = 8080
+          }
+
+          path = "/app1/*"
+        }
+      }
+    }
+
+    tls {
+      secret_name = "tls-secret"
     }
   }
 }

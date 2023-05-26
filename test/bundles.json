@@ -1,6 +1,7 @@
 [
   {
     "id": "EXAMPLE_01",
+    "kind": "vulnerability",
     "rule_bundle": {
       "name": "../pkg/bundle/v1/test_inputs/complete",
       "source": "bundle_directory"
@@ -167,6 +168,7 @@
   },
   {
     "id": "EXAMPLE_02",
+    "kind": "vulnerability",
     "rule_bundle": {
       "name": "../pkg/bundle/v1/test_inputs/complete",
       "source": "bundle_directory"
@@ -179,6 +181,7 @@
     "package": "data.rules.EXAMPLE_02.terraform"
   },
   {
+    "kind": "vulnerability",
     "rule_bundle": {
       "name": "../pkg/bundle/v1/test_inputs/minimal",
       "source": "bundle_directory"

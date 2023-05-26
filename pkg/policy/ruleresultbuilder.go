@@ -37,6 +37,7 @@ type ruleResultBuilder struct {
 	severity          string
 	context           map[string]interface{}
 	resources         map[ResourceKey]*models.RuleResultResource
+	graphs            [][]models.Edge
 }
 
 func newRuleResultBuilder() *ruleResultBuilder {
@@ -100,6 +101,34 @@ func (builder *ruleResultBuilder) addResourceAttribute(
 	return builder
 }
 
+func (builder *ruleResultBuilder) addGraph(edges []policyResultEdge) *ruleResultBuilder {
+	if len(edges) < 1 {
+		return builder
+	}
+
+	graph := make([]models.Edge, len(edges))
+	for idx, edge := range edges {
+		source := edge.Source
+		target := edge.Target
+		graph[idx] = models.Edge{
+			Label: edge.Label,
+			Source: &models.Node{
+				Id:        source.ID,
+				Type:      source.Type,
+				Namespace: source.Namespace,
+			},
+			Target: &models.Node{
+				Id:        target.ID,
+				Type:      target.Type,
+				Namespace: target.Namespace,
+			},
+		}
+	}
+	builder.graphs = append(builder.graphs, graph)
+
+	return builder
+}
+
 func (builder *ruleResultBuilder) toRuleResult() models.RuleResult {
 	// Gather resources.
 	resourceKeys := []ResourceKey{}
@@ -152,5 +181,6 @@ func (builder *ruleResultBuilder) toRuleResult() models.RuleResult {
 		Severity:          builder.severity,
 		Context:           builder.context,
 		Resources:         resources,
+		Graphs:            builder.graphs,
 	}
 }

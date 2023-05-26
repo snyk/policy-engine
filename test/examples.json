@@ -306,6 +306,63 @@
               }
             }
           },
+          "kubernetes_ingress": {
+            "kubernetes_ingress.ingress": {
+              "id": "kubernetes_ingress.ingress",
+              "resource_type": "kubernetes_ingress",
+              "namespace": "../examples/main.tf",
+              "meta": {
+                "location": [
+                  {
+                    "filepath": "../examples/main.tf",
+                    "line": 161,
+                    "column": 1
+                  }
+                ]
+              },
+              "attributes": {
+                "metadata": [
+                  {
+                    "name": "example-ingress"
+                  }
+                ],
+                "spec": [
+                  {
+                    "backend": [
+                      {
+                        "service_name": "myapp-1",
+                        "service_port": 8080
+                      }
+                    ],
+                    "rule": [
+                      {
+                        "http": [
+                          {
+                            "path": [
+                              {
+                                "backend": [
+                                  {
+                                    "service_name": "myapp-1",
+                                    "service_port": 8080
+                                  }
+                                ],
+                                "path": "/app1/*"
+                              }
+                            ]
+                          }
+                        ]
+                      }
+                    ],
+                    "tls": [
+                      {
+                        "secret_name": "tls-secret"
+                      }
+                    ]
+                  }
+                ]
+              }
+            }
+          },
           "kubernetes_pod": {
             "kubernetes_pod.multiple_containers": {
               "id": "kubernetes_pod.multiple_containers",
@@ -323,6 +380,9 @@
               "attributes": {
                 "metadata": [
                   {
+                    "labels": {
+                      "app": "myapp-1"
+                    },
                     "name": "multiple-containers"
                   }
                 ],
@@ -399,6 +459,44 @@
                 ]
               }
             }
+          },
+          "kubernetes_service_v1": {
+            "kubernetes_service_v1.service": {
+              "id": "kubernetes_service_v1.service",
+              "resource_type": "kubernetes_service_v1",
+              "namespace": "../examples/main.tf",
+              "meta": {
+                "location": [
+                  {
+                    "filepath": "../examples/main.tf",
+                    "line": 143,
+                    "column": 1
+                  }
+                ]
+              },
+              "attributes": {
+                "metadata": [
+                  {
+                    "name": "myapp-1"
+                  }
+                ],
+                "spec": [
+                  {
+                    "port": [
+                      {
+                        "port": 8080,
+                        "target_port": 80
+                      }
+                    ],
+                    "selector": {
+                      "app": "myapp-1"
+                    },
+                    "session_affinity": "ClientIP",
+                    "type": "NodePort"
+                  }
+                ]
+              }
+            }
           }
         },
         "scope": {
@@ -408,6 +506,7 @@
       "rule_results": [
         {
           "id": "COMPANY_0001",
+          "kind": "vulnerability",
           "rule_bundle": {
             "source": "data"
           },
@@ -1219,7 +1318,10 @@
           "resource_types": [
             "aws_s3_bucket",
             "aws_s3_bucket_ownership_controls",
-            "aws_s3_bucket_server_side_encryption_configuration"
+            "aws_s3_bucket_server_side_encryption_configuration",
+            "kubernetes_ingress",
+            "kubernetes_pod",
+            "kubernetes_service_v1"
           ],
           "results": [
             {
@@ -1459,7 +1561,10 @@
           "resource_types": [
             "aws_s3_bucket",
             "aws_s3_bucket_ownership_controls",
-            "aws_s3_bucket_server_side_encryption_configuration"
+            "aws_s3_bucket_server_side_encryption_configuration",
+            "kubernetes_ingress",
+            "kubernetes_pod",
+            "kubernetes_service_v1"
           ],
           "results": [
             {
@@ -1732,7 +1837,7 @@
                       ],
                       "location": {
                         "filepath": "../examples/main.tf",
-                        "line": 119,
+                        "line": 122,
                         "column": 9
                       }
                     },
@@ -1748,7 +1853,7 @@
                       ],
                       "location": {
                         "filepath": "../examples/main.tf",
-                        "line": 133,
+                        "line": 136,
                         "column": 9
                       }
                     }
@@ -1760,6 +1865,7 @@
           "package": "data.rules.snyk_007.tf"
         },
         {
+          "kind": "vulnerability",
           "rule_bundle": {
             "source": "data"
           },
@@ -1815,7 +1921,10 @@
           "resource_types": [
             "aws_s3_bucket",
             "aws_s3_bucket_ownership_controls",
-            "aws_s3_bucket_server_side_encryption_configuration"
+            "aws_s3_bucket_server_side_encryption_configuration",
+            "kubernetes_ingress",
+            "kubernetes_pod",
+            "kubernetes_service_v1"
           ],
           "results": [
             {
@@ -1948,7 +2057,10 @@
           "resource_types": [
             "aws_s3_bucket",
             "aws_s3_bucket_ownership_controls",
-            "aws_s3_bucket_server_side_encryption_configuration"
+            "aws_s3_bucket_server_side_encryption_configuration",
+            "kubernetes_ingress",
+            "kubernetes_pod",
+            "kubernetes_service_v1"
           ],
           "results": [
             {
@@ -2157,6 +2269,92 @@
             }
           ],
           "package": "data.rules.snyk_010.tf"
+        },
+        {
+          "id": "EXAMPLE-011",
+          "kind": "finding",
+          "rule_bundle": {
+            "source": "data"
+          },
+          "title": "Kubernetes pod is connected to ingress",
+          "category": "public_exposure",
+          "resource_types": [
+            "aws_s3_bucket",
+            "aws_s3_bucket_ownership_controls",
+            "aws_s3_bucket_server_side_encryption_configuration",
+            "kubernetes_ingress",
+            "kubernetes_pod",
+            "kubernetes_service_v1"
+          ],
+          "results": [
+            {
+              "passed": false,
+              "ignored": false,
+              "resource_id": "kubernetes_pod.multiple_containers",
+              "resource_namespace": "../examples/main.tf",
+              "resource_type": "kubernetes_pod",
+              "resources": [
+                {
+                  "id": "kubernetes_pod.multiple_containers",
+                  "type": "kubernetes_pod",
+                  "namespace": "../examples/main.tf",
+                  "location": [
+                    {
+                      "filepath": "../examples/main.tf",
+                      "line": 78,
+                      "column": 1
+                    }
+                  ],
+                  "attributes": [
+                    {
+                      "path": [
+                        "metadata",
+                        0,
+                        "labels",
+                        "app"
+                      ],
+                      "location": {
+                        "filepath": "../examples/main.tf",
+                        "line": 81,
+                        "column": 5
+                      }
+                    }
+                  ]
+                }
+              ],
+              "graphs": [
+                [
+                  {
+                    "label": "exposes",
+                    "source": {
+                      "id": "kubernetes_ingress.ingress",
+                      "type": "kubernetes_ingress",
+                      "namespace": "../examples/main.tf"
+                    },
+                    "target": {
+                      "id": "kubernetes_service_v1.service",
+                      "type": "kubernetes_service_v1",
+                      "namespace": "../examples/main.tf"
+                    }
+                  },
+                  {
+                    "label": "exposes",
+                    "source": {
+                      "id": "kubernetes_service_v1.service",
+                      "type": "kubernetes_service_v1",
+                      "namespace": "../examples/main.tf"
+                    },
+                    "target": {
+                      "id": "kubernetes_pod.multiple_containers",
+                      "type": "kubernetes_pod",
+                      "namespace": "../examples/main.tf"
+                    }
+                  }
+                ]
+              ]
+            }
+          ],
+          "package": "data.rules.snyk_011.tf"
         }
       ]
     }

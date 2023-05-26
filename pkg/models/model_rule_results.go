@@ -11,7 +11,9 @@ package models
 // Container for all results associated with a single rule
 type RuleResults struct {
 	// The Rule ID, e.g. SNYK_00503 or 608f97c3-a11a-4154-a88e-a2fcd18c75b0
-	Id         string      `json:"id,omitempty"`
+	Id string `json:"id,omitempty"`
+	// The kind of result that this rule produces, e.g \"vulnerability\"
+	Kind       string      `json:"kind,omitempty"`
 	RuleBundle *RuleBundle `json:"rule_bundle,omitempty"`
 	// The rule title
 	Title string `json:"title,omitempty"`

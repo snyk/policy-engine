@@ -48,3 +48,41 @@ relations[info] {
 		{"aws_s3_bucket_ownership_controls": ["bucket"]},
 	)
 }
+
+relations[info] {
+	pods := snyk.resources("kubernetes_pod")
+	services := snyk.resources("kubernetes_service_v1")
+	info := {
+		"name": "kubernetes_pod.service",
+		"keys": {
+			"left": [[p, label] |
+				p := pods[_]
+				v := p.metadata[_].labels[k]
+				label := concat("=", [k, v])
+			],
+			"right": [[s, label] |
+				s := services[_]
+				v := s.spec[_].selector[k]
+				label := concat("=", [k, v])
+			]
+		}
+	}
+}
+
+relations[info] {
+	services := snyk.resources("kubernetes_service_v1")
+	ingresses := snyk.resources("kubernetes_ingress")
+	info := {
+		"name": "kubernetes_service_v1.ingress",
+		"keys": {
+			"left": [[s, name] |
+				s := services[_]
+				name := s.metadata[_].name
+			],
+			"right": [[i, backend] |
+				i := ingresses[_]
+				backend := i.spec[_].backend[_].service_name
+			]
+		}
+	}
+}

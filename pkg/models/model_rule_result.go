@@ -30,4 +30,6 @@ type RuleResult struct {
 	Context map[string]interface{} `json:"context,omitempty"`
 	// A resource objects associated with this result.
 	Resources []*RuleResultResource `json:"resources,omitempty"`
+	// A list of graphs returned by the rule
+	Graphs [][]Edge `json:"graphs,omitempty"`
 }

@@ -181,6 +181,9 @@ components:
           type: string
           description: |
             The Rule ID, e.g. SNYK_00503 or 608f97c3-a11a-4154-a88e-a2fcd18c75b0
+        kind:
+          type: string
+          description: The kind of result that this rule produces, e.g "vulnerability"
         rule_bundle:
           description: The rule bundle that provided this rule
           $ref: '#/components/schemas/RuleBundle'
@@ -284,6 +287,14 @@ components:
             A resource objects associated with this result.
           items:
             $ref: '#/components/schemas/RuleResultResource'
+        graphs:
+          type: array
+          description: A list of graphs returned by the rule
+          items:
+            type: array
+            description: A graph represented by an array of edges between resources
+            items:
+              $ref: '#/components/schemas/Edge'
     RuleResultResource:
       type: object
       description: |
@@ -370,4 +381,29 @@ components:
           type: string
           enum: ["data", "bundle_archive", "bundle_directory"]
         checksum:
+          type: string
+    Edge:
+      description: |
+        A graph edge that describes a relationship between two resources
+      required:
+        - label
+        - source
+        - target
+      properties:
+        label:
+          type: string
+        source:
+          $ref: '#/components/schemas/Node'
+        target:
+          $ref: '#/components/schemas/Node'
+    Node:
+      description: A graph node that describes a resource
+      required:
+        - resource_type
+      properties:
+        id:
+          type: string
+        type:
+          type: string
+        namespace:
           type: string
