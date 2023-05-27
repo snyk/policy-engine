@@ -32,6 +32,9 @@
         "id": "Vpc01",
         "resource_type": "AWS::EC2::VPC",
         "namespace": "golden_test/cfn/schemas-01/template.yaml",
+        "tags": {
+          "Group": "5"
+        },
         "meta": {},
         "attributes": {
           "CidrBlock": "10.0.0.0/16",

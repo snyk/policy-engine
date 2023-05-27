@@ -1,0 +1,3 @@
+kind: Added
+body: normalize resource tags and expose them as _tags to policies
+time: 2023-05-27T11:31:54.167667655+02:00

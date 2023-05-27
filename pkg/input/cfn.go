@@ -145,6 +145,7 @@ func (l *cfnConfiguration) ToState() models.State {
 	resources := []models.ResourceState{}
 	for _, resource := range l.resources {
 		resource.Namespace = l.path
+		resource.Tags = cfnExtractTags(resource)
 		resources = append(resources, resource)
 	}
 

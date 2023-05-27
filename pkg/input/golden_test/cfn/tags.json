@@ -1,0 +1,49 @@
+{
+  "format": "",
+  "format_version": "",
+  "input_type": "cfn",
+  "environment_provider": "iac",
+  "meta": {
+    "filepath": "golden_test/cfn/tags/main.yaml"
+  },
+  "resources": {
+    "AWS::EC2::VPC": {
+      "VPC1": {
+        "id": "VPC1",
+        "resource_type": "AWS::EC2::VPC",
+        "namespace": "golden_test/cfn/tags/main.yaml",
+        "tags": {
+          "Stage": "Dev"
+        },
+        "meta": {},
+        "attributes": {
+          "CidrBlock": "10.0.0.0/16",
+          "Tags": [
+            {
+              "Key": "Stage",
+              "Value": "Dev"
+            }
+          ]
+        }
+      },
+      "VPC2": {
+        "id": "VPC2",
+        "resource_type": "AWS::EC2::VPC",
+        "namespace": "golden_test/cfn/tags/main.yaml",
+        "tags": {
+          "Stage": "Dev"
+        },
+        "meta": {},
+        "attributes": {
+          "CidrBlock": "10.0.0.0/16",
+          "Tags": {
+            "Stage": "Dev"
+          }
+        }
+      }
+    }
+  },
+  "scope": {
+    "filepath": "golden_test/cfn/tags/main.yaml"
+  }
+}

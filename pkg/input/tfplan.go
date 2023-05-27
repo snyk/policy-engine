@@ -283,10 +283,10 @@ func (plan *tfplan_Plan) visitModules(
 // Generate a full map of outputs, assuming they reference a resource.
 // This ends up looking like e.g.:
 //
-//     module.child1.grandchild_vpc: module.child1.module.grandchild1.grandchild_vpc
-//     module.child1.module.grandchild1.grandchild_vpc: module.child1.module.grandchild1.aws_vpc.grandchild
-//     parent_vpc: aws_vpc.parent
-//     module.child2.var.child_vpc_id: module.child1.grandchild_vpc
+//	module.child1.grandchild_vpc: module.child1.module.grandchild1.grandchild_vpc
+//	module.child1.module.grandchild1.grandchild_vpc: module.child1.module.grandchild1.aws_vpc.grandchild
+//	parent_vpc: aws_vpc.parent
+//	module.child2.var.child_vpc_id: module.child1.grandchild_vpc
 //
 // Then returns a function which can (recursively) resolve pointers in this
 // variable map.
@@ -610,13 +610,15 @@ func (plan *tfplan_Plan) resources(resourceNamespace string) []models.ResourceSt
 
 		attributes = schemas.ApplyObject(attributes, tfschemas.GetSchema(resourceType))
 
-		resources = append(resources, models.ResourceState{
+		model := models.ResourceState{
 			Id:           id,
 			ResourceType: resourceType,
 			Namespace:    resourceNamespace,
 			Attributes:   attributes,
 			Meta:         meta,
-		})
+		}
+		model.Tags = tfExtractTags(model)
+		resources = append(resources, model)
 	})
 
 	return resources

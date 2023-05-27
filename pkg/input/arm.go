@@ -94,6 +94,7 @@ func (l *armConfiguration) ToState() models.State {
 	for _, d := range l.discovered {
 		resource := d.process(&refResolver)
 		resource.Namespace = l.path
+		resource.Tags = armExtractTags(resource)
 		resources = append(resources, resource)
 	}
 

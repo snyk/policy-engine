@@ -90,6 +90,7 @@ func newHclConfiguration(moduleTree *hcl_interpreter.ModuleTree) (*HclConfigurat
 	namespace := moduleTree.FilePath()
 	for i := range resources {
 		resources[i].Namespace = namespace
+		resources[i].Tags = tfExtractTags(resources[i])
 	}
 
 	return &HclConfiguration{

@@ -80,6 +80,9 @@
         "id": "aws_s3_bucket.frontend_bucket_EFDC2F3F",
         "resource_type": "aws_s3_bucket",
         "namespace": "golden_test/tf/cdktf.frontend.out/frontend-dev.tf.json",
+        "tags": {
+          "hc-internet-facing": "true"
+        },
         "meta": {
           "region": "eu-central-1",
           "terraform": {
