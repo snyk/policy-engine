@@ -33,6 +33,7 @@ resources(resource_type) = ret {
 				"_type": resource_type,
 				"_namespace": resource.namespace,
 				"_meta": object.get(resource, "meta", {}),
+				"_tags": object.get(resource, "tags", {}),
 			},
 		)
 	]

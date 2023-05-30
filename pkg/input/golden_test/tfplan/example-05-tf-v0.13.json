@@ -12,6 +12,10 @@
         "id": "aws_cloudwatch_log_group.fargate-logs",
         "resource_type": "aws_cloudwatch_log_group",
         "namespace": "golden_test/tfplan/example-05-tf-v0.13/plan.json",
+        "tags": {
+          "Name": "foo",
+          "POC": "bar"
+        },
         "meta": {
           "region": "us-east-1",
           "terraform": {
@@ -46,6 +50,10 @@
         "id": "aws_kms_key.cloudwatch",
         "resource_type": "aws_kms_key",
         "namespace": "golden_test/tfplan/example-05-tf-v0.13/plan.json",
+        "tags": {
+          "Name": "foo",
+          "POC": "bar"
+        },
         "meta": {
           "region": "us-east-1",
           "terraform": {

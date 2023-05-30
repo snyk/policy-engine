@@ -1,0 +1,15 @@
+# Copied from fugue_resource_view_cloudformation_test.rego in Regula.
+Resources:
+  VPC1:
+    Type: AWS::EC2::VPC
+    Properties:
+      CidrBlock: "10.0.0.0/16"
+      Tags:
+        - Key: Stage
+          Value: Dev
+  VPC2:
+    Type: AWS::EC2::VPC
+    Properties:
+      CidrBlock: "10.0.0.0/16"
+      Tags:
+        Stage: Dev

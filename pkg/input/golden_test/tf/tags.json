@@ -12,6 +12,9 @@
         "id": "aws_autoscaling_group.example",
         "resource_type": "aws_autoscaling_group",
         "namespace": "golden_test/tf/tags/main.tf",
+        "tags": {
+          "Stage": "Dev"
+        },
         "meta": {
           "region": "us-west-2",
           "terraform": {
@@ -70,6 +73,9 @@
         "id": "aws_s3_bucket.example",
         "resource_type": "aws_s3_bucket",
         "namespace": "golden_test/tf/tags/main.tf",
+        "tags": {
+          "Stage": "Prod"
+        },
         "meta": {
           "region": "us-west-2",
           "terraform": {
@@ -92,6 +98,10 @@
         "id": "google_compute_instance.default",
         "resource_type": "google_compute_instance",
         "namespace": "golden_test/tf/tags/main.tf",
+        "tags": {
+          "bar": "",
+          "foo": ""
+        },
         "meta": {
           "terraform": {
             "provider_config": {}
@@ -135,6 +145,9 @@
         "id": "google_storage_bucket.example",
         "resource_type": "google_storage_bucket",
         "namespace": "golden_test/tf/tags/main.tf",
+        "tags": {
+          "Stage": "Prod"
+        },
         "meta": {
           "terraform": {
             "provider_config": {}

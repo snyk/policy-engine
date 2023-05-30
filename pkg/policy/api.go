@@ -231,6 +231,11 @@ func resourceStateToRegoInput(resource models.ResourceState) (*ast.Term, error) 
 	} else {
 		obj["_meta"] = resource.Meta
 	}
+	tags := map[string]interface{}{}
+	for k, v := range resource.Tags {
+		tags[k] = v
+	}
+	obj["_tags"] = tags
 	for k, attr := range resource.Attributes {
 		// If we have a non-null, non-blank ID from the resource, we should
 		// retain that value. Otherwise, we should keep the logical ID that
