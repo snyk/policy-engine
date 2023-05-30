@@ -276,7 +276,7 @@ components:
             - high
             - medium
             - low
-            - informational
+            - info
         context:
           type: object
           description: An arbitrary key-value map that a rule can return in its result.
