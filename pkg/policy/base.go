@@ -43,6 +43,7 @@ const resourcesRuleName = "resources"
 const resourceTypeRuleName = "resource_type"
 const inputTypeRuleName = "input_type"
 const multipleResourceType = "MULTIPLE"
+const defaultKind = "vulnerability"
 
 // SupportedInputTypes contains all of the input types that this package officially
 // supports.
@@ -139,53 +140,19 @@ var remediationKeys = map[string]string{
 }
 
 type Metadata struct {
-	ID           string                         `json:"id"`
-	Title        string                         `json:"title"`
-	Description  string                         `json:"description"`
-	Platform     []string                       `json:"platform"`
-	Remediation  map[string]string              `json:"remediation"`
-	References   map[string][]MetadataReference `json:"references"`
-	Category     string                         `json:"category"`
-	Labels       []string                       `json:"labels,omitempty"`
-	ServiceGroup string                         `json:"service_group"`
-	Controls     []string                       `json:"controls"`
-	Severity     string                         `json:"severity"`
-	Product      []string                       `json:"product"`
-	Kind         string                         `json:"kind"`
-}
-
-// Auxiliary parsing type.
-type metadataCompat struct {
-	ID           string                         `rego:"id"`
-	Title        string                         `rego:"title"`
-	Description  string                         `rego:"description"`
-	Platform     []string                       `rego:"platform"`
-	Remediation  map[string]string              `rego:"remediation"`
-	References   map[string][]MetadataReference `rego:"references"`
-	Category     string                         `rego:"category"`
-	Labels       []string                       `rego:"labels"`
-	ServiceGroup string                         `rego:"service_group"`
-	Controls     interface{}                    `rego:"controls"`
-	Severity     string                         `rego:"severity"`
-	Product      []string                       `rego:"product"`
-	Kind         string                         `rego:"kind"`
-}
-
-func (compat metadataCompat) ToMetadata() (meta Metadata, err error) {
-	meta.ID = compat.ID
-	meta.Title = compat.Title
-	meta.Description = compat.Description
-	meta.Platform = compat.Platform
-	meta.Remediation = compat.Remediation
-	meta.References = compat.References
-	meta.Category = compat.Category
-	meta.Labels = compat.Labels
-	meta.ServiceGroup = compat.ServiceGroup
-	meta.Controls, err = models.ParseControls(compat.Controls)
-	meta.Severity = compat.Severity
-	meta.Product = compat.Product
-	meta.Kind = compat.Kind
-	return
+	ID           string                         `json:"id" rego:"id"`
+	Title        string                         `json:"title" rego:"title"`
+	Description  string                         `json:"description" rego:"description"`
+	Platform     []string                       `json:"platform" rego:"platform"`
+	Remediation  map[string]string              `json:"remediation" rego:"remediation"`
+	References   map[string][]MetadataReference `json:"references" rego:"references"`
+	Category     string                         `json:"category" rego:"category"`
+	Labels       []string                       `json:"labels,omitempty" rego:"labels"`
+	ServiceGroup string                         `json:"service_group" rego:"service_group"`
+	Controls     []string                       `json:"controls" rego:"controls"`
+	Severity     string                         `json:"severity" rego:"severity"`
+	Product      []string                       `json:"product" rego:"product"`
+	Kind         string                         `json:"kind" rego:"kind"`
 }
 
 func (m Metadata) RemediationFor(inputType string) string {
@@ -348,26 +315,17 @@ func (p *BasePolicy) Metadata(
 		return *p.cachedMetadata, nil
 	}
 	m := Metadata{}
-	if p.metadataRule.name == "" {
-		p.cachedMetadata = &m
-		return m, nil
-	}
 	switch p.metadataRule.name {
 	case "metadata":
 		if err := state.Query(
 			ctx,
 			rego.Query{Query: p.metadataRule.query()},
 			func(val ast.Value) error {
-				compat := metadataCompat{}
-				err := rego.Bind(val, &compat)
+				err := rego.Bind(val, &m)
 				if err != nil {
 					return err
 				}
-				if compat.Kind == "" {
-					compat.Kind = "vulnerability"
-				}
-				m, err = compat.ToMetadata()
-				return err
+				return nil
 			},
 		); err != nil {
 			return m, err
@@ -397,9 +355,12 @@ func (p *BasePolicy) Metadata(
 		); err != nil {
 			return m, err
 		}
-
+	case "": // noop when no metadata rule is defined
 	default:
 		return m, fmt.Errorf("Unrecognized metadata rule: %s", p.metadataRule.name)
+	}
+	if m.Kind == "" {
+		m.Kind = defaultKind
 	}
 	p.cachedMetadata = &m
 	return m, nil

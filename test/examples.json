@@ -684,6 +684,7 @@
           "package": "data.rules.snyk_001.tf"
         },
         {
+          "kind": "vulnerability",
           "rule_bundle": {
             "source": "data"
           },
@@ -829,6 +830,7 @@
           "package": "data.rules.snyk_002.tf"
         },
         {
+          "kind": "vulnerability",
           "rule_bundle": {
             "source": "data"
           },
@@ -908,6 +910,7 @@
           "package": "data.rules.snyk_003.tf"
         },
         {
+          "kind": "vulnerability",
           "rule_bundle": {
             "source": "data"
           },
@@ -1073,6 +1076,7 @@
           "package": "data.rules.snyk_004.tf"
         },
         {
+          "kind": "vulnerability",
           "rule_bundle": {
             "source": "data"
           },
@@ -1312,6 +1316,7 @@
           "package": "data.rules.snyk_005.tf"
         },
         {
+          "kind": "vulnerability",
           "rule_bundle": {
             "source": "data"
           },
@@ -1555,6 +1560,7 @@
           "package": "data.rules.snyk_005b.tf"
         },
         {
+          "kind": "vulnerability",
           "rule_bundle": {
             "source": "data"
           },
@@ -1798,6 +1804,7 @@
           "package": "data.rules.snyk_006.tf"
         },
         {
+          "kind": "vulnerability",
           "rule_bundle": {
             "source": "data"
           },
@@ -1869,11 +1876,6 @@
           "rule_bundle": {
             "source": "data"
           },
-          "description": "This is rule 7, it uses an old control format",
-          "controls": [
-            "Simpsons_v1.0.0_Homer",
-            "Simpsons_v1.0.0_Marge"
-          ],
           "resource_types": [
             "aws_cloudtrail"
           ],
@@ -1915,6 +1917,7 @@
           "package": "data.rules.snyk_008.tf"
         },
         {
+          "kind": "vulnerability",
           "rule_bundle": {
             "source": "data"
           },
@@ -2051,6 +2054,7 @@
           "package": "data.rules.snyk_009.tf"
         },
         {
+          "kind": "vulnerability",
           "rule_bundle": {
             "source": "data"
           },
