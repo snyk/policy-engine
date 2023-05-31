@@ -2,6 +2,14 @@
 
 
 
+## v0.24.1 - 2023-05-31
+### Added
+* normalize resource tags and expose them as _tags to policies
+### Changed
+* informational severity to info
+### Fixed
+* missing rule result fields when unmarshalled
+
 ## v0.24.0 - 2023-05-26
 ### Added
 * allow annotations on resource relations
