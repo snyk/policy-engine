@@ -104,6 +104,8 @@ const resourcesByTypeName = "__resources_by_type"
 const currentInputTypeName = "__current_input_type"
 const inputResourceTypesName = "__input_resource_types"
 const queryName = "__query"
+const snykRelationsCacheForward = "__snyk_relations_cache_forward"
+const snykRelationsCacheBackward = "__snyk_relations_cache_backward"
 
 var builtinDeclarations = map[string]*types.Function{
 	resourcesByTypeName: types.NewFunction(
@@ -149,6 +151,20 @@ var builtinDeclarations = map[string]*types.Function{
 			nil,
 			types.NewDynamicProperty(types.S, types.A),
 		)),
+	),
+	snykRelationsCacheForward: types.NewFunction(
+		types.Args(),
+		types.NewObject(
+			nil,
+			types.NewDynamicProperty(types.A, types.A),
+		),
+	),
+	snykRelationsCacheBackward: types.NewFunction(
+		types.Args(),
+		types.NewObject(
+			nil,
+			types.NewDynamicProperty(types.A, types.A),
+		),
 	),
 }
 
@@ -311,12 +327,53 @@ func (c *inputResourceTypes) impl(
 	return ast.SetTerm(rts...), nil
 }
 
+type relationsCache struct {
+	forward bool
+	cache   *RelationsCache
+}
+
+func (rc relationsCache) name() string {
+	if rc.forward {
+		return snykRelationsCacheForward
+	} else {
+		return snykRelationsCacheBackward
+	}
+}
+
+func (rc relationsCache) decl() *types.Function {
+	return builtinDeclarations[rc.name()]
+}
+
+func (rc relationsCache) impl(
+	bctx topdown.BuiltinContext,
+	operands []*ast.Term,
+) (*ast.Term, error) {
+	if rc.cache == nil {
+		return ast.ObjectTerm(), nil
+	} else {
+		if rc.forward {
+			return ast.NewTerm(rc.cache.Forward), nil
+		} else {
+			return ast.NewTerm(rc.cache.Backward), nil
+		}
+	}
+}
+
 type Builtins struct {
 	resourcesQueried map[string]bool // We want a separate ref to this to make it cleaner to get resource types back out
 	funcs            []builtin
 }
 
-func NewBuiltins(input *models.State, resourcesResolver ResourcesResolver) *Builtins {
+type RelationsCache struct {
+	Forward  ast.Value
+	Backward ast.Value
+}
+
+func NewBuiltins(
+	input *models.State,
+	resourcesResolver ResourcesResolver,
+	relations *RelationsCache,
+) *Builtins {
 	// Share the same calledWith map across resource-querying builtins, so that
 	// all queried resources are returned by inputResourceTypes
 	inputResolver := newInputResolver(input)
@@ -333,6 +390,8 @@ func NewBuiltins(input *models.State, resourcesResolver ResourcesResolver) *Buil
 			&currentInputType{input},
 			&inputResourceTypes{input},
 			resourcesByType,
+			relationsCache{forward: true, cache: relations},
+			relationsCache{forward: false, cache: relations},
 		},
 	}
 }

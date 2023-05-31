@@ -126,7 +126,12 @@ func TarGzProvider(reader io.Reader) Provider {
 // in production.
 func PureRegoBuiltinsProvider() Provider {
 	return func(ctx context.Context, consumer Consumer) error {
-		return regoParser(ctx, "", "snyk.rego", bytes.NewReader(embed.SnykRego), consumer)
+		for path, rego := range embed.SnykBuiltins {
+			if err := regoParser(ctx, "", path, bytes.NewReader(rego), consumer); err != nil {
+				return err
+			}
+		}
+		return nil
 	}
 }
 

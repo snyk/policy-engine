@@ -175,6 +175,7 @@ type evalPolicyOptions struct {
 	resourcesResolver policy.ResourcesResolver
 	policy            policy.Policy
 	input             *models.State
+	relationsCache    *policy.RelationsCache
 }
 
 func (s *policySet) evalPolicy(ctx context.Context, options *evalPolicyOptions) policyResults {
@@ -187,6 +188,7 @@ func (s *policySet) evalPolicy(ctx context.Context, options *evalPolicyOptions) 
 		Logger:            instrumentation.logger,
 		ResourcesResolver: options.resourcesResolver,
 		Input:             options.input,
+		RelationsCache:    options.relationsCache,
 		Timeout:           s.timeouts.Query,
 	})
 	totalResults := 0
@@ -278,6 +280,39 @@ func (s *policySet) eval(ctx context.Context, options *parallelEvalOptions) ([]m
 		)
 	}
 
+	// Precompute relations
+	relationsCache := policy.RelationsCache{}
+	err = s.query(
+		ctx,
+		&QueryOptions{
+			Query:             "data.snyk.internal.relations.forward",
+			Input:             options.input,
+			ResourcesResolver: options.resourcesResolver,
+			ResultProcessor: func(val ast.Value) error {
+				relationsCache.Forward = val
+				return nil
+			},
+		},
+	)
+	if err != nil {
+		return nil, err
+	}
+	err = s.query(
+		ctx,
+		&QueryOptions{
+			Query:             "data.snyk.internal.relations.backward",
+			Input:             options.input,
+			ResourcesResolver: options.resourcesResolver,
+			ResultProcessor: func(val ast.Value) error {
+				relationsCache.Backward = val
+				return nil
+			},
+		},
+	)
+	if err != nil {
+		return nil, err
+	}
+
 	// Spin off N workers to go through the list
 
 	numWorkers := options.workers
@@ -306,6 +341,7 @@ func (s *policySet) eval(ctx context.Context, options *parallelEvalOptions) ([]m
 						resourcesResolver: options.resourcesResolver,
 						policy:            p,
 						input:             options.input,
+						relationsCache:    &relationsCache,
 					})
 				}
 			}()
@@ -383,7 +419,7 @@ func (s *policySet) query(ctx context.Context, options *QueryOptions) error {
 	if input == nil {
 		input = &models.State{}
 	}
-	builtins := policy.NewBuiltins(input, options.ResourcesResolver)
+	builtins := policy.NewBuiltins(input, options.ResourcesResolver, nil)
 	return s.rego.Query(ctx, rego.Query{
 		Query:    options.Query,
 		Builtins: builtins.Implementations(),
