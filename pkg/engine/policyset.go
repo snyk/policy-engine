@@ -281,6 +281,7 @@ func (s *policySet) eval(ctx context.Context, options *parallelEvalOptions) ([]m
 	}
 
 	// Precompute relations
+	s.instrumentation.startPrecomputeRelations(ctx)
 	relationsCache := policy.RelationsCache{}
 	err = s.query(
 		ctx,
@@ -312,6 +313,7 @@ func (s *policySet) eval(ctx context.Context, options *parallelEvalOptions) ([]m
 	if err != nil {
 		return nil, err
 	}
+	s.instrumentation.finishPrecomputeRelations(ctx)
 
 	// Spin off N workers to go through the list
 
@@ -513,6 +515,14 @@ func (i *policySetInstrumentation) policyIDError(ctx context.Context, pkg string
 		WithField("package", pkg).
 		WithError(err).
 		Error(ctx, "failed to extract rule ID")
+}
+
+func (i *policySetInstrumentation) startPrecomputeRelations(ctx context.Context) {
+	i.startPhase(ctx, "precompute_relations")
+}
+
+func (i *policySetInstrumentation) finishPrecomputeRelations(ctx context.Context) {
+	i.finishPhase(ctx, "precompute_relations")
 }
 
 func (i *policySetInstrumentation) startEval(ctx context.Context, fields []loggerOption) {
