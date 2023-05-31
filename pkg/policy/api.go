@@ -316,7 +316,11 @@ type Builtins struct {
 	funcs            []builtin
 }
 
-func NewBuiltins(input *models.State, resourcesResolver ResourcesResolver) *Builtins {
+func NewBuiltins(
+	input *models.State,
+	resourcesResolver ResourcesResolver,
+	queryCache *QueryCache,
+) *Builtins {
 	// Share the same calledWith map across resource-querying builtins, so that
 	// all queried resources are returned by inputResourceTypes
 	inputResolver := newInputResolver(input)
@@ -329,7 +333,7 @@ func NewBuiltins(input *models.State, resourcesResolver ResourcesResolver) *Buil
 	return &Builtins{
 		resourcesQueried: inputResolver.calledWith,
 		funcs: []builtin{
-			&Query{ResourcesResolver: resolver},
+			&Query{QueryCache: queryCache, ResourcesResolver: resolver},
 			&currentInputType{input},
 			&inputResourceTypes{input},
 			resourcesByType,

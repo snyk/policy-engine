@@ -60,6 +60,7 @@ var SupportedInputTypes = input.Types{
 type EvalOptions struct {
 	RegoState         *rego.State
 	Input             *models.State
+	QueryCache        *QueryCache
 	Logger            logging.Logger
 	ResourcesResolver ResourcesResolver
 	Timeout           time.Duration

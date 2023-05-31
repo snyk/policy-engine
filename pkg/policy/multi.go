@@ -73,7 +73,7 @@ func (p *MultiResourcePolicy) Eval(
 	}
 	defaultRemediation := metadata.RemediationFor(options.Input.InputType)
 	metadata.copyToRuleResults(options.Input.InputType, &output)
-	builtins := NewBuiltins(options.Input, options.ResourcesResolver)
+	builtins := NewBuiltins(options.Input, options.ResourcesResolver, options.QueryCache)
 	tracer := inferattributes.NewTracer()
 
 	query := rego.Query{

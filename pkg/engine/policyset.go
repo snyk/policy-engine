@@ -175,6 +175,7 @@ type evalPolicyOptions struct {
 	resourcesResolver policy.ResourcesResolver
 	policy            policy.Policy
 	input             *models.State
+	queryCache        *policy.QueryCache
 }
 
 func (s *policySet) evalPolicy(ctx context.Context, options *evalPolicyOptions) policyResults {
@@ -187,6 +188,7 @@ func (s *policySet) evalPolicy(ctx context.Context, options *evalPolicyOptions) 
 		Logger:            instrumentation.logger,
 		ResourcesResolver: options.resourcesResolver,
 		Input:             options.input,
+		QueryCache:        options.queryCache,
 		Timeout:           s.timeouts.Query,
 	})
 	totalResults := 0
@@ -278,6 +280,9 @@ func (s *policySet) eval(ctx context.Context, options *parallelEvalOptions) ([]m
 		)
 	}
 
+	// Some things can be cached per input
+	queryCache := policy.NewQueryCache()
+
 	// Spin off N workers to go through the list
 
 	numWorkers := options.workers
@@ -306,6 +311,7 @@ func (s *policySet) eval(ctx context.Context, options *parallelEvalOptions) ([]m
 						resourcesResolver: options.resourcesResolver,
 						policy:            p,
 						input:             options.input,
+						queryCache:        queryCache,
 					})
 				}
 			}()
@@ -373,6 +379,8 @@ type QueryOptions struct {
 	// for the given ResourceRequest. Multiple ResourcesResolvers can be
 	// composed with And() and Or().
 	ResourcesResolver policy.ResourcesResolver
+	// QueryCache is an optional cache used for ResourcesResolver.
+	ResourcesQueryCache *policy.QueryCache
 	// ResultProcessor is a function that is run on every result returned by the
 	// query.
 	ResultProcessor func(ast.Value) error
@@ -383,7 +391,7 @@ func (s *policySet) query(ctx context.Context, options *QueryOptions) error {
 	if input == nil {
 		input = &models.State{}
 	}
-	builtins := policy.NewBuiltins(input, options.ResourcesResolver)
+	builtins := policy.NewBuiltins(input, options.ResourcesResolver, options.ResourcesQueryCache)
 	return s.rego.Query(ctx, rego.Query{
 		Query:    options.Query,
 		Builtins: builtins.Implementations(),

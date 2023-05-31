@@ -16,7 +16,9 @@ package policy
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
+	"sync"
 
 	"github.com/open-policy-agent/opa/ast"
 	"github.com/open-policy-agent/opa/topdown"
@@ -25,7 +27,40 @@ import (
 	"github.com/snyk/policy-engine/pkg/models"
 )
 
+type QueryCache struct {
+	lock  *sync.RWMutex
+	cache map[string]*ast.Term
+}
+
+func NewQueryCache() *QueryCache {
+	return &QueryCache{
+		lock:  &sync.RWMutex{},
+		cache: map[string]*ast.Term{},
+	}
+}
+
+func (c *QueryCache) key(q ResourcesQuery) string {
+	bytes, _ := json.Marshal(q) // ResourcesQuery is safe to serialize
+	return string(bytes)
+}
+
+func (c *QueryCache) Get(q ResourcesQuery) *ast.Term {
+	c.lock.RLock()
+	defer c.lock.RUnlock()
+	if t, ok := c.cache[c.key(q)]; ok {
+		return t
+	}
+	return nil
+}
+
+func (c *QueryCache) Put(q ResourcesQuery, t *ast.Term) {
+	c.lock.Lock()
+	c.cache[c.key(q)] = t
+	defer c.lock.Unlock()
+}
+
 type Query struct {
+	QueryCache        *QueryCache
 	ResourcesResolver ResourcesResolver
 }
 
@@ -63,6 +98,12 @@ func (q *Query) impl(bctx topdown.BuiltinContext, operands []*ast.Term) (*ast.Te
 		return nil, err
 	}
 
+	if q.QueryCache != nil {
+		if t := q.QueryCache.Get(query); t != nil {
+			return t, nil
+		}
+	}
+
 	resources, err := q.ResolveResources(bctx.Context, query)
 	if err != nil {
 		return nil, err
@@ -73,7 +114,12 @@ func (q *Query) impl(bctx topdown.BuiltinContext, operands []*ast.Term) (*ast.Te
 		return nil, err
 	}
 
-	return ast.ArrayTerm(regoResources...), nil
+	term := ast.ArrayTerm(regoResources...)
+	if q.QueryCache != nil {
+		q.QueryCache.Put(query, term)
+	}
+
+	return term, nil
 }
 
 func (q *Query) ResolveResources(ctx context.Context, query ResourcesQuery) ([]models.ResourceState, error) {
