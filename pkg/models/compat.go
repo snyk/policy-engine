@@ -70,6 +70,8 @@ func (r *RuleResults) UnmarshalJSON(data []byte) error {
 		Results       []RuleResult           `json:"results"`
 		Errors        []string               `json:"errors,omitempty"`
 		Package_      string                 `json:"package,omitempty"`
+		Kind          string                 `json:"kind,omitempty"`
+		RuleBundle    *RuleBundle            `json:"rule_bundle,omitempty"`
 	}{}
 	err := json.Unmarshal(data, &compat)
 	if err != nil {
@@ -90,5 +92,7 @@ func (r *RuleResults) UnmarshalJSON(data []byte) error {
 	r.Results = compat.Results
 	r.Errors = compat.Errors
 	r.Package_ = compat.Package_
+	r.Kind = compat.Kind
+	r.RuleBundle = compat.RuleBundle
 	return nil
 }

@@ -43,6 +43,7 @@ const resourcesRuleName = "resources"
 const resourceTypeRuleName = "resource_type"
 const inputTypeRuleName = "input_type"
 const multipleResourceType = "MULTIPLE"
+const defaultKind = "vulnerability"
 
 // SupportedInputTypes contains all of the input types that this package officially
 // supports.
@@ -348,10 +349,6 @@ func (p *BasePolicy) Metadata(
 		return *p.cachedMetadata, nil
 	}
 	m := Metadata{}
-	if p.metadataRule.name == "" {
-		p.cachedMetadata = &m
-		return m, nil
-	}
 	switch p.metadataRule.name {
 	case "metadata":
 		if err := state.Query(
@@ -362,9 +359,6 @@ func (p *BasePolicy) Metadata(
 				err := rego.Bind(val, &compat)
 				if err != nil {
 					return err
-				}
-				if compat.Kind == "" {
-					compat.Kind = "vulnerability"
 				}
 				m, err = compat.ToMetadata()
 				return err
@@ -398,8 +392,12 @@ func (p *BasePolicy) Metadata(
 			return m, err
 		}
 
+	case "": // noop when no metadata rule is defined
 	default:
 		return m, fmt.Errorf("Unrecognized metadata rule: %s", p.metadataRule.name)
+	}
+	if m.Kind == "" {
+		m.Kind = "vulnerability"
 	}
 	p.cachedMetadata = &m
 	return m, nil
