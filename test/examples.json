@@ -1317,11 +1317,7 @@
           },
           "resource_types": [
             "aws_s3_bucket",
-            "aws_s3_bucket_ownership_controls",
-            "aws_s3_bucket_server_side_encryption_configuration",
-            "kubernetes_ingress",
-            "kubernetes_pod",
-            "kubernetes_service_v1"
+            "aws_s3_bucket_server_side_encryption_configuration"
           ],
           "results": [
             {
@@ -1345,16 +1341,6 @@
                   "attributes": [
                     {
                       "path": [
-                        "bucket"
-                      ],
-                      "location": {
-                        "filepath": "../examples/main.tf",
-                        "line": 58,
-                        "column": 3
-                      }
-                    },
-                    {
-                      "path": [
                         "server_side_encryption_configuration"
                       ],
                       "location": {
@@ -1374,18 +1360,6 @@
                       "filepath": "../examples/main.tf",
                       "line": 61,
                       "column": 1
-                    }
-                  ],
-                  "attributes": [
-                    {
-                      "path": [
-                        "bucket"
-                      ],
-                      "location": {
-                        "filepath": "../examples/main.tf",
-                        "line": 62,
-                        "column": 3
-                      }
                     }
                   ]
                 }
@@ -1411,16 +1385,6 @@
                     }
                   ],
                   "attributes": [
-                    {
-                      "path": [
-                        "bucket"
-                      ],
-                      "location": {
-                        "filepath": "../examples/main.tf",
-                        "line": 6,
-                        "column": 3
-                      }
-                    },
                     {
                       "path": [
                         "server_side_encryption_configuration"
@@ -1456,16 +1420,6 @@
                   "attributes": [
                     {
                       "path": [
-                        "bucket"
-                      ],
-                      "location": {
-                        "filepath": "../examples/main.tf",
-                        "line": 10,
-                        "column": 3
-                      }
-                    },
-                    {
-                      "path": [
                         "server_side_encryption_configuration"
                       ],
                       "location": {
@@ -1485,18 +1439,6 @@
                       "filepath": "../examples/main.tf",
                       "line": 13,
                       "column": 1
-                    }
-                  ],
-                  "attributes": [
-                    {
-                      "path": [
-                        "bucket"
-                      ],
-                      "location": {
-                        "filepath": "../examples/main.tf",
-                        "line": 14,
-                        "column": 3
-                      }
                     }
                   ]
                 }
@@ -1521,16 +1463,6 @@
                     }
                   ],
                   "attributes": [
-                    {
-                      "path": [
-                        "bucket"
-                      ],
-                      "location": {
-                        "filepath": "../examples/main.tf",
-                        "line": 38,
-                        "column": 3
-                      }
-                    },
                     {
                       "path": [
                         "server_side_encryption_configuration",
@@ -1559,12 +1491,7 @@
             "source": "data"
           },
           "resource_types": [
-            "aws_s3_bucket",
-            "aws_s3_bucket_ownership_controls",
-            "aws_s3_bucket_server_side_encryption_configuration",
-            "kubernetes_ingress",
-            "kubernetes_pod",
-            "kubernetes_service_v1"
+            "aws_s3_bucket"
           ],
           "results": [
             {
@@ -1588,16 +1515,6 @@
                   "attributes": [
                     {
                       "path": [
-                        "bucket"
-                      ],
-                      "location": {
-                        "filepath": "../examples/main.tf",
-                        "line": 58,
-                        "column": 3
-                      }
-                    },
-                    {
-                      "path": [
                         "server_side_encryption_configuration"
                       ],
                       "location": {
@@ -1617,18 +1534,6 @@
                       "filepath": "../examples/main.tf",
                       "line": 61,
                       "column": 1
-                    }
-                  ],
-                  "attributes": [
-                    {
-                      "path": [
-                        "bucket"
-                      ],
-                      "location": {
-                        "filepath": "../examples/main.tf",
-                        "line": 62,
-                        "column": 3
-                      }
                     }
                   ]
                 }
@@ -1654,16 +1559,6 @@
                     }
                   ],
                   "attributes": [
-                    {
-                      "path": [
-                        "bucket"
-                      ],
-                      "location": {
-                        "filepath": "../examples/main.tf",
-                        "line": 6,
-                        "column": 3
-                      }
-                    },
                     {
                       "path": [
                         "server_side_encryption_configuration"
@@ -1699,16 +1594,6 @@
                   "attributes": [
                     {
                       "path": [
-                        "bucket"
-                      ],
-                      "location": {
-                        "filepath": "../examples/main.tf",
-                        "line": 10,
-                        "column": 3
-                      }
-                    },
-                    {
-                      "path": [
                         "server_side_encryption_configuration"
                       ],
                       "location": {
@@ -1728,18 +1613,6 @@
                       "filepath": "../examples/main.tf",
                       "line": 13,
                       "column": 1
-                    }
-                  ],
-                  "attributes": [
-                    {
-                      "path": [
-                        "bucket"
-                      ],
-                      "location": {
-                        "filepath": "../examples/main.tf",
-                        "line": 14,
-                        "column": 3
-                      }
                     }
                   ]
                 }
@@ -1764,16 +1637,6 @@
                     }
                   ],
                   "attributes": [
-                    {
-                      "path": [
-                        "bucket"
-                      ],
-                      "location": {
-                        "filepath": "../examples/main.tf",
-                        "line": 38,
-                        "column": 3
-                      }
-                    },
                     {
                       "path": [
                         "server_side_encryption_configuration",
@@ -1919,12 +1782,7 @@
             "source": "data"
           },
           "resource_types": [
-            "aws_s3_bucket",
-            "aws_s3_bucket_ownership_controls",
-            "aws_s3_bucket_server_side_encryption_configuration",
-            "kubernetes_ingress",
-            "kubernetes_pod",
-            "kubernetes_service_v1"
+            "aws_s3_bucket"
           ],
           "results": [
             {
@@ -1943,18 +1801,6 @@
                       "filepath": "../examples/main.tf",
                       "line": 57,
                       "column": 1
-                    }
-                  ],
-                  "attributes": [
-                    {
-                      "path": [
-                        "bucket"
-                      ],
-                      "location": {
-                        "filepath": "../examples/main.tf",
-                        "line": 58,
-                        "column": 3
-                      }
                     }
                   ]
                 },
@@ -2004,18 +1850,6 @@
                       "line": 9,
                       "column": 1
                     }
-                  ],
-                  "attributes": [
-                    {
-                      "path": [
-                        "bucket"
-                      ],
-                      "location": {
-                        "filepath": "../examples/main.tf",
-                        "line": 10,
-                        "column": 3
-                      }
-                    }
                   ]
                 },
                 {
@@ -2055,12 +1889,7 @@
             "source": "data"
           },
           "resource_types": [
-            "aws_s3_bucket",
-            "aws_s3_bucket_ownership_controls",
-            "aws_s3_bucket_server_side_encryption_configuration",
-            "kubernetes_ingress",
-            "kubernetes_pod",
-            "kubernetes_service_v1"
+            "aws_s3_bucket"
           ],
           "results": [
             {
@@ -2079,18 +1908,6 @@
                       "filepath": "../examples/main.tf",
                       "line": 57,
                       "column": 1
-                    }
-                  ],
-                  "attributes": [
-                    {
-                      "path": [
-                        "bucket"
-                      ],
-                      "location": {
-                        "filepath": "../examples/main.tf",
-                        "line": 58,
-                        "column": 3
-                      }
                     }
                   ]
                 }
@@ -2113,18 +1930,6 @@
                       "line": 5,
                       "column": 1
                     }
-                  ],
-                  "attributes": [
-                    {
-                      "path": [
-                        "bucket"
-                      ],
-                      "location": {
-                        "filepath": "../examples/main.tf",
-                        "line": 6,
-                        "column": 3
-                      }
-                    }
                   ]
                 }
               ]
@@ -2146,18 +1951,6 @@
                       "line": 9,
                       "column": 1
                     }
-                  ],
-                  "attributes": [
-                    {
-                      "path": [
-                        "bucket"
-                      ],
-                      "location": {
-                        "filepath": "../examples/main.tf",
-                        "line": 10,
-                        "column": 3
-                      }
-                    }
                   ]
                 },
                 {
@@ -2172,16 +1965,6 @@
                     }
                   ],
                   "attributes": [
-                    {
-                      "path": [
-                        "bucket"
-                      ],
-                      "location": {
-                        "filepath": "../examples/main.tf",
-                        "line": 25,
-                        "column": 3
-                      }
-                    },
                     {
                       "path": [
                         "rule",
@@ -2215,18 +1998,6 @@
                       "line": 37,
                       "column": 1
                     }
-                  ],
-                  "attributes": [
-                    {
-                      "path": [
-                        "bucket"
-                      ],
-                      "location": {
-                        "filepath": "../examples/main.tf",
-                        "line": 38,
-                        "column": 3
-                      }
-                    }
                   ]
                 },
                 {
@@ -2241,16 +2012,6 @@
                     }
                   ],
                   "attributes": [
-                    {
-                      "path": [
-                        "bucket"
-                      ],
-                      "location": {
-                        "filepath": "../examples/main.tf",
-                        "line": 50,
-                        "column": 3
-                      }
-                    },
                     {
                       "path": [
                         "rule",
@@ -2279,12 +2040,7 @@
           "title": "Kubernetes pod is connected to ingress",
           "category": "public_exposure",
           "resource_types": [
-            "aws_s3_bucket",
-            "aws_s3_bucket_ownership_controls",
-            "aws_s3_bucket_server_side_encryption_configuration",
-            "kubernetes_ingress",
-            "kubernetes_pod",
-            "kubernetes_service_v1"
+            "kubernetes_pod"
           ],
           "results": [
             {
@@ -2303,21 +2059,6 @@
                       "filepath": "../examples/main.tf",
                       "line": 78,
                       "column": 1
-                    }
-                  ],
-                  "attributes": [
-                    {
-                      "path": [
-                        "metadata",
-                        0,
-                        "labels",
-                        "app"
-                      ],
-                      "location": {
-                        "filepath": "../examples/main.tf",
-                        "line": 81,
-                        "column": 5
-                      }
                     }
                   ]
                 }
