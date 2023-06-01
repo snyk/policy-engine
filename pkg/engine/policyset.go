@@ -285,7 +285,7 @@ func (s *policySet) eval(ctx context.Context, options *parallelEvalOptions) ([]m
 	if err != nil {
 		return nil, newRuleBundleError(
 			s.ruleBundle(),
-			fmt.Errorf("error during relations computation: %w", err),
+			fmt.Errorf("error querying relations: %w", err),
 		)
 	}
 
@@ -351,6 +351,7 @@ func (s *policySet) precomputeRelationsCache(
 	resourcesResolver policy.ResourcesResolver,
 ) (*policy.RelationsCache, error) {
 	s.instrumentation.startPrecomputeRelations(ctx)
+	defer s.instrumentation.finishPrecomputeRelations(ctx)
 	relationsCache := policy.RelationsCache{}
 
 	found := false
@@ -395,7 +396,6 @@ func (s *policySet) precomputeRelationsCache(
 		return nil, fmt.Errorf("foward relations cache was not found")
 	}
 
-	s.instrumentation.finishPrecomputeRelations(ctx)
 	return &relationsCache, nil
 }
 
