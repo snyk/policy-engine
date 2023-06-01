@@ -19,7 +19,10 @@ import (
 )
 
 //go:embed snyk.rego
-var SnykRego []byte
+var snykRego []byte
+
+//go:embed snyk/internal/relations_cache.rego
+var snykRelationsCache []byte
 
 //go:embed snyk/terraform.rego
 var snykTerraformRego []byte
@@ -29,6 +32,11 @@ var snykRelationsRego []byte
 
 //go:embed snyk/internal/relations.rego
 var snykInternalRelationsRego []byte
+
+var SnykBuiltins map[string][]byte = map[string][]byte{
+	"snyk.rego":                          snykRego,
+	"snyk/internal/relations_cache.rego": snykRelationsCache,
+}
 
 var SnykLib map[string][]byte = map[string][]byte{
 	"snyk/terraform.rego":          snykTerraformRego,

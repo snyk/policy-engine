@@ -175,6 +175,7 @@ type evalPolicyOptions struct {
 	resourcesResolver policy.ResourcesResolver
 	policy            policy.Policy
 	input             *models.State
+	relationsCache    *policy.RelationsCache
 }
 
 func (s *policySet) evalPolicy(ctx context.Context, options *evalPolicyOptions) policyResults {
@@ -187,6 +188,7 @@ func (s *policySet) evalPolicy(ctx context.Context, options *evalPolicyOptions) 
 		Logger:            instrumentation.logger,
 		ResourcesResolver: options.resourcesResolver,
 		Input:             options.input,
+		RelationsCache:    options.relationsCache,
 		Timeout:           s.timeouts.Query,
 	})
 	totalResults := 0
@@ -278,6 +280,15 @@ func (s *policySet) eval(ctx context.Context, options *parallelEvalOptions) ([]m
 		)
 	}
 
+	// Precompute relations
+	relationsCache, err := s.precomputeRelationsCache(ctx, options.input, options.resourcesResolver)
+	if err != nil {
+		return nil, newRuleBundleError(
+			s.ruleBundle(),
+			fmt.Errorf("error querying relations: %w", err),
+		)
+	}
+
 	// Spin off N workers to go through the list
 
 	numWorkers := options.workers
@@ -306,6 +317,7 @@ func (s *policySet) eval(ctx context.Context, options *parallelEvalOptions) ([]m
 						resourcesResolver: options.resourcesResolver,
 						policy:            p,
 						input:             options.input,
+						relationsCache:    relationsCache,
 					})
 				}
 			}()
@@ -331,6 +343,60 @@ func (s *policySet) eval(ctx context.Context, options *parallelEvalOptions) ([]m
 	}
 
 	return allRuleResults, nil
+}
+
+func (s *policySet) precomputeRelationsCache(
+	ctx context.Context,
+	input *models.State,
+	resourcesResolver policy.ResourcesResolver,
+) (*policy.RelationsCache, error) {
+	s.instrumentation.startPrecomputeRelations(ctx)
+	defer s.instrumentation.finishPrecomputeRelations(ctx)
+	relationsCache := policy.RelationsCache{}
+
+	found := false
+	err := s.query(
+		ctx,
+		&QueryOptions{
+			Query:             "data.snyk.internal.relations.forward",
+			Input:             input,
+			ResourcesResolver: resourcesResolver,
+			ResultProcessor: func(val ast.Value) error {
+				relationsCache.Forward = val
+				found = true
+				return nil
+			},
+		},
+	)
+	if err != nil {
+		return nil, err
+	}
+	if !found {
+		return nil, fmt.Errorf("foward relations cache was not found")
+	}
+
+	found = false
+	err = s.query(
+		ctx,
+		&QueryOptions{
+			Query:             "data.snyk.internal.relations.backward",
+			Input:             input,
+			ResourcesResolver: resourcesResolver,
+			ResultProcessor: func(val ast.Value) error {
+				relationsCache.Backward = val
+				found = true
+				return nil
+			},
+		},
+	)
+	if err != nil {
+		return nil, err
+	}
+	if !found {
+		return nil, fmt.Errorf("foward relations cache was not found")
+	}
+
+	return &relationsCache, nil
 }
 
 func (s *policySet) metadata(ctx context.Context) ([]MetadataResult, error) {
@@ -383,7 +449,7 @@ func (s *policySet) query(ctx context.Context, options *QueryOptions) error {
 	if input == nil {
 		input = &models.State{}
 	}
-	builtins := policy.NewBuiltins(input, options.ResourcesResolver)
+	builtins := policy.NewBuiltins(input, options.ResourcesResolver, nil)
 	return s.rego.Query(ctx, rego.Query{
 		Query:    options.Query,
 		Builtins: builtins.Implementations(),
@@ -477,6 +543,14 @@ func (i *policySetInstrumentation) policyIDError(ctx context.Context, pkg string
 		WithField("package", pkg).
 		WithError(err).
 		Error(ctx, "failed to extract rule ID")
+}
+
+func (i *policySetInstrumentation) startPrecomputeRelations(ctx context.Context) {
+	i.startPhase(ctx, "precompute_relations")
+}
+
+func (i *policySetInstrumentation) finishPrecomputeRelations(ctx context.Context) {
+	i.finishPhase(ctx, "precompute_relations")
 }
 
 func (i *policySetInstrumentation) startEval(ctx context.Context, fields []loggerOption) {
