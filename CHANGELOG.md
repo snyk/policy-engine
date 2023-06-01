@@ -2,6 +2,10 @@
 
 
 
+## v0.24.2 - 2023-06-01
+### Added
+* cache resource relations in between policies in the same bundle
+
 ## v0.24.1 - 2023-05-31
 ### Added
 * normalize resource tags and expose them as _tags to policies
