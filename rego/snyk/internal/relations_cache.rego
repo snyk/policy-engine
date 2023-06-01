@@ -14,6 +14,10 @@
 
 package snyk.internal.relations.cache
 
+# This is a dummy pure Rego cache that just assigns the values.  When using
+# policy-engine run, we use <pkg/policy/regoapi/snyk_relations_cache.rego>
+# instead.
+
 forward := data.snyk.internal.relations.forward
 
 backward := data.snyk.internal.relations.backward

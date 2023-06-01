@@ -14,6 +14,12 @@
 
 package snyk.internal.relations.cache
 
+# This calls the builtins to have very fine-grained control about when we
+# evaluate relations (exactly once for each input).
+#
+# When using the pure Rego implementations (e.g. for repl or test),
+# <rego/snyk/internal/relations_cache.rego> is used instead.
+
 forward := __snyk_relations_cache_forward()
 
 backward := __snyk_relations_cache_backward()
