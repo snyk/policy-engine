@@ -144,7 +144,11 @@ func (l *armConfiguration) LoadedFiles() []string {
 }
 
 func (l *armConfiguration) Errors() []error {
-	return []error{}
+	errs := []error{}
+	for _, resource := range l.discovered {
+		errs = append(errs, resource.errors()...)
+	}
+	return errs
 }
 
 func (l *armConfiguration) Type() *Type {
@@ -161,7 +165,7 @@ type arm_Resource struct {
 	Type       string                 `json:"type"`
 	Name       string                 `json:"name"`
 	Properties map[string]interface{} `json:"properties"`
-	Tags       map[string]string      `json:"tags"`
+	Tags       arm_Tags               `json:"tags"`
 	Resources  []arm_Resource         `json:"resources"`
 	// OtherAttributes is a container for all other attributes that we're not
 	// capturing above.
@@ -196,6 +200,34 @@ func (r *arm_Resource) UnmarshalJSON(bs []byte) error {
 	// point r to our parsed resource
 	*r = arm_Resource(resource)
 
+	return nil
+}
+
+func (r *arm_Resource) errors() []error {
+	if r.Tags.err != nil {
+		return []error{r.Tags.err}
+	}
+	return nil
+}
+
+// arm_Tags is simply there to help with unmarshaling of tags.
+type arm_Tags struct {
+	err  error
+	tags map[string]string
+}
+
+func (t *arm_Tags) UnmarshalJSON(bs []byte) error {
+	// Tags should always be an object.  However, we currently don't support
+	// ARM functions, which can make the tags look like a string, e.g.:
+	//
+	//     "tags": "[parameters('tagValues')]"
+	//
+	// We need to make sure we treat this as a warning rather than an error.
+	t.tags = map[string]string{}
+	err := json.Unmarshal(bs, &t.tags)
+	if err != nil {
+		t.err = fmt.Errorf("%w: failed to parse tags: %v", FailedToParseInput, err)
+	}
 	return nil
 }
 
@@ -276,11 +308,15 @@ func (d arm_DiscoverResource) process(
 		Meta:         meta,
 	}
 
-	if len(r.Tags) > 0 {
-		state.Tags = r.Tags
+	if len(r.Tags.tags) > 0 {
+		state.Tags = r.Tags.tags
 	}
 
 	return state
+}
+
+func (d arm_DiscoverResource) errors() []error {
+	return d.resource.errors()
 }
 
 // Microsoft.Network/virtualNetworks/VNet1/subnets/Subnet1 is represented by:
@@ -319,9 +355,8 @@ func (n arm_Name) String() string {
 
 // Extends a parent name to a child name by adding types and names, e.g.
 //
-//     Microsoft.Network/virtualNetworks/subnets + VNet1/Subnet1 =
-//     -> Microsoft.Network/virtualNetworks/VNet1/subnets/Subnet1
-//
+//	Microsoft.Network/virtualNetworks/subnets + VNet1/Subnet1 =
+//	-> Microsoft.Network/virtualNetworks/VNet1/subnets/Subnet1
 func (parent arm_Name) Child(typeString string, nameString string) arm_Name {
 	child := arm_Name{}
 	child.service = parent.service
