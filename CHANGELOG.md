@@ -2,6 +2,10 @@
 
 
 
+## v0.24.3 - 2023-06-13
+### Fixed
+* make ARM tag parsing errors non-fatal
+
 ## v0.24.2 - 2023-06-01
 ### Added
 * cache resource relations in between policies in the same bundle
