@@ -1,0 +1,40 @@
+{
+  "format": "",
+  "format_version": "",
+  "input_type": "cfn",
+  "environment_provider": "iac",
+  "meta": {
+    "filepath": "golden_test/cfn/sam/main.yaml"
+  },
+  "resources": {
+    "AWS::Lambda::Permission": {
+      "FunctionPermission": {
+        "id": "FunctionPermission",
+        "resource_type": "AWS::Lambda::Permission",
+        "namespace": "golden_test/cfn/sam/main.yaml",
+        "meta": {},
+        "attributes": {
+          "Action": "lambda:InvokeFunction",
+          "FunctionName": "Function",
+          "Principal": "*"
+        }
+      }
+    },
+    "AWS::Serverless::Function": {
+      "Function": {
+        "id": "Function",
+        "resource_type": "AWS::Serverless::Function",
+        "namespace": "golden_test/cfn/sam/main.yaml",
+        "meta": {},
+        "attributes": {
+          "Handler": "index.handler",
+          "InlineCode": "exports.handler = (event, context) =\u003e {\n  console.log(JSON.stringify(event))\n}\n",
+          "Runtime": "nodejs12.x"
+        }
+      }
+    }
+  },
+  "scope": {
+    "filepath": "golden_test/cfn/sam/main.yaml"
+  }
+}
