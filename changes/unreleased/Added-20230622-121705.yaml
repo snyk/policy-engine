@@ -1,4 +1,0 @@
-kind: Added
-body: '`policy-engine run` will now search for IaC configurations recursively if passed
-  a directory'
-time: 2023-06-22T12:17:05.788148288+02:00

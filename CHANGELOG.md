@@ -2,6 +2,12 @@
 
 
 
+## v0.25.0 - 2023-06-23
+### Added
+* `policy-engine run` will now search for IaC configurations recursively if passed a directory
+### Changed
+* `input.Loader` detects and avoids duplicate file loads
+
 ## v0.24.3 - 2023-06-13
 ### Fixed
 * make ARM tag parsing errors non-fatal
