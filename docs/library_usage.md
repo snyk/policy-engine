@@ -48,10 +48,10 @@ function to obtain a `Detector` for some set of input types:
 
 ```go
 detector, err := input.DetectorByInputTypes(
-  input.Types{input.Auto},
+	input.Types{input.Auto},
 )
 if err != nil {
-  return err
+	return err
 }
 ```
 
@@ -70,13 +70,13 @@ like:
 ```go
 // Note that these types take an afero.Fs: https://github.com/spf13/afero
 f := input.File{
-  Path: "path/to/some_file.json",
-  Fs: afero.OsFs{},
+	Path: "path/to/some_file.json",
+	Fs: afero.OsFs{},
 }
 
 d := input.Directory{
-  Path: "path/to/some_directory",
-  Fs: afero.OsFs{},
+	Path: "path/to/some_directory",
+	Fs: afero.OsFs{},
 }
 ```
 
@@ -102,22 +102,22 @@ the directory.
 
 ##### Examples
 
-A simple example that uses the output of `loader.Load()` (described below) to not
-recurse into directories that have already been loaded:
+This is a simple example that loads directories recursively.
 
 ```go
 loader := input.NewLoader(detector)
 dir := input.Directory{
-  Path: "some_directory",
-  Fs: afero.OsFs{},
+	Path: "some_directory",
+	Fs: afero.OsFs{},
 }
 walkFunc := func(d Detectable, depth int) (bool, error) {
-  // loader.Load returns true if the detectable contained an IaC configuration and was
-  // successfully loaded.
-  return loader.Load(d, input.DetectOptions{})
+	// loader.Load returns true if the detectable contained an IaC configuration and was
+	// successfully loaded.	We want to keep recursing in either case.
+	_, err := loader.Load(d, input.DetectOptions{})
+	return false, err
 }
 if err := dir.Walk(walkFunc); err != nil {
-  // ...
+	// ...
 }
 ```
 
@@ -126,18 +126,15 @@ An example that builds on the previous one to stop recursing after a certain dep
 ```go
 loader := input.NewLoader(detector)
 dir := input.Directory{
-  Path: "some_directory",
-  Fs: afero.OsFs{},
+	Path: "some_directory",
+	Fs: afero.OsFs{},
 }
 walkFunc := func(d Detectable, depth int) (bool, error) {
-  loaded, err := loader.Load(d, input.DetectOptions{})
-  if err != nil {
-    return true, err
-  }
-  return loaded || depth > 3
+	_, err := loader.Load(d, input.DetectOptions{})
+	return depth > 3, err
 }
 if err := dir.Walk(walkFunc); err != nil {
-  // ...
+	// ...
 }
 ```
 
@@ -147,17 +144,19 @@ The `Loader` type is responsible for invoking a detector on some input, storing 
 parsed IaC configuration, and later producing a `[]models.State` with all of its
 configurations for use with the `engine` package.
 
+`Loader` keeps track internally of loaded files and will not load them twice.
+
 ```go
 loader := input.NewLoader(detector)
 loaded, err := loader.Load(*input.File{
-  Fs: afero.OsFs{},
-  Path: "cloudformation.yaml",
+	Fs: afero.OsFs{},
+	Path: "cloudformation.yaml",
 })
 if err != nil {
-  // ...
+	// ...
 }
 if !loaded {
-  // ...
+	// ...
 }
 states := loaded.ToStates()
 ```
@@ -171,67 +170,63 @@ filepath.
 package main
 
 import (
-  "errors"
-  "fmt"
+	"errors"
+	"fmt"
 
-  "github.com/snyk/policy-engine/pkg/input"
+	"github.com/snyk/policy-engine/pkg/input"
 )
 
 func example(paths []string) {
-  // Initialize the detector
-  detector, err := input.DetectorByInputTypes(
-    input.Types{input.Auto},
-  )
-  if err != nil {
-    // ...
-  }
-  loader := input.NewLoader(detector)
-  // Tracking errors by filepath
-  errorsByPath := map[string]error{}
-  // Defining a function to reduce code duplication
-  load := func(d input.Detectable) bool {
-    loaded, err := loader.Load(d, input.DetectOptions{})
-    if err != nil {
-      errorsByPath[d.GetPath()] = err
-    }
-    return loaded
-  }
-	fsys := afero.OsFs{}
-  for _, p := range paths {
-		detectable, err := input.NewDetectable(fsys, p)
-    if err != nil {
-      errorsByPath[p] = err
-    }
-    if loaded := load(detectable); loaded {
-      continue
-    }
-    if dir, ok := detectable.(input.Directory); ok {
-      // Our WalkFunc will only traverse three levels deep into the file tree.
-      walkFunc := func(d input.Detectable, depth int) (bool, error) {
-        loaded := load(d)
-        return loaded || depth >= 3, nil
-      }
-      if err := dir.Walk(walkFunc); err != nil {
-        return errorsByPath[p] = err
-      }
-    } else if _, ok := errorsByPath[p]; !ok {
-      // This condition hits if the path:
-      // * points to a file
-      // * was not loaded as an IaC configuration
-      // * does not already have another error associated with it
-      errorsByPath[p] = fmt.Errorf("No recognized input in given file")
-    }
+	// Initialize the detector
+	detector, err := input.DetectorByInputTypes(
+		input.Types{input.Auto},
+	)
+	if err != nil {
+		// ...
 	}
-  if loader.Count() < 1 {
-    // ...
-  }
-  // Add any non-fatal errors the loaders encountered
-  for p, errs := range loader.Errors() {
-    errorsByPath[p] = append(errorsByPath[p], errs...)
-  }
-  // Transform the loaded configurations into a slice of State structs
-  states := loader.ToStates()
-  // ...
+	loader := input.NewLoader(detector)
+	// Tracking errors by filepath
+	errorsByPath := map[string]error{}
+	// Defining a function to reduce code duplication
+	load := func(d input.Detectable) {
+		if _, err := loader.Load(d, input.DetectOptions{}); err != nil {
+			errorsByPath[d.GetPath()] = err
+		}
+	}
+	fsys := afero.OsFs{}
+	for _, p := range paths {
+		detectable, err := input.NewDetectable(fsys, p)
+		if err != nil {
+			errorsByPath[p] = err
+		}
+		load(detectable)
+		if dir, ok := detectable.(input.Directory); ok {
+			// Our WalkFunc will only traverse three levels deep into the file tree.
+			walkFunc := func(d input.Detectable, depth int) (bool, error) {
+				load(d)
+				return depth >= 3, nil
+			}
+			if err := dir.Walk(walkFunc); err != nil {
+				return errorsByPath[p] = err
+			}
+		} else if _, ok := errorsByPath[p]; !ok {
+			// This condition hits if the path:
+			// * points to a file
+			// * was not loaded as an IaC configuration
+			// * does not already have another error associated with it
+			errorsByPath[p] = fmt.Errorf("No recognized input in given file")
+		}
+	}
+	if loader.Count() < 1 {
+		// ...
+	}
+	// Add any non-fatal errors the loaders encountered
+	for p, errs := range loader.Errors() {
+		errorsByPath[p] = append(errorsByPath[p], errs...)
+	}
+	// Transform the loaded configurations into a slice of State structs
+	states := loader.ToStates()
+	// ...
 }
 ```
 
@@ -288,7 +283,7 @@ func getCloudResources(ctx context.Context, query policy.ResourcesQuery) (policy
 	resources := fetchResourcesFromCloud(query.ResourceType, query.Scope["region"])
 	return policy.ResourcesResult{
 		ScopeFound: true,
-		Resources:  resources,
+		Resources:	resources,
 	}, nil
 }
 
@@ -297,13 +292,13 @@ func getCloudResources(ctx context.Context, query policy.ResourcesQuery) (policy
 Then, they can inject that into the engine's resolver chain at evaluation time:
 
 ```go
-  engine, err := upe.NewEngine(ctx, &upe.EngineOptions{
-    ...
-  })
-  results := engine.Eval(ctx, &engine.EvalOptions{
-    ...
-    ResourcesResolver: policy.ResourcesResolver(getCloudResources),
-  })
+	engine, err := upe.NewEngine(ctx, &upe.EngineOptions{
+		...
+	})
+	results := engine.Eval(ctx, &engine.EvalOptions{
+		...
+		ResourcesResolver: policy.ResourcesResolver(getCloudResources),
+	})
 ```
 
 Policies that make use of the "region" input scope field, which will not be set
@@ -346,17 +341,17 @@ package main
 import "github.com/snyk/policy-engine/pkg/bundle"
 
 func main() {
-  // ...
-  f, err := os.Open(path)
-  if err != nil {
-    return err
-  }
-  defer f.Close()
-  reader, err := bundle.NewTarGzReader(path, f)
-  if err != nil {
-    return err
-  }
-  // ...
+	// ...
+	f, err := os.Open(path)
+	if err != nil {
+		return err
+	}
+	defer f.Close()
+	reader, err := bundle.NewTarGzReader(path, f)
+	if err != nil {
+		return err
+	}
+	// ...
 }
 ```
 
@@ -371,10 +366,10 @@ package main
 import "github.com/snyk/policy-engine/pkg/bundle"
 
 func main() {
-  // ...
-  // where path is a path to a local directory
-  reader := bundle.NewDirReader(path)
-  // ...
+	// ...
+	// where path is a path to a local directory
+	reader := bundle.NewDirReader(path)
+	// ...
 }
 ```
 
@@ -387,18 +382,18 @@ conforms to the bundle spec via a given `io.FS` implementation.
 package main
 
 import (
-  "embed"
+	"embed"
 
-  "github.com/snyk/policy-engine/pkg/bundle"
+	"github.com/snyk/policy-engine/pkg/bundle"
 )
 
 //go:embed bundle_dir
 var embeddedBundle embed.FS
 
 func main() {
-  // ...
-  reader := bundle.NewFSReader("bundle_dir", embeddedBundle)
-  // ...
+	// ...
+	reader := bundle.NewFSReader("bundle_dir", embeddedBundle)
+	// ...
 }
 ```
 
@@ -417,9 +412,9 @@ useful for policies that are embedded via the `go:embed` directive:
 package main
 
 import (
-  "embed"
+	"embed"
 
-  "github.com/snyk/policy-engine/pkg/data"
+	"github.com/snyk/policy-engine/pkg/data"
 )
 
 //go:embed policies
@@ -430,7 +425,7 @@ var policiesFS embed.FS
 var policiesProvider = data.FSProvider(policiesFS, "policies")
 
 func main() {
-  // ...
+	// ...
 }
 ```
 
@@ -445,11 +440,11 @@ package main
 import "github.com/snyk/policy-engine/pkg/data"
 
 func main() {
-  // ...
-  providers := make([]data.Provider, len(paths))
-  for idx, path := range paths {
-    providers[idx] = data.LocalProvider(path)
-  }
+	// ...
+	providers := make([]data.Provider, len(paths))
+	for idx, path := range paths {
+		providers[idx] = data.LocalProvider(path)
+	}
 }
 ```
 
@@ -469,52 +464,52 @@ package main
 import "github.com/snyk/policy-engine/pkg/engine"
 
 func main() {
-  ctx := context.Background()
-  // ...
-  eng := engine.NewEngine(ctx, &engine.EngineOptions{
-    // BundleReaders contains bundle.Reader objects. See above for descriptions
-    // of the reader implementations included in this library.
-    BundleReaders: readers,
-    // This is an optional instance of the logger.Logger interface. This interface is
-    // compatible with the one provided by the snyk/go-common library. The logger
-    // package also contains an implementation of this interface.
-    Logger:    logger,
-    // This is an optional instance of the metrics.Metrics interface. This interface is
-    // compatible with the one provided by the snyk/go-common library. The metrics
-    // package also contains an implementation of this interface.
-    Metrics:   m,
-  })
+	ctx := context.Background()
+	// ...
+	eng := engine.NewEngine(ctx, &engine.EngineOptions{
+		// BundleReaders contains bundle.Reader objects. See above for descriptions
+		// of the reader implementations included in this library.
+		BundleReaders: readers,
+		// This is an optional instance of the logger.Logger interface. This interface is
+		// compatible with the one provided by the snyk/go-common library. The logger
+		// package also contains an implementation of this interface.
+		Logger:		logger,
+		// This is an optional instance of the metrics.Metrics interface. This interface is
+		// compatible with the one provided by the snyk/go-common library. The metrics
+		// package also contains an implementation of this interface.
+		Metrics:	 m,
+	})
 
-  // Errors that occurred during the initialization process will be contained in
-  // eng.Errors
-  for _, err := range eng.Errors {
-    if err != nil {
-      // Checking for specific errors
-      switch {
-      case errors.Is(err, engine.ErrFailedToReadBundle):
-        // ...
-      case errors.Is(err, engine.FailedToLoadRules):
-        // ...
-      default:
-        // ...
-      }
-    }
-  }
+	// Errors that occurred during the initialization process will be contained in
+	// eng.Errors
+	for _, err := range eng.Errors {
+		if err != nil {
+			// Checking for specific errors
+			switch {
+			case errors.Is(err, engine.ErrFailedToReadBundle):
+				// ...
+			case errors.Is(err, engine.FailedToLoadRules):
+				// ...
+			default:
+				// ...
+			}
+		}
+	}
 
-  // This function returns a *models.Results
-  results := eng.Eval(ctx, &engine.EvalOptions{
-    // This option is used to determine which policies are executed. When this option is
-    // empty or unspecified, all policies will be run.
-    RuleIDs:   selectedPolicies,
-    // Inputs is a []models.State, like the output of the loader.ToStates()
-    // described above.
-    Inputs: states,
-    // ResourceResolvers is a list of functions that return a resource state for
-    // the given ResourceRequest. They will be invoked in order until a result is
-    // returned with ScopeFound set to true.
-    ResourcesResolvers []policy.ResourcesResolver,
-  })
-  
+	// This function returns a *models.Results
+	results := eng.Eval(ctx, &engine.EvalOptions{
+		// This option is used to determine which policies are executed. When this option is
+		// empty or unspecified, all policies will be run.
+		RuleIDs:	 selectedPolicies,
+		// Inputs is a []models.State, like the output of the loader.ToStates()
+		// described above.
+		Inputs: states,
+		// ResourceResolvers is a list of functions that return a resource state for
+		// the given ResourceRequest. They will be invoked in order until a result is
+		// returned with ScopeFound set to true.
+		ResourcesResolvers []policy.ResourcesResolver,
+	})
+
 }
 ```
 
@@ -568,19 +563,19 @@ Building on top of both the ["parsing IaC configurations" example](#example) and
 package main
 
 import (
-    "github.com/snyk/policy-engine/pkg/input",
-    "github.com/snyk/policy-engine/pkg/engine"
-    "github.com/snyk/policy-engine/pkg/postprocess"
+	"github.com/snyk/policy-engine/pkg/input",
+	"github.com/snyk/policy-engine/pkg/engine"
+	"github.com/snyk/policy-engine/pkg/postprocess"
 )
 
 func main() {
-    // Code that initializes a loader and produces results with engine from the
-    // previous examples
-    // ...
+	// Code that initializes a loader and produces results with engine from the
+	// previous examples
+	// ...
 
-    // AddSourceLocs modifies the results object in-place to add source
-    // code locations to resources and properties for supported input types.
-    postprocess.AddSourceLocs(results, loader)
+	// AddSourceLocs modifies the results object in-place to add source
+	// code locations to resources and properties for supported input types.
+	postprocess.AddSourceLocs(results, loader)
 }
 ```
 

@@ -60,6 +60,16 @@ func NewLoader(detector Detector) Loader {
 // and false otherwise.
 func (l *Loader) Load(detectable Detectable, detectOpts DetectOptions) (bool, error) {
 	path := detectable.GetPath()
+	if _, ok := l.loadedPaths[path]; ok {
+		// Do not load any files that are already loaded.  E.g. if you have
+		//
+		//     foo/main.tf
+		//     foo/module/bar.tf
+		//
+		// And `foo/` includes `foo/module/bar.tf`, we do not want to load the
+		// latter again separately.
+		return false, nil
+	}
 	conf, err := detectable.DetectType(l.detector, detectOpts)
 	if err != nil {
 		return false, err

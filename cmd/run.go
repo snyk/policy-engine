@@ -86,20 +86,27 @@ var runCmd = &cobra.Command{
 					return err
 				}
 			}
-			loaded, err := loader.Load(detectable, input.DetectOptions{
+			_, err := loader.Load(detectable, input.DetectOptions{
 				VarFiles: runFlags.VarFiles,
 			})
 			if err != nil {
 				return err
 			}
-			if loaded {
-				continue
-			}
 			if dir, ok := detectable.(*input.Directory); ok {
 				walkFunc := func(d input.Detectable, depth int) (bool, error) {
-					return loader.Load(d, input.DetectOptions{
+					_, err := loader.Load(d, input.DetectOptions{
 						VarFiles: runFlags.VarFiles,
 					})
+					// Just because we found a configuration here does not mean
+					// we want to stop recursing.  There could be a structure
+					// like:
+					//
+					//     example  <-- we find a valid tf configuration here
+					//                  but should continue
+					//     example/main.tf
+					//     example/deployment.yaml
+					//
+					return false, err
 				}
 				if err := dir.Walk(walkFunc); err != nil {
 					return err
