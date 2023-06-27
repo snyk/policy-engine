@@ -1,0 +1,77 @@
+{
+  "format": "",
+  "format_version": "",
+  "input_type": "arm",
+  "environment_provider": "iac",
+  "meta": {
+    "filepath": "golden_test/arm/expressions/template.json"
+  },
+  "resources": {
+    "Microsoft.Network/virtualNetworks": {
+      "Microsoft.Network/virtualNetworks/VNet1": {
+        "id": "Microsoft.Network/virtualNetworks/VNet1",
+        "resource_type": "Microsoft.Network/virtualNetworks",
+        "namespace": "golden_test/arm/expressions/template.json",
+        "tags": {
+          "Dept": "Finance",
+          "Environment": "Production"
+        },
+        "meta": {},
+        "attributes": {
+          "apiVersion": "2018-10-01",
+          "location": "switzerlandnorth",
+          "properties": {
+            "addressSpace": {
+              "addressPrefixes": [
+                "10.0.0.0/16"
+              ]
+            }
+          }
+        }
+      }
+    },
+    "Microsoft.Network/virtualNetworks/subnets": {
+      "Microsoft.Network/virtualNetworks/VNet1/subnets/Subnet1": {
+        "id": "Microsoft.Network/virtualNetworks/VNet1/subnets/Subnet1",
+        "resource_type": "Microsoft.Network/virtualNetworks/subnets",
+        "namespace": "golden_test/arm/expressions/template.json",
+        "meta": {
+          "arm": {
+            "parent_id": "Microsoft.Network/virtualNetworks/VNet1"
+          }
+        },
+        "attributes": {
+          "_parent_id": "Microsoft.Network/virtualNetworks/VNet1",
+          "apiVersion": "2018-10-01",
+          "dependsOn": [
+            "VNet1"
+          ],
+          "properties": {
+            "addressPrefix": "10.0.0.0/24"
+          }
+        }
+      },
+      "Microsoft.Network/virtualNetworks/VNet1/subnets/Subnet2": {
+        "id": "Microsoft.Network/virtualNetworks/VNet1/subnets/Subnet2",
+        "resource_type": "Microsoft.Network/virtualNetworks/subnets",
+        "namespace": "golden_test/arm/expressions/template.json",
+        "meta": {
+          "arm": {
+            "parent_id": "Microsoft.Network/virtualNetworks/VNet1"
+          }
+        },
+        "attributes": {
+          "_parent_id": "Microsoft.Network/virtualNetworks/VNet1",
+          "apiVersion": "2018-10-01",
+          "dependsOn": [
+            "VNet1"
+          ],
+          "properties": {
+            "addressPrefix": "10.0.1.0/24",
+            "brokenExpression": "[unknownFunction()]"
+          }
+        }
+      }
+    }
+  }
+}
