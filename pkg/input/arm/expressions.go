@@ -20,12 +20,12 @@ import (
 )
 
 type expression interface {
-	eval(evalCtx EvaluationContext) (interface{}, error)
+	eval(evalCtx *EvaluationContext) (interface{}, error)
 }
 
 type stringLiteralExpr string
 
-func (s stringLiteralExpr) eval(evalCtx EvaluationContext) (interface{}, error) {
+func (s stringLiteralExpr) eval(evalCtx *EvaluationContext) (interface{}, error) {
 	return string(s), nil
 }
 
@@ -34,8 +34,8 @@ type functionExpr struct {
 	args []expression
 }
 
-func (f functionExpr) eval(evalCtx EvaluationContext) (interface{}, error) {
-	impl, ok := evalCtx.funcs[f.name]
+func (f functionExpr) eval(evalCtx *EvaluationContext) (interface{}, error) {
+	impl, ok := evalCtx.Functions[f.name]
 	if !ok {
 		return nil, Error{underlying: fmt.Errorf("unsupported function: %s", f.name), kind: UnsupportedFunction}
 	}
@@ -48,7 +48,7 @@ func (f functionExpr) eval(evalCtx EvaluationContext) (interface{}, error) {
 			return nil, Error{underlying: err, kind: EvalError}
 		}
 	}
-	return impl(argVals...)
+	return impl(evalCtx, argVals...)
 }
 
 type propertyExpr struct {
@@ -56,7 +56,7 @@ type propertyExpr struct {
 	property string
 }
 
-func (p propertyExpr) eval(evalCtx EvaluationContext) (interface{}, error) {
+func (p propertyExpr) eval(evalCtx *EvaluationContext) (interface{}, error) {
 	obj, err := p.obj.eval(evalCtx)
 	if err != nil {
 		return nil, err

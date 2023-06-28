@@ -176,7 +176,11 @@ func (l *armConfiguration) process() {
 		resourceSet[id] = struct{}{}
 	}
 	exprEvaluator := expressionEvaluator{
-		evalCtx: arm.NewEvaluationContext(resourceSet, l.variables),
+		evalCtx: &arm.EvaluationContext{
+			DiscoveredResourceSet: resourceSet,
+			Variables:             l.variables,
+			Functions:             arm.BuiltinFunctions(),
+		},
 	}
 
 	// Process resources
