@@ -14,20 +14,22 @@
 
 package arm
 
-import (
-	"fmt"
-)
+import "fmt"
 
-// Some helpers useful to ARM function implementations
-
-func assertAllType[T any](args ...interface{}) ([]T, error) {
-	typedArgs := make([]T, len(args))
-	for i, arg := range args {
-		strarg, ok := arg.(T)
-		if !ok {
-			return nil, fmt.Errorf("unexpected type for %v", arg)
-		}
-		typedArgs[i] = strarg
+// Return a stub
+// https://learn.microsoft.com/en-us/azure/azure-resource-manager/templates/template-functions-scope#resourcegroup
+func resourceGroupImpl(e *EvaluationContext, args ...interface{}) (interface{}, error) {
+	if len(args) != 0 {
+		return nil, fmt.Errorf("expected zero args to resourceGroup(), got %d", len(args))
 	}
-	return typedArgs, nil
+
+	return map[string]interface{}{
+		"id":         "stub-id",
+		"name":       "stub-name",
+		"type":       "stub-type",
+		"location":   "stub-location",
+		"managedBy":  "stub-managed-by",
+		"tags":       map[string]interface{}{},
+		"properties": map[string]interface{}{},
+	}, nil
 }
