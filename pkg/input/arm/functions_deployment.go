@@ -14,20 +14,20 @@
 
 package arm
 
-import (
-	"fmt"
-)
+import "fmt"
 
-// Some helpers useful to ARM function implementations
-
-func assertAllType[T any](args ...interface{}) ([]T, error) {
-	typedArgs := make([]T, len(args))
-	for i, arg := range args {
-		strarg, ok := arg.(T)
-		if !ok {
-			return nil, fmt.Errorf("unexpected type for %v", arg)
-		}
-		typedArgs[i] = strarg
+func variablesImpl(e *EvaluationContext, args ...interface{}) (interface{}, error) {
+	strargs, err := assertAllType[string](args...)
+	if err != nil {
+		return nil, err
 	}
-	return typedArgs, nil
+	if len(strargs) != 1 {
+		return nil, fmt.Errorf("variables: expected 1 arg, got %d", len(strargs))
+	}
+	key := strargs[0]
+	val, ok := e.Variables[key]
+	if !ok {
+		return nil, fmt.Errorf("no variable found for key %s", key)
+	}
+	return val, nil
 }

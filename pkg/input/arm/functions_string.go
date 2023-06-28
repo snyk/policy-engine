@@ -14,20 +14,18 @@
 
 package arm
 
-import (
-	"fmt"
-)
+import "fmt"
 
-// Some helpers useful to ARM function implementations
-
-func assertAllType[T any](args ...interface{}) ([]T, error) {
-	typedArgs := make([]T, len(args))
-	for i, arg := range args {
-		strarg, ok := arg.(T)
+// Note that concat can operate on arrays too, we just haven't implemented
+// support for this yet.
+func concatImpl(e *EvaluationContext, args ...interface{}) (interface{}, error) {
+	res := ""
+	for _, arg := range args {
+		argStr, ok := arg.(string)
 		if !ok {
-			return nil, fmt.Errorf("unexpected type for %v", arg)
+			return nil, fmt.Errorf("expected argument %#v to be a string", arg)
 		}
-		typedArgs[i] = strarg
+		res += argStr
 	}
-	return typedArgs, nil
+	return res, nil
 }
