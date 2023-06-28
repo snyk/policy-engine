@@ -27,7 +27,7 @@ var resourceTypePattern = regexp.MustCompile(`^Microsoft\.\w+[/\w]*$`)
 
 // Note that concat can operate on arrays too, we just haven't implemented
 // support for this yet.
-func concatImpl(args ...interface{}) (interface{}, error) {
+func concatImpl(e *EvaluationContext, args ...interface{}) (interface{}, error) {
 	res := ""
 	for _, arg := range args {
 		argStr, ok := arg.(string)
@@ -41,7 +41,7 @@ func concatImpl(args ...interface{}) (interface{}, error) {
 
 // Return a stub
 // https://learn.microsoft.com/en-us/azure/azure-resource-manager/templates/template-functions-scope#resourcegroup
-func resourceGroupImpl(args ...interface{}) (interface{}, error) {
+func resourceGroupImpl(e *EvaluationContext, args ...interface{}) (interface{}, error) {
 	if len(args) != 0 {
 		return nil, fmt.Errorf("expected zero args to resourceGroup(), got %d", len(args))
 	}
@@ -58,7 +58,7 @@ func resourceGroupImpl(args ...interface{}) (interface{}, error) {
 }
 
 // https://learn.microsoft.com/en-us/azure/azure-resource-manager/templates/template-functions-resource#resourceid
-func (e *EvaluationContext) resourceIDImpl(args ...interface{}) (interface{}, error) {
+func resourceIDImpl(e *EvaluationContext, args ...interface{}) (interface{}, error) {
 	strargs, err := assertAllStrings(args...)
 	if err != nil {
 		return nil, err
@@ -74,7 +74,7 @@ func (e *EvaluationContext) resourceIDImpl(args ...interface{}) (interface{}, er
 
 	// Normalize resource IDs to declared/discovered ones in the input, so that
 	// these can be associated with each other by policy queries.
-	if _, ok := e.discoveredResourceSet[resourceID]; ok {
+	if _, ok := e.DiscoveredResourceSet[resourceID]; ok {
 		return resourceID, nil
 	}
 
@@ -171,7 +171,7 @@ func assertAllStrings(args ...interface{}) ([]string, error) {
 	return strargs, nil
 }
 
-func (e *EvaluationContext) variablesImpl(args ...interface{}) (interface{}, error) {
+func variablesImpl(e *EvaluationContext, args ...interface{}) (interface{}, error) {
 	strargs, err := assertAllStrings(args...)
 	if err != nil {
 		return nil, err
@@ -180,7 +180,7 @@ func (e *EvaluationContext) variablesImpl(args ...interface{}) (interface{}, err
 		return nil, fmt.Errorf("variables: expected 1 arg, got %d", len(strargs))
 	}
 	key := strargs[0]
-	val, ok := e.variables[key]
+	val, ok := e.Variables[key]
 	if !ok {
 		return nil, fmt.Errorf("no variable found for key %s", key)
 	}

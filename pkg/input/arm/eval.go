@@ -22,23 +22,20 @@ import (
 // references to implementations of functions, and the other fields exist to
 // pass data to certain function impls other than what is already in their args.
 type EvaluationContext struct {
-	discoveredResourceSet map[string]struct{}
-	variables             map[string]interface{}
-	funcs                 map[string]armFnImpl
+	DiscoveredResourceSet map[string]struct{}
+	Variables             map[string]interface{}
+	BuiltinFunctions      map[string]Function
 }
 
-func NewEvaluationContext(discoveredResourceSet map[string]struct{}, variables map[string]interface{}) *EvaluationContext {
-	evalCtx := &EvaluationContext{
-		discoveredResourceSet: discoveredResourceSet,
-		variables:             variables,
-		funcs: map[string]armFnImpl{
-			"concat":        concatImpl,
-			"resourceGroup": resourceGroupImpl,
-		},
+type Function func(e *EvaluationContext, args ...interface{}) (interface{}, error)
+
+func BuiltinFunctions() map[string]Function {
+	return map[string]Function{
+		"concat":        concatImpl,
+		"resourceGroup": resourceGroupImpl,
+		"resourceId":    resourceIDImpl,
+		"variables":     variablesImpl,
 	}
-	evalCtx.funcs["resourceId"] = evalCtx.resourceIDImpl
-	evalCtx.funcs["variables"] = evalCtx.variablesImpl
-	return evalCtx
 }
 
 // Detects whether an ARM string is an expression (enclosed by []), and
@@ -74,7 +71,7 @@ func extractAndEscapeTemplateString(input string) string {
 	)
 }
 
-func (e EvaluationContext) eval(input string) (interface{}, error) {
+func (e *EvaluationContext) eval(input string) (interface{}, error) {
 	tokens, err := tokenize(input)
 	if err != nil {
 		return nil, err
@@ -86,8 +83,6 @@ func (e EvaluationContext) eval(input string) (interface{}, error) {
 	return e.evalExpr(expr)
 }
 
-func (e EvaluationContext) evalExpr(expr expression) (interface{}, error) {
+func (e *EvaluationContext) evalExpr(expr expression) (interface{}, error) {
 	return expr.eval(e)
 }
-
-type armFnImpl func(args ...interface{}) (interface{}, error)
