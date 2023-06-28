@@ -179,7 +179,7 @@ func (l *armConfiguration) process() {
 		evalCtx: &arm.EvaluationContext{
 			DiscoveredResourceSet: resourceSet,
 			Variables:             l.variables,
-			BuiltinFunctions:      arm.BuiltinFunctions(),
+			Functions:             arm.BuiltinFunctions(),
 		},
 	}
 

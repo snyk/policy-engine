@@ -24,7 +24,7 @@ import (
 type EvaluationContext struct {
 	DiscoveredResourceSet map[string]struct{}
 	Variables             map[string]interface{}
-	BuiltinFunctions      map[string]Function
+	Functions             map[string]Function
 }
 
 type Function func(e *EvaluationContext, args ...interface{}) (interface{}, error)

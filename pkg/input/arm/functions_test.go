@@ -24,7 +24,7 @@ var evalCtx = &EvaluationContext{
 	DiscoveredResourceSet: map[string]struct{}{
 		"Microsoft.ServiceBus/namespaces/a-discovered-namespace": {},
 	},
-	BuiltinFunctions: BuiltinFunctions(),
+	Functions: BuiltinFunctions(),
 }
 
 func TestResourceIDImpl(t *testing.T) {

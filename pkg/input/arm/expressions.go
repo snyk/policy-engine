@@ -35,7 +35,7 @@ type functionExpr struct {
 }
 
 func (f functionExpr) eval(evalCtx *EvaluationContext) (interface{}, error) {
-	impl, ok := evalCtx.BuiltinFunctions[f.name]
+	impl, ok := evalCtx.Functions[f.name]
 	if !ok {
 		return nil, Error{underlying: fmt.Errorf("unsupported function: %s", f.name), kind: UnsupportedFunction}
 	}
