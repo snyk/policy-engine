@@ -68,3 +68,28 @@ func (p propertyExpr) eval(evalCtx EvaluationContext) (interface{}, error) {
 
 	return objMap[p.property], nil
 }
+
+func makePropertyExpr(e expression, properties []string) expression {
+	if len(properties) == 0 {
+		return e
+	}
+	return makePropertyExpr(
+		propertyExpr{obj: e, property: properties[0]},
+		properties[1:],
+	)
+}
+
+type arrayExpr []expression
+
+func (e arrayExpr) eval(evalCtx EvaluationContext) (interface{}, error) {
+	vals := []interface{}{}
+	for _, expr := range e {
+		val, err := expr.eval(evalCtx)
+		if err != nil {
+			return nil, err
+		}
+		vals = append(vals, val)
+
+	}
+	return vals, nil
+}

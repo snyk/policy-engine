@@ -45,6 +45,17 @@ func (p *parser) parse() (expression, error) {
 		return stringLiteralExpr(strToken), nil
 	}
 
+	// Parse arrays
+	if _, ok := tkn.(openBracket); ok {
+		items, err := parseList(p, comma{}, closeBracket{}, func() (expression, error) {
+			return p.parse()
+		})
+		if err != nil {
+			return nil, err
+		}
+		return arrayExpr(items), nil
+	}
+
 	// If we reach here, we are building a function expression, because there are
 	// no "direct" identifier dereferences in ARM template expressions. The
 	// identifier is the function name.
@@ -66,65 +77,32 @@ func (p *parser) parse() (expression, error) {
 	}
 
 	var args []expression
-	for {
-		// In the first iteration, we've just peeked successfully. In all subsequent
-		// iterations, we'd have broken out of the loop if we had exhausted all
-		// tokens.
-		tkn, _ := p.peek()
-		if _, ok := tkn.(closeParen); ok {
-			p.pop() // pop the close paren
-			expr := functionExpr{name: string(idToken), args: args}
-			tkn, ok := p.peek()
-			if !ok {
-				return expr, nil
-			}
-			if _, ok := tkn.(dot); ok {
-				return p.buildPropertyAccessExpression(expr)
-			}
-			return expr, nil
-		}
-
-		// There is a comma between args, so not before the first arg
-		if len(args) > 0 {
-			// We can't reach here if we have exhausted all tokens above
-			tkn, _ := p.peek()
-			if _, ok := tkn.(comma); !ok {
-				return nil, newParserError(fmt.Errorf("expected token %#v to be a comma", tkn))
-			}
-			p.pop() // pop the comma
-		}
-
-		nextArg, err := p.parse()
-		if err != nil {
-			return nil, err
-		}
-		args = append(args, nextArg)
+	args, err := parseList(p, comma{}, closeParen{}, func() (expression, error) {
+		return p.parse()
+	})
+	if err != nil {
+		return nil, err
 	}
+	expr := functionExpr{name: string(idToken), args: args}
+	return p.buildPropertyAccessExpression(expr)
 }
 
 func (p *parser) buildPropertyAccessExpression(expr expression) (expression, error) {
-	// we only enter this function from parse() if we peeked at a dot, so we know
-	// it gets past here at least once, and so always builds a real property
-	// access expression.
-	tkn, ok := p.peek()
-	if !ok {
-		return expr, nil
+	identifiers, err := parsePairs(p, dot{}, func() (string, error) {
+		if tkn, ok := p.pop(); ok {
+			if id, ok := tkn.(identifier); ok {
+				return string(id), nil
+			} else {
+				return "", newParserError(fmt.Errorf("expected token %#v to be an identifier", tkn))
+			}
+		} else {
+			return "", newParserError(errors.New("expression cannot terminate with a dot"))
+		}
+	})
+	if err != nil {
+		return nil, err
 	}
-	if _, ok := tkn.(dot); !ok {
-		return expr, nil
-	}
-
-	p.pop() // pop the dot
-	tkn, ok = p.pop()
-	if !ok {
-		return nil, newParserError(errors.New("expression cannot terminate with a dot"))
-	}
-	nextPropChainElement, ok := tkn.(identifier)
-	if !ok {
-		return nil, newParserError(fmt.Errorf("expected token %#v to be an identifier", tkn))
-	}
-	expr = propertyExpr{obj: expr, property: string(nextPropChainElement)}
-	return p.buildPropertyAccessExpression(expr)
+	return makePropertyExpr(expr, identifiers), nil
 }
 
 func (p *parser) peek() (token, bool) {
@@ -145,4 +123,59 @@ func (p *parser) pop() (token, bool) {
 
 func newParserError(underlying error) error {
 	return Error{underlying: underlying, kind: ParserError}
+}
+
+// parsePairs parses ([leading][item])*
+func parsePairs[T any](
+	p *parser,
+	leading token,
+	parseItem func() (T, error),
+) ([]T, error) {
+	items := []T{}
+	for {
+		tkn, ok := p.peek()
+		if !ok || tkn != leading {
+			return items, nil
+		}
+		p.pop()
+		item, err := parseItem()
+		if err != nil {
+			return nil, err
+		}
+		items = append(items, item)
+	}
+}
+
+// parseList parses [item]?([seperator][item])*[trailing]
+// This is a possibly empty list, separated by separator (usually ',') and
+// ended by trailing (think ')' or ']').
+func parseList[T any](
+	p *parser,
+	separator token,
+	trailing token,
+	parseItem func() (T, error),
+) ([]T, error) {
+	tkn, ok := p.peek()
+	if !ok {
+		return nil, newParserError(errors.New("expected list to be closed"))
+	}
+	if tkn == trailing {
+		p.pop()
+		return nil, nil // Empty list
+	}
+	item0, err := parseItem()
+	if err != nil {
+		return nil, err
+	}
+	items := []T{item0}
+	moreItems, err := parsePairs(p, comma{}, parseItem)
+	if err != nil {
+		return nil, err
+	}
+	items = append(items, moreItems...)
+	tkn, ok = p.pop()
+	if !ok || tkn != trailing {
+		return nil, newParserError(fmt.Errorf("expected list to be closed with %#v", trailing))
+	}
+	return items, nil
 }
