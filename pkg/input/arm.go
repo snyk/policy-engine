@@ -18,9 +18,9 @@ package input
 import (
 	"encoding/json"
 	"fmt"
-	"regexp"
 	"strings"
 
+	"github.com/snyk/policy-engine/pkg/input/arm"
 	"github.com/snyk/policy-engine/pkg/interfacetricks"
 	"github.com/snyk/policy-engine/pkg/models"
 )
@@ -60,12 +60,14 @@ func (c *ArmDetector) DetectFile(i *File, opts DetectOptions) (IACConfiguration,
 	}
 
 	path := i.Path
-	return &armConfiguration{
+	cfg := &armConfiguration{
 		path:       path,
 		template:   template,
 		discovered: discovered,
 		source:     source,
-	}, nil
+	}
+	cfg.process()
+	return cfg, nil
 }
 
 func (c *ArmDetector) DetectDirectory(i *Directory, opts DetectOptions) (IACConfiguration, error) {
@@ -73,37 +75,22 @@ func (c *ArmDetector) DetectDirectory(i *Directory, opts DetectOptions) (IACConf
 }
 
 type armConfiguration struct {
-	path       string
-	template   *arm_Template
-	discovered map[string]arm_DiscoverResource
-	source     *SourceInfoNode
+	path               string
+	template           *arm_Template
+	discovered         map[string]arm_DiscoverResource
+	source             *SourceInfoNode
+	resources          []models.ResourceState
+	expressionEvalErrs []error
 }
 
 func (l *armConfiguration) ToState() models.State {
-	// Set of all existing resources for the resolver.
-	resourceSet := map[string]struct{}{}
-	for id := range l.discovered {
-		resourceSet[id] = struct{}{}
-	}
-	refResolver := arm_ReferenceResolver{
-		resources: resourceSet,
-	}
-
-	// Process resources
-	resources := []models.ResourceState{}
-	for _, d := range l.discovered {
-		resource := d.process(&refResolver)
-		resource.Namespace = l.path
-		resources = append(resources, resource)
-	}
-
 	return models.State{
 		InputType:           Arm.Name,
 		EnvironmentProvider: "iac",
 		Meta: map[string]interface{}{
 			"filepath": l.path,
 		},
-		Resources: groupResourcesByType(resources),
+		Resources: groupResourcesByType(l.resources),
 	}
 }
 
@@ -148,11 +135,32 @@ func (l *armConfiguration) Errors() []error {
 	for _, resource := range l.discovered {
 		errs = append(errs, resource.errors()...)
 	}
-	return errs
+	return append(errs, l.expressionEvalErrs...)
 }
 
 func (l *armConfiguration) Type() *Type {
 	return Arm
+}
+
+func (l *armConfiguration) process() {
+	// Set of all existing resources for the resolver.
+	resourceSet := map[string]struct{}{}
+	for id := range l.discovered {
+		resourceSet[id] = struct{}{}
+	}
+	exprEvaluator := expressionEvaluator{
+		evalCtx: arm.NewEvaluationContext(resourceSet),
+	}
+
+	// Process resources
+	resources := []models.ResourceState{}
+	for _, d := range l.discovered {
+		resource := d.process(&exprEvaluator)
+		resource.Namespace = l.path
+		resources = append(resources, resource)
+	}
+	l.resources = resources
+	l.expressionEvalErrs = exprEvaluator.errs
 }
 
 type arm_Template struct {
@@ -278,7 +286,7 @@ func (t arm_Template) discover() []arm_DiscoverResource {
 }
 
 func (d arm_DiscoverResource) process(
-	refResolver *arm_ReferenceResolver,
+	refResolver *expressionEvaluator,
 ) models.ResourceState {
 	r := d.resource
 
@@ -394,43 +402,28 @@ func (child arm_Name) Parent() *arm_Name {
 
 // TopDownInterfaceWalker implementation to find and replace resource references
 // for ARM.
-type arm_ReferenceResolver struct {
-	// Set of present resources.
-	resources map[string]struct{}
+type expressionEvaluator struct {
+	evalCtx *arm.EvaluationContext
+	errs    []error
 }
 
-func (*arm_ReferenceResolver) WalkArray(arr []interface{}) (interface{}, bool) {
+func (*expressionEvaluator) WalkArray(arr []interface{}) (interface{}, bool) {
 	return arr, true
 }
 
-func (*arm_ReferenceResolver) WalkObject(obj map[string]interface{}) (interface{}, bool) {
+func (*expressionEvaluator) WalkObject(obj map[string]interface{}) (interface{}, bool) {
 	return obj, true
 }
 
-func (resolver *arm_ReferenceResolver) WalkString(s string) (interface{}, bool) {
-	if strings.HasPrefix(s, "[") {
-		re := regexp.MustCompile(`[\[\]()',[:space:]]+`)
-		rawTokens := re.Split(s, -1)
-		tokens := []string{}
-		for _, t := range rawTokens {
-			if t != "" {
-				tokens = append(tokens, t)
-			}
-		}
-
-		if len(tokens) >= 3 && tokens[0] == "resourceId" {
-			typeStr := tokens[1]
-			nameStr := strings.Join(tokens[2:], "/")
-			ref := parseArmName(typeStr, nameStr).String()
-			if _, ok := resolver.resources[ref]; ok {
-				return ref, false
-			}
-		}
+func (resolver *expressionEvaluator) WalkString(s string) (interface{}, bool) {
+	evaluatedExpression, err := resolver.evalCtx.EvaluateTemplateString(s)
+	if err != nil {
+		resolver.errs = append(resolver.errs, err)
+		return s, false
 	}
-
-	return s, false
+	return evaluatedExpression, false
 }
 
-func (*arm_ReferenceResolver) WalkBool(b bool) (interface{}, bool) {
+func (*expressionEvaluator) WalkBool(b bool) (interface{}, bool) {
 	return b, false
 }

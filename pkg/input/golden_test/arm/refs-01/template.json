@@ -54,6 +54,22 @@
       "properties": {
         "serverFarmId": "[resourceId('Microsoft.Web/serverfarms', 'appServicePlanPortal')]"
       }
+    },
+    {
+      "type": "Microsoft.Web/sites",
+      "apiVersion": "2021-02-01",
+      "name": "referencesExternalResources",
+      "location": "[resourceGroup().location]",
+      "identity": {
+        "type": "SystemAssigned"
+      },
+      "dependsOn": [
+        "[resourceId('some-subscription', 'some-resource-group', 'Microsoft.Web/serverfarms', 'anotherServerFarm1')]",
+        "[resourceId('some-resource-group', 'Microsoft.Web/serverfarms', 'anotherServerFarm2')]"
+      ],
+      "properties": {
+        "serverFarmId": "[resourceId('Microsoft.Web/serverfarms', 'anotherServerFarm3')]"
+      }
     }
   ]
 }

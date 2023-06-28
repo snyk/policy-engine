@@ -15,7 +15,7 @@
         "meta": {},
         "attributes": {
           "apiVersion": "2021-02-01",
-          "location": "[resourceGroup().location]",
+          "location": "stub-location",
           "properties": {},
           "sku": {
             "name": "B1",
@@ -39,7 +39,7 @@
           "identity": {
             "type": "None"
           },
-          "location": "[resourceGroup().location]",
+          "location": "stub-location",
           "properties": {
             "serverFarmId": "Microsoft.Web/serverfarms/appServicePlanPortal"
           }
@@ -55,9 +55,29 @@
           "dependsOn": [
             "Microsoft.Web/serverfarms/appServicePlanPortal"
           ],
-          "location": "[resourceGroup().location]",
+          "location": "stub-location",
           "properties": {
             "serverFarmId": "Microsoft.Web/serverfarms/appServicePlanPortal"
+          }
+        }
+      },
+      "Microsoft.Web/sites/referencesExternalResources": {
+        "id": "Microsoft.Web/sites/referencesExternalResources",
+        "resource_type": "Microsoft.Web/sites",
+        "namespace": "golden_test/arm/refs-01/template.json",
+        "meta": {},
+        "attributes": {
+          "apiVersion": "2021-02-01",
+          "dependsOn": [
+            "/subscriptions/some-subscription/resourceGroups/some-resource-group/providers/Microsoft.Web/serverfarms/anotherServerFarm1",
+            "/subscriptions/stub-subscription-id/resourceGroups/some-resource-group/providers/Microsoft.Web/serverfarms/anotherServerFarm2"
+          ],
+          "identity": {
+            "type": "SystemAssigned"
+          },
+          "location": "stub-location",
+          "properties": {
+            "serverFarmId": "/subscriptions/stub-subscription-id/resourceGroups/stub-resource-group-name/providers/Microsoft.Web/serverfarms/anotherServerFarm3"
           }
         }
       },
@@ -74,7 +94,7 @@
           "identity": {
             "type": "SystemAssigned"
           },
-          "location": "[resourceGroup().location]",
+          "location": "stub-location",
           "properties": {
             "serverFarmId": "Microsoft.Web/serverfarms/appServicePlanPortal"
           }
