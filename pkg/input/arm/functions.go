@@ -170,3 +170,19 @@ func assertAllStrings(args ...interface{}) ([]string, error) {
 	}
 	return strargs, nil
 }
+
+func (e *EvaluationContext) variablesImpl(args ...interface{}) (interface{}, error) {
+	strargs, err := assertAllStrings(args...)
+	if err != nil {
+		return nil, err
+	}
+	if len(strargs) != 1 {
+		return nil, fmt.Errorf("variables: expected 1 arg, got %d", len(strargs))
+	}
+	key := strargs[0]
+	val, ok := e.variables[key]
+	if !ok {
+		return nil, fmt.Errorf("no variable found for key %s", key)
+	}
+	return val, nil
+}

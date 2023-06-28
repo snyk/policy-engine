@@ -36,6 +36,10 @@ func (p *parser) parse() (expression, error) {
 
 	// We may need to add support for more types (integer, bool, arrays and
 	// objects) when we add support for more functions.
+	//
+	// When adding more types, please remember to update support for these types
+	// in variables. See pkg/input/arm.go.
+	//
 	// https://learn.microsoft.com/en-us/azure/azure-resource-manager/templates/template-expressions
 	if strToken, ok := tkn.(stringLiteral); ok {
 		return stringLiteralExpr(strToken), nil

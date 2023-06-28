@@ -1,0 +1,40 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {},
+  "variables": {
+    "stringVar": "a string variable",
+    "intVar": 4,
+    "arrayVar": [
+      1,
+      2,
+      3,
+      4
+    ],
+    "objectVar": {
+      "property1": "value1",
+      "property2": "value2"
+    },
+    "expressionVarStringResult": "[concat(variables('stringVar'), '-addtovar') ]"
+  },
+  "resources": [
+    {
+      "type": "Microsoft.AppConfiguration/configurationStores",
+      "apiVersion": "2021-03-01-preview",
+      "name": "arm-608-denied",
+      "location": "West Europe",
+      "sku": {
+        "name": "Free"
+      },
+      "properties": {
+        "publicNetworkAccess": "Enabled",
+        "stringVarAccess": "[variables('stringVar')]",
+        "intVarNotCurrentlySupported": "[variables('intVar')]",
+        "arrayVarNotCurrentlySupported": "[variables('arrayVar')]",
+        "objectVarNotCurrentlySupported": "[variables('objectVar')]",
+        "unknownVarAcesss": "[variables('unknown')]",
+        "expressionEvalNotCurrentlySupported": "[variables('expressionVarStringResult')]"
+      }
+    }
+  ]
+}
