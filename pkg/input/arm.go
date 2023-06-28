@@ -59,15 +59,41 @@ func (c *ArmDetector) DetectFile(i *File, opts DetectOptions) (IACConfiguration,
 		discovered[d.name.String()] = d
 	}
 
+	processedVariables, err := processVariables(template.Variables)
+	if err != nil {
+		return nil, fmt.Errorf("%w: %v", FailedToParseInput, err)
+	}
+
 	path := i.Path
 	cfg := &armConfiguration{
 		path:       path,
 		template:   template,
 		discovered: discovered,
 		source:     source,
+		variables:  processedVariables,
 	}
 	cfg.process()
 	return cfg, nil
+}
+
+// For now, ensure we only return supported types. In the future, this might be
+// part of a multi-pass parse flow in order to evaluate expressions in variable
+// definitions, before evaluating expressions that use those results.
+//
+// When adding more types, please ensure that we have parser support for them in
+// pkg/input/arm.
+func processVariables(raw map[string]interface{}) (map[string]interface{}, error) {
+	processed := map[string]interface{}{}
+	for k, v := range raw {
+		switch typedVal := v.(type) {
+		case string:
+			if !arm.IsTemplateExpression(typedVal) {
+				processed[k] = v
+			}
+		default:
+		}
+	}
+	return processed, nil
 }
 
 func (c *ArmDetector) DetectDirectory(i *Directory, opts DetectOptions) (IACConfiguration, error) {
@@ -80,6 +106,7 @@ type armConfiguration struct {
 	discovered         map[string]arm_DiscoverResource
 	source             *SourceInfoNode
 	resources          []models.ResourceState
+	variables          map[string]interface{}
 	expressionEvalErrs []error
 }
 
@@ -149,7 +176,7 @@ func (l *armConfiguration) process() {
 		resourceSet[id] = struct{}{}
 	}
 	exprEvaluator := expressionEvaluator{
-		evalCtx: arm.NewEvaluationContext(resourceSet),
+		evalCtx: arm.NewEvaluationContext(resourceSet, l.variables),
 	}
 
 	// Process resources
@@ -164,9 +191,10 @@ func (l *armConfiguration) process() {
 }
 
 type arm_Template struct {
-	Schema         string         `json:"$schema"`
-	ContentVersion string         `json:"contentVersion"`
-	Resources      []arm_Resource `json:"resources"`
+	Schema         string                 `json:"$schema"`
+	ContentVersion string                 `json:"contentVersion"`
+	Resources      []arm_Resource         `json:"resources"`
+	Variables      map[string]interface{} `json:"variables"`
 }
 
 type arm_Resource struct {

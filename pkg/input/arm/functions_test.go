@@ -24,6 +24,7 @@ var evalCtx = NewEvaluationContext(
 	map[string]struct{}{
 		"Microsoft.ServiceBus/namespaces/a-discovered-namespace": {},
 	},
+	nil,
 )
 
 func TestResourceIDImpl(t *testing.T) {

@@ -1,0 +1,35 @@
+{
+  "format": "",
+  "format_version": "",
+  "input_type": "arm",
+  "environment_provider": "iac",
+  "meta": {
+    "filepath": "golden_test/arm/variables/template.json"
+  },
+  "resources": {
+    "Microsoft.AppConfiguration/configurationStores": {
+      "Microsoft.AppConfiguration/configurationStores/arm-608-denied": {
+        "id": "Microsoft.AppConfiguration/configurationStores/arm-608-denied",
+        "resource_type": "Microsoft.AppConfiguration/configurationStores",
+        "namespace": "golden_test/arm/variables/template.json",
+        "meta": {},
+        "attributes": {
+          "apiVersion": "2021-03-01-preview",
+          "location": "West Europe",
+          "properties": {
+            "arrayVarNotCurrentlySupported": "[variables('arrayVar')]",
+            "expressionEvalNotCurrentlySupported": "[variables('expressionVarStringResult')]",
+            "intVarNotCurrentlySupported": "[variables('intVar')]",
+            "objectVarNotCurrentlySupported": "[variables('objectVar')]",
+            "publicNetworkAccess": "Enabled",
+            "stringVarAccess": "a string variable",
+            "unknownVarAcesss": "[variables('unknown')]"
+          },
+          "sku": {
+            "name": "Free"
+          }
+        }
+      }
+    }
+  }
+}

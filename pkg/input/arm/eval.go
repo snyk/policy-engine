@@ -23,25 +23,28 @@ import (
 // pass data to certain function impls other than what is already in their args.
 type EvaluationContext struct {
 	discoveredResourceSet map[string]struct{}
+	variables             map[string]interface{}
 	funcs                 map[string]armFnImpl
 }
 
-func NewEvaluationContext(discoveredResourceSet map[string]struct{}) *EvaluationContext {
+func NewEvaluationContext(discoveredResourceSet map[string]struct{}, variables map[string]interface{}) *EvaluationContext {
 	evalCtx := &EvaluationContext{
 		discoveredResourceSet: discoveredResourceSet,
+		variables:             variables,
 		funcs: map[string]armFnImpl{
 			"concat":        concatImpl,
 			"resourceGroup": resourceGroupImpl,
 		},
 	}
 	evalCtx.funcs["resourceId"] = evalCtx.resourceIDImpl
+	evalCtx.funcs["variables"] = evalCtx.variablesImpl
 	return evalCtx
 }
 
 // Detects whether an ARM string is an expression (enclosed by []), and
 // tries to evaluate it if so.
 func (e *EvaluationContext) EvaluateTemplateString(input string) (interface{}, error) {
-	if !isTemplateExpression(input) {
+	if !IsTemplateExpression(input) {
 		return input, nil
 	}
 
@@ -56,7 +59,7 @@ func (e *EvaluationContext) EvaluateTemplateString(input string) (interface{}, e
 	return evaluated, err
 }
 
-func isTemplateExpression(input string) bool {
+func IsTemplateExpression(input string) bool {
 	return strings.HasPrefix(input, "[") && strings.HasSuffix(input, "]")
 }
 
