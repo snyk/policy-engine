@@ -31,10 +31,15 @@ type Function func(e *EvaluationContext, args ...interface{}) (interface{}, erro
 
 func BuiltinFunctions() map[string]Function {
 	return map[string]Function{
-		"concat":        concatImpl,
-		"resourceGroup": resourceGroupImpl,
-		"resourceId":    resourceIDImpl,
-		"variables":     variablesImpl,
+		"base64":          oneStringArg(base64Impl),
+		"base64ToString":  oneStringArg(base64ToStringImpl),
+		"concat":          concatImpl,
+		"dataUri":         oneStringArg(dataURIImpl),
+		"dataUriToString": oneStringArg(dataURIToStringImpl),
+		"first":           oneStringArg(firstImpl),
+		"resourceGroup":   resourceGroupImpl,
+		"resourceId":      resourceIDImpl,
+		"variables":       variablesImpl,
 	}
 }
 
