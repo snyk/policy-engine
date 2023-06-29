@@ -48,7 +48,7 @@ func TestEvalTemplateStrings(t *testing.T) {
 		},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
-			evalCtx := NewEvaluationContext(nil, nil)
+			evalCtx := &EvaluationContext{Functions: BuiltinFunctions()}
 			val, err := evalCtx.EvaluateTemplateString(tc.input)
 			require.NoError(t, err)
 			require.Equal(t, tc.expected, val)

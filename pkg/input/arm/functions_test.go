@@ -20,12 +20,12 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-var evalCtx = NewEvaluationContext(
-	map[string]struct{}{
+var evalCtx = &EvaluationContext{
+	DiscoveredResourceSet: map[string]struct{}{
 		"Microsoft.ServiceBus/namespaces/a-discovered-namespace": {},
 	},
-	nil,
-)
+	Functions: BuiltinFunctions(),
+}
 
 func TestResourceIDImpl(t *testing.T) {
 	for _, tc := range []struct {
@@ -60,7 +60,7 @@ func TestResourceIDImpl(t *testing.T) {
 		},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
-			output, err := evalCtx.resourceIDImpl(tc.args...)
+			output, err := resourceIDImpl(evalCtx, tc.args...)
 			require.NoError(t, err)
 			require.Equal(t, tc.expectedOutput, output)
 		})
