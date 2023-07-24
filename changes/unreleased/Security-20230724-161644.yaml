@@ -1,0 +1,3 @@
+kind: Security
+body: Secrets scan in CICD and pre-commit hook
+time: 2023-07-24T16:16:44.58257+03:00
