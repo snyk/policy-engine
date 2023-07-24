@@ -16,18 +16,20 @@ package arm
 
 import "fmt"
 
-func variablesImpl(e *EvaluationContext, args ...interface{}) (interface{}, error) {
-	strargs, err := assertAllType[string](args...)
-	if err != nil {
-		return nil, err
+func variablesImpl(variables map[string]interface{}) Function {
+	return func(args ...interface{}) (interface{}, error) {
+		strargs, err := assertAllType[string](args...)
+		if err != nil {
+			return nil, err
+		}
+		if len(strargs) != 1 {
+			return nil, fmt.Errorf("variables: expected 1 arg, got %d", len(strargs))
+		}
+		key := strargs[0]
+		val, ok := variables[key]
+		if !ok {
+			return nil, fmt.Errorf("no variable found for key %s", key)
+		}
+		return val, nil
 	}
-	if len(strargs) != 1 {
-		return nil, fmt.Errorf("variables: expected 1 arg, got %d", len(strargs))
-	}
-	key := strargs[0]
-	val, ok := e.Variables[key]
-	if !ok {
-		return nil, fmt.Errorf("no variable found for key %s", key)
-	}
-	return val, nil
 }
