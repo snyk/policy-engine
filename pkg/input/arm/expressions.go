@@ -48,7 +48,7 @@ func (f functionExpr) eval(evalCtx *EvaluationContext) (interface{}, error) {
 			return nil, Error{underlying: err, kind: EvalError}
 		}
 	}
-	return impl(evalCtx, argVals...)
+	return impl(argVals...)
 }
 
 type propertyExpr struct {

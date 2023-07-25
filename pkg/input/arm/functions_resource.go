@@ -24,28 +24,30 @@ import (
 var resourceTypePattern = regexp.MustCompile(`^Microsoft\.\w+[/\w]*$`)
 
 // https://learn.microsoft.com/en-us/azure/azure-resource-manager/templates/template-functions-resource#resourceid
-func resourceIDImpl(e *EvaluationContext, args ...interface{}) (interface{}, error) {
-	strargs, err := assertAllType[string](args...)
-	if err != nil {
-		return nil, err
-	}
-	fqResourceID, err := extractSubscriptionAndResourceGroupIDs(strargs)
-	if err != nil {
-		return nil, err
-	}
-	resourceID, err := mergeResourceTypesAndNames(fqResourceID.resourceType, fqResourceID.resourceNames)
-	if err != nil {
-		return nil, err
-	}
+func resourceIDImpl(discoveredResourceSet map[string]struct{}) Function {
+	return func(args ...interface{}) (interface{}, error) {
+		strargs, err := assertAllType[string](args...)
+		if err != nil {
+			return nil, err
+		}
+		fqResourceID, err := extractSubscriptionAndResourceGroupIDs(strargs)
+		if err != nil {
+			return nil, err
+		}
+		resourceID, err := mergeResourceTypesAndNames(fqResourceID.resourceType, fqResourceID.resourceNames)
+		if err != nil {
+			return nil, err
+		}
 
-	// Normalize resource IDs to declared/discovered ones in the input, so that
-	// these can be associated with each other by policy queries.
-	if _, ok := e.DiscoveredResourceSet[resourceID]; ok {
-		return resourceID, nil
-	}
+		// Normalize resource IDs to declared/discovered ones in the input, so that
+		// these can be associated with each other by policy queries.
+		if _, ok := discoveredResourceSet[resourceID]; ok {
+			return resourceID, nil
+		}
 
-	fullyQualifiedID := fmt.Sprintf("/subscriptions/%s/resourceGroups/%s/providers/%s", fqResourceID.subscriptionID, fqResourceID.resourceGroupName, resourceID)
-	return fullyQualifiedID, nil
+		fullyQualifiedID := fmt.Sprintf("/subscriptions/%s/resourceGroups/%s/providers/%s", fqResourceID.subscriptionID, fqResourceID.resourceGroupName, resourceID)
+		return fullyQualifiedID, nil
+	}
 }
 
 type fullyQualifiedResourceID struct {

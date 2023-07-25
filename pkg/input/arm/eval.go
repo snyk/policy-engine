@@ -22,26 +22,10 @@ import (
 // references to implementations of functions, and the other fields exist to
 // pass data to certain function impls other than what is already in their args.
 type EvaluationContext struct {
-	DiscoveredResourceSet map[string]struct{}
-	Variables             map[string]interface{}
-	Functions             map[string]Function
+	Functions map[string]Function
 }
 
-type Function func(e *EvaluationContext, args ...interface{}) (interface{}, error)
-
-func BuiltinFunctions() map[string]Function {
-	return map[string]Function{
-		"base64":          oneStringArg(base64Impl),
-		"base64ToString":  oneStringArg(base64ToStringImpl),
-		"concat":          concatImpl,
-		"dataUri":         oneStringArg(dataURIImpl),
-		"dataUriToString": oneStringArg(dataURIToStringImpl),
-		"first":           oneStringArg(firstImpl),
-		"resourceGroup":   resourceGroupImpl,
-		"resourceId":      resourceIDImpl,
-		"variables":       variablesImpl,
-	}
-}
+type Function func(args ...interface{}) (interface{}, error)
 
 // Detects whether an ARM string is an expression (enclosed by []), and
 // tries to evaluate it if so.

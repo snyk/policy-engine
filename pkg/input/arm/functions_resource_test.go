@@ -20,14 +20,13 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-var evalCtx = &EvaluationContext{
-	DiscoveredResourceSet: map[string]struct{}{
-		"Microsoft.ServiceBus/namespaces/a-discovered-namespace": {},
-	},
-	Functions: BuiltinFunctions(),
-}
-
 func TestResourceIDImpl(t *testing.T) {
+	var resourceID Function = resourceIDImpl(
+		map[string]struct{}{
+			"Microsoft.ServiceBus/namespaces/a-discovered-namespace": {},
+		},
+	)
+
 	for _, tc := range []struct {
 		name           string
 		args           []interface{}
@@ -60,7 +59,7 @@ func TestResourceIDImpl(t *testing.T) {
 		},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
-			output, err := resourceIDImpl(evalCtx, tc.args...)
+			output, err := resourceID(tc.args...)
 			require.NoError(t, err)
 			require.Equal(t, tc.expectedOutput, output)
 		})

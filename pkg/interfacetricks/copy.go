@@ -18,11 +18,7 @@ package interfacetricks
 func Copy(value interface{}) interface{} {
 	switch v := value.(type) {
 	case map[string]interface{}:
-		obj := make(map[string]interface{}, len(v))
-		for k, attr := range v {
-			obj[k] = Copy(attr)
-		}
-		return obj
+		return CopyObject(v)
 	case []interface{}:
 		arr := make([]interface{}, len(v))
 		for i, attr := range v {
@@ -32,4 +28,13 @@ func Copy(value interface{}) interface{} {
 	default:
 		return v
 	}
+}
+
+// Utility so we don't need to cast.
+func CopyObject(in map[string]interface{}) map[string]interface{} {
+	out := make(map[string]interface{}, len(in))
+	for k, attr := range in {
+		out[k] = Copy(attr)
+	}
+	return out
 }

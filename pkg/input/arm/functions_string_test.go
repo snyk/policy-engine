@@ -33,7 +33,7 @@ func TestBase64ToString(t *testing.T) {
 }
 
 func TestConcat(t *testing.T) {
-	res, err := concatImpl(nil, "foo", "bar")
+	res, err := concatImpl("foo", "bar")
 	require.NoError(t, err)
 	require.Equal(t, "foobar", res)
 }

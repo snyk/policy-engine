@@ -24,7 +24,7 @@ import (
 // Functions from https://learn.microsoft.com/en-us/azure/azure-resource-manager/templates/template-functions-string#base64
 
 func oneStringArg(f func(string) (interface{}, error)) Function {
-	return func(e *EvaluationContext, args ...interface{}) (interface{}, error) {
+	return func(args ...interface{}) (interface{}, error) {
 		strargs, err := assertAllType[string](args...)
 		if err != nil {
 			return nil, err
@@ -53,7 +53,7 @@ func base64ToStringImpl(arg string) (interface{}, error) {
 
 // TODO concat can operate on arrays too, we just haven't implemented support
 // for this yet.
-func concatImpl(e *EvaluationContext, args ...interface{}) (interface{}, error) {
+func concatImpl(args ...interface{}) (interface{}, error) {
 	res := ""
 	for _, arg := range args {
 		argStr, ok := arg.(string)
