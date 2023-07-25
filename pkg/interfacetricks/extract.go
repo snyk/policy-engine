@@ -15,15 +15,24 @@
 package interfacetricks
 
 import (
+	"errors"
 	"fmt"
 	"reflect"
 	"strings"
 )
 
+var SetError = errors.New("cannot set destination (hint: use pointer receiver?)")
+var TypeError = errors.New("type error")
+
 type ExtractError struct {
-	SrcPath []interface{}
-	SrcType reflect.Type
-	DstType reflect.Type
+	underlying error
+	SrcPath    []interface{}
+	SrcType    reflect.Type
+	DstType    reflect.Type
+}
+
+func (e ExtractError) Unwrap() error {
+	return e.underlying
 }
 
 func (e ExtractError) Error() string {
@@ -72,9 +81,27 @@ func Extract(src interface{}, dst interface{}) []error {
 // there as well.
 func extract(path []interface{}, src interface{}, dst reflect.Value) (errs []error) {
 	ty := dst.Type()
-	switch ty.Kind() {
-	case reflect.Pointer:
+
+	makeExtractError := func(err error) ExtractError {
+		pcopy := make([]interface{}, len(path))
+		copy(pcopy, path)
+		return ExtractError{
+			underlying: err,
+			SrcPath:    pcopy,
+			SrcType:    reflect.TypeOf(src),
+			DstType:    ty,
+		}
+	}
+
+	if ty.Kind() == reflect.Pointer {
 		return extract(path, src, dst.Elem())
+	}
+
+	if !dst.CanSet() {
+		return []error{makeExtractError(SetError)}
+	}
+
+	switch ty.Kind() {
 	case reflect.Struct:
 		if srcObject, ok := src.(map[string]interface{}); ok {
 			for i := 0; i < ty.NumField(); i++ {
@@ -92,13 +119,12 @@ func extract(path []interface{}, src interface{}, dst reflect.Value) (errs []err
 						errs = append(errs, extract(path, srcFieldVal, goFieldVal)...)
 						path = path[:len(path)-1]
 					}
-				} else {
 				}
 			}
 			return
 		}
 	case reflect.Slice:
-		if srcArray, ok := src.([]interface{}); ok && dst.CanSet() {
+		if srcArray, ok := src.([]interface{}); ok {
 			dst.Set(reflect.MakeSlice(ty, len(srcArray), len(srcArray)))
 			for i := 0; i < len(srcArray); i++ {
 				path = append(path, i)
@@ -108,7 +134,7 @@ func extract(path []interface{}, src interface{}, dst reflect.Value) (errs []err
 			return
 		}
 	case reflect.Map:
-		if srcObject, ok := src.(map[string]interface{}); ok && dst.CanSet() {
+		if srcObject, ok := src.(map[string]interface{}); ok {
 			dst.Set(reflect.MakeMap(ty))
 			for k, v := range srcObject {
 				path = append(path, k)
@@ -125,57 +151,37 @@ func extract(path []interface{}, src interface{}, dst reflect.Value) (errs []err
 			return
 		}
 	case reflect.Interface:
-		if dst.CanSet() {
-			dst.Set(reflect.ValueOf(src))
-			return
-		}
+		dst.Set(reflect.ValueOf(src))
+		return
 	case reflect.Bool:
-		if boolean, ok := src.(bool); ok && dst.CanSet() {
+		if boolean, ok := src.(bool); ok {
 			dst.SetBool(boolean)
 			return
 		}
 	case reflect.Int:
 		if number, ok := src.(int64); ok {
-			if dst.CanSet() {
-				dst.SetInt(number)
-				return
-			}
+			dst.SetInt(number)
+			return
 		} else if number, ok := src.(int); ok {
-			if dst.CanSet() {
-				dst.SetInt(int64(number))
-				return
-			}
+			dst.SetInt(int64(number))
+			return
 		} else if number, ok := src.(float64); ok {
-			if dst.CanSet() {
-				dst.SetInt(int64(number))
-				return
-			}
+			dst.SetInt(int64(number))
+			return
 		}
 	case reflect.Float64:
 		if number, ok := src.(float64); ok {
-			if dst.CanSet() {
-				dst.SetFloat(number)
-				return
-			}
+			dst.SetFloat(number)
+			return
 		}
 	case reflect.String:
-		if str, ok := src.(string); ok && dst.CanSet() {
+		if str, ok := src.(string); ok {
 			dst.SetString(str)
 			return
 		}
 	}
 
-	return []error{newExtractError(path, src, ty)}
-}
-
-func newExtractError(path []interface{}, src interface{}, dst reflect.Type) ExtractError {
-	pcopy := make([]interface{}, len(path))
-	copy(pcopy, path)
-	return ExtractError{
-		SrcPath: pcopy,
-		SrcType: reflect.TypeOf(src),
-		DstType: dst,
-	}
+	return []error{makeExtractError(TypeError)}
 }
 
 func getJsonFieldName(field reflect.StructField) (string, bool) {
