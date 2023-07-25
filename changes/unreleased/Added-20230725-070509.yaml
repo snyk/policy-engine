@@ -1,3 +1,0 @@
-kind: Added
-body: evaluate ARM template expressions during resource discovery (CLOUD-1648)
-time: 2023-07-25T07:05:09.624192+02:00
