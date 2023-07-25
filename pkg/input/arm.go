@@ -52,48 +52,40 @@ func (c *ArmDetector) DetectFile(i *File, opts DetectOptions) (IACConfiguration,
 	// Don't consider source code locations essential.
 	source, _ := LoadSourceInfoNode(contents)
 
-	// Create a map of resource ID to discovered resources.  This is necessary
-	// for source code locations.
-	discovered := map[string]arm_DiscoverResource{}
-	for _, d := range template.discover() {
-		discovered[d.name.String()] = d
+	// Prepare evaluator to use.
+	evalCtx := &arm.EvaluationContext{
+		Functions: arm.DiscoveryBuiltinFunctions(
+			template.variables(),
+		),
 	}
 
-	processedVariables, err := processVariables(template.Variables)
-	if err != nil {
-		return nil, fmt.Errorf("%w: %v", FailedToParseInput, err)
+	// Create a map of resource ID to discovered resources.  This is necessary
+	// for source code locations.
+	discovered := template.resources(evalCtx)
+	resourceSet := map[string]struct{}{}
+	for _, resource := range discovered {
+		resourceSet[resource.name.String()] = struct{}{}
+	}
+
+	// Extend evaluator.
+	evalCtx.Functions = arm.AllBuiltinFunctions(
+		template.variables(),
+		resourceSet,
+	)
+
+	resources := map[string]arm_Resource{}
+	for _, resource := range discovered {
+		resources[resource.name.String()] = resource.process(evalCtx)
 	}
 
 	path := i.Path
 	cfg := &armConfiguration{
-		path:       path,
-		template:   template,
-		discovered: discovered,
-		source:     source,
-		variables:  processedVariables,
+		path:      path,
+		source:    source,
+		resources: resources,
 	}
-	cfg.process()
-	return cfg, nil
-}
 
-// For now, ensure we only return supported types. In the future, this might be
-// part of a multi-pass parse flow in order to evaluate expressions in variable
-// definitions, before evaluating expressions that use those results.
-//
-// When adding more types, please ensure that we have parser support for them in
-// pkg/input/arm.
-func processVariables(raw map[string]interface{}) (map[string]interface{}, error) {
-	processed := map[string]interface{}{}
-	for k, v := range raw {
-		switch typedVal := v.(type) {
-		case string:
-			if !arm.IsTemplateExpression(typedVal) {
-				processed[k] = v
-			}
-		default:
-		}
-	}
-	return processed, nil
+	return cfg, nil
 }
 
 func (c *ArmDetector) DetectDirectory(i *Directory, opts DetectOptions) (IACConfiguration, error) {
@@ -101,23 +93,23 @@ func (c *ArmDetector) DetectDirectory(i *Directory, opts DetectOptions) (IACConf
 }
 
 type armConfiguration struct {
-	path               string
-	template           *arm_Template
-	discovered         map[string]arm_DiscoverResource
-	source             *SourceInfoNode
-	resources          []models.ResourceState
-	variables          map[string]interface{}
-	expressionEvalErrs []error
+	path      string
+	source    *SourceInfoNode
+	resources map[string]arm_Resource
 }
 
 func (l *armConfiguration) ToState() models.State {
+	resources := []models.ResourceState{}
+	for _, resource := range l.resources {
+		resources = append(resources, resource.state(l.path))
+	}
 	return models.State{
 		InputType:           Arm.Name,
 		EnvironmentProvider: "iac",
 		Meta: map[string]interface{}{
 			"filepath": l.path,
 		},
-		Resources: groupResourcesByType(l.resources),
+		Resources: groupResourcesByType(resources),
 	}
 }
 
@@ -136,7 +128,7 @@ func (l *armConfiguration) Location(path []interface{}) (LocationStack, error) {
 		)
 	}
 
-	dr, ok := l.discovered[resourceId]
+	dr, ok := l.resources[resourceId]
 	if !ok {
 		return nil, fmt.Errorf(
 			"%w: Unable to find resource with ID: %s",
@@ -159,150 +151,90 @@ func (l *armConfiguration) LoadedFiles() []string {
 
 func (l *armConfiguration) Errors() []error {
 	errs := []error{}
-	for _, resource := range l.discovered {
-		errs = append(errs, resource.errors()...)
+	for _, resource := range l.resources {
+		errs = append(errs, resource.errors...)
 	}
-	return append(errs, l.expressionEvalErrs...)
+	return errs
 }
 
 func (l *armConfiguration) Type() *Type {
 	return Arm
 }
 
-func (l *armConfiguration) process() {
-	// Set of all existing resources for the resolver.
-	resourceSet := map[string]struct{}{}
-	for id := range l.discovered {
-		resourceSet[id] = struct{}{}
-	}
-	exprEvaluator := expressionEvaluator{
-		evalCtx: &arm.EvaluationContext{
-			DiscoveredResourceSet: resourceSet,
-			Variables:             l.variables,
-			Functions:             arm.BuiltinFunctions(),
-		},
-	}
-
-	// Process resources
-	resources := []models.ResourceState{}
-	for _, d := range l.discovered {
-		resource := d.process(&exprEvaluator)
-		resource.Namespace = l.path
-		resources = append(resources, resource)
-	}
-	l.resources = resources
-	l.expressionEvalErrs = exprEvaluator.errs
+type arm_Template struct {
+	Schema         string                   `json:"$schema"`
+	ContentVersion string                   `json:"contentVersion"`
+	Resources      []map[string]interface{} `json:"resources"`
+	Variables      map[string]interface{}   `json:"variables"`
 }
 
-type arm_Template struct {
-	Schema         string                 `json:"$schema"`
-	ContentVersion string                 `json:"contentVersion"`
-	Resources      []arm_Resource         `json:"resources"`
-	Variables      map[string]interface{} `json:"variables"`
+type arm_DiscoveredResource struct {
+	name   arm_Name
+	path   []interface{}
+	data   map[string]interface{}
+	errors []error
 }
 
 type arm_Resource struct {
-	Type       string                 `json:"type"`
-	Name       string                 `json:"name"`
-	Properties map[string]interface{} `json:"properties"`
-	Tags       arm_Tags               `json:"tags"`
-	Resources  []arm_Resource         `json:"resources"`
-	// OtherAttributes is a container for all other attributes that we're not
-	// capturing above.
-	OtherAttributes map[string]interface{} `json:"-"`
+	name       arm_Name
+	path       []interface{}
+	properties map[string]interface{}
+	tags       map[string]string
+	leftovers  map[string]interface{} // Not name, tags, properties...
+	errors     []error
 }
 
-// Type alias to avoid infinite recursion
-type _arm_Resource arm_Resource
+func (template *arm_Template) resources(
+	evalCtx *arm.EvaluationContext,
+) []arm_DiscoveredResource {
+	output := []arm_DiscoveredResource{}
 
-func (r *arm_Resource) UnmarshalJSON(bs []byte) error {
-	// We're using a custom unmarshal function here so that we can support all the
-	// possible resource attributes without explicitly adding them to the
-	// arm_Resource struct. The way this works is that we unmarshal the JSON twice:
-	// first into the arm_Resource struct and second into the OtherAttributes map. By
-	// using an alias for the arm_Resource type, we prevent this function from calling
-	// itself when we unmarshal into the struct.
-	resource := _arm_Resource{}
-	if err := json.Unmarshal(bs, &resource); err != nil {
-		return err
-	}
-	if err := json.Unmarshal(bs, &resource.OtherAttributes); err != nil {
-		return err
-	}
-
-	// Delete attributes that we've already captured in the parent struct
-	delete(resource.OtherAttributes, "type")
-	delete(resource.OtherAttributes, "name")
-	delete(resource.OtherAttributes, "properties")
-	delete(resource.OtherAttributes, "tags")
-	delete(resource.OtherAttributes, "resources")
-
-	// point r to our parsed resource
-	*r = arm_Resource(resource)
-
-	return nil
-}
-
-func (r *arm_Resource) errors() []error {
-	if r.Tags.err != nil {
-		return []error{r.Tags.err}
-	}
-	return nil
-}
-
-// arm_Tags is simply there to help with unmarshaling of tags.
-type arm_Tags struct {
-	err  error
-	tags map[string]string
-}
-
-func (t *arm_Tags) UnmarshalJSON(bs []byte) error {
-	// Tags should always be an object.  However, we currently don't support
-	// ARM functions, which can make the tags look like a string, e.g.:
-	//
-	//     "tags": "[parameters('tagValues')]"
-	//
-	// We need to make sure we treat this as a warning rather than an error.
-	t.tags = map[string]string{}
-	err := json.Unmarshal(bs, &t.tags)
-	if err != nil {
-		t.err = fmt.Errorf("%w: failed to parse tags: %v", FailedToParseInput, err)
-	}
-	return nil
-}
-
-// A resource together with its JSON path and name metadata.  This allows us to
-// iterate them and obtain a flat list before we actually process them.
-type arm_DiscoverResource struct {
-	name     arm_Name
-	path     []interface{}
-	resource arm_Resource
-}
-
-func (t arm_Template) discover() []arm_DiscoverResource {
-	discovered := []arm_DiscoverResource{}
-	var visit func([]interface{}, *arm_Name, arm_Resource)
+	// Recursive worker
+	var visit func([]interface{}, *arm_Name, map[string]interface{})
 	visit = func(
 		path []interface{},
 		parentName *arm_Name,
-		resource arm_Resource,
+		resource map[string]interface{},
 	) {
+		parsed := struct {
+			Name      string                   `json:"name"`
+			Type      string                   `json:"type"`
+			Resources []map[string]interface{} `json:"resources"`
+		}{}
+		errs := interfacetricks.Extract(resource, &parsed)
+
+		// Delete parsed fields
+		data := interfacetricks.CopyObject(resource)
+		delete(data, "name")
+		delete(data, "type")
+		delete(data, "resources")
+
+		// Evaluate name and type.
+		evaluator := &evalWalker{evalCtx: evalCtx}
+		nameVal := interfacetricks.TopDownWalk(evaluator, parsed.Name)
+		errs = append(errs, interfacetricks.Extract(nameVal, &parsed.Name)...)
+		typeVal := interfacetricks.TopDownWalk(evaluator, parsed.Type)
+		errs = append(errs, interfacetricks.Extract(typeVal, &parsed.Type)...)
+		errs = append(errs, evaluator.errors...)
+
 		// Extend or construct name.
-		name := parseArmName(resource.Type, resource.Name)
+		name := parseArmName(parsed.Type, parsed.Name)
 		if parentName != nil {
 			// We are nested under some parent.
-			name = parentName.Child(resource.Type, resource.Name)
+			name = parentName.Child(parsed.Type, parsed.Name)
 		}
 
 		// Add discovered resource.
-		discovered = append(discovered, arm_DiscoverResource{
-			name:     name,
-			path:     path,
-			resource: resource,
-		})
+		discovered := arm_DiscoveredResource{
+			name:   name,
+			path:   path,
+			data:   data,
+			errors: errs,
+		}
+		output = append(output, discovered)
 
 		// Recurse on children.
-		for i, child := range resource.Resources {
+		for i, child := range parsed.Resources {
 			childPath := make([]interface{}, len(path))
 			copy(childPath, path)
 			childPath = append(childPath, "resources")
@@ -311,30 +243,83 @@ func (t arm_Template) discover() []arm_DiscoverResource {
 		}
 	}
 
-	for i, top := range t.Resources {
+	for i, top := range template.Resources {
 		visit([]interface{}{"resources", i}, nil, top)
 	}
-	return discovered
+	return output
 }
 
-func (d arm_DiscoverResource) process(
-	refResolver *expressionEvaluator,
-) models.ResourceState {
-	r := d.resource
+// For now, ensure we only return supported types. In the future, this might be
+// part of a multi-pass parse flow in order to evaluate expressions in variable
+// definitions, before evaluating expressions that use those results.
+//
+// When adding more types, please ensure that we have parser support for them in
+// pkg/input/arm.
+func (template *arm_Template) variables() map[string]interface{} {
+	processed := map[string]interface{}{}
+	for k, v := range template.Variables {
+		switch typedVal := v.(type) {
+		case string:
+			if !arm.IsTemplateExpression(typedVal) {
+				processed[k] = v
+			}
+		default:
+		}
+	}
+	return processed
+}
 
+func (resource arm_DiscoveredResource) process(
+	evalCtx *arm.EvaluationContext,
+) arm_Resource {
+	errs := []error{}
+	errs = append(errs, resource.errors...)
+	parsed := struct {
+		Properties map[string]interface{} `json:"properties"`
+		Tags       interface{}            `json:"tags"`
+	}{}
+	errs = append(errs, interfacetricks.Extract(resource.data, &parsed)...)
+
+	leftovers := interfacetricks.CopyObject(resource.data)
+	delete(leftovers, "properties")
+	delete(leftovers, "tags")
+
+	// Evaluate properties, tags and leftovers.
+	evaluator := &evalWalker{evalCtx: evalCtx}
+	properties := map[string]interface{}{}
+	for k, v := range parsed.Properties {
+		properties[k] = interfacetricks.TopDownWalk(evaluator, v)
+	}
+	tags := map[string]string{}
+	tagsValue := interfacetricks.TopDownWalk(evaluator, parsed.Tags)
+	errs = append(errs, interfacetricks.Extract(tagsValue, &tags)...)
+	for k, v := range leftovers {
+		leftovers[k] = interfacetricks.TopDownWalk(evaluator, v)
+	}
+	errs = append(errs, evaluator.errors...)
+
+	return arm_Resource{
+		name:       resource.name,
+		path:       resource.path,
+		properties: properties,
+		tags:       tags,
+		leftovers:  leftovers,
+		errors:     errs,
+	}
+}
+
+func (resource arm_Resource) state(namespace string) models.ResourceState {
 	attributes := map[string]interface{}{}
-	for k, attr := range r.OtherAttributes {
-		updated := interfacetricks.TopDownWalk(refResolver, interfacetricks.Copy(attr))
-		attributes[k] = updated
+	for k, attr := range resource.leftovers {
+		attributes[k] = attr
 	}
 	properties := map[string]interface{}{}
-	for k, attr := range r.Properties {
-		updated := interfacetricks.TopDownWalk(refResolver, interfacetricks.Copy(attr))
-		properties[k] = updated
+	for k, attr := range resource.properties {
+		properties[k] = attr
 	}
 	attributes["properties"] = properties
 	meta := map[string]interface{}{}
-	if parent := d.name.Parent(); parent != nil {
+	if parent := resource.name.Parent(); parent != nil {
 		armMeta := map[string]interface{}{}
 		armMeta["parent_id"] = parent.String()
 		attributes["_parent_id"] = parent.String() // Backwards-compat :-(
@@ -342,21 +327,18 @@ func (d arm_DiscoverResource) process(
 	}
 
 	state := models.ResourceState{
-		Id:           d.name.String(),
-		ResourceType: d.name.Type(),
+		Namespace:    namespace,
+		Id:           resource.name.String(),
+		ResourceType: resource.name.Type(),
 		Attributes:   attributes,
 		Meta:         meta,
 	}
 
-	if len(r.Tags.tags) > 0 {
-		state.Tags = r.Tags.tags
+	if len(resource.tags) > 0 {
+		state.Tags = resource.tags
 	}
 
 	return state
-}
-
-func (d arm_DiscoverResource) errors() []error {
-	return d.resource.errors()
 }
 
 // Microsoft.Network/virtualNetworks/VNet1/subnets/Subnet1 is represented by:
@@ -364,6 +346,9 @@ func (d arm_DiscoverResource) errors() []error {
 // - service: Microsoft.Network
 // - types: [virtualNetworks, subnets]
 // - names: VNet1, Subnet1
+//
+// TODO: this should probably be moved to the pkg/input/arm package, and some
+// of the builtins can maybe then use this as well.
 type arm_Name struct {
 	service string
 	types   []string
@@ -433,29 +418,29 @@ func (child arm_Name) Parent() *arm_Name {
 }
 
 // TopDownInterfaceWalker implementation to find and replace resource references
-// for ARM.
-type expressionEvaluator struct {
+// for ARM and store errors.
+type evalWalker struct {
 	evalCtx *arm.EvaluationContext
-	errs    []error
+	errors  []error
 }
 
-func (*expressionEvaluator) WalkArray(arr []interface{}) (interface{}, bool) {
+func (*evalWalker) WalkArray(arr []interface{}) (interface{}, bool) {
 	return arr, true
 }
 
-func (*expressionEvaluator) WalkObject(obj map[string]interface{}) (interface{}, bool) {
+func (*evalWalker) WalkObject(obj map[string]interface{}) (interface{}, bool) {
 	return obj, true
 }
 
-func (resolver *expressionEvaluator) WalkString(s string) (interface{}, bool) {
+func (resolver *evalWalker) WalkString(s string) (interface{}, bool) {
 	evaluatedExpression, err := resolver.evalCtx.EvaluateTemplateString(s)
 	if err != nil {
-		resolver.errs = append(resolver.errs, err)
+		resolver.errors = append(resolver.errors, err)
 		return s, false
 	}
 	return evaluatedExpression, false
 }
 
-func (*expressionEvaluator) WalkBool(b bool) (interface{}, bool) {
+func (*evalWalker) WalkBool(b bool) (interface{}, bool) {
 	return b, false
 }

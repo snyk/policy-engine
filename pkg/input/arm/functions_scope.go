@@ -18,7 +18,7 @@ import "fmt"
 
 // Return a stub
 // https://learn.microsoft.com/en-us/azure/azure-resource-manager/templates/template-functions-scope#resourcegroup
-func resourceGroupImpl(e *EvaluationContext, args ...interface{}) (interface{}, error) {
+func resourceGroupImpl(args ...interface{}) (interface{}, error) {
 	if len(args) != 0 {
 		return nil, fmt.Errorf("expected zero args to resourceGroup(), got %d", len(args))
 	}

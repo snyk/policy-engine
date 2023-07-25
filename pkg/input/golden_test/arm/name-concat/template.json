@@ -1,0 +1,25 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "variables": {
+    "environment": "staging"
+  },
+  "resources": [
+    {
+      "type": "[concat('Microsoft.Network/', 'virtualNetworks')]",
+      "apiVersion": "2018-10-01",
+      "name": "[concat('VNet', '1')]",
+      "location": "switzerlandnorth",
+      "tags": {
+        "environment": "[variables('environment')]"
+      },
+      "properties": {
+        "addressSpace": {
+          "addressPrefixes": [
+            "10.0.0.0/16"
+          ]
+        }
+      }
+    }
+  ]
+}
