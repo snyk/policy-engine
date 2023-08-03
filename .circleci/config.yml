@@ -2,6 +2,39 @@ version: 2.1
 
 orbs:
   prodsec: snyk/prodsec-orb@1.0
+  snyk: snyk/snyk@1
+
+jobs:
+  # All Snyk scanning jobs use a SNYK_TOKEN from the tiki-snyk Circle context,
+  # which correponds to the tiki-snyk-circle-context service account in
+  # https://app.snyk.io/org/cloud-cloud/manage/service-accounts
+  # It's not in 1password, just rotate it and configure it in Circle directly if
+  # needed.
+  scan-code:
+    resource_class: medium
+    docker:
+      - image: cimg/go:1.20
+    steps:
+      - checkout
+      - snyk/scan:
+          organization: cloud-cloud
+          command: code test
+          fail-on-issues: true
+          severity-threshold: high
+          monitor-on-build: false
+
+  scan-deps:
+    resource_class: medium
+    docker:
+      - image: cimg/go:1.20
+    steps:
+      - checkout
+      - snyk/scan:
+          organization: cloud-cloud
+          additional-arguments: --all-projects
+          fail-on-issues: true
+          severity-threshold: high
+          monitor-on-build: true
 
 workflows:
   version: 2
@@ -12,3 +45,13 @@ workflows:
           context:
             - snyk-bot-slack
           channel: group-cloud-security-vulnerabilities-alerts
+
+      - scan-code:
+          name: Scan Code
+          context:
+            - tiki-snyk
+
+      - scan-deps:
+          name: Scan Dependencies
+          context:
+            - tiki-snyk
