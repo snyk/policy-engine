@@ -34,7 +34,7 @@ jobs:
           additional-arguments: --all-projects
           fail-on-issues: true
           severity-threshold: high
-          monitor-on-build: true
+          monitor-on-build: false
 
 workflows:
   version: 2
