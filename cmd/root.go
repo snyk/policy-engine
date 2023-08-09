@@ -145,4 +145,5 @@ func init() {
 	rootCmd.AddCommand(versionCmd)
 	rootCmd.AddCommand(metadataCmd)
 	rootCmd.AddCommand(evalCmd)
+	rootCmd.AddCommand(capabilitiesCmd)
 }
