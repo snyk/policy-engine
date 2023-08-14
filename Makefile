@@ -141,7 +141,7 @@ vendor_terraform:
 release_extra_files:
 	mkdir -p release_extra_files/
 	go run . capabilities >release_extra_files/capabilities.json
-	find rego/ -name '*.rego' \
-		-a -! -name '*_test.rego' \
-		-a -! -name '*_example.rego' | \
+	find rego -name '*.rego' \
+		-and -not -name '*_test.rego' \
+		-and -not -name '*_example.rego' | \
 		xargs tar -czf release_extra_files/regolib.tar.gz
