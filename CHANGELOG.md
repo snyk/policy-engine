@@ -2,6 +2,15 @@
 
 
 
+## v0.28.0 - 2023-08-14
+### Added
+* capabilities subcommand
+* upload extra files to github releases
+### Fixed
+* Don't snyk-monitor on build
+### Security
+* Snyk code and dependency scanning
+
 ## v0.27.0 - 2023-07-25
 ### Added
 * evaluate ARM template expressions during resource discovery (CLOUD-1648)
