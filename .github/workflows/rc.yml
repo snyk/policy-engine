@@ -21,5 +21,7 @@ jobs:
         run: echo "VERSION=v${GITHUB_REF#*release/}" >> $GITHUB_OUTPUT
       - name: Ensure changelog exists
         run: ls changes/${{ steps.version.outputs.VERSION }}.md
+      - name: Generate extra files
+        run: make release_extra_files
       - name: Run goreleaser
         run: goreleaser build --snapshot

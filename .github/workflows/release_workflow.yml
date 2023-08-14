@@ -27,6 +27,8 @@ jobs:
         echo "VERSION=$VERSION" >> $GITHUB_OUTPUT
     - name: Ensure changelog exists
       run: ls changes/${{ steps.version.outputs.VERSION }}.md
+    - name: Generate extra files
+      run: make release_extra_files
     - name: Tag version
       run: |
         VERSION=${{ steps.version.outputs.VERSION }}

@@ -22,6 +22,8 @@ jobs:
       run: echo "TAG_NAME=${GITHUB_REF/refs\/tags\//}" >> $GITHUB_OUTPUT
     - name: Ensure changelog exists
       run: ls changes/${{ steps.tag_name.outputs.TAG_NAME }}.md
+    - name: Generate extra files
+      run: make release_extra_files
     - name: Run goreleaser
       run: |
         goreleaser release \

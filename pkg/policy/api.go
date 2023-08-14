@@ -28,6 +28,7 @@ import (
 	"github.com/snyk/policy-engine/pkg/data"
 	"github.com/snyk/policy-engine/pkg/models"
 	"github.com/snyk/policy-engine/pkg/policy/inferattributes"
+	"github.com/snyk/policy-engine/pkg/snapshot_testing"
 )
 
 //go:embed regoapi
@@ -166,6 +167,7 @@ var builtinDeclarations = map[string]*types.Function{
 			types.NewDynamicProperty(types.A, types.A),
 		),
 	),
+	snapshot_testing.MatchBuiltin.Name: snapshot_testing.MatchBuiltin.Decl,
 }
 
 // Capabilities returns a Capabilities that includes the the policy engine builtins.
@@ -359,6 +361,23 @@ func (rc relationsCache) impl(
 	}
 }
 
+type snapshotTestingMatch struct{}
+
+func (b snapshotTestingMatch) name() string {
+	return snapshot_testing.MatchBuiltin.Name
+}
+
+func (b snapshotTestingMatch) decl() *types.Function {
+	return snapshot_testing.MatchBuiltin.Decl
+}
+
+func (b snapshotTestingMatch) impl(
+	bctx topdown.BuiltinContext,
+	operands []*ast.Term,
+) (*ast.Term, error) {
+	return snapshot_testing.MatchNoopImpl()(bctx, operands)
+}
+
 type Builtins struct {
 	resourcesQueried map[string]bool // We want a separate ref to this to make it cleaner to get resource types back out
 	funcs            []builtin
@@ -392,6 +411,7 @@ func NewBuiltins(
 			resourcesByType,
 			relationsCache{forward: true, cache: relations},
 			relationsCache{forward: false, cache: relations},
+			snapshotTestingMatch{},
 		},
 	}
 }

@@ -1,5 +1,6 @@
 /dist/
 /policy-engine
+/release_extra_files/
 .scratch
 .vscode
 .idea

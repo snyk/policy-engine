@@ -132,3 +132,16 @@ vendor_terraform:
 	git apply patches/terraform.patch
 	go mod tidy
 	rm -rf terraform.zip terraform-$(TERRAFORM_VERSION)
+
+# Produce extra files that should be attached to releases:
+#
+# - capabilities.json
+# - regolib.tar.gz
+.PHONY: release_extra_files
+release_extra_files:
+	mkdir -p release_extra_files/
+	go run . capabilities >release_extra_files/capabilities.json
+	find rego -name '*.rego' \
+		-and -not -name '*_test.rego' \
+		-and -not -name '*_example.rego' | \
+		xargs tar -czf release_extra_files/regolib.tar.gz
