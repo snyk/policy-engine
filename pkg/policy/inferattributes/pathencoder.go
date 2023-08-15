@@ -64,16 +64,14 @@ func (e *pathEncoder) encodePath(path []interface{}) (string, error) {
 }
 
 func (e *pathEncoder) decodePath(encoded string) ([]interface{}, error) {
-	path := []interface{}{}
+	var path []interface{}
 	for len(encoded) > 0 {
 		c := encoded[0]
 		encoded = encoded[1:]
-
-		next := strings.IndexAny(encoded[1:], "ds")
+		next := strings.IndexAny(encoded, "ds")
 		if next < 0 {
 			next = len(encoded)
 		}
-
 		d, err := strconv.Atoi(encoded[:next])
 		if err != nil {
 			return nil, err

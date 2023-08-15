@@ -164,7 +164,7 @@ func DecorateTerm(prefix []interface{}, top *ast.Term) error {
 		case ast.Object:
 			for _, key := range value.Keys() {
 				if str, ok := key.Value.(ast.String); ok {
-					path = append(path, str)
+					path = append(path, string(str))
 					if err := decorateTerm(value.Get(key)); err != nil {
 						return err
 					}
