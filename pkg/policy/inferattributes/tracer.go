@@ -15,13 +15,13 @@
 package inferattributes
 
 import (
-	"encoding/json"
-	"strings"
-
 	"github.com/open-policy-agent/opa/ast"
 	"github.com/open-policy-agent/opa/ast/location"
 	"github.com/open-policy-agent/opa/topdown"
 )
+
+// TODO: have an encoder per Tracer rather than a global one?
+var globalPathEncoder = newPathEncoder()
 
 type Tracer struct {
 	pathSet *pathSet
@@ -39,22 +39,21 @@ func (t *Tracer) coverTerm(term *ast.Term) {
 	if term == nil {
 		return
 	}
-	if encoded := extractPath(term); encoded != nil {
-		t.pathSet.Add(encoded)
+	if path := extractPath(term); path != nil {
+		t.pathSet.Add(path)
 	} else if ref, ok := term.Value.(ast.Ref); ok {
-		var encoded []interface{}
+		var path []interface{}
 		var lastEncodedIdx int
-		// Loop through elements of the ref to find the last instance of an
-		// encoded path
+		// Loop through elements of the ref to find the last instance of a path
 		for idx, ele := range ref {
 			if p := extractPath(ele); p != nil {
-				encoded = p
+				path = p
 				lastEncodedIdx = idx
 			} else {
 				break
 			}
 		}
-		if encoded != nil {
+		if path != nil {
 			// If we found an encoded path in the ref, then we'll attempt to
 			// build out the rest of the path that the rule was trying to
 			// access.
@@ -66,7 +65,7 @@ func (t *Tracer) coverTerm(term *ast.Term) {
 				if v, err := ast.JSON(ele.Value); err == nil {
 					switch v.(type) {
 					case string, int:
-						encoded = append(encoded, v)
+						path = append(path, v)
 					default:
 						break refLoop
 					}
@@ -74,7 +73,7 @@ func (t *Tracer) coverTerm(term *ast.Term) {
 					break
 				}
 			}
-			t.pathSet.Add(encoded)
+			t.pathSet.Add(path)
 		}
 	}
 }
@@ -129,31 +128,11 @@ func (t *Tracer) traceEval(event topdown.Event) {
 
 func extractPath(term *ast.Term) []interface{} {
 	if term.Location != nil {
-		if encoded := decodePath(term.Location.File); encoded != nil {
+		if encoded, _ := globalPathEncoder.decodePath(term.Location.File); encoded != nil {
 			return encoded
 		}
 	}
 	return nil
-}
-
-func encodePath(path []interface{}) (string, error) {
-	bytes, err := json.Marshal(path)
-	if err != nil {
-		return "", err
-	}
-	return "path:" + string(bytes), nil
-}
-
-func decodePath(encoded string) []interface{} {
-	if !strings.HasPrefix(encoded, "path:") {
-		return nil
-	}
-	encoded = strings.TrimPrefix(encoded, "path:")
-	var path []interface{}
-	if err := json.Unmarshal([]byte(encoded), &path); err != nil {
-		return nil
-	}
-	return path
 }
 
 // DecorateValue stores meta-information about where the values originated
@@ -165,7 +144,7 @@ func DecorateTerm(prefix []interface{}, top *ast.Term) error {
 	var decorateValue func(ast.Value) error
 	var decorateTerm func(*ast.Term) error
 	decorateTerm = func(term *ast.Term) error {
-		encoded, err := encodePath(path)
+		encoded, err := globalPathEncoder.encodePath(path)
 		if err != nil {
 			return err
 		}
