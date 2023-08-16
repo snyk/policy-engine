@@ -20,9 +20,10 @@ import (
 
 	"github.com/open-policy-agent/opa/ast"
 	"github.com/open-policy-agent/opa/topdown"
-	"github.com/open-policy-agent/opa/topdown/builtins"
 	"github.com/open-policy-agent/opa/types"
+
 	"github.com/snyk/policy-engine/pkg/models"
+	"github.com/snyk/policy-engine/pkg/rego"
 )
 
 type Query struct {
@@ -38,28 +39,8 @@ func (*Query) decl() *types.Function {
 }
 
 func (q *Query) impl(bctx topdown.BuiltinContext, operands []*ast.Term) (*ast.Term, error) {
-	scopeOpaObj, err := builtins.ObjectOperand(operands[0].Value, 0)
-	if err != nil {
-		return nil, err
-	}
-	query := ResourcesQuery{Scope: map[string]string{}}
-	if err := scopeOpaObj.Iter(func(k, v *ast.Term) error {
-		key := string(k.Value.(ast.String))
-		if key == "resource_type" {
-			query.ResourceType = string(v.Value.(ast.String))
-		} else if key == "scope" {
-			err := v.Value.(ast.Object).Iter(func(k, v *ast.Term) error {
-				scopeKey := string(k.Value.(ast.String))
-				scopeValue := string(v.Value.(ast.String))
-				query.Scope[scopeKey] = scopeValue
-				return nil
-			})
-			if err != nil {
-				return err
-			}
-		}
-		return nil
-	}); err != nil {
+	query := ResourcesQuery{}
+	if err := rego.Bind(operands[0].Value, &query); err != nil {
 		return nil, err
 	}
 
