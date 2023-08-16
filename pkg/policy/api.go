@@ -39,8 +39,8 @@ var RegoAPIProvider = data.FSProvider(regoApi, "regoapi")
 // ResourcesQuery describes a request for a specific resource type from the given scope.
 // An empty scope is interpreted as the scope of the current input.
 type ResourcesQuery struct {
-	ResourceType string            `json:"resource_type"`
-	Scope        map[string]string `json:"scope"`
+	ResourceType string            `json:"resource_type" rego:"resource_type"`
+	Scope        map[string]string `json:"scope" rego:"scope"`
 }
 
 // ResourcesResult contains an indication of whether the Scope specified in the
