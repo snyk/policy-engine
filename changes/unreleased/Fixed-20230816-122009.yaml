@@ -1,0 +1,3 @@
+kind: Fixed
+body: ensure `snyk.resources()` are returned in a deterministic order
+time: 2023-08-16T12:20:09.431557362+02:00

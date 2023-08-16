@@ -16,6 +16,7 @@ package policy
 
 import (
 	"context"
+	"sort"
 
 	"github.com/snyk/policy-engine/pkg/models"
 )
@@ -39,8 +40,13 @@ func (r *inputResolver) resolve(ctx context.Context, query ResourcesQuery) (Reso
 	ret := ResourcesResult{ScopeFound: true}
 	if resources, ok := r.input.Resources[query.ResourceType]; ok {
 		ret.ScopeFound = true
-		for _, resource := range resources {
-			ret.Resources = append(ret.Resources, resource)
+		keys := []string{}
+		for k := range resources {
+			keys = append(keys, k)
+		}
+		sort.Strings(keys) // Make sure to return in deterministic order
+		for _, k := range keys {
+			ret.Resources = append(ret.Resources, resources[k])
 		}
 	}
 	r.calledWith[query.ResourceType] = true
