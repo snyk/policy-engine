@@ -16,7 +16,9 @@ package policy
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
+	"sync"
 
 	"github.com/open-policy-agent/opa/ast"
 	"github.com/open-policy-agent/opa/topdown"
@@ -29,11 +31,18 @@ import (
 type ResourcesQueryCache struct {
 	ResourcesResolver    ResourcesResolver
 	queriedResourceTypes map[string]struct{}
+
+	// This cache is primarily meant to save memory rather than time by
+	// ensuring we reuse the same pointers to the terms.
+	cacheTerms map[string]*ast.Term
+	cacheMutex *sync.RWMutex
 }
 
 func NewResourcesQueryCache(resolver ResourcesResolver) *ResourcesQueryCache {
 	return &ResourcesQueryCache{
 		ResourcesResolver: resolver,
+		cacheTerms:        map[string]*ast.Term{},
+		cacheMutex:        &sync.RWMutex{},
 	}
 }
 
@@ -45,6 +54,8 @@ func (q *ResourcesQueryCache) trackResourceTypes(queriedResourceTypes map[string
 	return &ResourcesQueryCache{
 		ResourcesResolver:    q.ResourcesResolver,
 		queriedResourceTypes: queriedResourceTypes,
+		cacheTerms:           q.cacheTerms,
+		cacheMutex:           q.cacheMutex,
 	}
 }
 
@@ -67,17 +78,35 @@ func (q *ResourcesQueryCache) impl(bctx topdown.BuiltinContext, operands []*ast.
 		q.queriedResourceTypes[query.ResourceType] = struct{}{}
 	}
 
+	// Construct cache key
+	cacheKeyBytes, err := json.Marshal(query)
+	if err != nil {
+		return nil, err
+	}
+	cacheKey := string(cacheKeyBytes)
+
+	// Try cache first
+	q.cacheMutex.RLock()
+	cached, ok := q.cacheTerms[cacheKey]
+	q.cacheMutex.RUnlock()
+	if ok {
+		return cached, nil
+	}
+
+	// Use resolver
+	q.cacheMutex.Lock()
+	defer q.cacheMutex.Unlock()
 	resources, err := q.ResolveResources(bctx.Context, query)
 	if err != nil {
 		return nil, err
 	}
-
 	regoResources, err := resourceStatesToRegoInputs(resources)
 	if err != nil {
 		return nil, err
 	}
-
-	return ast.ArrayTerm(regoResources...), nil
+	result := ast.ArrayTerm(regoResources...)
+	q.cacheTerms[cacheKey] = result
+	return result, nil
 }
 
 func (q *ResourcesQueryCache) ResolveResources(ctx context.Context, query ResourcesQuery) ([]models.ResourceState, error) {
