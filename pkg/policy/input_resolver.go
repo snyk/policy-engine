@@ -40,7 +40,7 @@ func (r *inputResolver) resolve(ctx context.Context, query ResourcesQuery) (Reso
 	ret := ResourcesResult{ScopeFound: true}
 	if resources, ok := r.input.Resources[query.ResourceType]; ok {
 		ret.ScopeFound = true
-		keys := make([]string{}, 0, len(resources))
+		keys := make([]string, 0, len(resources))
 		for k := range resources {
 			keys = append(keys, k)
 		}
