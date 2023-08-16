@@ -41,6 +41,7 @@ func (r *inputResolver) resolve(ctx context.Context, query ResourcesQuery) (Reso
 	if resources, ok := r.input.Resources[query.ResourceType]; ok {
 		ret.ScopeFound = true
 		keys := make([]string, 0, len(resources))
+		ret.Resources = make([]models.ResourceState, 0, len(resources))
 		for k := range resources {
 			keys = append(keys, k)
 		}
