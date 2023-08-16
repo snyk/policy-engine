@@ -172,10 +172,10 @@ func (s *policySet) compile(ctx context.Context) error {
 }
 
 type evalPolicyOptions struct {
-	resourcesResolver policy.ResourcesResolver
-	policy            policy.Policy
-	input             *models.State
-	relationsCache    *policy.RelationsCache
+	policy              policy.Policy
+	input               *models.State
+	resourcesQueryCache *policy.ResourcesQueryCache
+	relationsCache      *policy.RelationsCache
 }
 
 func (s *policySet) evalPolicy(ctx context.Context, options *evalPolicyOptions) policyResults {
@@ -184,12 +184,12 @@ func (s *policySet) evalPolicy(ctx context.Context, options *evalPolicyOptions) 
 	instrumentation.startEval(ctx)
 
 	ruleResults, err := pol.Eval(ctx, policy.EvalOptions{
-		RegoState:         s.rego,
-		Logger:            instrumentation.logger,
-		ResourcesResolver: options.resourcesResolver,
-		Input:             options.input,
-		RelationsCache:    options.relationsCache,
-		Timeout:           s.timeouts.Query,
+		RegoState:           s.rego,
+		Logger:              instrumentation.logger,
+		ResourcesQueryCache: options.resourcesQueryCache,
+		Input:               options.input,
+		RelationsCache:      options.relationsCache,
+		Timeout:             s.timeouts.Query,
 	})
 	totalResults := 0
 	for idx, r := range ruleResults {
@@ -254,11 +254,11 @@ func (s *policySet) ruleIDFilter(ruleIDs []string) policyFilter {
 }
 
 type parallelEvalOptions struct {
-	resourcesResolver policy.ResourcesResolver
-	workers           int
-	input             *models.State
-	ruleIDs           []string
-	loggerFields      []loggerOption
+	workers        int
+	input          *models.State
+	resourcesQuery *policy.ResourcesQueryCache
+	ruleIDs        []string
+	loggerFields   []loggerOption
 }
 
 func (s *policySet) eval(ctx context.Context, options *parallelEvalOptions) ([]models.RuleResults, error) {
@@ -281,7 +281,7 @@ func (s *policySet) eval(ctx context.Context, options *parallelEvalOptions) ([]m
 	}
 
 	// Precompute relations
-	relationsCache, err := s.precomputeRelationsCache(ctx, options.input, options.resourcesResolver)
+	relationsCache, err := s.precomputeRelationsCache(ctx, options.input, options.resourcesQuery)
 	if err != nil {
 		return nil, newRuleBundleError(
 			s.ruleBundle(),
@@ -314,10 +314,10 @@ func (s *policySet) eval(ctx context.Context, options *parallelEvalOptions) ([]m
 						return
 					}
 					resultsChan <- s.evalPolicy(ctx, &evalPolicyOptions{
-						resourcesResolver: options.resourcesResolver,
-						policy:            p,
-						input:             options.input,
-						relationsCache:    relationsCache,
+						policy:              p,
+						input:               options.input,
+						resourcesQueryCache: options.resourcesQuery,
+						relationsCache:      relationsCache,
 					})
 				}
 			}()
@@ -348,7 +348,7 @@ func (s *policySet) eval(ctx context.Context, options *parallelEvalOptions) ([]m
 func (s *policySet) precomputeRelationsCache(
 	ctx context.Context,
 	input *models.State,
-	resourcesResolver policy.ResourcesResolver,
+	resourcesQuery *policy.ResourcesQueryCache,
 ) (*policy.RelationsCache, error) {
 	s.instrumentation.startPrecomputeRelations(ctx)
 	defer s.instrumentation.finishPrecomputeRelations(ctx)
@@ -358,9 +358,9 @@ func (s *policySet) precomputeRelationsCache(
 	err := s.query(
 		ctx,
 		&QueryOptions{
-			Query:             "data.snyk.internal.relations.forward",
-			Input:             input,
-			ResourcesResolver: resourcesResolver,
+			Query:          "data.snyk.internal.relations.forward",
+			Input:          input,
+			ResourcesQuery: resourcesQuery,
 			ResultProcessor: func(val ast.Value) error {
 				relationsCache.Forward = val
 				found = true
@@ -379,9 +379,9 @@ func (s *policySet) precomputeRelationsCache(
 	err = s.query(
 		ctx,
 		&QueryOptions{
-			Query:             "data.snyk.internal.relations.backward",
-			Input:             input,
-			ResourcesResolver: resourcesResolver,
+			Query:          "data.snyk.internal.relations.backward",
+			Input:          input,
+			ResourcesQuery: resourcesQuery,
 			ResultProcessor: func(val ast.Value) error {
 				relationsCache.Backward = val
 				found = true
@@ -435,10 +435,9 @@ type QueryOptions struct {
 	Query string
 	// Input is an optional state to query against
 	Input *models.State
-	// ResourceResolver is an optional function that returns a resource state
-	// for the given ResourceRequest. Multiple ResourcesResolvers can be
-	// composed with And() and Or().
-	ResourcesResolver policy.ResourcesResolver
+	// ResourcesQuery determines how your query will resolve resource queries.
+	// This is required if the query will end up requesting resource information.
+	ResourcesQuery *policy.ResourcesQueryCache
 	// ResultProcessor is a function that is run on every result returned by the
 	// query.
 	ResultProcessor func(ast.Value) error
@@ -449,7 +448,7 @@ func (s *policySet) query(ctx context.Context, options *QueryOptions) error {
 	if input == nil {
 		input = &models.State{}
 	}
-	builtins := policy.NewBuiltins(input, options.ResourcesResolver, nil)
+	builtins := policy.NewBuiltins(input, options.ResourcesQuery, nil)
 	return s.rego.Query(ctx, rego.Query{
 		Query:    options.Query,
 		Builtins: builtins.Implementations(),
