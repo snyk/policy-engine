@@ -25,7 +25,9 @@ resource_types_v0 := input_resource_types
 resource_types := input_resource_types
 
 resources(resource_type) = ret {
-  ret := __resources_by_type(resource_type)
+  ret := {r.id: r |
+     r := __query({"resource_type": resource_type, "scope": {}})[_]
+   }
 }
 
 allow_resource(resource) = ret {

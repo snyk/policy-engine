@@ -23,7 +23,6 @@ import (
 	"github.com/open-policy-agent/opa/ast"
 	"github.com/open-policy-agent/opa/rego"
 	"github.com/open-policy-agent/opa/topdown"
-	"github.com/open-policy-agent/opa/topdown/builtins"
 	"github.com/open-policy-agent/opa/types"
 	"github.com/snyk/policy-engine/pkg/data"
 	"github.com/snyk/policy-engine/pkg/models"
@@ -101,7 +100,6 @@ func (l ResourcesResolver) Or(r ResourcesResolver) ResourcesResolver {
 }
 
 // Constants for builtin functions
-const resourcesByTypeName = "__resources_by_type"
 const currentInputTypeName = "__current_input_type"
 const inputResourceTypesName = "__input_resource_types"
 const queryName = "__query"
@@ -109,24 +107,6 @@ const snykRelationsCacheForward = "__snyk_relations_cache_forward"
 const snykRelationsCacheBackward = "__snyk_relations_cache_backward"
 
 var builtinDeclarations = map[string]*types.Function{
-	resourcesByTypeName: types.NewFunction(
-		types.Args(types.S),
-		types.NewObject(
-			nil,
-			types.NewDynamicProperty(
-				types.S,
-				types.NewObject(
-					[]*types.StaticProperty{
-						types.NewStaticProperty("id", types.S),
-						types.NewStaticProperty("_id", types.S),
-						types.NewStaticProperty("_type", types.S),
-						types.NewStaticProperty("_namespace", types.S),
-					},
-					types.NewDynamicProperty(types.S, types.A),
-				),
-			),
-		),
-	),
 	currentInputTypeName: types.NewFunction(
 		types.Args(),
 		types.S,
@@ -196,46 +176,6 @@ type builtin interface {
 	name() string
 	decl() *types.Function
 	impl(bctx topdown.BuiltinContext, operands []*ast.Term) (*ast.Term, error)
-}
-
-type resourcesByType struct {
-	calledWith map[string]bool
-	input      *models.State
-}
-
-func (r *resourcesByType) name() string {
-	return resourcesByTypeName
-}
-
-func (r *resourcesByType) decl() *types.Function {
-	return builtinDeclarations[resourcesByTypeName]
-}
-
-func (r *resourcesByType) impl(
-	bctx topdown.BuiltinContext,
-	operands []*ast.Term,
-) (*ast.Term, error) {
-	if len(operands) != 2 {
-		return nil, fmt.Errorf("Expected one argument")
-	}
-	arg, err := builtins.StringOperand(operands[0].Value, 0)
-	if err != nil {
-		return nil, err
-	}
-	rt := string(arg)
-	ret := [][2]*ast.Term{}
-	if resources, ok := r.input.Resources[rt]; ok {
-		for resourceKey, resource := range resources {
-			resource, err := resourceStateToRegoInput(resource)
-			if err != nil {
-				return nil, err
-			}
-			ret = append(ret, [2]*ast.Term{ast.StringTerm(resourceKey), resource})
-		}
-	}
-	term := ast.ObjectTerm(ret...)
-	r.calledWith[rt] = true
-	return term, nil
 }
 
 func resourceStateToRegoInput(resource models.ResourceState) (*ast.Term, error) {
@@ -396,7 +336,6 @@ func NewBuiltins(
 	// Share the same calledWith map across resource-querying builtins, so that
 	// all queried resources are returned by inputResourceTypes
 	inputResolver := newInputResolver(input)
-	resourcesByType := &resourcesByType{input: input, calledWith: inputResolver.calledWith}
 	resolver := ResourcesResolver(inputResolver.resolve)
 	if resourcesResolver != nil {
 		resolver = resolver.Or(resourcesResolver)
@@ -408,7 +347,6 @@ func NewBuiltins(
 			&Query{ResourcesResolver: resolver},
 			&currentInputType{input},
 			&inputResourceTypes{input},
-			resourcesByType,
 			relationsCache{forward: true, cache: relations},
 			relationsCache{forward: false, cache: relations},
 			snapshotTestingMatch{},
