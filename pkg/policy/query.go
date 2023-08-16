@@ -26,22 +26,45 @@ import (
 	"github.com/snyk/policy-engine/pkg/rego"
 )
 
-type Query struct {
-	ResourcesResolver ResourcesResolver
+type ResourcesQueryCache struct {
+	ResourcesResolver    ResourcesResolver
+	queriedResourceTypes map[string]struct{}
 }
 
-func (*Query) name() string {
+func NewResourcesQueryCache(resolver ResourcesResolver) *ResourcesQueryCache {
+	return &ResourcesQueryCache{
+		ResourcesResolver: resolver,
+	}
+}
+
+// trackResourceTypes creates a copy of the query that tracks resource types
+// used in queries in the given map.  This allows us to still use the same
+// cache (across policies) but have a separate set of used resource types
+// per policy.
+func (q *ResourcesQueryCache) trackResourceTypes(queriedResourceTypes map[string]struct{}) *ResourcesQueryCache {
+	return &ResourcesQueryCache{
+		ResourcesResolver:    q.ResourcesResolver,
+		queriedResourceTypes: queriedResourceTypes,
+	}
+}
+
+func (*ResourcesQueryCache) name() string {
 	return queryName
 }
 
-func (*Query) decl() *types.Function {
+func (*ResourcesQueryCache) decl() *types.Function {
 	return builtinDeclarations[queryName]
 }
 
-func (q *Query) impl(bctx topdown.BuiltinContext, operands []*ast.Term) (*ast.Term, error) {
+func (q *ResourcesQueryCache) impl(bctx topdown.BuiltinContext, operands []*ast.Term) (*ast.Term, error) {
 	query := ResourcesQuery{}
 	if err := rego.Bind(operands[0].Value, &query); err != nil {
 		return nil, err
+	}
+
+	// Track queried resource types
+	if q.queriedResourceTypes != nil {
+		q.queriedResourceTypes[query.ResourceType] = struct{}{}
 	}
 
 	resources, err := q.ResolveResources(bctx.Context, query)
@@ -57,7 +80,7 @@ func (q *Query) impl(bctx topdown.BuiltinContext, operands []*ast.Term) (*ast.Te
 	return ast.ArrayTerm(regoResources...), nil
 }
 
-func (q *Query) ResolveResources(ctx context.Context, query ResourcesQuery) ([]models.ResourceState, error) {
+func (q *ResourcesQueryCache) ResolveResources(ctx context.Context, query ResourcesQuery) ([]models.ResourceState, error) {
 	res, err := q.ResourcesResolver(ctx, query)
 	if err != nil {
 		return nil, fmt.Errorf("error in ResourcesResolver: %s", err)

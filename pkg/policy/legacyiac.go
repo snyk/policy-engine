@@ -85,7 +85,7 @@ func (p *LegacyIaCPolicy) Eval(
 			logger.Error(ctx, "Failed to prepare input")
 			return p.errorOutput(err)
 		}
-		builtins := NewBuiltins(options.Input, options.ResourcesResolver, nil)
+		builtins := NewBuiltins(options.Input, options.ResourcesQueryCache, nil)
 		strictBuiltinErrors := false
 		query := rego.Query{
 			Builtins:            builtins.Implementations(),

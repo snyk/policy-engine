@@ -26,8 +26,8 @@ func TestInputResolverDeterministic(t *testing.T) {
 			},
 		},
 	}
-	resolver := newInputResolver(&input)
-	result, err := resolver.resolve(context.Background(), ResourcesQuery{
+	resolver := NewInputResolver(&input)
+	result, err := resolver(context.Background(), ResourcesQuery{
 		ResourceType: "aws_s3_bucket",
 	})
 	require.NoError(t, err)

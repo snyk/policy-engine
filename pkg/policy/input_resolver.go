@@ -21,35 +21,24 @@ import (
 	"github.com/snyk/policy-engine/pkg/models"
 )
 
-type inputResolver struct {
-	calledWith map[string]bool
-	input      *models.State
-}
-
-func newInputResolver(input *models.State) *inputResolver {
-	return &inputResolver{
-		calledWith: map[string]bool{},
-		input:      input,
-	}
-}
-
-func (r *inputResolver) resolve(ctx context.Context, query ResourcesQuery) (ResourcesResult, error) {
-	if !ScopeMatches(query.Scope, r.input.Scope) {
-		return ResourcesResult{ScopeFound: false}, nil
-	}
-	ret := ResourcesResult{ScopeFound: true}
-	if resources, ok := r.input.Resources[query.ResourceType]; ok {
-		ret.ScopeFound = true
-		keys := make([]string, 0, len(resources))
-		for k := range resources {
-			keys = append(keys, k)
+func NewInputResolver(input *models.State) ResourcesResolver {
+	return func(ctx context.Context, query ResourcesQuery) (ResourcesResult, error) {
+		if !ScopeMatches(query.Scope, input.Scope) {
+			return ResourcesResult{ScopeFound: false}, nil
 		}
-		sort.Strings(keys) // Make sure to return in deterministic order
-		ret.Resources = make([]models.ResourceState, 0, len(resources))
-		for _, k := range keys {
-			ret.Resources = append(ret.Resources, resources[k])
+		ret := ResourcesResult{ScopeFound: true}
+		if resources, ok := input.Resources[query.ResourceType]; ok {
+			ret.ScopeFound = true
+			keys := make([]string, 0, len(resources))
+			for k := range resources {
+				keys = append(keys, k)
+			}
+			sort.Strings(keys) // Make sure to return in deterministic order
+			ret.Resources = make([]models.ResourceState, 0, len(resources))
+			for _, k := range keys {
+				ret.Resources = append(ret.Resources, resources[k])
+			}
 		}
+		return ret, nil
 	}
-	r.calledWith[query.ResourceType] = true
-	return ret, nil
 }
