@@ -435,7 +435,7 @@ type QueryOptions struct {
 	Query string
 	// Input is an optional state to query against
 	Input *models.State
-	// ResourceResolver determines how your query will resolve resource queries.
+	// ResourcesQuery determines how your query will resolve resource queries.
 	// This is required if the query will end up requesting resource information.
 	ResourcesQuery *policy.ResourcesQueryCache
 	// ResultProcessor is a function that is run on every result returned by the
