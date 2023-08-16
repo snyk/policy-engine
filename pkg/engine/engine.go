@@ -220,14 +220,17 @@ func (e *Engine) Eval(ctx context.Context, options *EvalOptions) *models.Results
 		e.instrumentation.startEvaluateInput(ctx, loggerFields)
 		allRuleResults := []models.RuleResults{}
 		totalResults := 0
+		resourcesQuery := policy.NewResourcesQueryCache(
+			policy.NewInputResolver(&input).Or(options.ResourcesResolver),
+		)
 		for _, p := range e.policySets {
 			err := withtimeout.Do(ctx, e.timeouts.Eval, ErrEvalTimedOut, func(ctx context.Context) error {
 				ruleResults, err := p.eval(ctx, &parallelEvalOptions{
-					resourcesResolver: options.ResourcesResolver,
-					input:             &input,
-					ruleIDs:           options.RuleIDs,
-					workers:           options.Workers,
-					loggerFields:      loggerFields,
+					input:          &input,
+					resourcesQuery: resourcesQuery,
+					ruleIDs:        options.RuleIDs,
+					workers:        options.Workers,
+					loggerFields:   loggerFields,
 				})
 				if err != nil {
 					return err

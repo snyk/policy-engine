@@ -86,7 +86,7 @@ func (l ResourcesResolver) Or(r ResourcesResolver) ResourcesResolver {
 		}
 		result.ScopeFound = result.ScopeFound || lresult.ScopeFound
 		result.Resources = append(result.Resources, lresult.Resources...)
-		if result.ScopeFound {
+		if result.ScopeFound || r == nil {
 			return result, nil
 		}
 		rresult, err := r(ctx, req)
@@ -319,8 +319,8 @@ func (b snapshotTestingMatch) impl(
 }
 
 type Builtins struct {
-	resourcesQueried map[string]bool // We want a separate ref to this to make it cleaner to get resource types back out
-	funcs            []builtin
+	resourceTypesQueried map[string]struct{} // We want a separate ref to this to make it cleaner to get resource types back out
+	funcs                []builtin
 }
 
 type RelationsCache struct {
@@ -330,21 +330,15 @@ type RelationsCache struct {
 
 func NewBuiltins(
 	input *models.State,
-	resourcesResolver ResourcesResolver,
+	resourcesQuery *ResourcesQueryCache,
 	relations *RelationsCache,
 ) *Builtins {
-	// Share the same calledWith map across resource-querying builtins, so that
-	// all queried resources are returned by inputResourceTypes
-	inputResolver := newInputResolver(input)
-	resolver := ResourcesResolver(inputResolver.resolve)
-	if resourcesResolver != nil {
-		resolver = resolver.Or(resourcesResolver)
-	}
+	resourceTypesQueried := map[string]struct{}{}
 
 	return &Builtins{
-		resourcesQueried: inputResolver.calledWith,
+		resourceTypesQueried: resourceTypesQueried,
 		funcs: []builtin{
-			&Query{ResourcesResolver: resolver},
+			resourcesQuery.trackResourceTypes(resourceTypesQueried),
 			&currentInputType{input},
 			&inputResourceTypes{input},
 			relationsCache{forward: true, cache: relations},
@@ -395,8 +389,8 @@ func (b *Builtins) Implementations() map[string]*topdown.Builtin {
 }
 
 func (b *Builtins) ResourceTypes() []string {
-	rts := make([]string, 0, len(b.resourcesQueried))
-	for rt := range b.resourcesQueried {
+	rts := make([]string, 0, len(b.resourceTypesQueried))
+	for rt := range b.resourceTypesQueried {
 		rts = append(rts, rt)
 	}
 	sort.Strings(rts)

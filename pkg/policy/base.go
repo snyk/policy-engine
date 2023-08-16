@@ -59,12 +59,12 @@ var SupportedInputTypes = input.Types{
 }
 
 type EvalOptions struct {
-	RegoState         *rego.State
-	Input             *models.State
-	RelationsCache    *RelationsCache
-	Logger            logging.Logger
-	ResourcesResolver ResourcesResolver
-	Timeout           time.Duration
+	RegoState           *rego.State
+	Input               *models.State
+	RelationsCache      *RelationsCache
+	ResourcesQueryCache *ResourcesQueryCache
+	Logger              logging.Logger
+	Timeout             time.Duration
 }
 
 // Policy is an interface that supports all of the ways we want to interact
