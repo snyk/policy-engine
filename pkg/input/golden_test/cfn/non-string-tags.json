@@ -1,0 +1,593 @@
+{
+  "format": "",
+  "format_version": "",
+  "input_type": "cfn",
+  "environment_provider": "iac",
+  "meta": {
+    "filepath": "golden_test/cfn/non-string-tags/main.json"
+  },
+  "resources": {
+    "AWS::EC2::EIP": {
+      "NatEIP1": {
+        "id": "NatEIP1",
+        "resource_type": "AWS::EC2::EIP",
+        "namespace": "golden_test/cfn/non-string-tags/main.json",
+        "meta": {},
+        "attributes": {
+          "Domain": "vpc"
+        }
+      },
+      "NatEIP2": {
+        "id": "NatEIP2",
+        "resource_type": "AWS::EC2::EIP",
+        "namespace": "golden_test/cfn/non-string-tags/main.json",
+        "meta": {},
+        "attributes": {
+          "Domain": "vpc"
+        }
+      }
+    },
+    "AWS::EC2::InternetGateway": {
+      "InternetGateway": {
+        "id": "InternetGateway",
+        "resource_type": "AWS::EC2::InternetGateway",
+        "namespace": "golden_test/cfn/non-string-tags/main.json",
+        "meta": {},
+        "attributes": {
+          "Tags": [
+            {
+              "Key": "Name",
+              "Value": null
+            }
+          ]
+        }
+      }
+    },
+    "AWS::EC2::NatGateway": {
+      "NatGateway1": {
+        "id": "NatGateway1",
+        "resource_type": "AWS::EC2::NatGateway",
+        "namespace": "golden_test/cfn/non-string-tags/main.json",
+        "meta": {},
+        "attributes": {
+          "AllocationId": null,
+          "SubnetId": null
+        }
+      },
+      "NatGateway2": {
+        "id": "NatGateway2",
+        "resource_type": "AWS::EC2::NatGateway",
+        "namespace": "golden_test/cfn/non-string-tags/main.json",
+        "meta": {},
+        "attributes": {
+          "AllocationId": null,
+          "SubnetId": null
+        }
+      }
+    },
+    "AWS::EC2::Route": {
+      "NatRoute1": {
+        "id": "NatRoute1",
+        "resource_type": "AWS::EC2::Route",
+        "namespace": "golden_test/cfn/non-string-tags/main.json",
+        "meta": {},
+        "attributes": {
+          "DestinationCidrBlock": "0.0.0.0/0",
+          "NatGatewayId": null,
+          "RouteTableId": null
+        }
+      },
+      "NatRoute2": {
+        "id": "NatRoute2",
+        "resource_type": "AWS::EC2::Route",
+        "namespace": "golden_test/cfn/non-string-tags/main.json",
+        "meta": {},
+        "attributes": {
+          "DestinationCidrBlock": "0.0.0.0/0",
+          "NatGatewayId": null,
+          "RouteTableId": null
+        }
+      },
+      "PublicRoute": {
+        "id": "PublicRoute",
+        "resource_type": "AWS::EC2::Route",
+        "namespace": "golden_test/cfn/non-string-tags/main.json",
+        "meta": {},
+        "attributes": {
+          "DestinationCidrBlock": "0.0.0.0/0",
+          "GatewayId": null,
+          "RouteTableId": null
+        }
+      }
+    },
+    "AWS::EC2::RouteTable": {
+      "NatRouteTable1": {
+        "id": "NatRouteTable1",
+        "resource_type": "AWS::EC2::RouteTable",
+        "namespace": "golden_test/cfn/non-string-tags/main.json",
+        "meta": {},
+        "attributes": {
+          "Tags": [
+            {
+              "Key": "Name",
+              "Value": null
+            }
+          ],
+          "VpcId": null
+        }
+      },
+      "NatRouteTable2": {
+        "id": "NatRouteTable2",
+        "resource_type": "AWS::EC2::RouteTable",
+        "namespace": "golden_test/cfn/non-string-tags/main.json",
+        "meta": {},
+        "attributes": {
+          "Tags": [
+            {
+              "Key": "Name",
+              "Value": null
+            }
+          ],
+          "VpcId": null
+        }
+      },
+      "PublicRouteTable": {
+        "id": "PublicRouteTable",
+        "resource_type": "AWS::EC2::RouteTable",
+        "namespace": "golden_test/cfn/non-string-tags/main.json",
+        "meta": {},
+        "attributes": {
+          "Tags": [
+            {
+              "Key": "Name",
+              "Value": null
+            }
+          ],
+          "VpcId": null
+        }
+      }
+    },
+    "AWS::EC2::SecurityGroup": {
+      "AppSecurityGroup": {
+        "id": "AppSecurityGroup",
+        "resource_type": "AWS::EC2::SecurityGroup",
+        "namespace": "golden_test/cfn/non-string-tags/main.json",
+        "meta": {},
+        "attributes": {
+          "GroupDescription": "Enable access from ELB to app",
+          "SecurityGroupIngress": [
+            {
+              "FromPort": null,
+              "IpProtocol": "tcp",
+              "SourceSecurityGroupId": null,
+              "ToPort": null
+            },
+            {
+              "FromPort": 22,
+              "IpProtocol": "tcp",
+              "SourceSecurityGroupId": null,
+              "ToPort": 22
+            }
+          ],
+          "Tags": [
+            {
+              "Key": "Name",
+              "Value": null
+            }
+          ],
+          "VpcId": null
+        }
+      },
+      "BastionSecurityGroup": {
+        "id": "BastionSecurityGroup",
+        "resource_type": "AWS::EC2::SecurityGroup",
+        "namespace": "golden_test/cfn/non-string-tags/main.json",
+        "meta": {},
+        "attributes": {
+          "GroupDescription": "Enable access to the bastion host",
+          "SecurityGroupEgress": [
+            {
+              "CidrIp": "0.0.0.0/0",
+              "FromPort": 80,
+              "IpProtocol": "tcp",
+              "ToPort": 80
+            },
+            {
+              "CidrIp": "0.0.0.0/0",
+              "FromPort": 443,
+              "IpProtocol": "tcp",
+              "ToPort": 443
+            },
+            {
+              "CidrIp": "0.0.0.0/0",
+              "FromPort": 123,
+              "IpProtocol": "udp",
+              "ToPort": 123
+            }
+          ],
+          "SecurityGroupIngress": [
+            {
+              "CidrIp": null,
+              "FromPort": 22,
+              "IpProtocol": "tcp",
+              "ToPort": 22
+            }
+          ],
+          "Tags": [
+            {
+              "Key": "Name",
+              "Value": null
+            }
+          ],
+          "VpcId": null
+        }
+      },
+      "DbSecurityGroup": {
+        "id": "DbSecurityGroup",
+        "resource_type": "AWS::EC2::SecurityGroup",
+        "namespace": "golden_test/cfn/non-string-tags/main.json",
+        "meta": {},
+        "attributes": {
+          "GroupDescription": "Enable access to the RDS DB",
+          "SecurityGroupEgress": [
+            {
+              "CidrIp": "0.0.0.0/0",
+              "FromPort": 3306,
+              "IpProtocol": "tcp",
+              "ToPort": 3306
+            },
+            {
+              "CidrIp": "0.0.0.0/0",
+              "FromPort": 5432,
+              "IpProtocol": "tcp",
+              "ToPort": 5432
+            }
+          ],
+          "Tags": [
+            {
+              "Key": "Name",
+              "Value": null
+            }
+          ],
+          "VpcId": null
+        }
+      },
+      "ELBSecurityGroup": {
+        "id": "ELBSecurityGroup",
+        "resource_type": "AWS::EC2::SecurityGroup",
+        "namespace": "golden_test/cfn/non-string-tags/main.json",
+        "meta": {},
+        "attributes": {
+          "GroupDescription": "Enable HTTP/HTTPs ingress",
+          "SecurityGroupIngress": [
+            {
+              "CidrIp": "0.0.0.0/0",
+              "FromPort": null,
+              "IpProtocol": "tcp",
+              "ToPort": null
+            }
+          ],
+          "Tags": [
+            {
+              "Key": "Name",
+              "Value": null
+            }
+          ],
+          "VpcId": null
+        }
+      }
+    },
+    "AWS::EC2::SecurityGroupEgress": {
+      "BastionSecurityGroupToAppEgress": {
+        "id": "BastionSecurityGroupToAppEgress",
+        "resource_type": "AWS::EC2::SecurityGroupEgress",
+        "namespace": "golden_test/cfn/non-string-tags/main.json",
+        "meta": {},
+        "attributes": {
+          "DestinationSecurityGroupId": null,
+          "FromPort": 22,
+          "GroupId": null,
+          "IpProtocol": "tcp",
+          "ToPort": 22
+        }
+      },
+      "BastionSecurityGroupToPostgreMySqlDbEgress": {
+        "id": "BastionSecurityGroupToPostgreMySqlDbEgress",
+        "resource_type": "AWS::EC2::SecurityGroupEgress",
+        "namespace": "golden_test/cfn/non-string-tags/main.json",
+        "meta": {},
+        "attributes": {
+          "DestinationSecurityGroupId": null,
+          "FromPort": 3306,
+          "GroupId": null,
+          "IpProtocol": "tcp",
+          "ToPort": 3306
+        }
+      },
+      "BastionSecurityGroupToPostgreSqlDbEgress": {
+        "id": "BastionSecurityGroupToPostgreSqlDbEgress",
+        "resource_type": "AWS::EC2::SecurityGroupEgress",
+        "namespace": "golden_test/cfn/non-string-tags/main.json",
+        "meta": {},
+        "attributes": {
+          "DestinationSecurityGroupId": null,
+          "FromPort": 5432,
+          "GroupId": null,
+          "IpProtocol": "tcp",
+          "ToPort": 5432
+        }
+      },
+      "ELBSecurityGroupToAppEgress": {
+        "id": "ELBSecurityGroupToAppEgress",
+        "resource_type": "AWS::EC2::SecurityGroupEgress",
+        "namespace": "golden_test/cfn/non-string-tags/main.json",
+        "meta": {},
+        "attributes": {
+          "DestinationSecurityGroupId": null,
+          "FromPort": null,
+          "GroupId": null,
+          "IpProtocol": "tcp",
+          "ToPort": null
+        }
+      }
+    },
+    "AWS::EC2::SecurityGroupIngress": {
+      "AppSecurityGroupFromBastionIngress": {
+        "id": "AppSecurityGroupFromBastionIngress",
+        "resource_type": "AWS::EC2::SecurityGroupIngress",
+        "namespace": "golden_test/cfn/non-string-tags/main.json",
+        "meta": {},
+        "attributes": {
+          "FromPort": 22,
+          "GroupId": null,
+          "IpProtocol": "tcp",
+          "SourceSecurityGroupId": null,
+          "ToPort": 22
+        }
+      },
+      "AppSecurityGroupFromELBIngress": {
+        "id": "AppSecurityGroupFromELBIngress",
+        "resource_type": "AWS::EC2::SecurityGroupIngress",
+        "namespace": "golden_test/cfn/non-string-tags/main.json",
+        "meta": {},
+        "attributes": {
+          "FromPort": null,
+          "GroupId": null,
+          "IpProtocol": "tcp",
+          "SourceSecurityGroupId": null,
+          "ToPort": null
+        }
+      },
+      "DbSecurityGroupFromAppMySqlIngress": {
+        "id": "DbSecurityGroupFromAppMySqlIngress",
+        "resource_type": "AWS::EC2::SecurityGroupIngress",
+        "namespace": "golden_test/cfn/non-string-tags/main.json",
+        "meta": {},
+        "attributes": {
+          "FromPort": 3306,
+          "GroupId": null,
+          "IpProtocol": "tcp",
+          "SourceSecurityGroupId": null,
+          "ToPort": 3306
+        }
+      },
+      "DbSecurityGroupFromAppPostgreSqlIngress": {
+        "id": "DbSecurityGroupFromAppPostgreSqlIngress",
+        "resource_type": "AWS::EC2::SecurityGroupIngress",
+        "namespace": "golden_test/cfn/non-string-tags/main.json",
+        "meta": {},
+        "attributes": {
+          "FromPort": 5432,
+          "GroupId": null,
+          "IpProtocol": "tcp",
+          "SourceSecurityGroupId": null,
+          "ToPort": 5432
+        }
+      },
+      "DbSecurityGroupFromBastionMySqlIngress": {
+        "id": "DbSecurityGroupFromBastionMySqlIngress",
+        "resource_type": "AWS::EC2::SecurityGroupIngress",
+        "namespace": "golden_test/cfn/non-string-tags/main.json",
+        "meta": {},
+        "attributes": {
+          "FromPort": 3306,
+          "GroupId": null,
+          "IpProtocol": "tcp",
+          "SourceSecurityGroupId": null,
+          "ToPort": 3306
+        }
+      },
+      "DbSecurityGroupFromBastionPostgreSqlIngress": {
+        "id": "DbSecurityGroupFromBastionPostgreSqlIngress",
+        "resource_type": "AWS::EC2::SecurityGroupIngress",
+        "namespace": "golden_test/cfn/non-string-tags/main.json",
+        "meta": {},
+        "attributes": {
+          "FromPort": 5432,
+          "GroupId": null,
+          "IpProtocol": "tcp",
+          "SourceSecurityGroupId": null,
+          "ToPort": 5432
+        }
+      }
+    },
+    "AWS::EC2::Subnet": {
+      "PrivateSubnet1": {
+        "id": "PrivateSubnet1",
+        "resource_type": "AWS::EC2::Subnet",
+        "namespace": "golden_test/cfn/non-string-tags/main.json",
+        "meta": {},
+        "attributes": {
+          "AvailabilityZone": null,
+          "CidrBlock": null,
+          "Tags": [
+            {
+              "Key": "Name",
+              "Value": null
+            }
+          ],
+          "VpcId": null
+        }
+      },
+      "PrivateSubnet2": {
+        "id": "PrivateSubnet2",
+        "resource_type": "AWS::EC2::Subnet",
+        "namespace": "golden_test/cfn/non-string-tags/main.json",
+        "meta": {},
+        "attributes": {
+          "AvailabilityZone": null,
+          "CidrBlock": null,
+          "Tags": [
+            {
+              "Key": "Name",
+              "Value": null
+            }
+          ],
+          "VpcId": null
+        }
+      },
+      "PublicSubnet1": {
+        "id": "PublicSubnet1",
+        "resource_type": "AWS::EC2::Subnet",
+        "namespace": "golden_test/cfn/non-string-tags/main.json",
+        "meta": {},
+        "attributes": {
+          "AvailabilityZone": null,
+          "CidrBlock": null,
+          "Tags": [
+            {
+              "Key": "Name",
+              "Value": null
+            }
+          ],
+          "VpcId": null
+        }
+      },
+      "PublicSubnet2": {
+        "id": "PublicSubnet2",
+        "resource_type": "AWS::EC2::Subnet",
+        "namespace": "golden_test/cfn/non-string-tags/main.json",
+        "meta": {},
+        "attributes": {
+          "AvailabilityZone": null,
+          "CidrBlock": null,
+          "Tags": [
+            {
+              "Key": "Name",
+              "Value": null
+            }
+          ],
+          "VpcId": null
+        }
+      }
+    },
+    "AWS::EC2::SubnetNetworkAclAssociation": {
+      "PublicSubnetNetworkAclAssociation1": {
+        "id": "PublicSubnetNetworkAclAssociation1",
+        "resource_type": "AWS::EC2::SubnetNetworkAclAssociation",
+        "namespace": "golden_test/cfn/non-string-tags/main.json",
+        "meta": {},
+        "attributes": {
+          "NetworkAclId": null,
+          "SubnetId": null
+        }
+      },
+      "PublicSubnetNetworkAclAssociation2": {
+        "id": "PublicSubnetNetworkAclAssociation2",
+        "resource_type": "AWS::EC2::SubnetNetworkAclAssociation",
+        "namespace": "golden_test/cfn/non-string-tags/main.json",
+        "meta": {},
+        "attributes": {
+          "NetworkAclId": null,
+          "SubnetId": null
+        }
+      }
+    },
+    "AWS::EC2::SubnetRouteTableAssociation": {
+      "PrivateSubnetRouteTableAssociation1": {
+        "id": "PrivateSubnetRouteTableAssociation1",
+        "resource_type": "AWS::EC2::SubnetRouteTableAssociation",
+        "namespace": "golden_test/cfn/non-string-tags/main.json",
+        "meta": {},
+        "attributes": {
+          "RouteTableId": null,
+          "SubnetId": null
+        }
+      },
+      "PrivateSubnetRouteTableAssociation2": {
+        "id": "PrivateSubnetRouteTableAssociation2",
+        "resource_type": "AWS::EC2::SubnetRouteTableAssociation",
+        "namespace": "golden_test/cfn/non-string-tags/main.json",
+        "meta": {},
+        "attributes": {
+          "RouteTableId": null,
+          "SubnetId": null
+        }
+      },
+      "PrivateSubnetRouteTableAssociationSingleNatGateway": {
+        "id": "PrivateSubnetRouteTableAssociationSingleNatGateway",
+        "resource_type": "AWS::EC2::SubnetRouteTableAssociation",
+        "namespace": "golden_test/cfn/non-string-tags/main.json",
+        "meta": {},
+        "attributes": {
+          "RouteTableId": null,
+          "SubnetId": null
+        }
+      },
+      "PublicSubnetRouteTableAssociation1": {
+        "id": "PublicSubnetRouteTableAssociation1",
+        "resource_type": "AWS::EC2::SubnetRouteTableAssociation",
+        "namespace": "golden_test/cfn/non-string-tags/main.json",
+        "meta": {},
+        "attributes": {
+          "RouteTableId": null,
+          "SubnetId": null
+        }
+      },
+      "PublicSubnetRouteTableAssociation2": {
+        "id": "PublicSubnetRouteTableAssociation2",
+        "resource_type": "AWS::EC2::SubnetRouteTableAssociation",
+        "namespace": "golden_test/cfn/non-string-tags/main.json",
+        "meta": {},
+        "attributes": {
+          "RouteTableId": null,
+          "SubnetId": null
+        }
+      }
+    },
+    "AWS::EC2::VPC": {
+      "VPC": {
+        "id": "VPC",
+        "resource_type": "AWS::EC2::VPC",
+        "namespace": "golden_test/cfn/non-string-tags/main.json",
+        "meta": {},
+        "attributes": {
+          "CidrBlock": null,
+          "EnableDnsHostnames": true,
+          "EnableDnsSupport": true,
+          "Tags": [
+            {
+              "Key": "Name",
+              "Value": null
+            }
+          ]
+        }
+      }
+    },
+    "AWS::EC2::VPCGatewayAttachment": {
+      "VPCGatewayAttachment": {
+        "id": "VPCGatewayAttachment",
+        "resource_type": "AWS::EC2::VPCGatewayAttachment",
+        "namespace": "golden_test/cfn/non-string-tags/main.json",
+        "meta": {},
+        "attributes": {
+          "InternetGatewayId": null,
+          "VpcId": null
+        }
+      }
+    }
+  },
+  "scope": {
+    "filepath": "golden_test/cfn/non-string-tags/main.json"
+  }
+}
