@@ -34,8 +34,8 @@ func cfnExtractTags(model models.ResourceState) map[string]string {
 	if tags, ok := model.Attributes["Tags"].([]interface{}); ok {
 		for _, tag := range tags {
 			if tag, ok := tag.(map[string]interface{}); ok {
-				if key := tag["Key"].(string); ok {
-					if val := tag["Value"].(string); ok {
+				if key, ok := tag["Key"].(string); ok {
+					if val, ok := tag["Value"].(string); ok {
 						found[key] = val
 					}
 				}
