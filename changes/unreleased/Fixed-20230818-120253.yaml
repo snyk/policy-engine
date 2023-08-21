@@ -1,3 +1,0 @@
-kind: Fixed
-body: Panic when parsing non-string CFN tags
-time: 2023-08-18T12:02:53.456171+02:00

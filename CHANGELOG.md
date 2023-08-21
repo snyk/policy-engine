@@ -2,6 +2,10 @@
 
 
 
+## v0.29.1 - 2023-08-21
+### Fixed
+* Panic when parsing non-string CFN tags
+
 ## v0.29.0 - 2023-08-17
 ### Added
 * cache resource queries
