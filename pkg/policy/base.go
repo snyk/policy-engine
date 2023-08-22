@@ -398,7 +398,7 @@ func (p *BasePolicy) Metadata(
 		return m, fmt.Errorf("Unrecognized metadata rule: %s", p.metadataRule.name)
 	}
 	if m.Kind == "" {
-		m.Kind = "vulnerability"
+		m.Kind = defaultKind
 	}
 	p.cachedMetadata = &m
 	return m, nil
