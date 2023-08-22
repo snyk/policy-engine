@@ -185,8 +185,9 @@ The `metadata` rule defines static metadata associated with the policy. See the
 #### Supported fields
 
 **NOTE** that `policy-engine` by itself does not enforce any restrictions on
-metadata fields apart from their data type. The descriptions below are mostly intended
-to clarify the intent of each field.
+metadata fields apart from their data type.  Custom, extra fields can be added
+but these will not be present in the `policy-engine` output.  The descriptions
+below are mostly intended to clarify the intent of each field.
 
 | Field           |  Type  | Description                                                                                                      |
 | :-------------- | :----: | :--------------------------------------------------------------------------------------------------------------- |
