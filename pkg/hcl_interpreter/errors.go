@@ -44,7 +44,7 @@ type EvaluationError struct {
 }
 
 func (err EvaluationError) Error() string {
-	return "Evaluation error: " + err.Diags.Error()
+	return "Skipping evaluation: " + err.Diags.Error()
 }
 
 type MissingTermError struct {
