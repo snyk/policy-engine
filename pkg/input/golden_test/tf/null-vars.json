@@ -1,0 +1,31 @@
+{
+  "format": "",
+  "format_version": "",
+  "input_type": "tf_hcl",
+  "environment_provider": "iac",
+  "meta": {
+    "filepath": "golden_test/tf/null-vars/main.tf"
+  },
+  "resources": {
+    "aws_s3_bucket": {
+      "aws_s3_bucket.main": {
+        "id": "aws_s3_bucket.main",
+        "resource_type": "aws_s3_bucket",
+        "namespace": "golden_test/tf/null-vars/main.tf",
+        "tags": {
+          "foo": "bar"
+        },
+        "meta": {},
+        "attributes": {
+          "bucket_prefix": "store-var.app",
+          "tags": {
+            "foo": "bar"
+          }
+        }
+      }
+    }
+  },
+  "scope": {
+    "filepath": "golden_test/tf/null-vars/main.tf"
+  }
+}

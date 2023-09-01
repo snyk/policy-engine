@@ -267,16 +267,18 @@ func walkModule(v Visitor, moduleName ModuleName, module *configs.Module, variab
 			}
 			v.VisitTerm(name.Add("variable").Add(variable.Name), TermFromExpr(&expr))
 		} else {
-			// If no default is provided, we can add our own default depending
-			// on the type.  We currently only do this for strings.
+			val := cty.NullVal(variable.Type)
 			if variable.Type == cty.String {
+				// If no default is provided, we can add our own default depending
+				// on the type.  We currently only do this for strings.
 				selfRef := name.Add("var").Add(variable.Name).ToString()
-				expr := hclsyntax.LiteralValueExpr{
-					Val:      cty.StringVal(selfRef),
-					SrcRange: variable.DeclRange,
-				}
-				v.VisitTerm(name.Add("variable").Add(variable.Name), TermFromExpr(&expr))
+				val = cty.StringVal(selfRef)
 			}
+			expr := hclsyntax.LiteralValueExpr{
+				Val:      val,
+				SrcRange: variable.DeclRange,
+			}
+			v.VisitTerm(name.Add("variable").Add(variable.Name), TermFromExpr(&expr))
 		}
 	}
 
