@@ -48,7 +48,11 @@ type Analysis struct {
 
 	// Terms that we could not find and returned as a string.  We will
 	// generate a warning for these.
-	missingTerms map[string]struct{}
+	missingTerms map[string]missingTerm
+}
+
+type missingTerm struct {
+	Range *hcl.Range // Optional location
 }
 
 func AnalyzeModuleTree(mtree *ModuleTree) *Analysis {
@@ -58,7 +62,7 @@ func AnalyzeModuleTree(mtree *ModuleTree) *Analysis {
 		Resources:    map[string]*ResourceMeta{},
 		Terms:        NewTermTree(),
 		badKeys:      map[string]struct{}{},
-		missingTerms: map[string]struct{}{},
+		missingTerms: map[string]missingTerm{},
 	}
 	mtree.Walk(analysis)
 	return analysis
@@ -96,7 +100,8 @@ type dependency struct {
 
 func (v *Analysis) dependencies(name FullName, term Term) []dependency {
 	deps := []dependency{}
-	for _, traversal := range term.Dependencies() {
+	for _, termDependency := range term.Dependencies() {
+		traversal := termDependency.Traversal
 		local, err := TraversalToLocalName(traversal)
 		if err != nil {
 			v.badKeys[TraversalToString(traversal)] = struct{}{}
@@ -134,7 +139,9 @@ func (v *Analysis) dependencies(name FullName, term Term) []dependency {
 
 		// In other cases, just use the local name.  This is sort of
 		// a catch-all and we should try to not rely on this too much.
-		v.missingTerms[full.ToString()] = struct{}{}
+		v.missingTerms[full.ToString()] = missingTerm{
+			Range: termDependency.Range,
+		}
 		val := cty.StringVal(LocalNameToString(local))
 		deps = append(deps, dependency{&full, nil, &val})
 	}
@@ -386,8 +393,11 @@ func (e *Evaluation) Errors() []error {
 	for badKey := range e.Analysis.badKeys {
 		errors = append(errors, fmt.Errorf("%w: %v", errBadDependencyKey, badKey))
 	}
-	for missingTerm := range e.Analysis.missingTerms {
-		errors = append(errors, MissingTermError{missingTerm})
+	for key, missingTerm := range e.Analysis.missingTerms {
+		errors = append(errors, MissingTermError{
+			Term:  key,
+			Range: missingTerm.Range,
+		})
 	}
 	errors = append(errors, e.errors...)
 	return errors
