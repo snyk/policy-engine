@@ -77,8 +77,8 @@
         "meta": {},
         "attributes": {
           "for_each": null,
-          "target_group_arn": "each.value.target_group.arn",
-          "target_id": "each.value.instance_ip"
+          "target_group_arn": null,
+          "target_id": null
         }
       }
     },

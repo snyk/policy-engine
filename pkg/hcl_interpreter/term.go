@@ -122,8 +122,9 @@ func (t Term) WithCount(expr hcl.Expression) Term {
 	return t
 }
 
-func (t Term) WithForEach(expr hcl.Expression) Term {
+func (t Term) WithForEach(iterator string, expr hcl.Expression) Term {
 	t.forEach = &expr
+	t.iterator = iterator
 	return t
 }
 
@@ -304,12 +305,8 @@ func (t Term) Evaluate(
 
 			arr := []cty.Value{}
 			for _, each := range eaches {
-				iterator := "each"
-				if t.iterator != "" {
-					iterator = t.iterator
-				}
 				val, diags := t.evaluateExpr(func(e hcl.Expression, v cty.Value) (cty.Value, hcl.Diagnostics) {
-					v = MergeVal(v, NestVal(LocalName{iterator}, each))
+					v = MergeVal(v, NestVal(LocalName{t.iterator}, each))
 					return evalExpr(e, v)
 				})
 				diagnostics = append(diagnostics, diags...)
