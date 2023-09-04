@@ -55,6 +55,26 @@ func ModuleNameToString(moduleName ModuleName) string {
 	return str
 }
 
+// ModuleNameToKey produces the internal key used in some parts of terraform
+// for modules.  While the user-exposed name (as returned by ModuleNameToString)
+// would be something like:
+//
+//	module.foo.module.lambda
+//
+// The internal key will be:
+//
+//	foo.lambda
+func ModuleNameToKey(moduleName ModuleName) string {
+	return strings.Join(moduleName, ".")
+}
+
+func ChildModuleName(moduleName ModuleName, childName string) ModuleName {
+	out := make(ModuleName, len(moduleName)+1)
+	copy(out, moduleName)
+	out[len(moduleName)] = childName
+	return out
+}
+
 type LocalName = []string
 
 func LocalNameToString(name LocalName) string {

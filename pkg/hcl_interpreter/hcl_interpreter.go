@@ -64,8 +64,8 @@ func AnalyzeModuleTree(mtree *ModuleTree) *Analysis {
 	return analysis
 }
 
-func (v *Analysis) VisitModule(name ModuleName, meta *ModuleMeta) {
-	v.Modules[ModuleNameToString(name)] = meta
+func (v *Analysis) VisitModule(meta *ModuleMeta) {
+	v.Modules[ModuleNameToString(meta.Name)] = meta
 }
 
 func (v *Analysis) VisitResource(name FullName, resource *ResourceMeta) {

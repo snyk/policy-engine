@@ -17,6 +17,7 @@ package hcl_interpreter
 import (
 	"encoding/json"
 	"path/filepath"
+	"strings"
 
 	"github.com/spf13/afero"
 )
@@ -36,6 +37,7 @@ type terraformModuleRegisterFile struct {
 }
 
 type terraformModuleRegisterEntry struct {
+	Key    string `json:"Key"`
 	Source string `json:"Source"`
 	Dir    string `json:"Dir"`
 }
@@ -56,12 +58,21 @@ func NewTerraformRegister(fsys afero.Fs, dir string) *TerraformModuleRegister {
 	return &registry
 }
 
-func (r *TerraformModuleRegister) GetDir(source string) *string {
+func (r *TerraformModuleRegister) GetDir(name ModuleName) *string {
+	key := ModuleNameToKey(name)
 	for _, entry := range r.data.Modules {
-		if entry.Source == source {
+		if entry.Key == key {
 			joined := TfFilePathJoin(r.dir, entry.Dir)
 			return &joined
 		}
 	}
 	return nil
+}
+
+// Takes a module source and returns true if the module is local.
+func moduleIsLocal(source string) bool {
+	// Relevant bit from terraform docs:
+	//    A local path must begin with either ./ or ../ to indicate that a local path
+	//    is intended, to distinguish from a module registry address.
+	return strings.HasPrefix(source, "./") || strings.HasPrefix(source, "../")
 }
