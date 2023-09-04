@@ -35,7 +35,16 @@ func (t *TfDetector) DetectFile(i *File, opts DetectOptions) (IACConfiguration, 
 		return nil, fmt.Errorf("%w: %v", UnrecognizedFileExtension, i.Ext())
 	}
 	dir := filepath.Dir(i.Path)
-	moduleTree, err := hcl_interpreter.ParseFiles(nil, i.Fs, false, dir, []string{i.Path}, opts.VarFiles)
+	moduleTree,
+		err := hcl_interpreter.ParseFiles(
+		nil,
+		i.Fs,
+		false,
+		dir,
+		hcl_interpreter.EmptyModuleName,
+		[]string{i.Path},
+		opts.VarFiles,
+	)
 	if err != nil {
 		return nil, fmt.Errorf("%w: %v", FailedToParseInput, err)
 	}
@@ -60,7 +69,13 @@ func (t *TfDetector) DetectDirectory(i *Directory, opts DetectOptions) (IACConfi
 	}
 
 	moduleRegister := hcl_interpreter.NewTerraformRegister(i.Fs, i.Path)
-	moduleTree, err := hcl_interpreter.ParseDirectory(moduleRegister, i.Fs, i.Path, opts.VarFiles)
+	moduleTree, err := hcl_interpreter.ParseDirectory(
+		moduleRegister,
+		i.Fs,
+		i.Path,
+		hcl_interpreter.EmptyModuleName,
+		opts.VarFiles,
+	)
 	if err != nil {
 		return nil, fmt.Errorf("%w: %v", FailedToParseInput, err)
 	}

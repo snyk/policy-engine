@@ -1,0 +1,3 @@
+kind: Fixed
+body: issue parsing remote terraform module register
+time: 2023-09-04T13:23:06.274955918+02:00

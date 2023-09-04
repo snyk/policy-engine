@@ -1,0 +1,25 @@
+{
+  "format": "",
+  "format_version": "",
+  "input_type": "tf_hcl",
+  "environment_provider": "iac",
+  "meta": {
+    "filepath": "golden_test/tf/module-register"
+  },
+  "resources": {
+    "aws_s3_bucket": {
+      "module.localmodule.module.remotemodule.aws_s3_bucket.mybucket": {
+        "id": "module.localmodule.module.remotemodule.aws_s3_bucket.mybucket",
+        "resource_type": "aws_s3_bucket",
+        "namespace": "golden_test/tf/module-register",
+        "meta": {},
+        "attributes": {
+          "bucket_prefix": "stuff"
+        }
+      }
+    }
+  },
+  "scope": {
+    "filepath": "golden_test/tf/module-register"
+  }
+}
