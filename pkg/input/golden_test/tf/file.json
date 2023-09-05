@@ -15,6 +15,7 @@
         "tags": {
           "file1": "Hello\n",
           "file2": "Hello\n",
+          "fileAtRoot": "Hello\n",
           "stubbedCWD": "/stubbed/working/directory"
         },
         "meta": {},
@@ -23,7 +24,25 @@
           "tags": {
             "file1": "Hello\n",
             "file2": "Hello\n",
+            "fileAtRoot": "Hello\n",
             "stubbedCWD": "/stubbed/working/directory"
+          }
+        }
+      },
+      "module.child.aws_s3_bucket.trail_bucket": {
+        "id": "module.child.aws_s3_bucket.trail_bucket",
+        "resource_type": "aws_s3_bucket",
+        "namespace": "golden_test/tf/file",
+        "tags": {
+          "fileAtRoot": "Hello\n",
+          "fileInModule": "Hello from a child module\n"
+        },
+        "meta": {},
+        "attributes": {
+          "force_destroy": true,
+          "tags": {
+            "fileAtRoot": "Hello\n",
+            "fileInModule": "Hello from a child module\n"
           }
         }
       }

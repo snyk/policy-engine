@@ -246,6 +246,11 @@ func (v *Evaluation) evaluate() error {
 		vars := v.prepareVariables(name, term)
 		vars = MergeVal(vars, NestVal(LocalName{"path", "module"}, cty.StringVal(moduleMeta.Dir)))
 
+		rootModule := v.Analysis.Modules[ModuleNameToString(EmptyModuleName)]
+		if rootModule != nil {
+			vars = MergeVal(vars, NestVal(LocalName{"path", "root"}, cty.StringVal(rootModule.Dir)))
+		}
+
 		// While we could pass policy-engine’s actual CWD as path.cwd, but this
 		// would make it awkward to snapshot-test ("golden test"). Arguably, we
 		// can't reasonably predict what a given terraform config expected CWD to be

@@ -17,6 +17,11 @@ resource "aws_s3_bucket" "trail_bucket" {
   tags = {
     file1      = file("golden_test/tf/file/hello.txt")
     file2      = file("${path.module}/hello.txt")
+    fileAtRoot = file("${path.root}/hello.txt")
     stubbedCWD = path.cwd
   }
+}
+
+module "child" {
+  source = "./child_module"
 }
