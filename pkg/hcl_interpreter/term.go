@@ -155,7 +155,12 @@ func (t Term) VisitExpressions(f func(hcl.Expression)) {
 	}
 }
 
-func (t Term) Dependencies() []hcl.Traversal {
+type TermDependency struct {
+	Range     *hcl.Range // Optional range
+	Traversal hcl.Traversal
+}
+
+func (t Term) Dependencies() []TermDependency {
 	// If the variable matches the iterator, it is not a real dependency
 	// and we can filter it out.
 	filter := func(v hcl.Traversal) bool { return false }
@@ -165,11 +170,15 @@ func (t Term) Dependencies() []hcl.Traversal {
 		}
 	}
 
-	dependencies := []hcl.Traversal{}
+	dependencies := []TermDependency{}
 	t.shallowVisitExpressions(func(e hcl.Expression) {
 		for _, variable := range e.Variables() {
 			if !filter(variable) {
-				dependencies = append(dependencies, variable)
+				loc := e.Range()
+				dependencies = append(dependencies, TermDependency{
+					Range:     &loc,
+					Traversal: variable,
+				})
 			}
 		}
 	})
@@ -177,7 +186,7 @@ func (t Term) Dependencies() []hcl.Traversal {
 	for _, blocks := range t.blocks {
 		for _, block := range blocks {
 			for _, variable := range block.Dependencies() {
-				if !filter(variable) {
+				if !filter(variable.Traversal) {
 					dependencies = append(dependencies, variable)
 				}
 			}

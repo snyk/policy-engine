@@ -16,6 +16,7 @@ package hcl_interpreter
 
 import (
 	"errors"
+	"fmt"
 	"strings"
 
 	"github.com/hashicorp/hcl/v2"
@@ -48,11 +49,16 @@ func (err EvaluationError) Error() string {
 }
 
 type MissingTermError struct {
-	Term string
+	Range *hcl.Range
+	Term  string
 }
 
 func (err MissingTermError) Error() string {
-	return "Missing term " + err.Term
+	msg := "Missing term " + err.Term
+	if l := err.Range; l != nil {
+		msg = fmt.Sprintf("%s:%d:%d: %s", l.Filename, l.Start.Line, l.Start.Column, msg)
+	}
+	return msg
 }
 
 var errUnhandledValueType = errors.New("Unhandled value type")
