@@ -334,7 +334,7 @@ func walkResource(
 	if haveCount {
 		term = term.WithCount(resource.Count)
 	} else if haveForEach {
-		term = term.WithForEach(resource.ForEach)
+		term = term.WithForEach("each", resource.ForEach)
 	}
 
 	v.VisitTerm(name, term)
