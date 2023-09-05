@@ -1,0 +1,3 @@
+module "localmodule" {
+  source = "./localmodule"
+}

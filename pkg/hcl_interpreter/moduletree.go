@@ -32,6 +32,7 @@ import (
 
 type ModuleMeta struct {
 	Dir                  string
+	Name                 ModuleName
 	Recurse              bool
 	Filepaths            []string
 	MissingRemoteModules []string
@@ -64,6 +65,7 @@ func ParseDirectory(
 	moduleRegister *TerraformModuleRegister,
 	parserFs afero.Fs,
 	dir string,
+	moduleName ModuleName,
 	varFiles []string,
 ) (*ModuleTree, error) {
 	parser := configs.NewParser(parserFs)
@@ -88,7 +90,7 @@ func ParseDirectory(
 	// The order here is important so that var files that are explicitly specified get
 	// applied after any automatically-loaded var files.
 	varFiles = append(foundVarFiles, varFiles...)
-	return ParseFiles(moduleRegister, parserFs, true, dir, filepaths, varFiles)
+	return ParseFiles(moduleRegister, parserFs, true, dir, moduleName, filepaths, varFiles)
 }
 
 func ParseFiles(
@@ -96,11 +98,13 @@ func ParseFiles(
 	parserFs afero.Fs,
 	recurse bool,
 	dir string,
+	moduleName ModuleName,
 	filepaths []string,
 	varfiles []string,
 ) (*ModuleTree, error) {
 	meta := &ModuleMeta{
 		Dir:       dir,
+		Name:      moduleName,
 		Recurse:   recurse,
 		Filepaths: filepaths,
 	}
@@ -146,8 +150,9 @@ func ParseFiles(
 					if val, err := attr.Expr.Value(nil); err == nil && val.Type() == cty.String {
 						source := val.AsString()
 						childDir := TfFilePathJoin(dir, source)
+						childModuleName := ChildModuleName(moduleName, key)
 
-						if register := moduleRegister.GetDir(source); register != nil {
+						if register := moduleRegister.GetDir(childModuleName); register != nil {
 							childDir = *register
 						} else if !moduleIsLocal(source) {
 							meta.MissingRemoteModules = append(
@@ -157,7 +162,7 @@ func ParseFiles(
 							continue
 						}
 
-						child, err := ParseDirectory(moduleRegister, parserFs, childDir, []string{})
+						child, err := ParseDirectory(moduleRegister, parserFs, childDir, childModuleName, []string{})
 						if err == nil {
 							child.meta.Location = &moduleCall.SourceAddrRange
 							child.config = moduleCall.Config
@@ -217,39 +222,27 @@ func (mtree *ModuleTree) LoadedFiles() []string {
 	return filepaths
 }
 
-// Takes a module source and returns true if the module is local.
-func moduleIsLocal(source string) bool {
-	// Relevant bit from terraform docs:
-	//    A local path must begin with either ./ or ../ to indicate that a local path
-	//    is intended, to distinguish from a module registry address.
-	return strings.HasPrefix(source, "./") || strings.HasPrefix(source, "../")
-}
-
 type Visitor interface {
-	VisitModule(name ModuleName, meta *ModuleMeta)
+	VisitModule(meta *ModuleMeta)
 	VisitResource(name FullName, resource *ResourceMeta)
 	VisitTerm(name FullName, term Term)
 }
 
 func (mtree *ModuleTree) Walk(v Visitor) {
-	walkModuleTree(v, EmptyModuleName, mtree)
+	walkModuleTree(v, mtree)
 }
 
-func walkModuleTree(v Visitor, moduleName ModuleName, mtree *ModuleTree) {
-	v.VisitModule(moduleName, mtree.meta)
-	walkModule(v, moduleName, mtree.module, mtree.variableValues)
+func walkModuleTree(v Visitor, mtree *ModuleTree) {
+	v.VisitModule(mtree.meta)
+	walkModule(v, mtree.meta.Name, mtree.module, mtree.variableValues)
 	for key, child := range mtree.children {
-		childModuleName := make([]string, len(moduleName)+1)
-		copy(childModuleName, moduleName)
-		childModuleName[len(moduleName)] = key
-
 		// TODO: This is not good.  We end up walking child2 as it were child2.
-		configName := FullName{moduleName, LocalName{"input", key}}
+		configName := FullName{mtree.meta.Name, LocalName{"input", key}}
 		for k, input := range TermFromBody(child.config).Attributes() {
 			v.VisitTerm(configName.Add(k), input)
 		}
 
-		walkModuleTree(v, childModuleName, child)
+		walkModuleTree(v, child)
 	}
 }
 
