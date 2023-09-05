@@ -12,16 +12,23 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-resource "azurerm_resource_group" "rg" {
-  for_each = {
-    a_group = "eastus"
-    another_group = "westus2"
-  }
-  name     = each.key
-  location = each.value
+variable "buckets" {
+  type    = map
+  default = {"prod": "abc123", "dev": "ced456"}
 }
 
-resource "aws_iam_user" "the-accounts" {
-  for_each = toset( ["Todd", "James", "Alice", "Dottie"] )
+variable "users" {
+  type    = list(string)
+  default = ["Todd", "James", "Alice", "Dottie"]
+}
+
+resource "aws_s3_bucket" "mybuckets" {
+  for_each      = var.buckets
+  bucket_prefix = "${each.key}${each.value}"
+  tags          = {"env": each.key}
+}
+
+resource "aws_iam_user" "myusers" {
+  for_each = toset(var.users)
   name     = each.key
 }

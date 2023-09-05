@@ -17,8 +17,6 @@
 package hcl_interpreter
 
 import (
-	"sort"
-
 	"github.com/hashicorp/hcl/v2"
 	"github.com/hashicorp/hcl/v2/hclsyntax"
 	"github.com/zclconf/go-cty/cty"
@@ -235,6 +233,35 @@ func (t Term) evaluateExpr(
 	}
 }
 
+type foreachAccumulator interface {
+	add(key string, val cty.Value)
+	val() cty.Value
+}
+
+type foreachArrayAccumulator struct {
+	array []cty.Value
+}
+
+func (acc *foreachArrayAccumulator) add(key string, val cty.Value) {
+	acc.array = append(acc.array, val)
+}
+
+func (acc *foreachArrayAccumulator) val() cty.Value {
+	return cty.TupleVal(acc.array)
+}
+
+type foreachObjectAccumulator struct {
+	object map[string]cty.Value
+}
+
+func (acc *foreachObjectAccumulator) add(key string, val cty.Value) {
+	acc.object[key] = val
+}
+
+func (acc *foreachObjectAccumulator) val() cty.Value {
+	return cty.ObjectVal(acc.object)
+}
+
 func (t Term) Evaluate(
 	evalExpr func(expr hcl.Expression, extraVars cty.Value) (cty.Value, hcl.Diagnostics),
 ) (cty.Value, hcl.Diagnostics) {
@@ -279,49 +306,47 @@ func (t Term) Evaluate(
 		forEachVal, diags := evalExpr(*t.forEach, cty.EmptyObjectVal)
 		diagnostics = append(diagnostics, diags...)
 
+		evalWithEach := func(each cty.Value) cty.Value {
+			val, diags := t.evaluateExpr(func(e hcl.Expression, v cty.Value) (cty.Value, hcl.Diagnostics) {
+				v = MergeVal(v, NestVal(LocalName{t.iterator}, each))
+				return evalExpr(e, v)
+			})
+			diagnostics = append(diagnostics, diags...)
+			return val
+		}
+
 		if !forEachVal.IsNull() && forEachVal.IsKnown() {
-			eaches := []cty.Value{}
 			if forEachVal.Type().IsMapType() || forEachVal.Type().IsObjectType() {
-				valueMap := forEachVal.AsValueMap()
-				keys := []string{}
-				for k := range valueMap {
-					keys = append(keys, k)
-				}
-				sort.Strings(keys)
-				for _, k := range keys {
-					each := cty.ObjectVal(map[string]cty.Value{
+				object := map[string]cty.Value{}
+				for k, v := range forEachVal.AsValueMap() {
+					object[k] = evalWithEach(cty.ObjectVal(map[string]cty.Value{
 						"key":   cty.StringVal(k),
-						"value": valueMap[k],
-					})
-					eaches = append(eaches, each)
+						"value": v,
+					}))
 				}
+				return cty.ObjectVal(object), diagnostics
 			} else if forEachVal.Type().IsSetType() {
+				tuple := []cty.Value{} // TODO
 				for _, v := range forEachVal.AsValueSet().Values() {
-					each := cty.ObjectVal(map[string]cty.Value{
+					val := evalWithEach(cty.ObjectVal(map[string]cty.Value{
 						"key":   v,
 						"value": v,
-					})
-					eaches = append(eaches, each)
+					}))
+					tuple = append(tuple, val)
 				}
+				return cty.TupleVal(tuple), diagnostics
 			} else if forEachVal.Type().IsTupleType() || forEachVal.Type().IsListType() {
+				tuple := []cty.Value{} // TODO
 				for _, v := range forEachVal.AsValueSlice() {
-					each := cty.ObjectVal(map[string]cty.Value{
+					val := evalWithEach(cty.ObjectVal(map[string]cty.Value{
 						"value": v,
-					})
-					eaches = append(eaches, each)
+					}))
+					tuple = append(tuple, val)
 				}
+				return cty.TupleVal(tuple), diagnostics
 			}
 
-			arr := []cty.Value{}
-			for _, each := range eaches {
-				val, diags := t.evaluateExpr(func(e hcl.Expression, v cty.Value) (cty.Value, hcl.Diagnostics) {
-					v = MergeVal(v, NestVal(LocalName{t.iterator}, each))
-					return evalExpr(e, v)
-				})
-				diagnostics = append(diagnostics, diags...)
-				arr = append(arr, val)
-			}
-			return cty.TupleVal(arr), diagnostics
+			return cty.TupleVal([]cty.Value{}), diagnostics
 		}
 	}
 
