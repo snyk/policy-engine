@@ -14,14 +14,16 @@
         "namespace": "golden_test/tf/file",
         "tags": {
           "file1": "Hello\n",
-          "file2": "Hello\n"
+          "file2": "Hello\n",
+          "stubbedCWD": "/stubbed/working/directory"
         },
         "meta": {},
         "attributes": {
           "force_destroy": true,
           "tags": {
             "file1": "Hello\n",
-            "file2": "Hello\n"
+            "file2": "Hello\n",
+            "stubbedCWD": "/stubbed/working/directory"
           }
         }
       }

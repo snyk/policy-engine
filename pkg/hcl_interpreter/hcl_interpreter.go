@@ -245,6 +245,15 @@ func (v *Evaluation) evaluate() error {
 
 		vars := v.prepareVariables(name, term)
 		vars = MergeVal(vars, NestVal(LocalName{"path", "module"}, cty.StringVal(moduleMeta.Dir)))
+
+		// While we could pass policy-engine’s actual CWD as path.cwd, but this
+		// would make it awkward to snapshot-test ("golden test"). Arguably, we
+		// can't reasonably predict what a given terraform config expected CWD to be
+		// at runtime - and the Terraform docs recommend using path.module or
+		// path.root for this reason:
+		// https://developer.hashicorp.com/terraform/language/expressions/references#filesystem-and-workspace-info
+		vars = MergeVal(vars, NestVal(LocalName{"path", "cwd"}, cty.StringVal("/stubbed/working/directory")))
+
 		vars = MergeVal(vars, NestVal(LocalName{"terraform", "workspace"}, cty.StringVal("default")))
 
 		val, diags := term.Evaluate(func(expr hcl.Expression, extraVars cty.Value) (cty.Value, hcl.Diagnostics) {

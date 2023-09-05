@@ -15,7 +15,8 @@
 resource "aws_s3_bucket" "trail_bucket" {
   force_destroy = true
   tags = {
-    file1 = file("golden_test/tf/file/hello.txt")
-    file2 = file("${path.module}/hello.txt")
+    file1      = file("golden_test/tf/file/hello.txt")
+    file2      = file("${path.module}/hello.txt")
+    stubbedCWD = path.cwd
   }
 }
