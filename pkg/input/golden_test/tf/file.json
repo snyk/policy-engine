@@ -12,10 +12,17 @@
         "id": "aws_s3_bucket.trail_bucket",
         "resource_type": "aws_s3_bucket",
         "namespace": "golden_test/tf/file",
+        "tags": {
+          "file1": "Hello\n",
+          "file2": "Hello\n"
+        },
         "meta": {},
         "attributes": {
           "force_destroy": true,
-          "tags": null
+          "tags": {
+            "file1": "Hello\n",
+            "file2": "Hello\n"
+          }
         }
       }
     }
