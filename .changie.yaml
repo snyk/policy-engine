@@ -6,6 +6,9 @@ versionExt: md
 versionFormat: '## {{.Version}} - {{.Time.Format "2006-01-02"}}'
 kindFormat: '### {{.Kind}}'
 changeFormat: '* {{.Body}}'
+newlines:
+  afterChangelogVersion: 1
+  beforeChangelogVersion: 1
 kinds:
 - label: Added
 - label: Changed
