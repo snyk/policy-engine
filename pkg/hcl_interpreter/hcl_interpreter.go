@@ -110,6 +110,39 @@ func (v *Analysis) dependencies(name FullName, term Term) []dependency {
 
 		full := FullName{Module: name.Module, Local: local}
 
+		if PathModuleName.Equals(local) {
+			moduleMeta := v.Modules[ModuleNameToString(name.Module)]
+			val := cty.StringVal(moduleMeta.Dir)
+			deps = append(deps, dependency{&full, nil, &val})
+			continue
+		}
+
+		if PathRootName.Equals(local) {
+			if rootModule := v.Modules[ModuleNameToString(EmptyModuleName)]; rootModule != nil {
+				val := cty.StringVal(rootModule.Dir)
+				deps = append(deps, dependency{&full, nil, &val})
+				continue
+			}
+		}
+
+		if PathCwdName.Equals(local) {
+			// While we could pass policy-engine’s actual CWD as path.cwd, but this
+			// would make it awkward to snapshot-test ("golden test"). Arguably, we
+			// can't reasonably predict what a given terraform config expected CWD to be
+			// at runtime - and the Terraform docs recommend using path.module or
+			// path.root for this reason:
+			// https://developer.hashicorp.com/terraform/language/expressions/references#filesystem-and-workspace-info
+			val := cty.StringVal("/stubbed/working/directory")
+			deps = append(deps, dependency{&full, nil, &val})
+			continue
+		}
+
+		if TerraformWorkspaceName.Equals(local) {
+			val := cty.StringVal("default")
+			deps = append(deps, dependency{&full, nil, &val})
+			continue
+		}
+
 		if prefix, _ := v.Terms.LookupByPrefix(full); prefix != nil {
 			deps = append(deps, dependency{nil, prefix, nil})
 			continue
@@ -248,26 +281,8 @@ func (v *Evaluation) evaluate() error {
 	for _, name := range order {
 		term := termsByKey[name.ToString()]
 		moduleKey := ModuleNameToString(name.Module)
-		moduleMeta := v.Analysis.Modules[moduleKey]
 
 		vars := v.prepareVariables(name, term)
-		vars = MergeVal(vars, NestVal(LocalName{"path", "module"}, cty.StringVal(moduleMeta.Dir)))
-
-		rootModule := v.Analysis.Modules[ModuleNameToString(EmptyModuleName)]
-		if rootModule != nil {
-			vars = MergeVal(vars, NestVal(LocalName{"path", "root"}, cty.StringVal(rootModule.Dir)))
-		}
-
-		// While we could pass policy-engine’s actual CWD as path.cwd, but this
-		// would make it awkward to snapshot-test ("golden test"). Arguably, we
-		// can't reasonably predict what a given terraform config expected CWD to be
-		// at runtime - and the Terraform docs recommend using path.module or
-		// path.root for this reason:
-		// https://developer.hashicorp.com/terraform/language/expressions/references#filesystem-and-workspace-info
-		vars = MergeVal(vars, NestVal(LocalName{"path", "cwd"}, cty.StringVal("/stubbed/working/directory")))
-
-		vars = MergeVal(vars, NestVal(LocalName{"terraform", "workspace"}, cty.StringVal("default")))
-
 		val, diags := term.Evaluate(func(expr hcl.Expression, extraVars cty.Value) (cty.Value, hcl.Diagnostics) {
 			data := Data{}
 			scope := lang.Scope{
