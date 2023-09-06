@@ -75,10 +75,30 @@ func ChildModuleName(moduleName ModuleName, childName string) ModuleName {
 	return out
 }
 
-type LocalName = []string
+type LocalName []string
+
+var (
+    // Supported fixed paths can be checked using Equals.
+	PathModuleName         = LocalName{"path", "module"}
+	PathRootName           = LocalName{"path", "root"}
+	PathCwdName            = LocalName{"path", "cwd"}
+	TerraformWorkspaceName = LocalName{"terraform", "workspace"}
+)
 
 func LocalNameToString(name LocalName) string {
 	return strings.Join(name, ".")
+}
+
+func (name LocalName) Equals(other LocalName) bool {
+	if len(name) != len(other) {
+		return false
+	}
+	for i := range name {
+		if name[i] != other[i] {
+			return false
+		}
+	}
+	return true
 }
 
 type FullName struct {
