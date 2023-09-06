@@ -294,16 +294,20 @@ func (v *Evaluation) prepareResource(resourceMeta *ResourceMeta, module ModuleNa
 		resourceType = "data." + resourceType
 	}
 
-	if val.Type().IsTupleType() {
+	if resourceMeta.Multiple && val.Type().IsTupleType() {
 		for idx, child := range val.AsValueSlice() {
 			indexedName := fmt.Sprintf("%s[%d]", name, idx)
-			resource := v.prepareResource(resourceMeta, module, indexedName, child)
+			resourceMetaCopy := *resourceMeta
+			resourceMetaCopy.Multiple = false
+			resource := v.prepareResource(&resourceMetaCopy, module, indexedName, child)
 			resources = append(resources, resource...)
 		}
-	} else if val.Type().IsTupleType() {
-		for idx, child := range val.AsValueSlice() {
-			indexedName := fmt.Sprintf("%s[%d]", name, idx)
-			resource := v.prepareResource(resourceMeta, module, indexedName, child)
+	} else if resourceMeta.Multiple && val.Type().IsObjectType() {
+		for key, child := range val.AsValueMap() {
+			indexedName := fmt.Sprintf("%s[%s]", name, key)
+			resourceMetaCopy := *resourceMeta
+			resourceMetaCopy.Multiple = false
+			resource := v.prepareResource(&resourceMetaCopy, module, indexedName, child)
 			resources = append(resources, resource...)
 		}
 	} else {

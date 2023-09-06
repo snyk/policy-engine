@@ -326,17 +326,29 @@ func (t Term) Evaluate(
 				}
 				return cty.ObjectVal(object), diagnostics
 			} else if forEachVal.Type().IsSetType() {
-				tuple := []cty.Value{} // TODO
+    			// Building an object is preferred since, but fall back to
+    			// building a tuple if we have a key that's not a string.
+				object := map[string]cty.Value{}
+				tuple := []cty.Value{}
 				for _, v := range forEachVal.AsValueSet().Values() {
 					val := evalWithEach(cty.ObjectVal(map[string]cty.Value{
 						"key":   v,
 						"value": v,
 					}))
-					tuple = append(tuple, val)
+    				if object != nil && v.Type() == cty.String {
+        				object[v.AsString()] = val
+        				tuple = append(tuple, val)
+    				} else {
+        				object = nil
+						tuple = append(tuple, val)
+    				}
+				}
+				if object != nil {
+    				return cty.ObjectVal(object), diagnostics
 				}
 				return cty.TupleVal(tuple), diagnostics
 			} else if forEachVal.Type().IsTupleType() || forEachVal.Type().IsListType() {
-				tuple := []cty.Value{} // TODO
+				tuple := []cty.Value{}
 				for _, v := range forEachVal.AsValueSlice() {
 					val := evalWithEach(cty.ObjectVal(map[string]cty.Value{
 						"value": v,
