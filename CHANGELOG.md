@@ -1,6 +1,17 @@
 # CHANGELOG
 
 
+## v0.29.2 - 2023-09-06
+### Changed
+* tweak error message for EvaluationError in hcl_interpreter
+### Fixed
+* non-string variables defaulting to string instead of null
+* issue parsing remote terraform module register
+* add source code location to missing term errors
+* remove spurious warnings for default iterator
+* Remediation advice is emitted for every resource type
+### Updated
+* clarify that custom metadata fields are ignored
 
 ## v0.29.1 - 2023-08-21
 ### Fixed
