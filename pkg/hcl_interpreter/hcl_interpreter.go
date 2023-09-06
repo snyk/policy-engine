@@ -300,6 +300,12 @@ func (v *Evaluation) prepareResource(resourceMeta *ResourceMeta, module ModuleNa
 			resource := v.prepareResource(resourceMeta, module, indexedName, child)
 			resources = append(resources, resource...)
 		}
+	} else if val.Type().IsTupleType() {
+		for idx, child := range val.AsValueSlice() {
+			indexedName := fmt.Sprintf("%s[%d]", name, idx)
+			resource := v.prepareResource(resourceMeta, module, indexedName, child)
+			resources = append(resources, resource...)
+		}
 	} else {
 		attrs := map[string]interface{}{}
 		iface, errs := ValueToInterface(val)
