@@ -21,6 +21,7 @@ import (
 	"time"
 
 	"github.com/open-policy-agent/opa/ast"
+
 	"github.com/snyk/policy-engine/pkg/input"
 	"github.com/snyk/policy-engine/pkg/logging"
 	"github.com/snyk/policy-engine/pkg/models"
@@ -135,9 +136,10 @@ var remediationKeys = map[string]string{
 	input.Arm.Name:            "arm",
 	input.CloudFormation.Name: "cloudformation",
 	input.CloudScan.Name:      "console",
-	input.Kubernetes.Name:     "k8s",
+	input.Kubernetes.Name:     "kubernetes",
 	input.TerraformHCL.Name:   "terraform",
 	input.TerraformPlan.Name:  "terraform",
+	input.TerraformState.Name: "terraform",
 }
 
 type Metadata struct {

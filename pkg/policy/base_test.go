@@ -19,6 +19,8 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+
+	"github.com/snyk/policy-engine/pkg/input"
 )
 
 // TestReferencesFor tests that we obtain only the expected references.
@@ -60,4 +62,24 @@ func TestReferencesFor(t *testing.T) {
 			},
 		},
 	)
+}
+
+func TestRemediationFor(t *testing.T) {
+	m := Metadata{
+		Remediation: map[string]string{
+			"arm":            "remediation for arm",
+			"cloudformation": "remediation for cloudformation",
+			"console":        "remediation for console",
+			"kubernetes":     "remediation for kubernetes",
+			"terraform":      "remediation for terraform",
+		},
+	}
+
+	assert.Equal(t, m.RemediationFor(input.Arm.Name), "remediation for arm")
+	assert.Equal(t, m.RemediationFor(input.CloudFormation.Name), "remediation for cloudformation")
+	assert.Equal(t, m.RemediationFor(input.CloudScan.Name), "remediation for console")
+	assert.Equal(t, m.RemediationFor(input.Kubernetes.Name), "remediation for kubernetes")
+	assert.Equal(t, m.RemediationFor(input.TerraformHCL.Name), "remediation for terraform")
+	assert.Equal(t, m.RemediationFor(input.TerraformState.Name), "remediation for terraform")
+	assert.Equal(t, m.RemediationFor(input.TerraformPlan.Name), "remediation for terraform")
 }
