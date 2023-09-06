@@ -306,9 +306,12 @@ func (t Term) Evaluate(
 		forEachVal, diags := evalExpr(*t.forEach, cty.EmptyObjectVal)
 		diagnostics = append(diagnostics, diags...)
 
-		evalWithEach := func(each cty.Value) cty.Value {
+		evalWithEach := func(key cty.Value, value cty.Value) cty.Value {
 			val, diags := t.evaluateExpr(func(e hcl.Expression, v cty.Value) (cty.Value, hcl.Diagnostics) {
-				v = MergeVal(v, NestVal(LocalName{t.iterator}, each))
+				v = MergeVal(v, NestVal(LocalName{t.iterator}, cty.ObjectVal(map[string]cty.Value{
+					"key":   key,
+					"value": value,
+				})))
 				return evalExpr(e, v)
 			})
 			diagnostics = append(diagnostics, diags...)
@@ -319,40 +322,32 @@ func (t Term) Evaluate(
 			if forEachVal.Type().IsMapType() || forEachVal.Type().IsObjectType() {
 				object := map[string]cty.Value{}
 				for k, v := range forEachVal.AsValueMap() {
-					object[k] = evalWithEach(cty.ObjectVal(map[string]cty.Value{
-						"key":   cty.StringVal(k),
-						"value": v,
-					}))
+					object[k] = evalWithEach(cty.StringVal(k), v)
 				}
 				return cty.ObjectVal(object), diagnostics
 			} else if forEachVal.Type().IsSetType() {
-    			// Building an object is preferred since, but fall back to
-    			// building a tuple if we have a key that's not a string.
+				// Building an object is preferred since, but fall back to
+				// building a tuple if we have a key that's not a string.
 				object := map[string]cty.Value{}
 				tuple := []cty.Value{}
 				for _, v := range forEachVal.AsValueSet().Values() {
-					val := evalWithEach(cty.ObjectVal(map[string]cty.Value{
-						"key":   v,
-						"value": v,
-					}))
-    				if object != nil && v.Type() == cty.String {
-        				object[v.AsString()] = val
-        				tuple = append(tuple, val)
-    				} else {
-        				object = nil
+					val := evalWithEach(v, v)
+					if object != nil && v.Type() == cty.String {
+						object[v.AsString()] = val
 						tuple = append(tuple, val)
-    				}
+					} else {
+						object = nil
+						tuple = append(tuple, val)
+					}
 				}
 				if object != nil {
-    				return cty.ObjectVal(object), diagnostics
+					return cty.ObjectVal(object), diagnostics
 				}
 				return cty.TupleVal(tuple), diagnostics
 			} else if forEachVal.Type().IsTupleType() || forEachVal.Type().IsListType() {
 				tuple := []cty.Value{}
-				for _, v := range forEachVal.AsValueSlice() {
-					val := evalWithEach(cty.ObjectVal(map[string]cty.Value{
-						"value": v,
-					}))
+				for i, v := range forEachVal.AsValueSlice() {
+					val := evalWithEach(cty.NumberIntVal(int64(i)), v)
 					tuple = append(tuple, val)
 				}
 				return cty.TupleVal(tuple), diagnostics

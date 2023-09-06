@@ -32,3 +32,16 @@ resource "aws_iam_user" "myusers" {
   for_each = toset(var.users)
   name     = each.key
 }
+
+# These resources read a property from mybuckets.
+resource "aws_s3_bucket" "read_mybuckets" {
+  for_each      = var.buckets
+  tags          = {"read_prefix": aws_s3_bucket.mybuckets[each.key].bucket_prefix}
+}
+
+# These resources read a non-existing property ("phantom attribute") from
+# mybuckets.
+resource "aws_s3_bucket" "phantom_mybuckets" {
+  for_each      = var.buckets
+  tags          = {"backup": aws_s3_bucket.mybuckets[each.key].id}
+}
