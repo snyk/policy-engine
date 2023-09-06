@@ -277,7 +277,11 @@ func (v *Evaluation) evaluate() error {
 		}
 
 		v.resourceAttributes[name.ToString()] = val
-		val = v.phantomAttrs.add(name, val)
+		patchMultiple := false
+		if resourceMeta, ok := v.Analysis.Resources[name.ToString()]; ok {
+    		patchMultiple = resourceMeta.Multiple
+		}
+		val = v.phantomAttrs.add(name, patchMultiple, val)
 		singleton := NestVal(name.Local, val)
 		v.Modules[moduleKey] = MergeVal(v.Modules[moduleKey], singleton)
 	}

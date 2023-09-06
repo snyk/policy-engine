@@ -18,6 +18,7 @@ package hcl_interpreter
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/hashicorp/hcl/v2"
 	"github.com/hashicorp/hcl/v2/hclsyntax"
@@ -35,6 +36,18 @@ func newPhantomAttrs() *phantomAttrs {
 	}
 }
 
+// This is useful when debugging, stick it in a printf or something
+func (pa *phantomAttrs) String() string {
+	builder := strings.Builder{}
+	for resourceKey, attrs := range pa.attrs {
+    	fmt.Fprintf(&builder, "%s:\n", resourceKey)
+    	for attr := range attrs {
+        	fmt.Fprintf(&builder, "- %s\n", attr)
+    	}
+	}
+	return builder.String()
+}
+
 func (pa *phantomAttrs) analyze(name FullName, term Term) {
 	term.VisitExpressions(func(expr hcl.Expression) {
 		exprAttrs := exprAttributes(expr)
@@ -47,7 +60,9 @@ func (pa *phantomAttrs) analyze(name FullName, term Term) {
 			full := FullName{Module: name.Module, Local: local}
 			if asResourceName, trailing := full.AsResourceName(); asResourceName != nil {
 				attrs := map[string]struct{}{}
-				attrs[LocalNameToString(trailing)] = struct{}{}
+				if len(trailing) > 0 {
+    				attrs[LocalNameToString(trailing)] = struct{}{}
+				}
 				for _, attr := range exprAttrs {
 					attrs[LocalNameToString(attr)] = struct{}{}
 				}
@@ -66,7 +81,7 @@ func (pa *phantomAttrs) analyze(name FullName, term Term) {
 	})
 }
 
-func (pa *phantomAttrs) add(name FullName, val cty.Value) cty.Value {
+func (pa *phantomAttrs) add(name FullName, multiple bool, val cty.Value) cty.Value {
 	rk := name.ToString()
 
 	var patch func(LocalName, string, cty.Value) cty.Value
@@ -77,14 +92,6 @@ func (pa *phantomAttrs) add(name FullName, val cty.Value) cty.Value {
 			// Insert the literal string value at the given location.
 			sparse := NestVal(local, cty.StringVal(ref))
 			return MergeVal(sparse, val)
-		} else if val.Type().IsTupleType() {
-			// Patching counted resources.
-			arr := []cty.Value{}
-			for i, v := range val.AsValueSlice() {
-				indexedRef := fmt.Sprintf("%s[%d]", ref, i)
-				arr = append(arr, patch(local, indexedRef, v))
-			}
-			return cty.TupleVal(arr)
 		}
 		return val
 	}
@@ -92,7 +99,25 @@ func (pa *phantomAttrs) add(name FullName, val cty.Value) cty.Value {
 	if attrs, ok := pa.attrs[rk]; ok {
 		for attr := range attrs {
 			if full, _ := StringToFullName(attr); full != nil {
-				val = patch(full.Local, name.ToString(), val)
+    			if multiple && val.Type().IsTupleType() {
+        			// Patching counted resources.
+        			arr := []cty.Value{}
+        			for i, v := range val.AsValueSlice() {
+        				indexedRef := fmt.Sprintf("%s[%d]", name.ToString(), i)
+        				arr = append(arr, patch(full.Local, indexedRef, v))
+        			}
+        			val = cty.TupleVal(arr)
+    			} else if multiple && val.Type().IsObjectType() {
+        			// Patching for_each resources.
+        			obj := map[string]cty.Value{}
+        			for k, v := range val.AsValueMap() {
+        				indexedRef := fmt.Sprintf("%s[%s]", name.ToString(), k)
+        				obj[k] = patch(full.Local, indexedRef, v)
+        			}
+        			val = cty.ObjectVal(obj)
+    			} else {
+    				val = patch(full.Local, name.ToString(), val)
+        		}
 			}
 		}
 	}
