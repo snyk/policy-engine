@@ -267,7 +267,7 @@ mapping:
 | `tf_plan`    | `terraform`                 |
 | `cfn`        | `cloudformation`            |
 | `cloud_scan` | `console`                   |
-| `k8s`        | `k8s`                       |
+| `k8s`        | `kubernetes`                       |
 | `arm`        | `arm`                       |
 
 Policies can also bypass this behavior by returning a `remediation` string in the
