@@ -1,6 +1,20 @@
 # CHANGELOG
 
 
+## v0.30.0 - 2023-09-06
+### Added
+* Support for Terraform path.root and path.cwd
+### Changed
+* tweak error message for EvaluationError in hcl_interpreter
+* Documentation around kubernetes key in remediation object 
+### Fixed
+* non-string variables defaulting to string instead of null
+* issue parsing remote terraform module register
+* add source code location to missing term errors
+* remove spurious warnings for default iterator
+* Remediation advice is emitted for every resource type
+### Updated
+* clarify that custom metadata fields are ignored
 
 ## v0.29.1 - 2023-08-21
 ### Fixed
