@@ -40,10 +40,10 @@ func newPhantomAttrs() *phantomAttrs {
 func (pa *phantomAttrs) String() string {
 	builder := strings.Builder{}
 	for resourceKey, attrs := range pa.attrs {
-    	fmt.Fprintf(&builder, "%s:\n", resourceKey)
-    	for attr := range attrs {
-        	fmt.Fprintf(&builder, "- %s\n", attr)
-    	}
+		fmt.Fprintf(&builder, "%s:\n", resourceKey)
+		for attr := range attrs {
+			fmt.Fprintf(&builder, "- %s\n", attr)
+		}
 	}
 	return builder.String()
 }
@@ -61,7 +61,7 @@ func (pa *phantomAttrs) analyze(name FullName, term Term) {
 			if asResourceName, trailing := full.AsResourceName(); asResourceName != nil {
 				attrs := map[string]struct{}{}
 				if len(trailing) > 0 {
-    				attrs[LocalNameToString(trailing)] = struct{}{}
+					attrs[LocalNameToString(trailing)] = struct{}{}
 				}
 				for _, attr := range exprAttrs {
 					attrs[LocalNameToString(attr)] = struct{}{}
@@ -99,25 +99,25 @@ func (pa *phantomAttrs) add(name FullName, multiple bool, val cty.Value) cty.Val
 	if attrs, ok := pa.attrs[rk]; ok {
 		for attr := range attrs {
 			if full, _ := StringToFullName(attr); full != nil {
-    			if multiple && val.Type().IsTupleType() {
-        			// Patching counted resources.
-        			arr := []cty.Value{}
-        			for i, v := range val.AsValueSlice() {
-        				indexedRef := fmt.Sprintf("%s[%d]", name.ToString(), i)
-        				arr = append(arr, patch(full.Local, indexedRef, v))
-        			}
-        			val = cty.TupleVal(arr)
-    			} else if multiple && val.Type().IsObjectType() {
-        			// Patching for_each resources.
-        			obj := map[string]cty.Value{}
-        			for k, v := range val.AsValueMap() {
-        				indexedRef := fmt.Sprintf("%s[%s]", name.ToString(), k)
-        				obj[k] = patch(full.Local, indexedRef, v)
-        			}
-        			val = cty.ObjectVal(obj)
-    			} else {
-    				val = patch(full.Local, name.ToString(), val)
-        		}
+				if multiple && val.Type().IsTupleType() {
+					// Patching counted resources.
+					arr := []cty.Value{}
+					for i, v := range val.AsValueSlice() {
+						indexedRef := fmt.Sprintf("%s[%d]", name.ToString(), i)
+						arr = append(arr, patch(full.Local, indexedRef, v))
+					}
+					val = cty.TupleVal(arr)
+				} else if multiple && val.Type().IsObjectType() {
+					// Patching for_each resources.
+					obj := map[string]cty.Value{}
+					for k, v := range val.AsValueMap() {
+						indexedRef := fmt.Sprintf("%s[%s]", name.ToString(), k)
+						obj[k] = patch(full.Local, indexedRef, v)
+					}
+					val = cty.ObjectVal(obj)
+				} else {
+					val = patch(full.Local, name.ToString(), val)
+				}
 			}
 		}
 	}
@@ -127,7 +127,7 @@ func (pa *phantomAttrs) add(name FullName, multiple bool, val cty.Value) cty.Val
 // exprAttributes tries to gather all attributes that are being used in a given
 // expression.  For example, for:
 //
-//     aws_s3_bucket.bucket[count.index].acl
+//	aws_s3_bucket.bucket[count.index].acl
 //
 // It would return [acl].
 func exprAttributes(expr hcl.Expression) []LocalName {

@@ -308,7 +308,7 @@ func (v *Evaluation) evaluate() error {
 		v.resourceAttributes[name.ToString()] = val
 		patchMultiple := false
 		if resourceMeta, ok := v.Analysis.Resources[name.ToString()]; ok {
-    		patchMultiple = resourceMeta.Multiple
+			patchMultiple = resourceMeta.Multiple
 		}
 		val = v.phantomAttrs.add(name, patchMultiple, val)
 		singleton := NestVal(name.Local, val)
