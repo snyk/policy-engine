@@ -306,7 +306,11 @@ func (v *Evaluation) evaluate() error {
 		}
 
 		v.resourceAttributes[name.ToString()] = val
-		val = v.phantomAttrs.add(name, val)
+		patchMultiple := false
+		if resourceMeta, ok := v.Analysis.Resources[name.ToString()]; ok {
+			patchMultiple = resourceMeta.Multiple
+		}
+		val = v.phantomAttrs.add(name, patchMultiple, val)
 		singleton := NestVal(name.Local, val)
 		v.Modules[moduleKey] = MergeVal(v.Modules[moduleKey], singleton)
 	}
@@ -323,10 +327,20 @@ func (v *Evaluation) prepareResource(resourceMeta *ResourceMeta, module ModuleNa
 		resourceType = "data." + resourceType
 	}
 
-	if val.Type().IsTupleType() {
+	if resourceMeta.Multiple && val.Type().IsTupleType() {
 		for idx, child := range val.AsValueSlice() {
 			indexedName := fmt.Sprintf("%s[%d]", name, idx)
-			resource := v.prepareResource(resourceMeta, module, indexedName, child)
+			resourceMetaCopy := *resourceMeta
+			resourceMetaCopy.Multiple = false
+			resource := v.prepareResource(&resourceMetaCopy, module, indexedName, child)
+			resources = append(resources, resource...)
+		}
+	} else if resourceMeta.Multiple && val.Type().IsObjectType() {
+		for key, child := range val.AsValueMap() {
+			indexedName := fmt.Sprintf("%s[%s]", name, key)
+			resourceMetaCopy := *resourceMeta
+			resourceMetaCopy.Multiple = false
+			resource := v.prepareResource(&resourceMetaCopy, module, indexedName, child)
 			resources = append(resources, resource...)
 		}
 	} else {

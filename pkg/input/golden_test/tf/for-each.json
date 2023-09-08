@@ -8,8 +8,8 @@
   },
   "resources": {
     "aws_iam_user": {
-      "aws_iam_user.the-accounts[0]": {
-        "id": "aws_iam_user.the-accounts[0]",
+      "aws_iam_user.myusers[Alice]": {
+        "id": "aws_iam_user.myusers[Alice]",
         "resource_type": "aws_iam_user",
         "namespace": "golden_test/tf/for-each/main.tf",
         "meta": {},
@@ -23,8 +23,8 @@
           "name": "Alice"
         }
       },
-      "aws_iam_user.the-accounts[1]": {
-        "id": "aws_iam_user.the-accounts[1]",
+      "aws_iam_user.myusers[Dottie]": {
+        "id": "aws_iam_user.myusers[Dottie]",
         "resource_type": "aws_iam_user",
         "namespace": "golden_test/tf/for-each/main.tf",
         "meta": {},
@@ -38,8 +38,8 @@
           "name": "Dottie"
         }
       },
-      "aws_iam_user.the-accounts[2]": {
-        "id": "aws_iam_user.the-accounts[2]",
+      "aws_iam_user.myusers[James]": {
+        "id": "aws_iam_user.myusers[James]",
         "resource_type": "aws_iam_user",
         "namespace": "golden_test/tf/for-each/main.tf",
         "meta": {},
@@ -53,8 +53,8 @@
           "name": "James"
         }
       },
-      "aws_iam_user.the-accounts[3]": {
-        "id": "aws_iam_user.the-accounts[3]",
+      "aws_iam_user.myusers[Todd]": {
+        "id": "aws_iam_user.myusers[Todd]",
         "resource_type": "aws_iam_user",
         "namespace": "golden_test/tf/for-each/main.tf",
         "meta": {},
@@ -69,33 +69,115 @@
         }
       }
     },
-    "azurerm_resource_group": {
-      "azurerm_resource_group.rg[0]": {
-        "id": "azurerm_resource_group.rg[0]",
-        "resource_type": "azurerm_resource_group",
+    "aws_s3_bucket": {
+      "aws_s3_bucket.mybuckets[dev]": {
+        "id": "aws_s3_bucket.mybuckets[dev]",
+        "resource_type": "aws_s3_bucket",
         "namespace": "golden_test/tf/for-each/main.tf",
+        "tags": {
+          "env": "dev"
+        },
         "meta": {},
         "attributes": {
+          "bucket_prefix": "devced456",
           "for_each": {
-            "a_group": "eastus",
-            "another_group": "westus2"
+            "dev": "ced456",
+            "prod": "abc123"
           },
-          "location": "eastus",
-          "name": "a_group"
+          "tags": {
+            "env": "dev"
+          }
         }
       },
-      "azurerm_resource_group.rg[1]": {
-        "id": "azurerm_resource_group.rg[1]",
-        "resource_type": "azurerm_resource_group",
+      "aws_s3_bucket.mybuckets[prod]": {
+        "id": "aws_s3_bucket.mybuckets[prod]",
+        "resource_type": "aws_s3_bucket",
         "namespace": "golden_test/tf/for-each/main.tf",
+        "tags": {
+          "env": "prod"
+        },
+        "meta": {},
+        "attributes": {
+          "bucket_prefix": "prodabc123",
+          "for_each": {
+            "dev": "ced456",
+            "prod": "abc123"
+          },
+          "tags": {
+            "env": "prod"
+          }
+        }
+      },
+      "aws_s3_bucket.phantom_mybuckets[dev]": {
+        "id": "aws_s3_bucket.phantom_mybuckets[dev]",
+        "resource_type": "aws_s3_bucket",
+        "namespace": "golden_test/tf/for-each/main.tf",
+        "tags": {
+          "backup": "aws_s3_bucket.mybuckets[dev]"
+        },
         "meta": {},
         "attributes": {
           "for_each": {
-            "a_group": "eastus",
-            "another_group": "westus2"
+            "dev": "ced456",
+            "prod": "abc123"
           },
-          "location": "westus2",
-          "name": "another_group"
+          "tags": {
+            "backup": "aws_s3_bucket.mybuckets[dev]"
+          }
+        }
+      },
+      "aws_s3_bucket.phantom_mybuckets[prod]": {
+        "id": "aws_s3_bucket.phantom_mybuckets[prod]",
+        "resource_type": "aws_s3_bucket",
+        "namespace": "golden_test/tf/for-each/main.tf",
+        "tags": {
+          "backup": "aws_s3_bucket.mybuckets[prod]"
+        },
+        "meta": {},
+        "attributes": {
+          "for_each": {
+            "dev": "ced456",
+            "prod": "abc123"
+          },
+          "tags": {
+            "backup": "aws_s3_bucket.mybuckets[prod]"
+          }
+        }
+      },
+      "aws_s3_bucket.read_mybuckets[dev]": {
+        "id": "aws_s3_bucket.read_mybuckets[dev]",
+        "resource_type": "aws_s3_bucket",
+        "namespace": "golden_test/tf/for-each/main.tf",
+        "tags": {
+          "read_prefix": "devced456"
+        },
+        "meta": {},
+        "attributes": {
+          "for_each": {
+            "dev": "ced456",
+            "prod": "abc123"
+          },
+          "tags": {
+            "read_prefix": "devced456"
+          }
+        }
+      },
+      "aws_s3_bucket.read_mybuckets[prod]": {
+        "id": "aws_s3_bucket.read_mybuckets[prod]",
+        "resource_type": "aws_s3_bucket",
+        "namespace": "golden_test/tf/for-each/main.tf",
+        "tags": {
+          "read_prefix": "prodabc123"
+        },
+        "meta": {},
+        "attributes": {
+          "for_each": {
+            "dev": "ced456",
+            "prod": "abc123"
+          },
+          "tags": {
+            "read_prefix": "prodabc123"
+          }
         }
       }
     }
