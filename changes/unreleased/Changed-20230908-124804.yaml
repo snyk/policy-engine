@@ -1,3 +1,0 @@
-kind: Changed
-body: store resources with a for_each as objects rather than tuples
-time: 2023-09-08T12:48:04.519155828+02:00

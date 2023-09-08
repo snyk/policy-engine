@@ -1,6 +1,13 @@
 # CHANGELOG
 
 
+
+## v0.30.1 - 2023-09-08
+### Changed
+* store resources with a for_each as objects rather than tuples
+### Fixed
+* remove spurious warning for static missing terms
+
 ## v0.30.0 - 2023-09-06
 ### Added
 * Support for Terraform path.root and path.cwd
