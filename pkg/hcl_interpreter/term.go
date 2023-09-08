@@ -233,32 +233,31 @@ func (t Term) evaluateExpr(
 	}
 }
 
-type foreachAccumulator interface {
-	add(key string, val cty.Value)
-	val() cty.Value
+// We generally want to return the result of a for_each as an object, but fall
+// back to a tuple if necessary.
+type forEachResult struct {
+	tuple   []cty.Value
+	object  map[string]cty.Value
+	isTuple bool
 }
 
-type foreachArrayAccumulator struct {
-	array []cty.Value
+func (acc *forEachResult) add(key cty.Value, val cty.Value) {
+	if !acc.isTuple && key.Type() == cty.String {
+		if acc.object == nil {
+			acc.object = map[string]cty.Value{}
+		}
+		acc.object[key.AsString()] = val
+		acc.tuple = append(acc.tuple, val)
+	} else {
+		acc.isTuple = true
+		acc.tuple = append(acc.tuple, val)
+	}
 }
 
-func (acc *foreachArrayAccumulator) add(key string, val cty.Value) {
-	acc.array = append(acc.array, val)
-}
-
-func (acc *foreachArrayAccumulator) val() cty.Value {
-	return cty.TupleVal(acc.array)
-}
-
-type foreachObjectAccumulator struct {
-	object map[string]cty.Value
-}
-
-func (acc *foreachObjectAccumulator) add(key string, val cty.Value) {
-	acc.object[key] = val
-}
-
-func (acc *foreachObjectAccumulator) val() cty.Value {
+func (acc *forEachResult) value() cty.Value {
+	if acc.isTuple {
+		return cty.TupleVal(acc.tuple)
+	}
 	return cty.ObjectVal(acc.object)
 }
 
@@ -318,42 +317,24 @@ func (t Term) Evaluate(
 			return val
 		}
 
+		forEachResult := &forEachResult{}
 		if !forEachVal.IsNull() && forEachVal.IsKnown() {
 			if forEachVal.Type().IsMapType() || forEachVal.Type().IsObjectType() {
-				object := map[string]cty.Value{}
 				for k, v := range forEachVal.AsValueMap() {
-					object[k] = evalWithEach(cty.StringVal(k), v)
+					key := cty.StringVal(k)
+					forEachResult.add(key, evalWithEach(key, v))
 				}
-				return cty.ObjectVal(object), diagnostics
 			} else if forEachVal.Type().IsSetType() {
-				// Building an object is preferred since, but fall back to
-				// building a tuple if we have a key that's not a string.
-				object := map[string]cty.Value{}
-				tuple := []cty.Value{}
 				for _, v := range forEachVal.AsValueSet().Values() {
-					val := evalWithEach(v, v)
-					if object != nil && v.Type() == cty.String {
-						object[v.AsString()] = val
-						tuple = append(tuple, val)
-					} else {
-						object = nil
-						tuple = append(tuple, val)
-					}
+					forEachResult.add(v, evalWithEach(v, v))
 				}
-				if object != nil {
-					return cty.ObjectVal(object), diagnostics
-				}
-				return cty.TupleVal(tuple), diagnostics
 			} else if forEachVal.Type().IsTupleType() || forEachVal.Type().IsListType() {
-				tuple := []cty.Value{}
 				for i, v := range forEachVal.AsValueSlice() {
-					val := evalWithEach(cty.NumberIntVal(int64(i)), v)
-					tuple = append(tuple, val)
+					k := cty.NumberIntVal(int64(i))
+					forEachResult.add(k, evalWithEach(k, v))
 				}
-				return cty.TupleVal(tuple), diagnostics
 			}
-
-			return cty.TupleVal([]cty.Value{}), diagnostics
+			return forEachResult.value(), diagnostics
 		}
 	}
 
