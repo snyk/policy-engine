@@ -1,0 +1,11 @@
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  name: policy-engine
+  annotations:
+    github.com/project-slug: snyk/policy-engine
+    github.com/team-slug: snyk/cloud-engines
+spec:
+  type: external-library
+  lifecycle: "-"
+  owner: cloud-engines
