@@ -265,39 +265,32 @@ func (t Term) Evaluate(
 	evalExpr func(expr hcl.Expression, extraVars cty.Value) (cty.Value, hcl.Diagnostics),
 ) (cty.Value, hcl.Diagnostics) {
 	if t.count != nil {
-		// Helper
-		parseCount := func(val cty.Value) *int64 {
-			if val.IsNull() || !val.IsKnown() {
-				// An unknown variable prompts the user to enter a value.  This
-				// could be how many resources we want to create.  Just create one
-				// so we can check it for misconfigurations.
-				count := int64(1)
-				return &count
-			} else if val.Type() == cty.Number {
-				big := val.AsBigFloat()
-				if big.IsInt() {
-					count, _ := big.Int64()
-					return &count
-				}
-			}
-			return nil
-		}
-
 		diagnostics := hcl.Diagnostics{}
 		countVal, diags := evalExpr(*t.count, cty.EmptyObjectVal)
 		diagnostics = append(diagnostics, diags...)
-		if count := parseCount(countVal); count != nil {
-			arr := []cty.Value{}
-			for i := int64(0); i < *count; i++ {
-				val, diags := t.evaluateExpr(func(e hcl.Expression, v cty.Value) (cty.Value, hcl.Diagnostics) {
-					v = MergeVal(v, NestVal(LocalName{"count", "index"}, cty.NumberIntVal(i)))
-					return evalExpr(e, v)
-				})
-				diagnostics = append(diagnostics, diags...)
-				arr = append(arr, val)
+
+		// An unknown variable prompts the user to enter a value.  This
+		// could be how many resources we want to create.  Just create one
+		// so we can check it for misconfigurations.
+		count := int64(1)
+		if !countVal.IsNull() && countVal.IsKnown() && countVal.Type() == cty.Number {
+			big := countVal.AsBigFloat()
+			if big.IsInt() {
+				n, _ := big.Int64()
+				count = n
 			}
-			return cty.TupleVal(arr), diagnostics
 		}
+
+		arr := []cty.Value{}
+		for i := int64(0); i < count; i++ {
+			val, diags := t.evaluateExpr(func(e hcl.Expression, v cty.Value) (cty.Value, hcl.Diagnostics) {
+				v = MergeVal(v, NestVal(LocalName{"count", "index"}, cty.NumberIntVal(i)))
+				return evalExpr(e, v)
+			})
+			diagnostics = append(diagnostics, diags...)
+			arr = append(arr, val)
+		}
+		return cty.TupleVal(arr), diagnostics
 	}
 
 	if t.forEach != nil {
@@ -334,8 +327,8 @@ func (t Term) Evaluate(
 					forEachResult.add(k, evalWithEach(k, v))
 				}
 			}
-			return forEachResult.value(), diagnostics
 		}
+		return forEachResult.value(), diagnostics
 	}
 
 	return t.evaluateExpr(evalExpr)
