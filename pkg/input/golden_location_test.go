@@ -367,6 +367,40 @@ var goldenLocationTests = []goldenLocationTest{
 			},
 		},
 	},
+	{
+		directory: "golden_test/tf/count-simple",
+		cases: []goldenLocationTestCase{
+			{
+				path: []interface{}{
+					"golden_test/tf/count-simple",
+					"aws_s3_bucket",
+					"aws_s3_bucket.example[0]",
+				},
+				expected: LocationStack{
+					{
+						Path: "main.tf",
+						Line: 15,
+						Col:  1,
+					},
+				},
+			},
+			{
+				path: []interface{}{
+					"golden_test/tf/count-simple",
+					"aws_s3_bucket",
+					"aws_s3_bucket.example[0]",
+					"bucket_prefix",
+				},
+				expected: LocationStack{
+					{
+						Path: "main.tf",
+						Line: 17,
+						Col:  3,
+					},
+				},
+			},
+		},
+	},
 }
 
 // Tests for attribute locations.  These use the same input files as the
