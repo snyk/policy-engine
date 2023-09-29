@@ -2,6 +2,13 @@
 
 
 
+## v0.30.2 - 2023-09-29
+### Added
+* add catalog-info.yaml for asset classification
+### Fixed
+* source locations for count/for_each resources in tf loader
+* fix: resource schema mixup when count/for_each fails to evaluate
+
 ## v0.30.1 - 2023-09-08
 ### Changed
 * store resources with a for_each as objects rather than tuples
