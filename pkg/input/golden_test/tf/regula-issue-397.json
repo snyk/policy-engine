@@ -69,29 +69,6 @@
         }
       }
     },
-    "aws_lb_target_group_attachment": {
-      "aws_lb_target_group_attachment.msk_tgr_attachment[for_each]": {
-        "id": "aws_lb_target_group_attachment.msk_tgr_attachment[for_each]",
-        "resource_type": "aws_lb_target_group_attachment",
-        "namespace": "golden_test/tf/regula-issue-397/main.tf",
-        "meta": {},
-        "attributes": {}
-      },
-      "aws_lb_target_group_attachment.msk_tgr_attachment[target_group_arn]": {
-        "id": "aws_lb_target_group_attachment.msk_tgr_attachment[target_group_arn]",
-        "resource_type": "aws_lb_target_group_attachment",
-        "namespace": "golden_test/tf/regula-issue-397/main.tf",
-        "meta": {},
-        "attributes": {}
-      },
-      "aws_lb_target_group_attachment.msk_tgr_attachment[target_id]": {
-        "id": "aws_lb_target_group_attachment.msk_tgr_attachment[target_id]",
-        "resource_type": "aws_lb_target_group_attachment",
-        "namespace": "golden_test/tf/regula-issue-397/main.tf",
-        "meta": {},
-        "attributes": {}
-      }
-    },
     "data.aws_msk_broker_nodes": {
       "data.aws_msk_broker_nodes.msk_nodes": {
         "id": "data.aws_msk_broker_nodes.msk_nodes",

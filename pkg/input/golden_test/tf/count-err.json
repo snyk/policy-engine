@@ -1,0 +1,26 @@
+{
+  "format": "",
+  "format_version": "",
+  "input_type": "tf_hcl",
+  "environment_provider": "iac",
+  "meta": {
+    "filepath": "golden_test/tf/count-err/main.tf"
+  },
+  "resources": {
+    "aws_s3_bucket": {
+      "aws_s3_bucket.count_bucket[0]": {
+        "id": "aws_s3_bucket.count_bucket[0]",
+        "resource_type": "aws_s3_bucket",
+        "namespace": "golden_test/tf/count-err/main.tf",
+        "meta": {},
+        "attributes": {
+          "bucket_prefix": "some_count",
+          "count": null
+        }
+      }
+    }
+  },
+  "scope": {
+    "filepath": "golden_test/tf/count-err/main.tf"
+  }
+}

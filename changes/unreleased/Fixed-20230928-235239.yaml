@@ -1,0 +1,3 @@
+kind: Fixed
+body: "fix: resource schema mixup when count/for_each fails to evaluate"
+time: 2023-09-28T23:52:39.422983+02:00
