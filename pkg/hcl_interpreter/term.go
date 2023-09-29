@@ -274,10 +274,8 @@ func (t Term) Evaluate(
 		// so we can check it for misconfigurations.
 		count := int64(1)
 		if !countVal.IsNull() && countVal.IsKnown() && countVal.Type() == cty.Number {
-			big := countVal.AsBigFloat()
-			if big.IsInt() {
-				n, _ := big.Int64()
-				count = n
+			if big := countVal.AsBigFloat(); big.IsInt() {
+				count, _ = big.Int64()
 			}
 		}
 
