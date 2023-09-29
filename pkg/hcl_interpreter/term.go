@@ -279,14 +279,14 @@ func (t Term) Evaluate(
 			}
 		}
 
-		arr := []cty.Value{}
+		arr := make([]cty.Value, count)
 		for i := int64(0); i < count; i++ {
 			val, diags := t.evaluateExpr(func(e hcl.Expression, v cty.Value) (cty.Value, hcl.Diagnostics) {
 				v = MergeVal(v, NestVal(LocalName{"count", "index"}, cty.NumberIntVal(i)))
 				return evalExpr(e, v)
 			})
 			diagnostics = append(diagnostics, diags...)
-			arr = append(arr, val)
+			arr[i] = val
 		}
 		return cty.TupleVal(arr), diagnostics
 	}
