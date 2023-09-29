@@ -16,14 +16,23 @@ package hcl_interpreter
 
 import (
 	"fmt"
+	"regexp"
 
 	"github.com/hashicorp/hcl/v2"
 )
+
+// Utility to strip out "[x]" parts from resource IDs.
+var resourceIdBracketPattern = regexp.MustCompile(`\[[^[*]\]`)
 
 func (v *Evaluation) Location(
 	resourceId string,
 	path []interface{},
 ) []hcl.Range {
+	// If we receive a resourceId such as `aws_s3_bucket.my_bucket[0]`, we want
+	// to strip out any `[0]` part, since the source code syntax does not have
+	// any concept of these "multi"-resources.
+	resourceId = resourceIdBracketPattern.ReplaceAllLiteralString(resourceId, "")
+
 	// Find resource location.
 	resource, ok := v.Analysis.Resources[resourceId]
 	name, _ := StringToFullName(resourceId)
