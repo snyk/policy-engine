@@ -117,12 +117,14 @@ func termFromBlock(body *hclsyntax.Body) Term {
 
 func (t Term) WithCount(expr hcl.Expression) Term {
 	t.count = &expr
+  delete(t.attrs, "count")
 	return t
 }
 
 func (t Term) WithForEach(iterator string, expr hcl.Expression) Term {
 	t.forEach = &expr
 	t.iterator = iterator
+  delete(t.attrs, "for_each")
 	return t
 }
 
