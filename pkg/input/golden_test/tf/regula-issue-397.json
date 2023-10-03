@@ -32,7 +32,6 @@
         "namespace": "golden_test/tf/regula-issue-397/main.tf",
         "meta": {},
         "attributes": {
-          "count": 3,
           "name": "msk-dynamic-broker0",
           "port": 1234,
           "protocol": "TCP",
@@ -46,7 +45,6 @@
         "namespace": "golden_test/tf/regula-issue-397/main.tf",
         "meta": {},
         "attributes": {
-          "count": 3,
           "name": "msk-dynamic-broker1",
           "port": 1234,
           "protocol": "TCP",
@@ -60,7 +58,6 @@
         "namespace": "golden_test/tf/regula-issue-397/main.tf",
         "meta": {},
         "attributes": {
-          "count": 3,
           "name": "msk-dynamic-broker2",
           "port": 1234,
           "protocol": "TCP",
