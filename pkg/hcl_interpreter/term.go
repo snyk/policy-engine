@@ -284,12 +284,10 @@ func (t Term) Evaluate(
 
 		arr := make([]cty.Value, count)
 		for i := int64(0); i < count; i++ {
-			val, diags := t.evaluateExpr(
-				func(e hcl.Expression, v cty.Value) (cty.Value, hcl.Diagnostics) {
-					v = MergeVal(v, NestVal(LocalName{"count", "index"}, cty.NumberIntVal(i)))
-					return evalExpr(e, v)
-				},
-			)
+			val, diags := t.evaluateExpr(func(e hcl.Expression, v cty.Value) (cty.Value, hcl.Diagnostics) {
+				v = MergeVal(v, NestVal(LocalName{"count", "index"}, cty.NumberIntVal(i)))
+				return evalExpr(e, v)
+			})
 			diagnostics = append(diagnostics, diags...)
 			arr[i] = val
 		}
@@ -302,18 +300,13 @@ func (t Term) Evaluate(
 		diagnostics = append(diagnostics, diags...)
 
 		evalWithEach := func(key cty.Value, value cty.Value) cty.Value {
-			val, diags := t.evaluateExpr(
-				func(e hcl.Expression, v cty.Value) (cty.Value, hcl.Diagnostics) {
-					v = MergeVal(
-						v,
-						NestVal(LocalName{t.iterator}, cty.ObjectVal(map[string]cty.Value{
-							"key":   key,
-							"value": value,
-						})),
-					)
-					return evalExpr(e, v)
-				},
-			)
+			val, diags := t.evaluateExpr(func(e hcl.Expression, v cty.Value) (cty.Value, hcl.Diagnostics) {
+				v = MergeVal(v, NestVal(LocalName{t.iterator}, cty.ObjectVal(map[string]cty.Value{
+					"key":   key,
+					"value": value,
+				})))
+				return evalExpr(e, v)
+			})
 			diagnostics = append(diagnostics, diags...)
 			return val
 		}
