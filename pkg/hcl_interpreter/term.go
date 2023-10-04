@@ -40,13 +40,27 @@ func TermFromExpr(expr hcl.Expression) Term {
 	}
 }
 
-func TermFromBody(body hcl.Body) Term {
+func TermFromBody(body hcl.Body, count hcl.Expression, forEach hcl.Expression) Term {
+	var term Term
 	switch b := body.(type) {
 	case *hclsyntax.Body:
-		return termFromBlock(b)
+		term = termFromBlock(b)
 	default:
-		return termFromJustAttributes(body)
+		term = termFromJustAttributes(body)
 	}
+
+	if count != nil {
+		term.count = &count
+		delete(term.attrs, "count")
+	}
+
+	if forEach != nil {
+		term.forEach = &forEach
+		term.iterator = "each"
+		delete(term.attrs, "for_each")
+	}
+
+	return term
 }
 
 func termFromJustAttributes(body hcl.Body) Term {
@@ -63,7 +77,7 @@ func termFromJustAttributes(body hcl.Body) Term {
 
 func termFromDynamicBlock(body *hclsyntax.Body, defaultIterator string) Term {
 	// Pull out content
-	term := TermFromBody(body)
+	term := TermFromBody(body, nil, nil)
 	for _, b := range body.Blocks {
 		if b.Type == "content" {
 			term = termFromBlock(b.Body)
@@ -104,7 +118,7 @@ func termFromBlock(body *hclsyntax.Body) Term {
 			blockType = block.Labels[0]
 			blockTerm = termFromDynamicBlock(block.Body, blockType)
 		} else {
-			blockTerm = TermFromBody(block.Body)
+			blockTerm = TermFromBody(block.Body, nil, nil)
 		}
 		blocks[blockType] = append(blocks[blockType], blockTerm)
 	}
@@ -113,19 +127,6 @@ func termFromBlock(body *hclsyntax.Body) Term {
 		attrs:  attrs,
 		blocks: blocks,
 	}
-}
-
-func (t Term) WithCount(expr hcl.Expression) Term {
-	t.count = &expr
-  delete(t.attrs, "count")
-	return t
-}
-
-func (t Term) WithForEach(iterator string, expr hcl.Expression) Term {
-	t.forEach = &expr
-	t.iterator = iterator
-  delete(t.attrs, "for_each")
-	return t
 }
 
 // shallowVisitExpressions visits all expressions in the term but will not
@@ -283,10 +284,12 @@ func (t Term) Evaluate(
 
 		arr := make([]cty.Value, count)
 		for i := int64(0); i < count; i++ {
-			val, diags := t.evaluateExpr(func(e hcl.Expression, v cty.Value) (cty.Value, hcl.Diagnostics) {
-				v = MergeVal(v, NestVal(LocalName{"count", "index"}, cty.NumberIntVal(i)))
-				return evalExpr(e, v)
-			})
+			val, diags := t.evaluateExpr(
+				func(e hcl.Expression, v cty.Value) (cty.Value, hcl.Diagnostics) {
+					v = MergeVal(v, NestVal(LocalName{"count", "index"}, cty.NumberIntVal(i)))
+					return evalExpr(e, v)
+				},
+			)
 			diagnostics = append(diagnostics, diags...)
 			arr[i] = val
 		}
@@ -299,13 +302,18 @@ func (t Term) Evaluate(
 		diagnostics = append(diagnostics, diags...)
 
 		evalWithEach := func(key cty.Value, value cty.Value) cty.Value {
-			val, diags := t.evaluateExpr(func(e hcl.Expression, v cty.Value) (cty.Value, hcl.Diagnostics) {
-				v = MergeVal(v, NestVal(LocalName{t.iterator}, cty.ObjectVal(map[string]cty.Value{
-					"key":   key,
-					"value": value,
-				})))
-				return evalExpr(e, v)
-			})
+			val, diags := t.evaluateExpr(
+				func(e hcl.Expression, v cty.Value) (cty.Value, hcl.Diagnostics) {
+					v = MergeVal(
+						v,
+						NestVal(LocalName{t.iterator}, cty.ObjectVal(map[string]cty.Value{
+							"key":   key,
+							"value": value,
+						})),
+					)
+					return evalExpr(e, v)
+				},
+			)
 			diagnostics = append(diagnostics, diags...)
 			return val
 		}
