@@ -14,12 +14,6 @@
         "namespace": "golden_test/tf/for-each/main.tf",
         "meta": {},
         "attributes": {
-          "for_each": [
-            "Alice",
-            "Dottie",
-            "James",
-            "Todd"
-          ],
           "name": "Alice"
         }
       },
@@ -29,12 +23,6 @@
         "namespace": "golden_test/tf/for-each/main.tf",
         "meta": {},
         "attributes": {
-          "for_each": [
-            "Alice",
-            "Dottie",
-            "James",
-            "Todd"
-          ],
           "name": "Dottie"
         }
       },
@@ -44,12 +32,6 @@
         "namespace": "golden_test/tf/for-each/main.tf",
         "meta": {},
         "attributes": {
-          "for_each": [
-            "Alice",
-            "Dottie",
-            "James",
-            "Todd"
-          ],
           "name": "James"
         }
       },
@@ -59,12 +41,6 @@
         "namespace": "golden_test/tf/for-each/main.tf",
         "meta": {},
         "attributes": {
-          "for_each": [
-            "Alice",
-            "Dottie",
-            "James",
-            "Todd"
-          ],
           "name": "Todd"
         }
       }
@@ -80,10 +56,6 @@
         "meta": {},
         "attributes": {
           "bucket_prefix": "devced456",
-          "for_each": {
-            "dev": "ced456",
-            "prod": "abc123"
-          },
           "tags": {
             "env": "dev"
           }
@@ -99,10 +71,6 @@
         "meta": {},
         "attributes": {
           "bucket_prefix": "prodabc123",
-          "for_each": {
-            "dev": "ced456",
-            "prod": "abc123"
-          },
           "tags": {
             "env": "prod"
           }
@@ -117,10 +85,6 @@
         },
         "meta": {},
         "attributes": {
-          "for_each": {
-            "dev": "ced456",
-            "prod": "abc123"
-          },
           "tags": {
             "backup": "aws_s3_bucket.mybuckets[dev]"
           }
@@ -135,10 +99,6 @@
         },
         "meta": {},
         "attributes": {
-          "for_each": {
-            "dev": "ced456",
-            "prod": "abc123"
-          },
           "tags": {
             "backup": "aws_s3_bucket.mybuckets[prod]"
           }
@@ -153,10 +113,6 @@
         },
         "meta": {},
         "attributes": {
-          "for_each": {
-            "dev": "ced456",
-            "prod": "abc123"
-          },
           "tags": {
             "read_prefix": "devced456"
           }
@@ -171,10 +127,6 @@
         },
         "meta": {},
         "attributes": {
-          "for_each": {
-            "dev": "ced456",
-            "prod": "abc123"
-          },
           "tags": {
             "read_prefix": "prodabc123"
           }

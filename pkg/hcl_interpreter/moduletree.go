@@ -331,11 +331,6 @@ func walkResource(
 	v.VisitResource(name, resourceMeta)
 
 	term := TermFromBody(resource.Config)
-	if haveCount {
-		term = term.WithCount(resource.Count)
-	} else if haveForEach {
-		term = term.WithForEach("each", resource.ForEach)
-	}
 
 	v.VisitTerm(name, term)
 }

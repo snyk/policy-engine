@@ -41,12 +41,26 @@ func TermFromExpr(expr hcl.Expression) Term {
 }
 
 func TermFromBody(body hcl.Body) Term {
+	var term Term
 	switch b := body.(type) {
 	case *hclsyntax.Body:
-		return termFromBlock(b)
+		term = termFromBlock(b)
 	default:
-		return termFromJustAttributes(body)
+		term = termFromJustAttributes(body)
 	}
+
+	if count, ok := term.attrs["count"]; ok {
+		term.count = &count
+		delete(term.attrs, "count")
+	}
+
+	if forEach, ok := term.attrs["for_each"]; ok {
+		term.forEach = &forEach
+		term.iterator = "each"
+		delete(term.attrs, "for_each")
+	}
+
+	return term
 }
 
 func termFromJustAttributes(body hcl.Body) Term {
@@ -113,17 +127,6 @@ func termFromBlock(body *hclsyntax.Body) Term {
 		attrs:  attrs,
 		blocks: blocks,
 	}
-}
-
-func (t Term) WithCount(expr hcl.Expression) Term {
-	t.count = &expr
-	return t
-}
-
-func (t Term) WithForEach(iterator string, expr hcl.Expression) Term {
-	t.forEach = &expr
-	t.iterator = iterator
-	return t
 }
 
 // shallowVisitExpressions visits all expressions in the term but will not

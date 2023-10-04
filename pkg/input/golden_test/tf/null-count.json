@@ -21,8 +21,7 @@
           }
         },
         "attributes": {
-          "bucket": "mybucket-0",
-          "count": null
+          "bucket": "mybucket-0"
         }
       }
     }

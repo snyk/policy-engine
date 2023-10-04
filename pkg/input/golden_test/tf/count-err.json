@@ -14,8 +14,7 @@
         "namespace": "golden_test/tf/count-err/main.tf",
         "meta": {},
         "attributes": {
-          "bucket_prefix": "some_count",
-          "count": null
+          "bucket_prefix": "some_count"
         }
       }
     }
