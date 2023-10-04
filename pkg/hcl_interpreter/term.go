@@ -40,7 +40,7 @@ func TermFromExpr(expr hcl.Expression) Term {
 	}
 }
 
-func TermFromBody(body hcl.Body, count hcl.Expression, forEach hcl.Expression) Term {
+func TermFromBody(body hcl.Body) Term {
 	var term Term
 	switch b := body.(type) {
 	case *hclsyntax.Body:
@@ -49,12 +49,12 @@ func TermFromBody(body hcl.Body, count hcl.Expression, forEach hcl.Expression) T
 		term = termFromJustAttributes(body)
 	}
 
-	if count != nil {
+	if count, ok := term.attrs["count"]; ok {
 		term.count = &count
 		delete(term.attrs, "count")
 	}
 
-	if forEach != nil {
+	if forEach, ok := term.attrs["for_each"]; ok {
 		term.forEach = &forEach
 		term.iterator = "each"
 		delete(term.attrs, "for_each")
@@ -77,7 +77,7 @@ func termFromJustAttributes(body hcl.Body) Term {
 
 func termFromDynamicBlock(body *hclsyntax.Body, defaultIterator string) Term {
 	// Pull out content
-	term := TermFromBody(body, nil, nil)
+	term := TermFromBody(body)
 	for _, b := range body.Blocks {
 		if b.Type == "content" {
 			term = termFromBlock(b.Body)
@@ -118,7 +118,7 @@ func termFromBlock(body *hclsyntax.Body) Term {
 			blockType = block.Labels[0]
 			blockTerm = termFromDynamicBlock(block.Body, blockType)
 		} else {
-			blockTerm = TermFromBody(block.Body, nil, nil)
+			blockTerm = TermFromBody(block.Body)
 		}
 		blocks[blockType] = append(blocks[blockType], blockTerm)
 	}

@@ -238,7 +238,7 @@ func walkModuleTree(v Visitor, mtree *ModuleTree) {
 	for key, child := range mtree.children {
 		// TODO: This is not good.  We end up walking child2 as it were child2.
 		configName := FullName{mtree.meta.Name, LocalName{"input", key}}
-		for k, input := range TermFromBody(child.config, nil, nil).Attributes() {
+		for k, input := range TermFromBody(child.config).Attributes() {
 			v.VisitTerm(configName.Add(k), input)
 		}
 
@@ -294,7 +294,7 @@ func walkModule(v Visitor, moduleName ModuleName, module *configs.Module, variab
 	}
 
 	for providerName, providerConf := range module.ProviderConfigs {
-		v.VisitTerm(ProviderConfigName(moduleName, providerName), TermFromBody(providerConf.Config, nil, nil))
+		v.VisitTerm(ProviderConfigName(moduleName, providerName), TermFromBody(providerConf.Config))
 	}
 }
 
@@ -330,7 +330,7 @@ func walkResource(
 
 	v.VisitResource(name, resourceMeta)
 
-	term := TermFromBody(resource.Config, resource.Count, resource.ForEach)
+	term := TermFromBody(resource.Config)
 
 	v.VisitTerm(name, term)
 }
