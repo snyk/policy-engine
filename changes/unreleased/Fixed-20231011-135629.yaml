@@ -1,3 +1,0 @@
-kind: Fixed
-body: upgraded http2 and google-storage and grpc to remove DoS vulns
-time: 2023-10-11T13:56:29.719177+03:00
