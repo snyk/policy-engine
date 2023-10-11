@@ -2,6 +2,11 @@
 
 
 
+## v0.30.3 - 2023-10-11
+### Fixed
+* count and for_each appearing in attributes
+* upgraded http2 and google-storage and grpc to remove DoS vulns
+
 ## v0.30.2 - 2023-09-29
 ### Added
 * add catalog-info.yaml for asset classification
