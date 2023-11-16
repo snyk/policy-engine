@@ -48,8 +48,16 @@ func Apply(val interface{}, schema *Schema) interface{} {
 	}
 
 	if schema.Sensitive {
-		switch val.(type) {
+		switch v := val.(type) {
 		case string:
+			// In some terraform plans, unset attributes are represented by the empty
+			// string rather than null. If we mask this, we lose distinction between
+			// set and unset attributes which can cause false positives or negatives
+			// in policies.
+			if v == "" {
+				return ""
+			}
+
 			return "******"
 		default:
 			return nil

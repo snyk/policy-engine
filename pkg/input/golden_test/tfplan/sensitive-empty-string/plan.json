@@ -1,0 +1,957 @@
+{
+  "format_version": "1.1",
+  "terraform_version": "1.4.6",
+  "planned_values": {
+    "root_module": {
+      "resources": [
+        {
+          "address": "google_compute_instance.cloud-1829-repro",
+          "mode": "managed",
+          "type": "google_compute_instance",
+          "name": "cloud-1829-repro",
+          "provider_name": "registry.terraform.io/hashicorp/google",
+          "schema_version": 6,
+          "values": {
+            "advanced_machine_features": [],
+            "allow_stopping_for_update": null,
+            "attached_disk": [],
+            "boot_disk": [
+              {
+                "auto_delete": true,
+                "device_name": "persistent-disk-0",
+                "disk_encryption_key_raw": "",
+                "disk_encryption_key_sha256": "",
+                "initialize_params": [
+                  {
+                    "image": "https://www.googleapis.com/compute/v1/projects/debian-cloud/global/images/debian-11-bullseye-v20231113",
+                    "labels": {},
+                    "resource_manager_tags": {},
+                    "size": 10,
+                    "type": "pd-standard"
+                  }
+                ],
+                "kms_key_self_link": "",
+                "mode": "READ_WRITE",
+                "source": "https://www.googleapis.com/compute/v1/projects/a-project/zones/europe-west2-a/disks/cloud-1829-repro"
+              }
+            ],
+            "can_ip_forward": false,
+            "confidential_instance_config": [],
+            "cpu_platform": "AMD Rome",
+            "current_status": "RUNNING",
+            "deletion_protection": false,
+            "description": "",
+            "desired_status": null,
+            "effective_labels": {},
+            "enable_display": false,
+            "guest_accelerator": [],
+            "hostname": "",
+            "id": "projects/a-project/zones/europe-west2-a/instances/cloud-1829-repro",
+            "instance_id": "870482663079232062",
+            "label_fingerprint": "42WmSpB8rSM=",
+            "labels": {},
+            "machine_type": "e2-micro",
+            "metadata": {},
+            "metadata_fingerprint": "VNUMjAF9hiM=",
+            "metadata_startup_script": null,
+            "min_cpu_platform": "",
+            "name": "cloud-1829-repro",
+            "network_interface": [
+              {
+                "access_config": [],
+                "alias_ip_range": [],
+                "internal_ipv6_prefix_length": 0,
+                "ipv6_access_config": [],
+                "ipv6_access_type": "",
+                "ipv6_address": "",
+                "name": "nic0",
+                "network": "https://www.googleapis.com/compute/v1/projects/a-project/global/networks/default",
+                "network_ip": "10.154.0.2",
+                "nic_type": "",
+                "queue_count": 0,
+                "stack_type": "IPV4_ONLY",
+                "subnetwork": "https://www.googleapis.com/compute/v1/projects/a-project/regions/europe-west2/subnetworks/default",
+                "subnetwork_project": "a-project"
+              }
+            ],
+            "network_performance_config": [],
+            "params": [],
+            "project": "a-project",
+            "reservation_affinity": [],
+            "resource_policies": [],
+            "scheduling": [
+              {
+                "automatic_restart": true,
+                "instance_termination_action": "",
+                "local_ssd_recovery_timeout": [],
+                "min_node_cpus": 0,
+                "node_affinities": [],
+                "on_host_maintenance": "MIGRATE",
+                "preemptible": false,
+                "provisioning_model": "STANDARD"
+              }
+            ],
+            "scratch_disk": [],
+            "self_link": "https://www.googleapis.com/compute/v1/projects/a-project/zones/europe-west2-a/instances/cloud-1829-repro",
+            "service_account": [],
+            "shielded_instance_config": [
+              {
+                "enable_integrity_monitoring": true,
+                "enable_secure_boot": false,
+                "enable_vtpm": true
+              }
+            ],
+            "tags": [],
+            "tags_fingerprint": "42WmSpB8rSM=",
+            "terraform_labels": {},
+            "timeouts": null,
+            "zone": "europe-west2-a"
+          },
+          "sensitive_values": {
+            "advanced_machine_features": [],
+            "attached_disk": [],
+            "boot_disk": [
+              {
+                "initialize_params": [
+                  {
+                    "labels": {},
+                    "resource_manager_tags": {}
+                  }
+                ]
+              }
+            ],
+            "confidential_instance_config": [],
+            "effective_labels": {},
+            "guest_accelerator": [],
+            "labels": {},
+            "metadata": {},
+            "network_interface": [
+              {
+                "access_config": [],
+                "alias_ip_range": [],
+                "ipv6_access_config": []
+              }
+            ],
+            "network_performance_config": [],
+            "params": [],
+            "reservation_affinity": [],
+            "resource_policies": [],
+            "scheduling": [
+              {
+                "local_ssd_recovery_timeout": [],
+                "node_affinities": []
+              }
+            ],
+            "scratch_disk": [],
+            "service_account": [],
+            "shielded_instance_config": [
+              {}
+            ],
+            "tags": [],
+            "terraform_labels": {}
+          }
+        }
+      ]
+    }
+  },
+  "resource_drift": [
+    {
+      "address": "google_compute_instance.cloud-1829-repro",
+      "mode": "managed",
+      "type": "google_compute_instance",
+      "name": "cloud-1829-repro",
+      "provider_name": "registry.terraform.io/hashicorp/google",
+      "change": {
+        "actions": [
+          "update"
+        ],
+        "before": {
+          "advanced_machine_features": [],
+          "allow_stopping_for_update": null,
+          "attached_disk": [],
+          "boot_disk": [
+            {
+              "auto_delete": true,
+              "device_name": "persistent-disk-0",
+              "disk_encryption_key_raw": "",
+              "disk_encryption_key_sha256": "",
+              "initialize_params": [
+                {
+                  "image": "https://www.googleapis.com/compute/v1/projects/debian-cloud/global/images/debian-11-bullseye-v20231113",
+                  "labels": {},
+                  "resource_manager_tags": null,
+                  "size": 10,
+                  "type": "pd-standard"
+                }
+              ],
+              "kms_key_self_link": "",
+              "mode": "READ_WRITE",
+              "source": "https://www.googleapis.com/compute/v1/projects/a-project/zones/europe-west2-a/disks/cloud-1829-repro"
+            }
+          ],
+          "can_ip_forward": false,
+          "confidential_instance_config": [],
+          "cpu_platform": "AMD Rome",
+          "current_status": "RUNNING",
+          "deletion_protection": false,
+          "description": "",
+          "desired_status": null,
+          "effective_labels": {},
+          "enable_display": false,
+          "guest_accelerator": [],
+          "hostname": "",
+          "id": "projects/a-project/zones/europe-west2-a/instances/cloud-1829-repro",
+          "instance_id": "870482663079232062",
+          "label_fingerprint": "42WmSpB8rSM=",
+          "labels": null,
+          "machine_type": "e2-micro",
+          "metadata": null,
+          "metadata_fingerprint": "VNUMjAF9hiM=",
+          "metadata_startup_script": null,
+          "min_cpu_platform": "",
+          "name": "cloud-1829-repro",
+          "network_interface": [
+            {
+              "access_config": [],
+              "alias_ip_range": [],
+              "internal_ipv6_prefix_length": 0,
+              "ipv6_access_config": [],
+              "ipv6_access_type": "",
+              "ipv6_address": "",
+              "name": "nic0",
+              "network": "https://www.googleapis.com/compute/v1/projects/a-project/global/networks/default",
+              "network_ip": "10.154.0.2",
+              "nic_type": "",
+              "queue_count": 0,
+              "stack_type": "IPV4_ONLY",
+              "subnetwork": "https://www.googleapis.com/compute/v1/projects/a-project/regions/europe-west2/subnetworks/default",
+              "subnetwork_project": "a-project"
+            }
+          ],
+          "network_performance_config": [],
+          "params": [],
+          "project": "a-project",
+          "reservation_affinity": [],
+          "resource_policies": null,
+          "scheduling": [
+            {
+              "automatic_restart": true,
+              "instance_termination_action": "",
+              "local_ssd_recovery_timeout": [],
+              "min_node_cpus": 0,
+              "node_affinities": [],
+              "on_host_maintenance": "MIGRATE",
+              "preemptible": false,
+              "provisioning_model": "STANDARD"
+            }
+          ],
+          "scratch_disk": [],
+          "self_link": "https://www.googleapis.com/compute/v1/projects/a-project/zones/europe-west2-a/instances/cloud-1829-repro",
+          "service_account": [],
+          "shielded_instance_config": [
+            {
+              "enable_integrity_monitoring": true,
+              "enable_secure_boot": false,
+              "enable_vtpm": true
+            }
+          ],
+          "tags": null,
+          "tags_fingerprint": "42WmSpB8rSM=",
+          "terraform_labels": {},
+          "timeouts": null,
+          "zone": "europe-west2-a"
+        },
+        "after": {
+          "advanced_machine_features": [],
+          "allow_stopping_for_update": null,
+          "attached_disk": [],
+          "boot_disk": [
+            {
+              "auto_delete": true,
+              "device_name": "persistent-disk-0",
+              "disk_encryption_key_raw": "",
+              "disk_encryption_key_sha256": "",
+              "initialize_params": [
+                {
+                  "image": "https://www.googleapis.com/compute/v1/projects/debian-cloud/global/images/debian-11-bullseye-v20231113",
+                  "labels": {},
+                  "resource_manager_tags": {},
+                  "size": 10,
+                  "type": "pd-standard"
+                }
+              ],
+              "kms_key_self_link": "",
+              "mode": "READ_WRITE",
+              "source": "https://www.googleapis.com/compute/v1/projects/a-project/zones/europe-west2-a/disks/cloud-1829-repro"
+            }
+          ],
+          "can_ip_forward": false,
+          "confidential_instance_config": [],
+          "cpu_platform": "AMD Rome",
+          "current_status": "RUNNING",
+          "deletion_protection": false,
+          "description": "",
+          "desired_status": null,
+          "effective_labels": {},
+          "enable_display": false,
+          "guest_accelerator": [],
+          "hostname": "",
+          "id": "projects/a-project/zones/europe-west2-a/instances/cloud-1829-repro",
+          "instance_id": "870482663079232062",
+          "label_fingerprint": "42WmSpB8rSM=",
+          "labels": {},
+          "machine_type": "e2-micro",
+          "metadata": {},
+          "metadata_fingerprint": "VNUMjAF9hiM=",
+          "metadata_startup_script": null,
+          "min_cpu_platform": "",
+          "name": "cloud-1829-repro",
+          "network_interface": [
+            {
+              "access_config": [],
+              "alias_ip_range": [],
+              "internal_ipv6_prefix_length": 0,
+              "ipv6_access_config": [],
+              "ipv6_access_type": "",
+              "ipv6_address": "",
+              "name": "nic0",
+              "network": "https://www.googleapis.com/compute/v1/projects/a-project/global/networks/default",
+              "network_ip": "10.154.0.2",
+              "nic_type": "",
+              "queue_count": 0,
+              "stack_type": "IPV4_ONLY",
+              "subnetwork": "https://www.googleapis.com/compute/v1/projects/a-project/regions/europe-west2/subnetworks/default",
+              "subnetwork_project": "a-project"
+            }
+          ],
+          "network_performance_config": [],
+          "params": [],
+          "project": "a-project",
+          "reservation_affinity": [],
+          "resource_policies": [],
+          "scheduling": [
+            {
+              "automatic_restart": true,
+              "instance_termination_action": "",
+              "local_ssd_recovery_timeout": [],
+              "min_node_cpus": 0,
+              "node_affinities": [],
+              "on_host_maintenance": "MIGRATE",
+              "preemptible": false,
+              "provisioning_model": "STANDARD"
+            }
+          ],
+          "scratch_disk": [],
+          "self_link": "https://www.googleapis.com/compute/v1/projects/a-project/zones/europe-west2-a/instances/cloud-1829-repro",
+          "service_account": [],
+          "shielded_instance_config": [
+            {
+              "enable_integrity_monitoring": true,
+              "enable_secure_boot": false,
+              "enable_vtpm": true
+            }
+          ],
+          "tags": [],
+          "tags_fingerprint": "42WmSpB8rSM=",
+          "terraform_labels": {},
+          "timeouts": null,
+          "zone": "europe-west2-a"
+        },
+        "after_unknown": {},
+        "before_sensitive": {
+          "advanced_machine_features": [],
+          "attached_disk": [],
+          "boot_disk": [
+            {
+              "disk_encryption_key_raw": true,
+              "initialize_params": [
+                {
+                  "labels": {}
+                }
+              ]
+            }
+          ],
+          "confidential_instance_config": [],
+          "effective_labels": {},
+          "guest_accelerator": [],
+          "network_interface": [
+            {
+              "access_config": [],
+              "alias_ip_range": [],
+              "ipv6_access_config": []
+            }
+          ],
+          "network_performance_config": [],
+          "params": [],
+          "reservation_affinity": [],
+          "scheduling": [
+            {
+              "local_ssd_recovery_timeout": [],
+              "node_affinities": []
+            }
+          ],
+          "scratch_disk": [],
+          "service_account": [],
+          "shielded_instance_config": [
+            {}
+          ],
+          "terraform_labels": {}
+        },
+        "after_sensitive": {
+          "advanced_machine_features": [],
+          "attached_disk": [],
+          "boot_disk": [
+            {
+              "disk_encryption_key_raw": true,
+              "initialize_params": [
+                {
+                  "labels": {},
+                  "resource_manager_tags": {}
+                }
+              ]
+            }
+          ],
+          "confidential_instance_config": [],
+          "effective_labels": {},
+          "guest_accelerator": [],
+          "labels": {},
+          "metadata": {},
+          "network_interface": [
+            {
+              "access_config": [],
+              "alias_ip_range": [],
+              "ipv6_access_config": []
+            }
+          ],
+          "network_performance_config": [],
+          "params": [],
+          "reservation_affinity": [],
+          "resource_policies": [],
+          "scheduling": [
+            {
+              "local_ssd_recovery_timeout": [],
+              "node_affinities": []
+            }
+          ],
+          "scratch_disk": [],
+          "service_account": [],
+          "shielded_instance_config": [
+            {}
+          ],
+          "tags": [],
+          "terraform_labels": {}
+        }
+      }
+    }
+  ],
+  "resource_changes": [
+    {
+      "address": "google_compute_instance.cloud-1829-repro",
+      "mode": "managed",
+      "type": "google_compute_instance",
+      "name": "cloud-1829-repro",
+      "provider_name": "registry.terraform.io/hashicorp/google",
+      "change": {
+        "actions": [
+          "no-op"
+        ],
+        "before": {
+          "advanced_machine_features": [],
+          "allow_stopping_for_update": null,
+          "attached_disk": [],
+          "boot_disk": [
+            {
+              "auto_delete": true,
+              "device_name": "persistent-disk-0",
+              "disk_encryption_key_raw": "",
+              "disk_encryption_key_sha256": "",
+              "initialize_params": [
+                {
+                  "image": "https://www.googleapis.com/compute/v1/projects/debian-cloud/global/images/debian-11-bullseye-v20231113",
+                  "labels": {},
+                  "resource_manager_tags": {},
+                  "size": 10,
+                  "type": "pd-standard"
+                }
+              ],
+              "kms_key_self_link": "",
+              "mode": "READ_WRITE",
+              "source": "https://www.googleapis.com/compute/v1/projects/a-project/zones/europe-west2-a/disks/cloud-1829-repro"
+            }
+          ],
+          "can_ip_forward": false,
+          "confidential_instance_config": [],
+          "cpu_platform": "AMD Rome",
+          "current_status": "RUNNING",
+          "deletion_protection": false,
+          "description": "",
+          "desired_status": null,
+          "effective_labels": {},
+          "enable_display": false,
+          "guest_accelerator": [],
+          "hostname": "",
+          "id": "projects/a-project/zones/europe-west2-a/instances/cloud-1829-repro",
+          "instance_id": "870482663079232062",
+          "label_fingerprint": "42WmSpB8rSM=",
+          "labels": {},
+          "machine_type": "e2-micro",
+          "metadata": {},
+          "metadata_fingerprint": "VNUMjAF9hiM=",
+          "metadata_startup_script": null,
+          "min_cpu_platform": "",
+          "name": "cloud-1829-repro",
+          "network_interface": [
+            {
+              "access_config": [],
+              "alias_ip_range": [],
+              "internal_ipv6_prefix_length": 0,
+              "ipv6_access_config": [],
+              "ipv6_access_type": "",
+              "ipv6_address": "",
+              "name": "nic0",
+              "network": "https://www.googleapis.com/compute/v1/projects/a-project/global/networks/default",
+              "network_ip": "10.154.0.2",
+              "nic_type": "",
+              "queue_count": 0,
+              "stack_type": "IPV4_ONLY",
+              "subnetwork": "https://www.googleapis.com/compute/v1/projects/a-project/regions/europe-west2/subnetworks/default",
+              "subnetwork_project": "a-project"
+            }
+          ],
+          "network_performance_config": [],
+          "params": [],
+          "project": "a-project",
+          "reservation_affinity": [],
+          "resource_policies": [],
+          "scheduling": [
+            {
+              "automatic_restart": true,
+              "instance_termination_action": "",
+              "local_ssd_recovery_timeout": [],
+              "min_node_cpus": 0,
+              "node_affinities": [],
+              "on_host_maintenance": "MIGRATE",
+              "preemptible": false,
+              "provisioning_model": "STANDARD"
+            }
+          ],
+          "scratch_disk": [],
+          "self_link": "https://www.googleapis.com/compute/v1/projects/a-project/zones/europe-west2-a/instances/cloud-1829-repro",
+          "service_account": [],
+          "shielded_instance_config": [
+            {
+              "enable_integrity_monitoring": true,
+              "enable_secure_boot": false,
+              "enable_vtpm": true
+            }
+          ],
+          "tags": [],
+          "tags_fingerprint": "42WmSpB8rSM=",
+          "terraform_labels": {},
+          "timeouts": null,
+          "zone": "europe-west2-a"
+        },
+        "after": {
+          "advanced_machine_features": [],
+          "allow_stopping_for_update": null,
+          "attached_disk": [],
+          "boot_disk": [
+            {
+              "auto_delete": true,
+              "device_name": "persistent-disk-0",
+              "disk_encryption_key_raw": "",
+              "disk_encryption_key_sha256": "",
+              "initialize_params": [
+                {
+                  "image": "https://www.googleapis.com/compute/v1/projects/debian-cloud/global/images/debian-11-bullseye-v20231113",
+                  "labels": {},
+                  "resource_manager_tags": {},
+                  "size": 10,
+                  "type": "pd-standard"
+                }
+              ],
+              "kms_key_self_link": "",
+              "mode": "READ_WRITE",
+              "source": "https://www.googleapis.com/compute/v1/projects/a-project/zones/europe-west2-a/disks/cloud-1829-repro"
+            }
+          ],
+          "can_ip_forward": false,
+          "confidential_instance_config": [],
+          "cpu_platform": "AMD Rome",
+          "current_status": "RUNNING",
+          "deletion_protection": false,
+          "description": "",
+          "desired_status": null,
+          "effective_labels": {},
+          "enable_display": false,
+          "guest_accelerator": [],
+          "hostname": "",
+          "id": "projects/a-project/zones/europe-west2-a/instances/cloud-1829-repro",
+          "instance_id": "870482663079232062",
+          "label_fingerprint": "42WmSpB8rSM=",
+          "labels": {},
+          "machine_type": "e2-micro",
+          "metadata": {},
+          "metadata_fingerprint": "VNUMjAF9hiM=",
+          "metadata_startup_script": null,
+          "min_cpu_platform": "",
+          "name": "cloud-1829-repro",
+          "network_interface": [
+            {
+              "access_config": [],
+              "alias_ip_range": [],
+              "internal_ipv6_prefix_length": 0,
+              "ipv6_access_config": [],
+              "ipv6_access_type": "",
+              "ipv6_address": "",
+              "name": "nic0",
+              "network": "https://www.googleapis.com/compute/v1/projects/a-project/global/networks/default",
+              "network_ip": "10.154.0.2",
+              "nic_type": "",
+              "queue_count": 0,
+              "stack_type": "IPV4_ONLY",
+              "subnetwork": "https://www.googleapis.com/compute/v1/projects/a-project/regions/europe-west2/subnetworks/default",
+              "subnetwork_project": "a-project"
+            }
+          ],
+          "network_performance_config": [],
+          "params": [],
+          "project": "a-project",
+          "reservation_affinity": [],
+          "resource_policies": [],
+          "scheduling": [
+            {
+              "automatic_restart": true,
+              "instance_termination_action": "",
+              "local_ssd_recovery_timeout": [],
+              "min_node_cpus": 0,
+              "node_affinities": [],
+              "on_host_maintenance": "MIGRATE",
+              "preemptible": false,
+              "provisioning_model": "STANDARD"
+            }
+          ],
+          "scratch_disk": [],
+          "self_link": "https://www.googleapis.com/compute/v1/projects/a-project/zones/europe-west2-a/instances/cloud-1829-repro",
+          "service_account": [],
+          "shielded_instance_config": [
+            {
+              "enable_integrity_monitoring": true,
+              "enable_secure_boot": false,
+              "enable_vtpm": true
+            }
+          ],
+          "tags": [],
+          "tags_fingerprint": "42WmSpB8rSM=",
+          "terraform_labels": {},
+          "timeouts": null,
+          "zone": "europe-west2-a"
+        },
+        "after_unknown": {},
+        "before_sensitive": {
+          "advanced_machine_features": [],
+          "attached_disk": [],
+          "boot_disk": [
+            {
+              "disk_encryption_key_raw": true,
+              "initialize_params": [
+                {
+                  "labels": {},
+                  "resource_manager_tags": {}
+                }
+              ]
+            }
+          ],
+          "confidential_instance_config": [],
+          "effective_labels": {},
+          "guest_accelerator": [],
+          "labels": {},
+          "metadata": {},
+          "network_interface": [
+            {
+              "access_config": [],
+              "alias_ip_range": [],
+              "ipv6_access_config": []
+            }
+          ],
+          "network_performance_config": [],
+          "params": [],
+          "reservation_affinity": [],
+          "resource_policies": [],
+          "scheduling": [
+            {
+              "local_ssd_recovery_timeout": [],
+              "node_affinities": []
+            }
+          ],
+          "scratch_disk": [],
+          "service_account": [],
+          "shielded_instance_config": [
+            {}
+          ],
+          "tags": [],
+          "terraform_labels": {}
+        },
+        "after_sensitive": {
+          "advanced_machine_features": [],
+          "attached_disk": [],
+          "boot_disk": [
+            {
+              "disk_encryption_key_raw": true,
+              "initialize_params": [
+                {
+                  "labels": {},
+                  "resource_manager_tags": {}
+                }
+              ]
+            }
+          ],
+          "confidential_instance_config": [],
+          "effective_labels": {},
+          "guest_accelerator": [],
+          "labels": {},
+          "metadata": {},
+          "network_interface": [
+            {
+              "access_config": [],
+              "alias_ip_range": [],
+              "ipv6_access_config": []
+            }
+          ],
+          "network_performance_config": [],
+          "params": [],
+          "reservation_affinity": [],
+          "resource_policies": [],
+          "scheduling": [
+            {
+              "local_ssd_recovery_timeout": [],
+              "node_affinities": []
+            }
+          ],
+          "scratch_disk": [],
+          "service_account": [],
+          "shielded_instance_config": [
+            {}
+          ],
+          "tags": [],
+          "terraform_labels": {}
+        }
+      }
+    }
+  ],
+  "prior_state": {
+    "format_version": "1.0",
+    "terraform_version": "1.4.6",
+    "values": {
+      "root_module": {
+        "resources": [
+          {
+            "address": "google_compute_instance.cloud-1829-repro",
+            "mode": "managed",
+            "type": "google_compute_instance",
+            "name": "cloud-1829-repro",
+            "provider_name": "registry.terraform.io/hashicorp/google",
+            "schema_version": 6,
+            "values": {
+              "advanced_machine_features": [],
+              "allow_stopping_for_update": null,
+              "attached_disk": [],
+              "boot_disk": [
+                {
+                  "auto_delete": true,
+                  "device_name": "persistent-disk-0",
+                  "disk_encryption_key_raw": "",
+                  "disk_encryption_key_sha256": "",
+                  "initialize_params": [
+                    {
+                      "image": "https://www.googleapis.com/compute/v1/projects/debian-cloud/global/images/debian-11-bullseye-v20231113",
+                      "labels": {},
+                      "resource_manager_tags": {},
+                      "size": 10,
+                      "type": "pd-standard"
+                    }
+                  ],
+                  "kms_key_self_link": "",
+                  "mode": "READ_WRITE",
+                  "source": "https://www.googleapis.com/compute/v1/projects/a-project/zones/europe-west2-a/disks/cloud-1829-repro"
+                }
+              ],
+              "can_ip_forward": false,
+              "confidential_instance_config": [],
+              "cpu_platform": "AMD Rome",
+              "current_status": "RUNNING",
+              "deletion_protection": false,
+              "description": "",
+              "desired_status": null,
+              "effective_labels": {},
+              "enable_display": false,
+              "guest_accelerator": [],
+              "hostname": "",
+              "id": "projects/a-project/zones/europe-west2-a/instances/cloud-1829-repro",
+              "instance_id": "870482663079232062",
+              "label_fingerprint": "42WmSpB8rSM=",
+              "labels": {},
+              "machine_type": "e2-micro",
+              "metadata": {},
+              "metadata_fingerprint": "VNUMjAF9hiM=",
+              "metadata_startup_script": null,
+              "min_cpu_platform": "",
+              "name": "cloud-1829-repro",
+              "network_interface": [
+                {
+                  "access_config": [],
+                  "alias_ip_range": [],
+                  "internal_ipv6_prefix_length": 0,
+                  "ipv6_access_config": [],
+                  "ipv6_access_type": "",
+                  "ipv6_address": "",
+                  "name": "nic0",
+                  "network": "https://www.googleapis.com/compute/v1/projects/a-project/global/networks/default",
+                  "network_ip": "10.154.0.2",
+                  "nic_type": "",
+                  "queue_count": 0,
+                  "stack_type": "IPV4_ONLY",
+                  "subnetwork": "https://www.googleapis.com/compute/v1/projects/a-project/regions/europe-west2/subnetworks/default",
+                  "subnetwork_project": "a-project"
+                }
+              ],
+              "network_performance_config": [],
+              "params": [],
+              "project": "a-project",
+              "reservation_affinity": [],
+              "resource_policies": [],
+              "scheduling": [
+                {
+                  "automatic_restart": true,
+                  "instance_termination_action": "",
+                  "local_ssd_recovery_timeout": [],
+                  "min_node_cpus": 0,
+                  "node_affinities": [],
+                  "on_host_maintenance": "MIGRATE",
+                  "preemptible": false,
+                  "provisioning_model": "STANDARD"
+                }
+              ],
+              "scratch_disk": [],
+              "self_link": "https://www.googleapis.com/compute/v1/projects/a-project/zones/europe-west2-a/instances/cloud-1829-repro",
+              "service_account": [],
+              "shielded_instance_config": [
+                {
+                  "enable_integrity_monitoring": true,
+                  "enable_secure_boot": false,
+                  "enable_vtpm": true
+                }
+              ],
+              "tags": [],
+              "tags_fingerprint": "42WmSpB8rSM=",
+              "terraform_labels": {},
+              "timeouts": null,
+              "zone": "europe-west2-a"
+            },
+            "sensitive_values": {
+              "advanced_machine_features": [],
+              "attached_disk": [],
+              "boot_disk": [
+                {
+                  "disk_encryption_key_raw": true,
+                  "initialize_params": [
+                    {
+                      "labels": {},
+                      "resource_manager_tags": {}
+                    }
+                  ]
+                }
+              ],
+              "confidential_instance_config": [],
+              "effective_labels": {},
+              "guest_accelerator": [],
+              "labels": {},
+              "metadata": {},
+              "network_interface": [
+                {
+                  "access_config": [],
+                  "alias_ip_range": [],
+                  "ipv6_access_config": []
+                }
+              ],
+              "network_performance_config": [],
+              "params": [],
+              "reservation_affinity": [],
+              "resource_policies": [],
+              "scheduling": [
+                {
+                  "local_ssd_recovery_timeout": [],
+                  "node_affinities": []
+                }
+              ],
+              "scratch_disk": [],
+              "service_account": [],
+              "shielded_instance_config": [
+                {}
+              ],
+              "tags": [],
+              "terraform_labels": {}
+            }
+          }
+        ]
+      }
+    }
+  },
+  "configuration": {
+    "provider_config": {
+      "google": {
+        "name": "google",
+        "full_name": "registry.terraform.io/hashicorp/google",
+        "expressions": {
+          "project": {
+            "constant_value": "a-project"
+          },
+          "region": {
+            "constant_value": "europe-west2"
+          }
+        }
+      }
+    },
+    "root_module": {
+      "resources": [
+        {
+          "address": "google_compute_instance.cloud-1829-repro",
+          "mode": "managed",
+          "type": "google_compute_instance",
+          "name": "cloud-1829-repro",
+          "provider_config_key": "google",
+          "expressions": {
+            "boot_disk": [
+              {
+                "initialize_params": [
+                  {
+                    "image": {
+                      "constant_value": "debian-cloud/debian-11"
+                    }
+                  }
+                ]
+              }
+            ],
+            "machine_type": {
+              "constant_value": "e2-micro"
+            },
+            "name": {
+              "constant_value": "cloud-1829-repro"
+            },
+            "network_interface": [
+              {
+                "network": {
+                  "constant_value": "default"
+                }
+              }
+            ],
+            "zone": {
+              "constant_value": "europe-west2-a"
+            }
+          },
+          "schema_version": 6
+        }
+      ]
+    }
+  }
+}
