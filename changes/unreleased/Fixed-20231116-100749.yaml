@@ -1,5 +1,0 @@
-kind: Fixed
-body: Stop masking empty sensitive attributes. This can make unset attributes, which
-  appear as empty string rather than null in some terraform plans, appear as if they
-  are set.
-time: 2023-11-16T10:07:49.587518Z
