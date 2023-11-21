@@ -1,0 +1,64 @@
+{
+  "format": "",
+  "format_version": "",
+  "input_type": "tf_hcl",
+  "environment_provider": "iac",
+  "meta": {
+    "filepath": "golden_test/tf/count-ref-02/main.tf"
+  },
+  "resources": {
+    "aws_s3_bucket": {
+      "aws_s3_bucket.febucket[one]": {
+        "id": "aws_s3_bucket.febucket[one]",
+        "resource_type": "aws_s3_bucket",
+        "namespace": "golden_test/tf/count-ref-02/main.tf",
+        "meta": {},
+        "attributes": {
+          "bucket": "test"
+        }
+      },
+      "aws_s3_bucket.nativebucket[0]": {
+        "id": "aws_s3_bucket.nativebucket[0]",
+        "resource_type": "aws_s3_bucket",
+        "namespace": "golden_test/tf/count-ref-02/main.tf",
+        "meta": {},
+        "attributes": {
+          "bucket": "test"
+        }
+      }
+    },
+    "aws_s3_bucket_versioning": {
+      "aws_s3_bucket_versioning.febucket[one]": {
+        "id": "aws_s3_bucket_versioning.febucket[one]",
+        "resource_type": "aws_s3_bucket_versioning",
+        "namespace": "golden_test/tf/count-ref-02/main.tf",
+        "meta": {},
+        "attributes": {
+          "bucket": "aws_s3_bucket.febucket[one]",
+          "versioning_configuration": [
+            {
+              "status": "Enabled"
+            }
+          ]
+        }
+      },
+      "aws_s3_bucket_versioning.nativebucket[0]": {
+        "id": "aws_s3_bucket_versioning.nativebucket[0]",
+        "resource_type": "aws_s3_bucket_versioning",
+        "namespace": "golden_test/tf/count-ref-02/main.tf",
+        "meta": {},
+        "attributes": {
+          "bucket": "aws_s3_bucket.nativebucket[0]",
+          "versioning_configuration": [
+            {
+              "status": "Enabled"
+            }
+          ]
+        }
+      }
+    }
+  },
+  "scope": {
+    "filepath": "golden_test/tf/count-ref-02/main.tf"
+  }
+}
