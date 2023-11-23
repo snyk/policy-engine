@@ -26,13 +26,18 @@ import (
 )
 
 type phantomAttrs struct {
+	// Whether or not this is a multiresource (count or for_each).
+	isMultiResource func(FullName) bool
 	// A set of phantom attributes per FullName.
 	attrs map[string]map[string]struct{}
 }
 
-func newPhantomAttrs() *phantomAttrs {
+func newPhantomAttrs(
+	isMultiResource func(FullName) bool,
+) *phantomAttrs {
 	return &phantomAttrs{
-		attrs: map[string]map[string]struct{}{},
+		isMultiResource: isMultiResource,
+		attrs:           map[string]map[string]struct{}{},
 	}
 }
 
@@ -52,17 +57,32 @@ func (pa *phantomAttrs) analyze(name FullName, term Term) {
 	term.VisitExpressions(func(expr hcl.Expression) {
 		exprAttrs := exprAttributes(expr)
 		for _, traversal := range expr.Variables() {
-			local, err := TraversalToLocalName(traversal)
+			local, localTrailing, err := TraversalToLocalName(traversal)
 			if err != nil {
 				continue
 			}
 
 			full := FullName{Module: name.Module, Local: local}
-			if asResourceName, trailing := full.AsResourceName(); asResourceName != nil {
+			if asResourceName, resourceTrailing := full.AsResourceName(); asResourceName != nil {
 				attrs := map[string]struct{}{}
-				if len(trailing) > 0 {
+
+				// Construct the trailing part from the resourceTrailing
+				// and localTrailing parts defined above.
+				trailingAccessor := resourceTrailing.ToAccessor()
+				trailingAccessor = append(trailingAccessor, localTrailing...)
+
+				// We need to strip one element from the index if this is a
+				// multi-resource to drop the index or key.
+				if pa.isMultiResource(*asResourceName) && len(trailingAccessor) > 0 {
+					trailingAccessor = trailingAccessor[1:]
+				}
+
+				// Store the trailing part that was accessed in attrs.
+				if trailing, _ := trailingAccessor.toLocalName(); len(trailing) > 0 {
 					attrs[LocalNameToString(trailing)] = struct{}{}
 				}
+
+				// Store the other attrs.
 				for _, attr := range exprAttrs {
 					attrs[LocalNameToString(attr)] = struct{}{}
 				}
@@ -81,8 +101,9 @@ func (pa *phantomAttrs) analyze(name FullName, term Term) {
 	})
 }
 
-func (pa *phantomAttrs) add(name FullName, multiple bool, val cty.Value) cty.Value {
+func (pa *phantomAttrs) add(name FullName, val cty.Value) cty.Value {
 	rk := name.ToString()
+	multiple := pa.isMultiResource(name)
 
 	var patch func(LocalName, string, cty.Value) cty.Value
 	patch = func(local LocalName, ref string, val cty.Value) cty.Value {
@@ -136,7 +157,7 @@ func exprAttributes(expr hcl.Expression) []LocalName {
 		hclsyntax.VisitAll(syn, func(node hclsyntax.Node) hcl.Diagnostics {
 			switch e := node.(type) {
 			case *hclsyntax.RelativeTraversalExpr:
-				if name, err := TraversalToLocalName(e.Traversal); err == nil {
+				if name, _, err := TraversalToLocalName(e.Traversal); err == nil {
 					names = append(names, name)
 				}
 			case *hclsyntax.IndexExpr:

@@ -102,7 +102,7 @@ func (v *Analysis) dependencies(name FullName, term Term) []dependency {
 	deps := []dependency{}
 	for _, termDependency := range term.Dependencies() {
 		traversal := termDependency.Traversal
-		local, err := TraversalToLocalName(traversal)
+		local, _, err := TraversalToLocalName(traversal)
 		if err != nil {
 			v.badKeys[TraversalToString(traversal)] = struct{}{}
 			continue
@@ -224,11 +224,15 @@ type Evaluation struct {
 }
 
 func EvaluateAnalysis(analysis *Analysis) (*Evaluation, error) {
+	isMultiResource := func(name FullName) bool {
+		meta, ok := analysis.Resources[name.ToString()]
+		return ok && meta.Multiple
+	}
 	eval := &Evaluation{
 		Analysis:           analysis,
 		Modules:            map[string]cty.Value{},
 		resourceAttributes: map[string]cty.Value{},
-		phantomAttrs:       newPhantomAttrs(),
+		phantomAttrs:       newPhantomAttrs(isMultiResource),
 	}
 
 	for moduleKey := range analysis.Modules {
@@ -306,11 +310,7 @@ func (v *Evaluation) evaluate() error {
 		}
 
 		v.resourceAttributes[name.ToString()] = val
-		patchMultiple := false
-		if resourceMeta, ok := v.Analysis.Resources[name.ToString()]; ok {
-			patchMultiple = resourceMeta.Multiple
-		}
-		val = v.phantomAttrs.add(name, patchMultiple, val)
+		val = v.phantomAttrs.add(name, val)
 		singleton := NestVal(name.Local, val)
 		v.Modules[moduleKey] = MergeVal(v.Modules[moduleKey], singleton)
 	}

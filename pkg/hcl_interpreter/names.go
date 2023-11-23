@@ -78,7 +78,7 @@ func ChildModuleName(moduleName ModuleName, childName string) ModuleName {
 type LocalName []string
 
 var (
-    // Supported fixed paths can be checked using Equals.
+	// Supported fixed paths can be checked using Equals.
 	PathModuleName         = LocalName{"path", "module"}
 	PathRootName           = LocalName{"path", "root"}
 	PathCwdName            = LocalName{"path", "cwd"}
@@ -99,6 +99,14 @@ func (name LocalName) Equals(other LocalName) bool {
 		}
 	}
 	return true
+}
+
+func (name LocalName) ToAccessor() accessor {
+	accessor := make(accessor, len(name))
+	for i := range name {
+		accessor[i] = name[i]
+	}
+	return accessor
 }
 
 type FullName struct {
@@ -217,34 +225,16 @@ func (name FullName) AsResourceName() (*FullName, LocalName) {
 	return nil, nil
 }
 
-// TODO: Refactor to TraversalToName?
-func TraversalToLocalName(traversal hcl.Traversal) (LocalName, error) {
-	parts := make([]string, 0)
-
-	for _, traverser := range traversal {
-		switch t := traverser.(type) {
-		case hcl.TraverseRoot:
-			parts = append(parts, t.Name)
-		case hcl.TraverseAttr:
-			parts = append(parts, t.Name)
-		case hcl.TraverseIndex:
-			val := t.Key
-			if val.IsKnown() {
-				if val.Type() == cty.Number {
-					// The other parts must be trailing accessors.
-					return parts, nil
-				} else if val.Type() == cty.String {
-					parts = append(parts, val.AsString())
-				} else {
-					return nil, fmt.Errorf("Unsupported type in TraverseIndex: %s", val.Type().GoString())
-				}
-			} else {
-				return nil, fmt.Errorf("Unknown value in TraverseIndex")
-			}
-		}
+// TraversalToLocalName returns the leading LocalName (strictly-string) part of
+// a traversal as well as the trailing part (string-or-int).
+func TraversalToLocalName(traversal hcl.Traversal) (LocalName, accessor, error) {
+	// Just delegate the conversion to the accessor.
+	accessor, err := traversalToAccessor(traversal)
+	if err != nil {
+		return nil, nil, err
 	}
-
-	return parts, nil
+	name, trailing := accessor.toLocalName()
+	return name, trailing, nil
 }
 
 func TraversalToString(traversal hcl.Traversal) string {
