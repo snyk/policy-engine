@@ -2,6 +2,10 @@
 
 
 
+## v0.30.5 - 2023-11-23
+### Fixed
+* phantom attributes on multi-resources
+
 ## v0.30.4 - 2023-11-16
 ### Fixed
 * Stop masking empty sensitive attributes. This can make unset attributes, which appear as empty string rather than null in some terraform plans, appear as if they are set.
