@@ -3,7 +3,7 @@
 
 ## v0.30.6 - 2024-01-12
 ### Fixed
-* `capnslog` is not imported anymore, removing a logging-sideeffect.
+* `capnslog` is not imported anymore, removing a logging-sideffect
 
 ## v0.30.5 - 2023-11-23
 ### Fixed
