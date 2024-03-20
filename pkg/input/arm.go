@@ -40,7 +40,7 @@ func (c *ArmDetector) DetectFile(i *File, opts DetectOptions) (IACConfiguration,
 		return nil, fmt.Errorf("%w", UnableToReadFile)
 	}
 
-	template := &arm_Template{}
+	template := arm_Template{}
 	if err := json.Unmarshal(contents, &template); err != nil {
 		return nil, fmt.Errorf("%w: %v", FailedToParseInput, err)
 	}
