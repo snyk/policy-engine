@@ -1,6 +1,11 @@
 # CHANGELOG
 
 
+
+## v0.30.7 - 2024-03-20
+### Fixed
+* do not panic on invalid arm input
+
 ## v0.30.6 - 2024-01-12
 ### Fixed
 * `capnslog` is not imported anymore, removing a logging-sideffect
