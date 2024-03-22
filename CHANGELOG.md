@@ -2,6 +2,10 @@
 
 
 
+## v0.30.8 - 2024-03-22
+### Fixed
+* panic in forEachResult.add
+
 ## v0.30.7 - 2024-03-20
 ### Fixed
 * do not panic on invalid arm input
