@@ -429,7 +429,7 @@ func (expr *tfplan_ConfigurationExpression) references(resolve func(string) *str
 	if expr.ConstantValue != nil {
 		return nil
 	} else if expr.References != nil {
-		refs := filterReferences(expr.References.References)
+		refs := TfPlanFilterReferences(expr.References.References)
 		resolved := make([]string, len(refs))
 		for i, ref := range refs {
 			if val := resolve(ref); val != nil {
@@ -647,13 +647,12 @@ func (w *replaceBoolTopDownWalker) WalkBool(b bool) (interface{}, bool) {
 
 // Terraform plan format 0.2 introduced a change where the references array
 // always includes both the property and its parent resource. We want to
-// remove one of them (determined in should_filter) in order to maintain
-// consistent behavior. The ordering is reliable - property followed by
-// resource.
+// remove one of them if possible so it can be matched as a resource.
 //
-// TODO: Maybe we should just do a version check and use that instead of
-// this logic.
-func filterReferences(refs []string) []string {
+// TODO: this function is exposed we want to unit test it, and the tests use
+// a different package for another reason.  Consider moving `tfplan` to its
+// own package like `arm`.
+func TfPlanFilterReferences(refs []string) []string {
 	// Go in reverse to make use of the ordering.
 	prefixes := map[string]struct{}{}
 	for _, ref := range refs {
@@ -675,6 +674,20 @@ func filterReferences(refs []string) []string {
 				}
 			}
 		}
+	}
+
+	// If we had any counted resources, e.g. `aws_s3_bucket.bucket[0]`,
+	// we will have both `aws_s3_bucket.bucket[0]` as well as
+	// `aws_s3_bucket.bucket` in the list.  We want to remove the latter since
+	// they don't point to an actual resource.
+	remove := map[string]struct{}{}
+	for prefix := range prefixes {
+		if idx := strings.IndexRune(prefix, '['); idx >= 0 {
+			remove[prefix[:idx]] = struct{}{}
+		}
+	}
+	for r := range remove {
+		delete(prefixes, r)
 	}
 
 	// Sort before returning

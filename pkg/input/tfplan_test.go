@@ -88,3 +88,32 @@ func TestTfPlanDetectorNotYAML(t *testing.T) {
 	assert.True(t, errors.Is(err, input.FailedToParseInput))
 	assert.Nil(t, tfplan)
 }
+
+func TestFilterReferences(t *testing.T) {
+	type test struct {
+		input    []string
+		expected []string
+	}
+
+	tests := []test{
+		{
+			input: []string{
+				"aws_s3_bucket.bucket.id",
+				"aws_s3_bucket.bucket",
+			},
+			expected: []string{"aws_s3_bucket.bucket"},
+		},
+		{
+			input: []string{
+				"aws_s3_bucket.bucket[0].id",
+				"aws_s3_bucket.bucket[0]",
+				"aws_s3_bucket.bucket",
+			},
+			expected: []string{"aws_s3_bucket.bucket[0]"},
+		},
+	}
+
+	for _, test := range tests {
+		assert.Equal(t, input.TfPlanFilterReferences(test.input), test.expected)
+	}
+}
