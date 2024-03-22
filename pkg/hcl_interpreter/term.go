@@ -246,11 +246,13 @@ type forEachResult struct {
 
 func (acc *forEachResult) add(key cty.Value, val cty.Value) {
 	if !acc.isTuple && key.Type() == cty.String {
-		if acc.object == nil {
-			acc.object = map[string]cty.Value{}
+		if !key.IsNull() && key.IsKnown() {
+			if acc.object == nil {
+				acc.object = map[string]cty.Value{}
+			}
+			acc.object[key.AsString()] = val
+			acc.tuple = append(acc.tuple, val)
 		}
-		acc.object[key.AsString()] = val
-		acc.tuple = append(acc.tuple, val)
 	} else {
 		acc.isTuple = true
 		acc.tuple = append(acc.tuple, val)
