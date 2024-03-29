@@ -1,0 +1,3 @@
+kind: Fixed
+body: Filtering tfplan references to properly consider counts
+time: 2024-03-29T21:07:46.093861+02:00
