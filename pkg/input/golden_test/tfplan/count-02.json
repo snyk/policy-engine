@@ -1,0 +1,175 @@
+{
+  "format": "",
+  "format_version": "",
+  "input_type": "tf_plan",
+  "environment_provider": "iac",
+  "meta": {
+    "filepath": "golden_test/tfplan/count-02/plan.json"
+  },
+  "resources": {
+    "aws_s3_bucket": {
+      "aws_s3_bucket.logbucket1": {
+        "id": "aws_s3_bucket.logbucket1",
+        "resource_type": "aws_s3_bucket",
+        "namespace": "golden_test/tfplan/count-02/plan.json",
+        "meta": {
+          "region": "us-west-1",
+          "terraform": {
+            "provider_config": {
+              "region": "us-west-1"
+            }
+          },
+          "tfplan": {
+            "resource_actions": [
+              "create"
+            ]
+          }
+        },
+        "attributes": {
+          "bucket": "logbucket1-mtu721uc",
+          "force_destroy": true,
+          "tags": null,
+          "timeouts": null
+        }
+      },
+      "aws_s3_bucket.validbucket1[0]": {
+        "id": "aws_s3_bucket.validbucket1[0]",
+        "resource_type": "aws_s3_bucket",
+        "namespace": "golden_test/tfplan/count-02/plan.json",
+        "meta": {
+          "region": "us-west-1",
+          "terraform": {
+            "provider_config": {
+              "region": "us-west-1"
+            }
+          },
+          "tfplan": {
+            "resource_actions": [
+              "create"
+            ]
+          }
+        },
+        "attributes": {
+          "bucket": "validbucket1-mtu721uc",
+          "force_destroy": true,
+          "logging": [
+            {
+              "target_bucket": "aws_s3_bucket.logbucket1",
+              "target_prefix": "log/"
+            }
+          ],
+          "tags": null,
+          "timeouts": null
+        }
+      },
+      "aws_s3_bucket.validbucket2[0]": {
+        "id": "aws_s3_bucket.validbucket2[0]",
+        "resource_type": "aws_s3_bucket",
+        "namespace": "golden_test/tfplan/count-02/plan.json",
+        "meta": {
+          "region": "us-west-1",
+          "terraform": {
+            "provider_config": {
+              "region": "us-west-1"
+            }
+          },
+          "tfplan": {
+            "resource_actions": [
+              "create"
+            ]
+          }
+        },
+        "attributes": {
+          "bucket": "validbucket2-mtu721uc",
+          "force_destroy": true,
+          "tags": null,
+          "timeouts": null
+        }
+      }
+    },
+    "aws_s3_bucket_acl": {
+      "aws_s3_bucket_acl.acl1": {
+        "id": "aws_s3_bucket_acl.acl1",
+        "resource_type": "aws_s3_bucket_acl",
+        "namespace": "golden_test/tfplan/count-02/plan.json",
+        "meta": {
+          "region": "us-west-1",
+          "terraform": {
+            "provider_config": {
+              "region": "us-west-1"
+            }
+          },
+          "tfplan": {
+            "resource_actions": [
+              "create"
+            ]
+          }
+        },
+        "attributes": {
+          "acl": "log-delivery-write",
+          "bucket": "aws_s3_bucket.logbucket1",
+          "expected_bucket_owner": null
+        }
+      }
+    },
+    "aws_s3_bucket_logging": {
+      "aws_s3_bucket_logging.s3_bucket_log[0]": {
+        "id": "aws_s3_bucket_logging.s3_bucket_log[0]",
+        "resource_type": "aws_s3_bucket_logging",
+        "namespace": "golden_test/tfplan/count-02/plan.json",
+        "meta": {
+          "region": "us-west-1",
+          "terraform": {
+            "provider_config": {
+              "region": "us-west-1"
+            }
+          },
+          "tfplan": {
+            "resource_actions": [
+              "create"
+            ]
+          }
+        },
+        "attributes": {
+          "bucket": "aws_s3_bucket.validbucket2[0]",
+          "expected_bucket_owner": null,
+          "target_bucket": "aws_s3_bucket.logbucket1",
+          "target_grant": [],
+          "target_object_key_format": [],
+          "target_prefix": ""
+        }
+      }
+    },
+    "aws_s3_bucket_ownership_controls": {
+      "aws_s3_bucket_ownership_controls.logbucket1-acl-controls": {
+        "id": "aws_s3_bucket_ownership_controls.logbucket1-acl-controls",
+        "resource_type": "aws_s3_bucket_ownership_controls",
+        "namespace": "golden_test/tfplan/count-02/plan.json",
+        "meta": {
+          "region": "us-west-1",
+          "terraform": {
+            "provider_config": {
+              "region": "us-west-1"
+            }
+          },
+          "tfplan": {
+            "resource_actions": [
+              "create"
+            ]
+          }
+        },
+        "attributes": {
+          "bucket": "aws_s3_bucket.logbucket1",
+          "rule": [
+            {
+              "object_ownership": "BucketOwnerPreferred"
+            }
+          ]
+        }
+      }
+    }
+  },
+  "scope": {
+    "filepath": "golden_test/tfplan/count-02/plan.json"
+  }
+}
