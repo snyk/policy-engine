@@ -2,6 +2,10 @@
 
 
 
+## v0.30.9 - 2024-04-01
+### Fixed
+* Filtering tfplan references to properly consider counts
+
 ## v0.30.8 - 2024-03-22
 ### Fixed
 * panic in forEachResult.add
