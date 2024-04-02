@@ -2,6 +2,10 @@
 
 
 
+## v0.30.10 - 2024-04-02
+### Fixed
+* increase default timeouts - for query and init
+
 ## v0.30.9 - 2024-04-01
 ### Fixed
 * Filtering tfplan references to properly consider counts
