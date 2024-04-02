@@ -31,9 +31,9 @@ import (
 )
 
 const (
-	DefaultInitTimeout  = 30 * time.Second
+	DefaultInitTimeout  = 60 * time.Second
 	DefaultEvalTimeout  = 5 * time.Minute
-	DefaultQueryTimeout = 45 * time.Second
+	DefaultQueryTimeout = 60 * time.Second
 )
 
 // Engine is responsible for evaluating some States with a given set of rules.
