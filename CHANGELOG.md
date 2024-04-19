@@ -2,6 +2,11 @@
 
 
 
+## v0.30.11 - 2024-04-19
+### Fixed
+* increase default timeouts - for query and init
+* address http2 and go-getter vuln
+
 ## v0.30.10 - 2024-04-02
 ### Fixed
 * increase default timeouts - for query and init
