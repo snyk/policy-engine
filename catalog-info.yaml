@@ -4,8 +4,8 @@ metadata:
   name: policy-engine
   annotations:
     github.com/project-slug: snyk/policy-engine
-    github.com/team-slug: snyk/cloud-engines
+    github.com/team-slug: snyk/iac
 spec:
   type: external-library
   lifecycle: "-"
-  owner: cloud-engines
+  owner: iac
