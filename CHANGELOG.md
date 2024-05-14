@@ -2,6 +2,10 @@
 
 
 
+## v0.31.0 - 2024-05-14
+### Fixed
+* update ownership to iac
+
 ## v0.30.11 - 2024-04-19
 ### Fixed
 * increase default timeouts - for query and init
