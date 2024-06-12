@@ -16,6 +16,8 @@ package engine
 
 import (
 	"errors"
+	"fmt"
+	"time"
 )
 
 // FailedToLoadRegoAPI indicates that an error occurred while initializing the snyk
@@ -35,10 +37,28 @@ var FailedToCompile = errors.New("Failed to compile rules")
 var ErrFailedToReadBundle = errors.New("failed to load bundle")
 
 // ErrInitTimedOut indicates that initialization took too long and was cancelled.
-var ErrInitTimedOut = errors.New("initialization timed out")
+type ErrInitTimedOut struct {
+	Timeout time.Duration
+}
+
+func (e ErrInitTimedOut) Error() string {
+	return fmt.Sprintf("initialization timed out after %s", e.Timeout.String())
+}
 
 // ErrEvalTimedOut indicates that evaluation took too long and was cancelled.
-var ErrEvalTimedOut = errors.New("evaluation timed out")
+type ErrEvalTimedOut struct {
+	Timeout time.Duration
+}
+
+func (e ErrEvalTimedOut) Error() string {
+	return fmt.Sprintf("initialization timed out after %s", e.Timeout.String())
+}
 
 // ErrQueryTimedOut indicates that a query took too long and was cancelled.
-var ErrQueryTimedOut = errors.New("query timed out")
+type ErrQueryTimedOut struct {
+	Timeout time.Duration
+}
+
+func (e ErrQueryTimedOut) Error() string {
+	return fmt.Sprintf("query timed out after %s", e.Timeout.String())
+}
