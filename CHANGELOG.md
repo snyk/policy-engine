@@ -2,6 +2,10 @@
 
 
 
+## v0.31.1 - 2024-06-25
+### Fixed
+* upgrade go-retryablehttp to v0.7.7
+
 ## v0.31.0 - 2024-05-14
 ### Fixed
 * update ownership to iac
