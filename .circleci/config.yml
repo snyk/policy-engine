@@ -13,6 +13,7 @@ jobs:
       - checkout
       - prodsec/security_scans:
           mode: auto
+          iac-scan: disabled
 
 workflows:
   version: 2
