@@ -1,6 +1,10 @@
 # CHANGELOG
 
 
+## v0.31.2 - 2024-07-25
+### Fixed
+* adding new security quality gates
+* fix location computation for resources with multi-char ID inside square brackets
 
 ## v0.31.1 - 2024-06-25
 ### Fixed
