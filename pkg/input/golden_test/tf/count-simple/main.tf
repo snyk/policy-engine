@@ -13,6 +13,6 @@
 # limitations under the License.
 
 resource "aws_s3_bucket" "example" {
-  count         = 3
+  count         = 11
   bucket_prefix = "example_${count.index}"
 }

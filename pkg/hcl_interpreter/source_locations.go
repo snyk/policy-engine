@@ -22,7 +22,7 @@ import (
 )
 
 // Utility to strip out "[x]" parts from resource IDs.
-var resourceIdBracketPattern = regexp.MustCompile(`\[[^[*]\]`)
+var resourceIdBracketPattern = regexp.MustCompile(`\[[^[*]+\]`)
 
 func (v *Evaluation) Location(
 	resourceId string,

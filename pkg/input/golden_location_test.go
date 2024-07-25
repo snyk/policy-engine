@@ -399,6 +399,41 @@ var goldenLocationTests = []goldenLocationTest{
 					},
 				},
 			},
+			{
+				path: []interface{}{
+					"golden_test/tf/count-simple",
+					"aws_s3_bucket",
+					"aws_s3_bucket.example[10]", // test also double digit resource id
+					"bucket_prefix",
+				},
+				expected: LocationStack{
+					{
+						Path: "main.tf",
+						Line: 17,
+						Col:  3,
+					},
+				},
+			},
+		},
+	},
+	{
+		directory: "golden_test/tf/for-each",
+		cases: []goldenLocationTestCase{
+			{
+				path: []interface{}{
+					"golden_test/tf/for-each",
+					"aws_s3_bucket",
+					"aws_s3_bucket.mybuckets[prodabc123]",
+					"bucket_prefix",
+				},
+				expected: LocationStack{
+					{
+						Path: "main.tf",
+						Line: 27,
+						Col:  3,
+					},
+				},
+			},
 		},
 	},
 }
