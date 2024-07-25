@@ -1,3 +1,0 @@
-kind: Fixed
-body: fix location computation for resources with multi-char ID inside square brackets
-time: 2024-07-25T16:08:23.452724+03:00
