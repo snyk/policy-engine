@@ -17,6 +17,15 @@
           "bucket_prefix": "example_0"
         }
       },
+      "aws_s3_bucket.example[10]": {
+        "id": "aws_s3_bucket.example[10]",
+        "resource_type": "aws_s3_bucket",
+        "namespace": "golden_test/tf/count-simple/main.tf",
+        "meta": {},
+        "attributes": {
+          "bucket_prefix": "example_10"
+        }
+      },
       "aws_s3_bucket.example[1]": {
         "id": "aws_s3_bucket.example[1]",
         "resource_type": "aws_s3_bucket",
@@ -33,6 +42,69 @@
         "meta": {},
         "attributes": {
           "bucket_prefix": "example_2"
+        }
+      },
+      "aws_s3_bucket.example[3]": {
+        "id": "aws_s3_bucket.example[3]",
+        "resource_type": "aws_s3_bucket",
+        "namespace": "golden_test/tf/count-simple/main.tf",
+        "meta": {},
+        "attributes": {
+          "bucket_prefix": "example_3"
+        }
+      },
+      "aws_s3_bucket.example[4]": {
+        "id": "aws_s3_bucket.example[4]",
+        "resource_type": "aws_s3_bucket",
+        "namespace": "golden_test/tf/count-simple/main.tf",
+        "meta": {},
+        "attributes": {
+          "bucket_prefix": "example_4"
+        }
+      },
+      "aws_s3_bucket.example[5]": {
+        "id": "aws_s3_bucket.example[5]",
+        "resource_type": "aws_s3_bucket",
+        "namespace": "golden_test/tf/count-simple/main.tf",
+        "meta": {},
+        "attributes": {
+          "bucket_prefix": "example_5"
+        }
+      },
+      "aws_s3_bucket.example[6]": {
+        "id": "aws_s3_bucket.example[6]",
+        "resource_type": "aws_s3_bucket",
+        "namespace": "golden_test/tf/count-simple/main.tf",
+        "meta": {},
+        "attributes": {
+          "bucket_prefix": "example_6"
+        }
+      },
+      "aws_s3_bucket.example[7]": {
+        "id": "aws_s3_bucket.example[7]",
+        "resource_type": "aws_s3_bucket",
+        "namespace": "golden_test/tf/count-simple/main.tf",
+        "meta": {},
+        "attributes": {
+          "bucket_prefix": "example_7"
+        }
+      },
+      "aws_s3_bucket.example[8]": {
+        "id": "aws_s3_bucket.example[8]",
+        "resource_type": "aws_s3_bucket",
+        "namespace": "golden_test/tf/count-simple/main.tf",
+        "meta": {},
+        "attributes": {
+          "bucket_prefix": "example_8"
+        }
+      },
+      "aws_s3_bucket.example[9]": {
+        "id": "aws_s3_bucket.example[9]",
+        "resource_type": "aws_s3_bucket",
+        "namespace": "golden_test/tf/count-simple/main.tf",
+        "meta": {},
+        "attributes": {
+          "bucket_prefix": "example_9"
         }
       }
     }
