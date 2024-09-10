@@ -1,6 +1,11 @@
 # CHANGELOG
 
 
+
+## v0.31.3 - 2024-09-10
+### Fixed
+* upgrade go-getter package to v1.7.5
+
 ## v0.31.2 - 2024-07-25
 ### Fixed
 * adding new security quality gates
