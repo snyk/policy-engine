@@ -449,6 +449,7 @@ type policyResult struct {
 }
 
 type resourcesResult struct {
+	Evidence        string                `json:"evidence" rego:"evidence"`
 	Resource        *policyResultResource `json:"resource" rego:"resource"`
 	PrimaryResource *policyResultResource `json:"primary_resource" rego:"primary_resource"`
 	Attributes      [][]interface{}       `json:"attributes" rego:"attributes"`

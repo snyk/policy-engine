@@ -16,6 +16,8 @@ type RuleResult struct {
 	Ignored bool `json:"ignored"`
 	// An optional message that can be returned by a rule
 	Message string `json:"message,omitempty"`
+	// A message that serves as evidence
+	Evidence string `json:"evidence,omitempty"`
 	// The ID of the primary resource (if any) associated with this result
 	ResourceId string `json:"resource_id,omitempty"`
 	// The namespace of the primary resource (if any) associated with this result

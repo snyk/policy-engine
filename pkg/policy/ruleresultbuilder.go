@@ -30,6 +30,7 @@ type ruleResultBuilder struct {
 	ignored           bool
 	isMissingResource bool
 	messages          []string
+	evidence          string
 	resourceId        string
 	resourceNamespace string
 	resourceType      string
@@ -174,6 +175,7 @@ func (builder *ruleResultBuilder) toRuleResult() models.RuleResult {
 		Passed:            builder.passed,
 		Ignored:           builder.ignored,
 		Message:           strings.Join(messages, "\n\n"),
+		Evidence:          builder.evidence,
 		ResourceId:        resourceId,
 		ResourceNamespace: resourceNamespace,
 		ResourceType:      resourceType,
