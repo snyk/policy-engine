@@ -44,6 +44,10 @@ func (b *fugueAllowBooleanProcessor) Process(val ast.Value) error {
 	return rego.Bind(val, &b.allow)
 }
 
+func (b *fugueAllowBooleanProcessor) ProcessResource(val ast.Value) error {
+	return nil
+}
+
 func (b *fugueAllowBooleanProcessor) Results() []models.RuleResult {
 	return []models.RuleResult{
 		{
@@ -75,6 +79,10 @@ func NewFugueDenyBooleanProcessor(
 
 func (b *fugueDenyBooleanProcessor) Process(val ast.Value) error {
 	return rego.Bind(val, &b.deny)
+}
+
+func (b *fugueDenyBooleanProcessor) ProcessResource(val ast.Value) error {
+	return nil
 }
 
 func (b *fugueDenyBooleanProcessor) Results() []models.RuleResult {
@@ -161,6 +169,10 @@ func (b *fugueAllowInfoProcessor) Process(val ast.Value) error {
 		ResourceNamespace: b.resource.Namespace,
 		Severity:          b.severity,
 	})
+	return nil
+}
+
+func (p *fugueAllowInfoProcessor) ProcessResource(val ast.Value) error {
 	return nil
 }
 

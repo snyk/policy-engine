@@ -187,6 +187,7 @@ func (p *multiDenyProcessor) ProcessResource(val ast.Value) error {
 		p.builders[correlation].severity = p.metadata.Severity
 		p.builders[correlation].remediation = p.defaultRemediation
 	}
+	p.builders[correlation].addContext(result.Context)
 	if result.ResourceType != "" {
 		p.builders[correlation].setMissingResourceType(result.ResourceType)
 	}

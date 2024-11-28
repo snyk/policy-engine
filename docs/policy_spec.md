@@ -285,6 +285,7 @@ The `info` return value is set to an object that describes a single resource and
 optionally:
 * Its attributes that contributed to the policy result
 * Its relation to the primary resource associated with the policy result
+* User defined policy output (see [examples/12-context.rego](../examples/12-context.rego))
 
 #### `info` object properties
 
@@ -294,6 +295,7 @@ optionally:
 | `primary_resource` | object | The primary [resource object](#resource-objects) associated with a policy result             |
 | `attributes`       | array  | An array of [attribute paths](#attribute-paths) from the resource in the `resource` property |
 | `correlation`      | string | A manually-specified [correlation ID](#correlation-ids)                                      |
+| `context`          | object | User defined policy output ([example](../examples/12-context.rego))                                                                  |
 
 #### Correlation IDs
 

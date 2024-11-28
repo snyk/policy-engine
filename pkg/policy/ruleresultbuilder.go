@@ -129,6 +129,19 @@ func (builder *ruleResultBuilder) addGraph(edges []policyResultEdge) *ruleResult
 	return builder
 }
 
+func (builder *ruleResultBuilder) addContext(context map[string]interface{}) *ruleResultBuilder {
+	if len(context) == 0 {
+		return builder
+	}
+	if builder.context == nil {
+		builder.context = map[string]interface{}{}
+	}
+	for k, v := range context {
+		builder.context[k] = v
+	}
+	return builder
+}
+
 func (builder *ruleResultBuilder) toRuleResult() models.RuleResult {
 	// Gather resources.
 	resourceKeys := []ResourceKey{}

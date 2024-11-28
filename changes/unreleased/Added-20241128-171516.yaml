@@ -1,0 +1,3 @@
+kind: Added
+body: support for a user-defined free form output for the single-resource and multi-resource policy types
+time: 2024-11-28T17:15:16.982698+02:00

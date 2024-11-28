@@ -42,6 +42,7 @@ type SingleResourcePolicy struct {
 // SingleResourceProcessor can turn rego results into the results model we want.
 type SingleResourceProcessor interface {
 	Process(ast.Value) error
+	ProcessResource(ast.Value) error
 	Results() []models.RuleResult
 }
 
@@ -120,6 +121,27 @@ func (p *SingleResourcePolicy) Eval(
 				output.Errors = append(output.Errors, err.Error())
 				return []models.RuleResults{output}, err
 			}
+
+			// The single-resource type policies may define a resources rule to provide additional
+			// context for the resource.
+			if p.resourcesRule.queryElem() != "" {
+				err = options.RegoState.Query(
+					ctx,
+					rego.Query{
+						Query:   p.resourcesRule.queryElem(),
+						Input:   inputDoc.Value,
+						Timeout: options.Timeout,
+					},
+					processor.ProcessResource,
+				)
+				if err != nil {
+					logger.WithError(err).Error(ctx, "Failed to query resources")
+					err = fmt.Errorf("%w: %v", FailedToQueryResources, err)
+					output.Errors = append(output.Errors, err.Error())
+					return []models.RuleResults{output}, err
+				}
+			}
+
 			results = processor.Results()
 
 			// Fill in paths inferred using the tracer.
@@ -142,7 +164,7 @@ type singleDenyProcessor struct {
 	resource           *models.ResourceState
 	metadata           *Metadata
 	defaultRemediation string
-	results            []models.RuleResult
+	builder            *ruleResultBuilder
 }
 
 func NewSingleDenyProcessor(
@@ -196,19 +218,31 @@ func (b *singleDenyProcessor) Process(val ast.Value) error {
 		result.remediation = b.defaultRemediation
 	}
 	result.addGraph(policyResult.Graph)
-	b.results = append(b.results, result.toRuleResult())
+	b.builder = result
+	return nil
+}
+
+func (b *singleDenyProcessor) ProcessResource(val ast.Value) error {
+	var result resourcesResult
+	if err := rego.Bind(val, &result); err != nil {
+		return err
+	}
+	b.generateAllowIfNoDeny()
+	b.builder.addContext(result.Context)
 	return nil
 }
 
 func (b *singleDenyProcessor) Results() []models.RuleResult {
-	if len(b.results) == 0 {
-		// No denies: generate an allow
-		result := newRuleResultBuilder()
-		result.setPrimaryResource(b.resourceKey())
-		result.passed = true
-		result.severity = b.metadata.Severity
-		return []models.RuleResult{result.toRuleResult()}
-	} else {
-		return b.results
+	b.generateAllowIfNoDeny()
+	return []models.RuleResult{b.builder.toRuleResult()}
+}
+
+func (b *singleDenyProcessor) generateAllowIfNoDeny() {
+	// If we haven't seen a deny (Process was not called), generate an allow result.
+	if b.builder == nil {
+		b.builder = newRuleResultBuilder()
+		b.builder.setPrimaryResource(b.resourceKey())
+		b.builder.passed = true
+		b.builder.severity = b.metadata.Severity
 	}
 }
