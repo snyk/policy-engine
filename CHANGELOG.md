@@ -1,6 +1,11 @@
 # CHANGELOG
 
 
+## v0.32.0 - 2024-12-03
+### Added
+* support for a user-defined free form output for the single-resource and multi-resource policy types
+### Fixed
+* added gitleaks ignore for false positive
 
 ## v0.31.3 - 2024-09-10
 ### Fixed
