@@ -449,11 +449,12 @@ type policyResult struct {
 }
 
 type resourcesResult struct {
-	Resource        *policyResultResource `json:"resource" rego:"resource"`
-	PrimaryResource *policyResultResource `json:"primary_resource" rego:"primary_resource"`
-	Attributes      [][]interface{}       `json:"attributes" rego:"attributes"`
-	Correlation     string                `json:"correlation" rego:"correlation"`
-	ResourceType    string                `json:"resource_type" rego:"resource_type"`
+	Resource        *policyResultResource  `json:"resource" rego:"resource"`
+	PrimaryResource *policyResultResource  `json:"primary_resource" rego:"primary_resource"`
+	Attributes      [][]interface{}        `json:"attributes" rego:"attributes"`
+	Correlation     string                 `json:"correlation" rego:"correlation"`
+	ResourceType    string                 `json:"resource_type" rego:"resource_type"`
+	Context         map[string]interface{} `json:"context" rego:"context"`
 }
 
 // Helper for unique resource identifiers, meant to be used as key in a `map`.
