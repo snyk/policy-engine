@@ -1,6 +1,11 @@
 # CHANGELOG
 
 
+
+## v0.32.1 - 2024-12-13
+### Fixed
+* upgrade go to v1.20 and crypto lib
+
 ## v0.32.0 - 2024-12-03
 ### Added
 * support for a user-defined free form output for the single-resource and multi-resource policy types
