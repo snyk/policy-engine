@@ -2,6 +2,10 @@
 
 
 
+## v0.33.0 - 2025-01-20
+### Added
+* upgrade for open-policy-agent v0.69.0
+
 ## v0.32.1 - 2024-12-13
 ### Fixed
 * upgrade go to v1.20 and crypto lib
