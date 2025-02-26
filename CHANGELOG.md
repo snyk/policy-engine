@@ -1,6 +1,9 @@
 # CHANGELOG
 
 
+## v0.33.1 - 2025-02-26
+### Updated
+* upgraded crypto pkg to v0.35.0
 
 ## v0.33.0 - 2025-01-20
 ### Added
