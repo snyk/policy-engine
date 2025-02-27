@@ -1,6 +1,10 @@
 # CHANGELOG
 
 
+## v0.33.2 - 2025-02-27
+### Security
+* upgrade to oauth2/jws 0.27.0
+
 ## v0.33.1 - 2025-02-26
 ### Updated
 * upgraded crypto pkg to v0.35.0
