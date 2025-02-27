@@ -1,0 +1,3 @@
+kind: Security
+body: upgrade to oauth2/jws 0.27.0
+time: 2025-02-27T13:40:37.835142+02:00
