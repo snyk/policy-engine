@@ -1,6 +1,10 @@
 # CHANGELOG
 
 
+## v0.33.3 - 2025-03-10
+### Security
+* update golang.org/x/net to v0.37.0
+
 ## v0.33.2 - 2025-02-27
 ### Security
 * upgrade to oauth2/jws 0.27.0
