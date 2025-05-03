@@ -1,5 +1,0 @@
-terraform {
-  cloud {
-    organization = "CHANGED"
-  }
-}

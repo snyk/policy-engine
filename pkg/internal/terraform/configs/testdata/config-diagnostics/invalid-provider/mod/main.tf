@@ -1,2 +1,0 @@
-provider "crash_es" {
-}
