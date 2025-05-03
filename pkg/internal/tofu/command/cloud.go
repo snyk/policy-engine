@@ -14,9 +14,9 @@ import (
 
 	"github.com/hashicorp/go-plugin"
 
-	"github.com/opentofu/opentofu/internal/cloudplugin"
-	"github.com/opentofu/opentofu/internal/cloudplugin/cloudplugin1"
-	"github.com/opentofu/opentofu/internal/logging"
+	"github.com/snyk/policy-engine/pkg/internal/tofu/cloudplugin"
+	"github.com/snyk/policy-engine/pkg/internal/tofu/cloudplugin/cloudplugin1"
+	"github.com/snyk/policy-engine/pkg/internal/tofu/logging"
 )
 
 // CloudCommand is a Command implementation that interacts with Terraform

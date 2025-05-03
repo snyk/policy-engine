@@ -10,7 +10,7 @@ import (
 
 	"github.com/hashicorp/hcl/v2"
 	"github.com/hashicorp/hcl/v2/hcldec"
-	"github.com/opentofu/opentofu/internal/configs/configschema"
+	"github.com/snyk/policy-engine/pkg/internal/tofu/configs/configschema"
 	"github.com/zclconf/go-cty/cty"
 )
 

@@ -10,7 +10,7 @@ import (
 
 	"github.com/go-test/deep"
 
-	"github.com/opentofu/opentofu/internal/addrs"
+	"github.com/snyk/policy-engine/pkg/internal/tofu/addrs"
 )
 
 func TestProviderAddrs(t *testing.T) {

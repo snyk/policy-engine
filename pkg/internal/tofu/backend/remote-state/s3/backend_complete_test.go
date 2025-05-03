@@ -18,9 +18,9 @@ import (
 	"github.com/google/go-cmp/cmp/cmpopts"
 	"github.com/hashicorp/aws-sdk-go-base/v2/mockdata"
 	"github.com/hashicorp/aws-sdk-go-base/v2/servicemocks"
-	"github.com/opentofu/opentofu/internal/configs/hcl2shim"
-	"github.com/opentofu/opentofu/internal/encryption"
-	"github.com/opentofu/opentofu/internal/tfdiags"
+	"github.com/snyk/policy-engine/pkg/internal/tofu/configs/hcl2shim"
+	"github.com/snyk/policy-engine/pkg/internal/tofu/encryption"
+	"github.com/snyk/policy-engine/pkg/internal/tofu/tfdiags"
 )
 
 const mockStsAssumeRolePolicy = `{

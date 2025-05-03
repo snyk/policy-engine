@@ -8,7 +8,7 @@ package states
 import (
 	"github.com/zclconf/go-cty/cty"
 
-	"github.com/opentofu/opentofu/internal/addrs"
+	"github.com/snyk/policy-engine/pkg/internal/tofu/addrs"
 )
 
 // Module is a container for the states of objects within a particular module.

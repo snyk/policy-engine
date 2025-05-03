@@ -13,9 +13,9 @@ import (
 	"github.com/hashicorp/hcl/v2"
 	"github.com/zclconf/go-cty/cty"
 
-	"github.com/opentofu/opentofu/internal/configs"
-	"github.com/opentofu/opentofu/internal/tfdiags"
-	"github.com/opentofu/opentofu/internal/tofu"
+	"github.com/snyk/policy-engine/pkg/internal/tofu/configs"
+	"github.com/snyk/policy-engine/pkg/internal/tofu/tfdiags"
+	"github.com/snyk/policy-engine/pkg/internal/tofu/tofu"
 )
 
 func TestUnparsedValue(t *testing.T) {

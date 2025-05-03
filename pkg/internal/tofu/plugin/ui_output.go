@@ -8,7 +8,7 @@ package plugin
 import (
 	"net/rpc"
 
-	"github.com/opentofu/opentofu/internal/tofu"
+	"github.com/snyk/policy-engine/pkg/internal/tofu/tofu"
 )
 
 // UIOutput is an implementation of tofu.UIOutput that communicates

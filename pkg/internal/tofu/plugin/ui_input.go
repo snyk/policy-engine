@@ -10,7 +10,7 @@ import (
 	"net/rpc"
 
 	"github.com/hashicorp/go-plugin"
-	"github.com/opentofu/opentofu/internal/tofu"
+	"github.com/snyk/policy-engine/pkg/internal/tofu/tofu"
 )
 
 // UIInput is an implementation of tofu.UIInput that communicates

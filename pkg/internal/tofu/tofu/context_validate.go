@@ -9,10 +9,10 @@ import (
 	"context"
 	"log"
 
-	"github.com/opentofu/opentofu/internal/addrs"
-	"github.com/opentofu/opentofu/internal/configs"
-	"github.com/opentofu/opentofu/internal/states"
-	"github.com/opentofu/opentofu/internal/tfdiags"
+	"github.com/snyk/policy-engine/pkg/internal/tofu/addrs"
+	"github.com/snyk/policy-engine/pkg/internal/tofu/configs"
+	"github.com/snyk/policy-engine/pkg/internal/tofu/states"
+	"github.com/snyk/policy-engine/pkg/internal/tofu/tfdiags"
 	"github.com/zclconf/go-cty/cty"
 )
 

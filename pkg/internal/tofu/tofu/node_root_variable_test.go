@@ -12,10 +12,10 @@ import (
 	"github.com/hashicorp/hcl/v2/hcltest"
 	"github.com/zclconf/go-cty/cty"
 
-	"github.com/opentofu/opentofu/internal/addrs"
-	"github.com/opentofu/opentofu/internal/checks"
-	"github.com/opentofu/opentofu/internal/configs"
-	"github.com/opentofu/opentofu/internal/lang"
+	"github.com/snyk/policy-engine/pkg/internal/tofu/addrs"
+	"github.com/snyk/policy-engine/pkg/internal/tofu/checks"
+	"github.com/snyk/policy-engine/pkg/internal/tofu/configs"
+	"github.com/snyk/policy-engine/pkg/internal/tofu/lang"
 )
 
 func TestNodeRootVariableExecute(t *testing.T) {

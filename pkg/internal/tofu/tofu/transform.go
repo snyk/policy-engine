@@ -8,8 +8,8 @@ package tofu
 import (
 	"log"
 
-	"github.com/opentofu/opentofu/internal/dag"
-	"github.com/opentofu/opentofu/internal/logging"
+	"github.com/snyk/policy-engine/pkg/internal/tofu/dag"
+	"github.com/snyk/policy-engine/pkg/internal/tofu/logging"
 )
 
 // GraphTransformer is the interface that transformers implement. This

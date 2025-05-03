@@ -8,7 +8,7 @@ package tofu
 import (
 	"testing"
 
-	"github.com/opentofu/opentofu/internal/configs"
+	"github.com/snyk/policy-engine/pkg/internal/tofu/configs"
 	"github.com/zclconf/go-cty/cty"
 )
 

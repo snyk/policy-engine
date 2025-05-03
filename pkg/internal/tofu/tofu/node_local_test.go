@@ -14,10 +14,10 @@ import (
 	"github.com/hashicorp/hcl/v2/hclsyntax"
 	"github.com/zclconf/go-cty/cty"
 
-	"github.com/opentofu/opentofu/internal/addrs"
-	"github.com/opentofu/opentofu/internal/configs"
-	"github.com/opentofu/opentofu/internal/configs/hcl2shim"
-	"github.com/opentofu/opentofu/internal/states"
+	"github.com/snyk/policy-engine/pkg/internal/tofu/addrs"
+	"github.com/snyk/policy-engine/pkg/internal/tofu/configs"
+	"github.com/snyk/policy-engine/pkg/internal/tofu/configs/hcl2shim"
+	"github.com/snyk/policy-engine/pkg/internal/tofu/states"
 )
 
 func TestNodeLocalExecute(t *testing.T) {

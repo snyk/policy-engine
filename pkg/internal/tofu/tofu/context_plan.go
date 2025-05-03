@@ -18,14 +18,14 @@ import (
 
 	"github.com/zclconf/go-cty/cty"
 
-	"github.com/opentofu/opentofu/internal/addrs"
-	"github.com/opentofu/opentofu/internal/configs"
-	"github.com/opentofu/opentofu/internal/instances"
-	"github.com/opentofu/opentofu/internal/lang/globalref"
-	"github.com/opentofu/opentofu/internal/plans"
-	"github.com/opentofu/opentofu/internal/refactoring"
-	"github.com/opentofu/opentofu/internal/states"
-	"github.com/opentofu/opentofu/internal/tfdiags"
+	"github.com/snyk/policy-engine/pkg/internal/tofu/addrs"
+	"github.com/snyk/policy-engine/pkg/internal/tofu/configs"
+	"github.com/snyk/policy-engine/pkg/internal/tofu/instances"
+	"github.com/snyk/policy-engine/pkg/internal/tofu/lang/globalref"
+	"github.com/snyk/policy-engine/pkg/internal/tofu/plans"
+	"github.com/snyk/policy-engine/pkg/internal/tofu/refactoring"
+	"github.com/snyk/policy-engine/pkg/internal/tofu/states"
+	"github.com/snyk/policy-engine/pkg/internal/tofu/tfdiags"
 )
 
 // PlanOpts are the various options that affect the details of how OpenTofu

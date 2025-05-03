@@ -27,18 +27,18 @@ import (
 	"github.com/zclconf/go-cty/cty"
 	"github.com/zclconf/go-cty/cty/gocty"
 
-	"github.com/opentofu/opentofu/internal/backend"
-	"github.com/opentofu/opentofu/internal/command/jsonformat"
-	"github.com/opentofu/opentofu/internal/configs/configschema"
-	"github.com/opentofu/opentofu/internal/encryption"
-	"github.com/opentofu/opentofu/internal/httpclient"
-	"github.com/opentofu/opentofu/internal/plans"
-	"github.com/opentofu/opentofu/internal/states/statemgr"
-	"github.com/opentofu/opentofu/internal/tfdiags"
-	"github.com/opentofu/opentofu/internal/tofu"
-	tfversion "github.com/opentofu/opentofu/version"
+	"github.com/snyk/policy-engine/pkg/internal/tofu/backend"
+	"github.com/snyk/policy-engine/pkg/internal/tofu/command/jsonformat"
+	"github.com/snyk/policy-engine/pkg/internal/tofu/configs/configschema"
+	"github.com/snyk/policy-engine/pkg/internal/tofu/encryption"
+	"github.com/snyk/policy-engine/pkg/internal/tofu/httpclient"
+	"github.com/snyk/policy-engine/pkg/internal/tofu/plans"
+	"github.com/snyk/policy-engine/pkg/internal/tofu/states/statemgr"
+	"github.com/snyk/policy-engine/pkg/internal/tofu/tfdiags"
+	"github.com/snyk/policy-engine/pkg/internal/tofu/tofu"
+	tfversion "github.com/snyk/policy-engine/pkg/internal/tofu/version"
 
-	backendLocal "github.com/opentofu/opentofu/internal/backend/local"
+	backendLocal "github.com/snyk/policy-engine/pkg/internal/tofu/backend/local"
 )
 
 const (

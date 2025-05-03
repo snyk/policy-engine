@@ -5,7 +5,7 @@
 
 package configs
 
-import "github.com/opentofu/opentofu/internal/addrs"
+import "github.com/snyk/policy-engine/pkg/internal/tofu/addrs"
 
 // Container provides an interface for scoped resources.
 //

@@ -9,7 +9,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/opentofu/opentofu/internal/dag"
+	"github.com/snyk/policy-engine/pkg/internal/tofu/dag"
 )
 
 func TestGraphDot(t *testing.T) {

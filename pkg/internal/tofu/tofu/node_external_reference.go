@@ -5,7 +5,7 @@
 
 package tofu
 
-import "github.com/opentofu/opentofu/internal/addrs"
+import "github.com/snyk/policy-engine/pkg/internal/tofu/addrs"
 
 // nodeExternalReference allows external callers (such as the testing framework)
 // to provide the list of references they are making into the graph. This

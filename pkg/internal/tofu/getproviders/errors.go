@@ -11,7 +11,7 @@ import (
 
 	svchost "github.com/hashicorp/terraform-svchost"
 
-	"github.com/opentofu/opentofu/internal/addrs"
+	"github.com/snyk/policy-engine/pkg/internal/tofu/addrs"
 )
 
 // ErrHostNoProviders is an error type used to indicate that a hostname given

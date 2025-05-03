@@ -8,9 +8,9 @@ package renderers
 import (
 	"github.com/zclconf/go-cty/cty"
 
-	"github.com/opentofu/opentofu/internal/command/jsonformat/computed"
-	"github.com/opentofu/opentofu/internal/command/jsonformat/jsondiff"
-	"github.com/opentofu/opentofu/internal/plans"
+	"github.com/snyk/policy-engine/pkg/internal/tofu/command/jsonformat/computed"
+	"github.com/snyk/policy-engine/pkg/internal/tofu/command/jsonformat/jsondiff"
+	"github.com/snyk/policy-engine/pkg/internal/tofu/plans"
 )
 
 // RendererJsonOpts creates a jsondiff.JsonOpts object that returns the correct

@@ -8,12 +8,12 @@ package views
 import (
 	"fmt"
 
-	"github.com/opentofu/opentofu/internal/command/arguments"
-	"github.com/opentofu/opentofu/internal/command/format"
-	"github.com/opentofu/opentofu/internal/command/views/json"
-	"github.com/opentofu/opentofu/internal/states"
-	"github.com/opentofu/opentofu/internal/tfdiags"
-	"github.com/opentofu/opentofu/internal/tofu"
+	"github.com/snyk/policy-engine/pkg/internal/tofu/command/arguments"
+	"github.com/snyk/policy-engine/pkg/internal/tofu/command/format"
+	"github.com/snyk/policy-engine/pkg/internal/tofu/command/views/json"
+	"github.com/snyk/policy-engine/pkg/internal/tofu/states"
+	"github.com/snyk/policy-engine/pkg/internal/tofu/tfdiags"
+	"github.com/snyk/policy-engine/pkg/internal/tofu/tofu"
 )
 
 // The Apply view is used for the apply command.

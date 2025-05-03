@@ -8,9 +8,9 @@ package views
 import (
 	"fmt"
 
-	"github.com/opentofu/opentofu/internal/command/arguments"
-	"github.com/opentofu/opentofu/internal/tfdiags"
-	"github.com/opentofu/opentofu/internal/tofu"
+	"github.com/snyk/policy-engine/pkg/internal/tofu/command/arguments"
+	"github.com/snyk/policy-engine/pkg/internal/tofu/tfdiags"
+	"github.com/snyk/policy-engine/pkg/internal/tofu/tofu"
 )
 
 // The Plan view is used for the plan command.

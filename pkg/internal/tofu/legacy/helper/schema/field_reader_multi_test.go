@@ -10,7 +10,7 @@ import (
 	"strconv"
 	"testing"
 
-	"github.com/opentofu/opentofu/internal/legacy/tofu"
+	"github.com/snyk/policy-engine/pkg/internal/tofu/legacy/tofu"
 )
 
 func TestMultiLevelFieldReaderReadFieldExact(t *testing.T) {

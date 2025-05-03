@@ -8,8 +8,8 @@ import (
 	"os"
 	"testing"
 
-	"github.com/opentofu/opentofu/internal/encryption"
-	"github.com/opentofu/opentofu/internal/encryption/enctest"
+	"github.com/snyk/policy-engine/pkg/internal/tofu/encryption"
+	"github.com/snyk/policy-engine/pkg/internal/tofu/encryption/enctest"
 )
 
 func TestReadErrNoState_emptyFile(t *testing.T) {

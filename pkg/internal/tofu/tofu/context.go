@@ -12,14 +12,14 @@ import (
 	"sort"
 	"sync"
 
-	"github.com/opentofu/opentofu/internal/addrs"
-	"github.com/opentofu/opentofu/internal/configs"
-	"github.com/opentofu/opentofu/internal/encryption"
-	"github.com/opentofu/opentofu/internal/logging"
-	"github.com/opentofu/opentofu/internal/providers"
-	"github.com/opentofu/opentofu/internal/provisioners"
-	"github.com/opentofu/opentofu/internal/states"
-	"github.com/opentofu/opentofu/internal/tfdiags"
+	"github.com/snyk/policy-engine/pkg/internal/tofu/addrs"
+	"github.com/snyk/policy-engine/pkg/internal/tofu/configs"
+	"github.com/snyk/policy-engine/pkg/internal/tofu/encryption"
+	"github.com/snyk/policy-engine/pkg/internal/tofu/logging"
+	"github.com/snyk/policy-engine/pkg/internal/tofu/providers"
+	"github.com/snyk/policy-engine/pkg/internal/tofu/provisioners"
+	"github.com/snyk/policy-engine/pkg/internal/tofu/states"
+	"github.com/snyk/policy-engine/pkg/internal/tofu/tfdiags"
 	"github.com/zclconf/go-cty/cty"
 )
 

@@ -8,7 +8,7 @@ package renderers
 import (
 	"fmt"
 
-	"github.com/opentofu/opentofu/internal/command/jsonformat/computed"
+	"github.com/snyk/policy-engine/pkg/internal/tofu/command/jsonformat/computed"
 )
 
 var _ computed.DiffRenderer = (*typeChangeRenderer)(nil)

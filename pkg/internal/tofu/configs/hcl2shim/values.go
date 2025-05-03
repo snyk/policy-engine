@@ -11,7 +11,7 @@ import (
 
 	"github.com/zclconf/go-cty/cty"
 
-	"github.com/opentofu/opentofu/internal/configs/configschema"
+	"github.com/snyk/policy-engine/pkg/internal/tofu/configs/configschema"
 )
 
 // UnknownVariableValue is a sentinel value that can be used

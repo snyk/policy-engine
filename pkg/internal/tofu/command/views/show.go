@@ -10,17 +10,17 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"github.com/opentofu/opentofu/internal/cloud/cloudplan"
-	"github.com/opentofu/opentofu/internal/command/arguments"
-	"github.com/opentofu/opentofu/internal/command/jsonformat"
-	"github.com/opentofu/opentofu/internal/command/jsonplan"
-	"github.com/opentofu/opentofu/internal/command/jsonprovider"
-	"github.com/opentofu/opentofu/internal/command/jsonstate"
-	"github.com/opentofu/opentofu/internal/configs"
-	"github.com/opentofu/opentofu/internal/plans"
-	"github.com/opentofu/opentofu/internal/states/statefile"
-	"github.com/opentofu/opentofu/internal/tfdiags"
-	"github.com/opentofu/opentofu/internal/tofu"
+	"github.com/snyk/policy-engine/pkg/internal/tofu/cloud/cloudplan"
+	"github.com/snyk/policy-engine/pkg/internal/tofu/command/arguments"
+	"github.com/snyk/policy-engine/pkg/internal/tofu/command/jsonformat"
+	"github.com/snyk/policy-engine/pkg/internal/tofu/command/jsonplan"
+	"github.com/snyk/policy-engine/pkg/internal/tofu/command/jsonprovider"
+	"github.com/snyk/policy-engine/pkg/internal/tofu/command/jsonstate"
+	"github.com/snyk/policy-engine/pkg/internal/tofu/configs"
+	"github.com/snyk/policy-engine/pkg/internal/tofu/plans"
+	"github.com/snyk/policy-engine/pkg/internal/tofu/states/statefile"
+	"github.com/snyk/policy-engine/pkg/internal/tofu/tfdiags"
+	"github.com/snyk/policy-engine/pkg/internal/tofu/tofu"
 )
 
 type Show interface {

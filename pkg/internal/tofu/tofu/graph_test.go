@@ -8,7 +8,7 @@ package tofu
 import (
 	"testing"
 
-	"github.com/opentofu/opentofu/internal/dag"
+	"github.com/snyk/policy-engine/pkg/internal/tofu/dag"
 )
 
 // testGraphNotContains is an assertion helper that tests that a node is

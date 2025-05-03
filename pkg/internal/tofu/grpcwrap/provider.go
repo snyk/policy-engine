@@ -8,9 +8,9 @@ package grpcwrap
 import (
 	"context"
 
-	"github.com/opentofu/opentofu/internal/plugin/convert"
-	"github.com/opentofu/opentofu/internal/providers"
-	"github.com/opentofu/opentofu/internal/tfplugin5"
+	"github.com/snyk/policy-engine/pkg/internal/tofu/plugin/convert"
+	"github.com/snyk/policy-engine/pkg/internal/tofu/providers"
+	"github.com/snyk/policy-engine/pkg/internal/tofu/tfplugin5"
 	"github.com/zclconf/go-cty/cty"
 	ctyjson "github.com/zclconf/go-cty/cty/json"
 	"github.com/zclconf/go-cty/cty/msgpack"

@@ -10,7 +10,7 @@ import (
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
-	"github.com/opentofu/opentofu/internal/providers"
+	"github.com/snyk/policy-engine/pkg/internal/tofu/providers"
 	"github.com/zclconf/go-cty/cty"
 )
 

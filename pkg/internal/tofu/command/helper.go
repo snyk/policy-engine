@@ -6,8 +6,8 @@
 package command
 
 import (
-	"github.com/opentofu/opentofu/internal/backend"
-	"github.com/opentofu/opentofu/internal/cloud"
+	"github.com/snyk/policy-engine/pkg/internal/tofu/backend"
+	"github.com/snyk/policy-engine/pkg/internal/tofu/cloud"
 )
 
 const failedToLoadSchemasMessage = `

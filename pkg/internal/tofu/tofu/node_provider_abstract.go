@@ -6,11 +6,11 @@
 package tofu
 
 import (
-	"github.com/opentofu/opentofu/internal/addrs"
-	"github.com/opentofu/opentofu/internal/configs"
-	"github.com/opentofu/opentofu/internal/configs/configschema"
+	"github.com/snyk/policy-engine/pkg/internal/tofu/addrs"
+	"github.com/snyk/policy-engine/pkg/internal/tofu/configs"
+	"github.com/snyk/policy-engine/pkg/internal/tofu/configs/configschema"
 
-	"github.com/opentofu/opentofu/internal/dag"
+	"github.com/snyk/policy-engine/pkg/internal/tofu/dag"
 )
 
 // ConcreteProviderNodeFunc is a callback type used to convert an

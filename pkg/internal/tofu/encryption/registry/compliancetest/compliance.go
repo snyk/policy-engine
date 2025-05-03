@@ -8,7 +8,7 @@ package compliancetest
 import (
 	"testing"
 
-	"github.com/opentofu/opentofu/internal/encryption/registry"
+	"github.com/snyk/policy-engine/pkg/internal/tofu/encryption/registry"
 )
 
 func ComplianceTest(t *testing.T, factory func() registry.Registry) {

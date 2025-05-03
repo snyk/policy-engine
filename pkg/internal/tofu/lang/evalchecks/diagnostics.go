@@ -6,7 +6,7 @@
 package evalchecks
 
 import (
-	"github.com/opentofu/opentofu/internal/tfdiags"
+	"github.com/snyk/policy-engine/pkg/internal/tofu/tfdiags"
 )
 
 // This file contains some package-local helpers for working with diagnostics.

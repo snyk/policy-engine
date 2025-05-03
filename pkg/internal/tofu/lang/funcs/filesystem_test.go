@@ -17,7 +17,7 @@ import (
 	"github.com/zclconf/go-cty/cty/function"
 	"github.com/zclconf/go-cty/cty/function/stdlib"
 
-	"github.com/opentofu/opentofu/internal/lang/marks"
+	"github.com/snyk/policy-engine/pkg/internal/tofu/lang/marks"
 )
 
 func TestFile(t *testing.T) {

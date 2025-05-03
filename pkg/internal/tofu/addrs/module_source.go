@@ -10,7 +10,7 @@ import (
 	"path"
 	"strings"
 
-	"github.com/opentofu/opentofu/internal/getmodules"
+	"github.com/snyk/policy-engine/pkg/internal/tofu/getmodules"
 	tfaddr "github.com/opentofu/registry-address"
 )
 

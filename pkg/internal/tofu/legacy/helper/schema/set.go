@@ -13,7 +13,7 @@ import (
 	"strconv"
 	"sync"
 
-	"github.com/opentofu/opentofu/internal/legacy/helper/hashcode"
+	"github.com/snyk/policy-engine/pkg/internal/tofu/legacy/helper/hashcode"
 )
 
 // HashString hashes strings. If you want a Set of strings, this is the

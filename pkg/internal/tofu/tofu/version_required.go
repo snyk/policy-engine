@@ -6,9 +6,9 @@
 package tofu
 
 import (
-	"github.com/opentofu/opentofu/internal/tfdiags"
+	"github.com/snyk/policy-engine/pkg/internal/tofu/tfdiags"
 
-	"github.com/opentofu/opentofu/internal/configs"
+	"github.com/snyk/policy-engine/pkg/internal/tofu/configs"
 )
 
 // CheckCoreVersionRequirements visits each of the modules in the given

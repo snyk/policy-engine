@@ -9,9 +9,9 @@ import (
 	"bytes"
 	"testing"
 
-	"github.com/opentofu/opentofu/internal/encryption"
-	"github.com/opentofu/opentofu/internal/states/statefile"
-	"github.com/opentofu/opentofu/internal/states/statemgr"
+	"github.com/snyk/policy-engine/pkg/internal/tofu/encryption"
+	"github.com/snyk/policy-engine/pkg/internal/tofu/states/statefile"
+	"github.com/snyk/policy-engine/pkg/internal/tofu/states/statemgr"
 )
 
 // TestClient is a generic function to test any client.

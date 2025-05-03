@@ -11,10 +11,10 @@ import (
 
 	"github.com/zclconf/go-cty/cty"
 
-	"github.com/opentofu/opentofu/internal/addrs"
-	"github.com/opentofu/opentofu/internal/configs/configschema"
-	"github.com/opentofu/opentofu/internal/lang/globalref"
-	"github.com/opentofu/opentofu/internal/states"
+	"github.com/snyk/policy-engine/pkg/internal/tofu/addrs"
+	"github.com/snyk/policy-engine/pkg/internal/tofu/configs/configschema"
+	"github.com/snyk/policy-engine/pkg/internal/tofu/lang/globalref"
+	"github.com/snyk/policy-engine/pkg/internal/tofu/states"
 )
 
 // Plan is the top-level type representing a planned set of changes.

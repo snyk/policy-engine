@@ -8,7 +8,7 @@ package statemgr
 import (
 	"sync"
 
-	"github.com/opentofu/opentofu/internal/states"
+	"github.com/snyk/policy-engine/pkg/internal/tofu/states"
 )
 
 // NewTransientInMemory returns a Transient implementation that retains

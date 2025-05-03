@@ -12,8 +12,8 @@ import (
 
 	uuid "github.com/hashicorp/go-uuid"
 	_ "github.com/lib/pq"
-	"github.com/opentofu/opentofu/internal/states/remote"
-	"github.com/opentofu/opentofu/internal/states/statemgr"
+	"github.com/snyk/policy-engine/pkg/internal/tofu/states/remote"
+	"github.com/snyk/policy-engine/pkg/internal/tofu/states/statemgr"
 )
 
 // RemoteClient is a remote client that stores data in a Postgres database

@@ -6,7 +6,7 @@
 package tofu
 
 import (
-	"github.com/opentofu/opentofu/internal/provisioners"
+	"github.com/snyk/policy-engine/pkg/internal/tofu/provisioners"
 )
 
 // simpleMockProvisioner returns a MockProvisioner that is pre-configured

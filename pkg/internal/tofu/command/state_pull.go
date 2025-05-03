@@ -10,9 +10,9 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/opentofu/opentofu/internal/encryption"
-	"github.com/opentofu/opentofu/internal/states/statefile"
-	"github.com/opentofu/opentofu/internal/states/statemgr"
+	"github.com/snyk/policy-engine/pkg/internal/tofu/encryption"
+	"github.com/snyk/policy-engine/pkg/internal/tofu/states/statefile"
+	"github.com/snyk/policy-engine/pkg/internal/tofu/states/statemgr"
 )
 
 // StatePullCommand is a Command implementation that shows a single resource.

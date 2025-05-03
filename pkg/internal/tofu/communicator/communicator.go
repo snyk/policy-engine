@@ -14,11 +14,11 @@ import (
 	"sync/atomic"
 	"time"
 
-	"github.com/opentofu/opentofu/internal/communicator/remote"
-	"github.com/opentofu/opentofu/internal/communicator/shared"
-	"github.com/opentofu/opentofu/internal/communicator/ssh"
-	"github.com/opentofu/opentofu/internal/communicator/winrm"
-	"github.com/opentofu/opentofu/internal/provisioners"
+	"github.com/snyk/policy-engine/pkg/internal/tofu/communicator/remote"
+	"github.com/snyk/policy-engine/pkg/internal/tofu/communicator/shared"
+	"github.com/snyk/policy-engine/pkg/internal/tofu/communicator/ssh"
+	"github.com/snyk/policy-engine/pkg/internal/tofu/communicator/winrm"
+	"github.com/snyk/policy-engine/pkg/internal/tofu/provisioners"
 	"github.com/zclconf/go-cty/cty"
 )
 

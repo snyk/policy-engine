@@ -18,8 +18,8 @@ import (
 	homedir "github.com/mitchellh/go-homedir"
 	"github.com/zclconf/go-cty/cty"
 
-	"github.com/opentofu/opentofu/internal/experiments"
-	"github.com/opentofu/opentofu/internal/lang/marks"
+	"github.com/snyk/policy-engine/pkg/internal/tofu/experiments"
+	"github.com/snyk/policy-engine/pkg/internal/tofu/lang/marks"
 )
 
 // TestFunctions tests that functions are callable through the functionality

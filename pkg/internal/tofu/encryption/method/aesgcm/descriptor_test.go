@@ -8,7 +8,7 @@ package aesgcm_test
 import (
 	"testing"
 
-	"github.com/opentofu/opentofu/internal/encryption/method/aesgcm"
+	"github.com/snyk/policy-engine/pkg/internal/tofu/encryption/method/aesgcm"
 )
 
 func TestDescriptor(t *testing.T) {

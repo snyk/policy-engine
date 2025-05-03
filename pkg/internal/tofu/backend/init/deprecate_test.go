@@ -8,8 +8,8 @@ package init
 import (
 	"testing"
 
-	"github.com/opentofu/opentofu/internal/backend/remote-state/inmem"
-	"github.com/opentofu/opentofu/internal/encryption"
+	"github.com/snyk/policy-engine/pkg/internal/tofu/backend/remote-state/inmem"
+	"github.com/snyk/policy-engine/pkg/internal/tofu/encryption"
 	"github.com/zclconf/go-cty/cty"
 )
 

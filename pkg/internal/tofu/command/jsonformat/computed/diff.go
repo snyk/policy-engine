@@ -8,7 +8,7 @@ package computed
 import (
 	"github.com/mitchellh/colorstring"
 
-	"github.com/opentofu/opentofu/internal/plans"
+	"github.com/snyk/policy-engine/pkg/internal/tofu/plans"
 )
 
 // Diff captures the computed diff for a single block, element or attribute.

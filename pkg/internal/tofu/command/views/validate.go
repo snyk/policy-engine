@@ -9,10 +9,10 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"github.com/opentofu/opentofu/internal/command/arguments"
-	"github.com/opentofu/opentofu/internal/command/format"
-	viewsjson "github.com/opentofu/opentofu/internal/command/views/json"
-	"github.com/opentofu/opentofu/internal/tfdiags"
+	"github.com/snyk/policy-engine/pkg/internal/tofu/command/arguments"
+	"github.com/snyk/policy-engine/pkg/internal/tofu/command/format"
+	viewsjson "github.com/snyk/policy-engine/pkg/internal/tofu/command/views/json"
+	"github.com/snyk/policy-engine/pkg/internal/tofu/tfdiags"
 )
 
 // The Validate is used for the validate command.

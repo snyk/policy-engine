@@ -15,13 +15,13 @@ import (
 	plugin "github.com/hashicorp/go-plugin"
 	"github.com/kardianos/osext"
 
-	fileprovisioner "github.com/opentofu/opentofu/internal/builtin/provisioners/file"
-	localexec "github.com/opentofu/opentofu/internal/builtin/provisioners/local-exec"
-	remoteexec "github.com/opentofu/opentofu/internal/builtin/provisioners/remote-exec"
-	"github.com/opentofu/opentofu/internal/logging"
-	tfplugin "github.com/opentofu/opentofu/internal/plugin"
-	"github.com/opentofu/opentofu/internal/plugin/discovery"
-	"github.com/opentofu/opentofu/internal/provisioners"
+	fileprovisioner "github.com/snyk/policy-engine/pkg/internal/tofu/builtin/provisioners/file"
+	localexec "github.com/snyk/policy-engine/pkg/internal/tofu/builtin/provisioners/local-exec"
+	remoteexec "github.com/snyk/policy-engine/pkg/internal/tofu/builtin/provisioners/remote-exec"
+	"github.com/snyk/policy-engine/pkg/internal/tofu/logging"
+	tfplugin "github.com/snyk/policy-engine/pkg/internal/tofu/plugin"
+	"github.com/snyk/policy-engine/pkg/internal/tofu/plugin/discovery"
+	"github.com/snyk/policy-engine/pkg/internal/tofu/provisioners"
 )
 
 // NOTE WELL: The logic in this file is primarily about plugin types OTHER THAN

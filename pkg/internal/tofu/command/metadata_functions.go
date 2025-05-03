@@ -10,8 +10,8 @@ import (
 
 	"github.com/zclconf/go-cty/cty/function"
 
-	"github.com/opentofu/opentofu/internal/command/jsonfunction"
-	"github.com/opentofu/opentofu/internal/lang"
+	"github.com/snyk/policy-engine/pkg/internal/tofu/command/jsonfunction"
+	"github.com/snyk/policy-engine/pkg/internal/tofu/lang"
 )
 
 var (

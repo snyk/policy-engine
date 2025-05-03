@@ -8,7 +8,7 @@ package globalref
 import (
 	"sort"
 
-	"github.com/opentofu/opentofu/internal/addrs"
+	"github.com/snyk/policy-engine/pkg/internal/tofu/addrs"
 )
 
 // ContributingResources analyzes all of the given references and

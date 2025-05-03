@@ -19,7 +19,7 @@ import (
 	"time"
 
 	uuid "github.com/hashicorp/go-uuid"
-	"github.com/opentofu/opentofu/version"
+	"github.com/snyk/policy-engine/pkg/internal/tofu/version"
 )
 
 var rngSource = rand.New(rand.NewSource(time.Now().UnixNano()))

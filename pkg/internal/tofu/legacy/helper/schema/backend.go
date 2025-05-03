@@ -9,12 +9,12 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/opentofu/opentofu/internal/tfdiags"
+	"github.com/snyk/policy-engine/pkg/internal/tofu/tfdiags"
 	"github.com/zclconf/go-cty/cty"
 
-	"github.com/opentofu/opentofu/internal/configs/configschema"
-	"github.com/opentofu/opentofu/internal/configs/hcl2shim"
-	"github.com/opentofu/opentofu/internal/legacy/tofu"
+	"github.com/snyk/policy-engine/pkg/internal/tofu/configs/configschema"
+	"github.com/snyk/policy-engine/pkg/internal/tofu/configs/hcl2shim"
+	"github.com/snyk/policy-engine/pkg/internal/tofu/legacy/tofu"
 	ctyconvert "github.com/zclconf/go-cty/cty/convert"
 )
 

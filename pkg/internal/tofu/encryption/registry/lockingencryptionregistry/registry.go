@@ -8,9 +8,9 @@ package lockingencryptionregistry
 import (
 	"sync"
 
-	"github.com/opentofu/opentofu/internal/encryption/keyprovider"
-	"github.com/opentofu/opentofu/internal/encryption/method"
-	"github.com/opentofu/opentofu/internal/encryption/registry"
+	"github.com/snyk/policy-engine/pkg/internal/tofu/encryption/keyprovider"
+	"github.com/snyk/policy-engine/pkg/internal/tofu/encryption/method"
+	"github.com/snyk/policy-engine/pkg/internal/tofu/encryption/registry"
 )
 
 // New returns a new encryption registry that locks for parallel access.

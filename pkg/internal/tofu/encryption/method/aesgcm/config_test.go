@@ -10,9 +10,9 @@ import (
 	"errors"
 	"testing"
 
-	"github.com/opentofu/opentofu/internal/encryption/keyprovider"
+	"github.com/snyk/policy-engine/pkg/internal/tofu/encryption/keyprovider"
 
-	"github.com/opentofu/opentofu/internal/encryption/method"
+	"github.com/snyk/policy-engine/pkg/internal/tofu/encryption/method"
 )
 
 func TestConfig_Build(t *testing.T) {

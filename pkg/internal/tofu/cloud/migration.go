@@ -6,8 +6,8 @@
 package cloud
 
 import (
-	"github.com/opentofu/opentofu/internal/configs"
-	legacy "github.com/opentofu/opentofu/internal/legacy/tofu"
+	"github.com/snyk/policy-engine/pkg/internal/tofu/configs"
+	legacy "github.com/snyk/policy-engine/pkg/internal/tofu/legacy/tofu"
 )
 
 // Most of the logic for migrating into and out of "cloud mode" actually lives

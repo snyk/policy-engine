@@ -12,7 +12,7 @@
 // structures have a consistent look and feel.
 package format
 
-import "github.com/opentofu/opentofu/internal/plans"
+import "github.com/snyk/policy-engine/pkg/internal/tofu/plans"
 
 // DiffActionSymbol returns a string that, once passed through a
 // colorstring.Colorize, will produce a result that can be written

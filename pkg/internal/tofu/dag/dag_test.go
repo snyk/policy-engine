@@ -15,9 +15,9 @@ import (
 	"sync"
 	"testing"
 
-	"github.com/opentofu/opentofu/internal/tfdiags"
+	"github.com/snyk/policy-engine/pkg/internal/tofu/tfdiags"
 
-	_ "github.com/opentofu/opentofu/internal/logging"
+	_ "github.com/snyk/policy-engine/pkg/internal/tofu/logging"
 )
 
 func TestMain(m *testing.M) {

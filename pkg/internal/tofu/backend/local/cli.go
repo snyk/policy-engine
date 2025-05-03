@@ -8,7 +8,7 @@ package local
 import (
 	"log"
 
-	"github.com/opentofu/opentofu/internal/backend"
+	"github.com/snyk/policy-engine/pkg/internal/tofu/backend"
 )
 
 // backend.CLI impl.

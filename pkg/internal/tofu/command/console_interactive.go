@@ -12,7 +12,7 @@ import (
 	"os"
 	"strings"
 
-	"github.com/opentofu/opentofu/internal/repl"
+	"github.com/snyk/policy-engine/pkg/internal/tofu/repl"
 
 	"github.com/chzyer/readline"
 	"github.com/mitchellh/cli"

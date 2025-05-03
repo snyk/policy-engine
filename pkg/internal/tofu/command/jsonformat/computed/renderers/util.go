@@ -9,12 +9,12 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/opentofu/opentofu/internal/command/format"
+	"github.com/snyk/policy-engine/pkg/internal/tofu/command/format"
 
 	"github.com/hashicorp/hcl/v2/hclsyntax"
 
-	"github.com/opentofu/opentofu/internal/command/jsonformat/computed"
-	"github.com/opentofu/opentofu/internal/plans"
+	"github.com/snyk/policy-engine/pkg/internal/tofu/command/jsonformat/computed"
+	"github.com/snyk/policy-engine/pkg/internal/tofu/plans"
 )
 
 // NoWarningsRenderer defines a Warnings function that returns an empty list of

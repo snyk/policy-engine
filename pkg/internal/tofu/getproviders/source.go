@@ -8,7 +8,7 @@ package getproviders
 import (
 	"context"
 
-	"github.com/opentofu/opentofu/internal/addrs"
+	"github.com/snyk/policy-engine/pkg/internal/tofu/addrs"
 )
 
 // A Source can query a particular source for information about providers

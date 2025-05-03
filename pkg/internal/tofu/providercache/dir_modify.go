@@ -10,7 +10,7 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/opentofu/opentofu/internal/getproviders"
+	"github.com/snyk/policy-engine/pkg/internal/tofu/getproviders"
 )
 
 // InstallPackage takes a metadata object describing a package available for

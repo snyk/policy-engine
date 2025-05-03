@@ -6,7 +6,7 @@
 package structured
 
 import (
-	"github.com/opentofu/opentofu/internal/command/jsonformat/computed"
+	"github.com/snyk/policy-engine/pkg/internal/tofu/command/jsonformat/computed"
 )
 
 type ProcessUnknown func(current Change) computed.Diff

@@ -16,15 +16,15 @@ import (
 
 	plugin "github.com/hashicorp/go-plugin"
 
-	"github.com/opentofu/opentofu/internal/addrs"
-	terraformProvider "github.com/opentofu/opentofu/internal/builtin/providers/tf"
-	"github.com/opentofu/opentofu/internal/getproviders"
-	"github.com/opentofu/opentofu/internal/logging"
-	tfplugin "github.com/opentofu/opentofu/internal/plugin"
-	tfplugin6 "github.com/opentofu/opentofu/internal/plugin6"
-	"github.com/opentofu/opentofu/internal/providercache"
-	"github.com/opentofu/opentofu/internal/providers"
-	"github.com/opentofu/opentofu/internal/tfdiags"
+	"github.com/snyk/policy-engine/pkg/internal/tofu/addrs"
+	terraformProvider "github.com/snyk/policy-engine/pkg/internal/tofu/builtin/providers/tf"
+	"github.com/snyk/policy-engine/pkg/internal/tofu/getproviders"
+	"github.com/snyk/policy-engine/pkg/internal/tofu/logging"
+	tfplugin "github.com/snyk/policy-engine/pkg/internal/tofu/plugin"
+	tfplugin6 "github.com/snyk/policy-engine/pkg/internal/tofu/plugin6"
+	"github.com/snyk/policy-engine/pkg/internal/tofu/providercache"
+	"github.com/snyk/policy-engine/pkg/internal/tofu/providers"
+	"github.com/snyk/policy-engine/pkg/internal/tofu/tfdiags"
 )
 
 var errUnsupportedProtocolVersion = errors.New("unsupported protocol version")

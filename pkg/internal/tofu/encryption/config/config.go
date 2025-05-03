@@ -7,8 +7,8 @@ package config
 
 import (
 	"github.com/hashicorp/hcl/v2"
-	"github.com/opentofu/opentofu/internal/encryption/keyprovider"
-	"github.com/opentofu/opentofu/internal/encryption/method"
+	"github.com/snyk/policy-engine/pkg/internal/tofu/encryption/keyprovider"
+	"github.com/snyk/policy-engine/pkg/internal/tofu/encryption/method"
 )
 
 // EncryptionConfig describes the terraform.encryption HCL block you can use to configure the state and plan encryption.

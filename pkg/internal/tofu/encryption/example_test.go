@@ -9,12 +9,12 @@ import (
 	"fmt"
 
 	"github.com/hashicorp/hcl/v2"
-	"github.com/opentofu/opentofu/internal/configs"
-	"github.com/opentofu/opentofu/internal/encryption"
-	"github.com/opentofu/opentofu/internal/encryption/config"
-	"github.com/opentofu/opentofu/internal/encryption/keyprovider/static"
-	"github.com/opentofu/opentofu/internal/encryption/method/aesgcm"
-	"github.com/opentofu/opentofu/internal/encryption/registry/lockingencryptionregistry"
+	"github.com/snyk/policy-engine/pkg/internal/tofu/configs"
+	"github.com/snyk/policy-engine/pkg/internal/tofu/encryption"
+	"github.com/snyk/policy-engine/pkg/internal/tofu/encryption/config"
+	"github.com/snyk/policy-engine/pkg/internal/tofu/encryption/keyprovider/static"
+	"github.com/snyk/policy-engine/pkg/internal/tofu/encryption/method/aesgcm"
+	"github.com/snyk/policy-engine/pkg/internal/tofu/encryption/registry/lockingencryptionregistry"
 )
 
 var (

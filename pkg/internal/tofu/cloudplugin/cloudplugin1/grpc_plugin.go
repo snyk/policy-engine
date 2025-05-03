@@ -11,8 +11,8 @@ import (
 	"net/rpc"
 
 	"github.com/hashicorp/go-plugin"
-	"github.com/opentofu/opentofu/internal/cloudplugin"
-	"github.com/opentofu/opentofu/internal/cloudplugin/cloudproto1"
+	"github.com/snyk/policy-engine/pkg/internal/tofu/cloudplugin"
+	"github.com/snyk/policy-engine/pkg/internal/tofu/cloudplugin/cloudproto1"
 	"google.golang.org/grpc"
 )
 

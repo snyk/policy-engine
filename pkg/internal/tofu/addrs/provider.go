@@ -8,7 +8,7 @@ package addrs
 import (
 	"github.com/hashicorp/hcl/v2"
 	svchost "github.com/hashicorp/terraform-svchost"
-	"github.com/opentofu/opentofu/internal/tfdiags"
+	"github.com/snyk/policy-engine/pkg/internal/tofu/tfdiags"
 	tfaddr "github.com/opentofu/registry-address"
 )
 

@@ -11,11 +11,11 @@ import (
 	"strings"
 	"unicode/utf8"
 
-	"github.com/opentofu/opentofu/internal/communicator/shared"
-	"github.com/opentofu/opentofu/internal/configs/configschema"
-	"github.com/opentofu/opentofu/internal/plugin/convert"
-	"github.com/opentofu/opentofu/internal/provisioners"
-	"github.com/opentofu/opentofu/internal/tfplugin5"
+	"github.com/snyk/policy-engine/pkg/internal/tofu/communicator/shared"
+	"github.com/snyk/policy-engine/pkg/internal/tofu/configs/configschema"
+	"github.com/snyk/policy-engine/pkg/internal/tofu/plugin/convert"
+	"github.com/snyk/policy-engine/pkg/internal/tofu/provisioners"
+	"github.com/snyk/policy-engine/pkg/internal/tofu/tfplugin5"
 )
 
 // New wraps a provisioners.Interface to implement a grpc ProviderServer.

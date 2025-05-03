@@ -8,7 +8,7 @@ import (
 	"io"
 	"os"
 
-	"github.com/opentofu/opentofu/internal/addrs"
+	"github.com/snyk/policy-engine/pkg/internal/tofu/addrs"
 )
 
 // MockSource is an in-memory-only, statically-configured source intended for

@@ -16,9 +16,9 @@ import (
 	"github.com/google/go-cmp/cmp"
 
 	"github.com/mitchellh/cli"
-	"github.com/opentofu/opentofu/internal/backend"
-	"github.com/opentofu/opentofu/internal/backend/local"
-	"github.com/opentofu/opentofu/internal/tofu"
+	"github.com/snyk/policy-engine/pkg/internal/tofu/backend"
+	"github.com/snyk/policy-engine/pkg/internal/tofu/backend/local"
+	"github.com/snyk/policy-engine/pkg/internal/tofu/tofu"
 )
 
 func TestMetaColorize(t *testing.T) {

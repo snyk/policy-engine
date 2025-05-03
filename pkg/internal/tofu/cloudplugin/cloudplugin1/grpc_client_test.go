@@ -14,8 +14,8 @@ import (
 	"testing"
 
 	"github.com/golang/mock/gomock"
-	"github.com/opentofu/opentofu/internal/cloudplugin/cloudproto1"
-	"github.com/opentofu/opentofu/internal/cloudplugin/mock_cloudproto1"
+	"github.com/snyk/policy-engine/pkg/internal/tofu/cloudplugin/cloudproto1"
+	"github.com/snyk/policy-engine/pkg/internal/tofu/cloudplugin/mock_cloudproto1"
 )
 
 var mockError = "this is a mock error"

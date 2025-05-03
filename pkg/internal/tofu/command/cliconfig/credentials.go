@@ -20,9 +20,9 @@ import (
 	svchost "github.com/hashicorp/terraform-svchost"
 	svcauth "github.com/hashicorp/terraform-svchost/auth"
 
-	"github.com/opentofu/opentofu/internal/configs/hcl2shim"
-	pluginDiscovery "github.com/opentofu/opentofu/internal/plugin/discovery"
-	"github.com/opentofu/opentofu/internal/replacefile"
+	"github.com/snyk/policy-engine/pkg/internal/tofu/configs/hcl2shim"
+	pluginDiscovery "github.com/snyk/policy-engine/pkg/internal/tofu/plugin/discovery"
+	"github.com/snyk/policy-engine/pkg/internal/tofu/replacefile"
 )
 
 // credentialsConfigFile returns the path for the special configuration file

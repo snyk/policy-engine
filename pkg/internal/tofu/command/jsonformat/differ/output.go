@@ -8,9 +8,9 @@ package differ
 import (
 	"github.com/zclconf/go-cty/cty"
 
-	"github.com/opentofu/opentofu/internal/command/jsonformat/computed"
-	"github.com/opentofu/opentofu/internal/command/jsonformat/computed/renderers"
-	"github.com/opentofu/opentofu/internal/command/jsonformat/structured"
+	"github.com/snyk/policy-engine/pkg/internal/tofu/command/jsonformat/computed"
+	"github.com/snyk/policy-engine/pkg/internal/tofu/command/jsonformat/computed/renderers"
+	"github.com/snyk/policy-engine/pkg/internal/tofu/command/jsonformat/structured"
 )
 
 func ComputeDiffForOutput(change structured.Change) computed.Diff {

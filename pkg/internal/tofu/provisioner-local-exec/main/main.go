@@ -6,10 +6,10 @@
 package main
 
 import (
-	localexec "github.com/opentofu/opentofu/internal/builtin/provisioners/local-exec"
-	"github.com/opentofu/opentofu/internal/grpcwrap"
-	"github.com/opentofu/opentofu/internal/plugin"
-	"github.com/opentofu/opentofu/internal/tfplugin5"
+	localexec "github.com/snyk/policy-engine/pkg/internal/tofu/builtin/provisioners/local-exec"
+	"github.com/snyk/policy-engine/pkg/internal/tofu/grpcwrap"
+	"github.com/snyk/policy-engine/pkg/internal/tofu/plugin"
+	"github.com/snyk/policy-engine/pkg/internal/tofu/tfplugin5"
 )
 
 func main() {

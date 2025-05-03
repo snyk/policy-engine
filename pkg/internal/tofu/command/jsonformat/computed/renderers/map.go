@@ -10,9 +10,9 @@ import (
 	"fmt"
 	"sort"
 
-	"github.com/opentofu/opentofu/internal/command/jsonformat/computed"
+	"github.com/snyk/policy-engine/pkg/internal/tofu/command/jsonformat/computed"
 
-	"github.com/opentofu/opentofu/internal/plans"
+	"github.com/snyk/policy-engine/pkg/internal/tofu/plans"
 )
 
 var _ computed.DiffRenderer = (*mapRenderer)(nil)

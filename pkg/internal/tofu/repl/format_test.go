@@ -9,7 +9,7 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/opentofu/opentofu/internal/lang/marks"
+	"github.com/snyk/policy-engine/pkg/internal/tofu/lang/marks"
 	"github.com/zclconf/go-cty/cty"
 )
 

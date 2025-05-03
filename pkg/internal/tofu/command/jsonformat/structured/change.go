@@ -10,11 +10,11 @@ import (
 	"encoding/json"
 	"reflect"
 
-	"github.com/opentofu/opentofu/internal/command/jsonformat/structured/attribute_path"
-	"github.com/opentofu/opentofu/internal/command/jsonplan"
-	"github.com/opentofu/opentofu/internal/command/jsonstate"
-	viewsjson "github.com/opentofu/opentofu/internal/command/views/json"
-	"github.com/opentofu/opentofu/internal/plans"
+	"github.com/snyk/policy-engine/pkg/internal/tofu/command/jsonformat/structured/attribute_path"
+	"github.com/snyk/policy-engine/pkg/internal/tofu/command/jsonplan"
+	"github.com/snyk/policy-engine/pkg/internal/tofu/command/jsonstate"
+	viewsjson "github.com/snyk/policy-engine/pkg/internal/tofu/command/views/json"
+	"github.com/snyk/policy-engine/pkg/internal/tofu/plans"
 )
 
 // Change contains the unmarshalled generic interface{} types that are output by

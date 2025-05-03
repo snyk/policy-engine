@@ -15,8 +15,8 @@ import (
 	"time"
 
 	"github.com/masterzen/winrm"
-	"github.com/opentofu/opentofu/internal/communicator/remote"
-	"github.com/opentofu/opentofu/internal/provisioners"
+	"github.com/snyk/policy-engine/pkg/internal/tofu/communicator/remote"
+	"github.com/snyk/policy-engine/pkg/internal/tofu/provisioners"
 	"github.com/packer-community/winrmcp/winrmcp"
 	"github.com/zclconf/go-cty/cty"
 )

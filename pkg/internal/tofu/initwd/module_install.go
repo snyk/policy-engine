@@ -21,15 +21,15 @@ import (
 	"github.com/hashicorp/hcl/v2"
 	"github.com/hashicorp/hcl/v2/hclsyntax"
 
-	"github.com/opentofu/opentofu/internal/addrs"
-	"github.com/opentofu/opentofu/internal/configs"
-	"github.com/opentofu/opentofu/internal/configs/configload"
-	"github.com/opentofu/opentofu/internal/getmodules"
-	"github.com/opentofu/opentofu/internal/modsdir"
-	"github.com/opentofu/opentofu/internal/registry"
-	"github.com/opentofu/opentofu/internal/registry/regsrc"
-	"github.com/opentofu/opentofu/internal/registry/response"
-	"github.com/opentofu/opentofu/internal/tfdiags"
+	"github.com/snyk/policy-engine/pkg/internal/tofu/addrs"
+	"github.com/snyk/policy-engine/pkg/internal/tofu/configs"
+	"github.com/snyk/policy-engine/pkg/internal/tofu/configs/configload"
+	"github.com/snyk/policy-engine/pkg/internal/tofu/getmodules"
+	"github.com/snyk/policy-engine/pkg/internal/tofu/modsdir"
+	"github.com/snyk/policy-engine/pkg/internal/tofu/registry"
+	"github.com/snyk/policy-engine/pkg/internal/tofu/registry/regsrc"
+	"github.com/snyk/policy-engine/pkg/internal/tofu/registry/response"
+	"github.com/snyk/policy-engine/pkg/internal/tofu/tfdiags"
 )
 
 type ModuleInstaller struct {

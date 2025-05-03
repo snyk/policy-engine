@@ -14,10 +14,10 @@ import (
 
 	"github.com/apparentlymart/go-versions/versions"
 
-	"github.com/opentofu/opentofu/internal/addrs"
-	copydir "github.com/opentofu/opentofu/internal/copy"
-	"github.com/opentofu/opentofu/internal/depsfile"
-	"github.com/opentofu/opentofu/internal/getproviders"
+	"github.com/snyk/policy-engine/pkg/internal/tofu/addrs"
+	copydir "github.com/snyk/policy-engine/pkg/internal/tofu/copy"
+	"github.com/snyk/policy-engine/pkg/internal/tofu/depsfile"
+	"github.com/snyk/policy-engine/pkg/internal/tofu/getproviders"
 )
 
 // Installer is the main type in this package, representing a provider installer

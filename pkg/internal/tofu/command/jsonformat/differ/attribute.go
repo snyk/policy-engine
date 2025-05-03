@@ -6,13 +6,13 @@
 package differ
 
 import (
-	"github.com/opentofu/opentofu/internal/command/jsonformat/structured"
+	"github.com/snyk/policy-engine/pkg/internal/tofu/command/jsonformat/structured"
 	"github.com/zclconf/go-cty/cty"
 	ctyjson "github.com/zclconf/go-cty/cty/json"
 
-	"github.com/opentofu/opentofu/internal/command/jsonformat/computed"
+	"github.com/snyk/policy-engine/pkg/internal/tofu/command/jsonformat/computed"
 
-	"github.com/opentofu/opentofu/internal/command/jsonprovider"
+	"github.com/snyk/policy-engine/pkg/internal/tofu/command/jsonprovider"
 )
 
 func ComputeDiffForAttribute(change structured.Change, attribute *jsonprovider.Attribute) computed.Diff {

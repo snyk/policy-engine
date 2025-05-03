@@ -5,7 +5,7 @@
 
 package tofu
 
-import "github.com/opentofu/opentofu/internal/addrs"
+import "github.com/snyk/policy-engine/pkg/internal/tofu/addrs"
 
 // ExternalReferenceTransformer will add a GraphNodeReferencer into the graph
 // that makes no changes to the graph itself but, by referencing the addresses

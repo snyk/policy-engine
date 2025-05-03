@@ -14,9 +14,9 @@ import (
 
 	version "github.com/hashicorp/go-version"
 
-	"github.com/opentofu/opentofu/internal/encryption"
-	"github.com/opentofu/opentofu/internal/tfdiags"
-	tfversion "github.com/opentofu/opentofu/version"
+	"github.com/snyk/policy-engine/pkg/internal/tofu/encryption"
+	"github.com/snyk/policy-engine/pkg/internal/tofu/tfdiags"
+	tfversion "github.com/snyk/policy-engine/pkg/internal/tofu/version"
 )
 
 // ErrNoState is returned by ReadState when the state file is empty.

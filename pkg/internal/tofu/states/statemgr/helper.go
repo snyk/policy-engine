@@ -9,10 +9,10 @@ package statemgr
 // operations done against full state managers.
 
 import (
-	"github.com/opentofu/opentofu/internal/states"
-	"github.com/opentofu/opentofu/internal/states/statefile"
-	"github.com/opentofu/opentofu/internal/tofu"
-	"github.com/opentofu/opentofu/version"
+	"github.com/snyk/policy-engine/pkg/internal/tofu/states"
+	"github.com/snyk/policy-engine/pkg/internal/tofu/states/statefile"
+	"github.com/snyk/policy-engine/pkg/internal/tofu/tofu"
+	"github.com/snyk/policy-engine/pkg/internal/tofu/version"
 )
 
 // NewStateFile creates a new statefile.File object, with a newly-minted

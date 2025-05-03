@@ -9,7 +9,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/opentofu/opentofu/internal/lang/funcs"
+	"github.com/snyk/policy-engine/pkg/internal/tofu/lang/funcs"
 )
 
 func TestFunctionDescriptions(t *testing.T) {

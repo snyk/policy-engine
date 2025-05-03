@@ -8,7 +8,7 @@ package tofu
 import (
 	"log"
 
-	"github.com/opentofu/opentofu/internal/states"
+	"github.com/snyk/policy-engine/pkg/internal/tofu/states"
 )
 
 // StateTransformer is a GraphTransformer that adds the elements of

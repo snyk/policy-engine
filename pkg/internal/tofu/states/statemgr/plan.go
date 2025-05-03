@@ -8,8 +8,8 @@ package statemgr
 import (
 	"fmt"
 
-	"github.com/opentofu/opentofu/internal/states"
-	"github.com/opentofu/opentofu/internal/states/statefile"
+	"github.com/snyk/policy-engine/pkg/internal/tofu/states"
+	"github.com/snyk/policy-engine/pkg/internal/tofu/states/statefile"
 )
 
 // PlannedStateUpdate is a special helper to obtain a statefile representation

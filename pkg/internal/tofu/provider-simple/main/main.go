@@ -6,10 +6,10 @@
 package main
 
 import (
-	"github.com/opentofu/opentofu/internal/grpcwrap"
-	"github.com/opentofu/opentofu/internal/plugin"
-	simple "github.com/opentofu/opentofu/internal/provider-simple"
-	"github.com/opentofu/opentofu/internal/tfplugin5"
+	"github.com/snyk/policy-engine/pkg/internal/tofu/grpcwrap"
+	"github.com/snyk/policy-engine/pkg/internal/tofu/plugin"
+	simple "github.com/snyk/policy-engine/pkg/internal/tofu/provider-simple"
+	"github.com/snyk/policy-engine/pkg/internal/tofu/tfplugin5"
 )
 
 func main() {

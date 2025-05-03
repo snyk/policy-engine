@@ -11,7 +11,7 @@ import (
 	"crypto/rand"
 	"errors"
 
-	"github.com/opentofu/opentofu/internal/encryption/method"
+	"github.com/snyk/policy-engine/pkg/internal/tofu/encryption/method"
 )
 
 // aesgcm contains the encryption/decryption methods according to AES-GCM (NIST SP 800-38D).

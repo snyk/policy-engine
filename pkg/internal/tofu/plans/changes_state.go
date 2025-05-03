@@ -6,7 +6,7 @@
 package plans
 
 import (
-	"github.com/opentofu/opentofu/internal/states"
+	"github.com/snyk/policy-engine/pkg/internal/tofu/states"
 )
 
 // PlannedState merges the set of changes described by the receiver into the

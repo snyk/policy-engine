@@ -10,8 +10,8 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/opentofu/opentofu/internal/encryption/method"
-	"github.com/opentofu/opentofu/internal/encryption/registry"
+	"github.com/snyk/policy-engine/pkg/internal/tofu/encryption/method"
+	"github.com/snyk/policy-engine/pkg/internal/tofu/encryption/registry"
 )
 
 func complianceTestMethods(t *testing.T, factory func() registry.Registry) {

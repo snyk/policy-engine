@@ -14,7 +14,7 @@ import (
 	"time"
 
 	"github.com/mitchellh/cli"
-	"github.com/opentofu/opentofu/internal/provisioners"
+	"github.com/snyk/policy-engine/pkg/internal/tofu/provisioners"
 	"github.com/zclconf/go-cty/cty"
 )
 
