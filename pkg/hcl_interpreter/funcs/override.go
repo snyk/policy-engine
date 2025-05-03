@@ -1,7 +1,7 @@
 package funcs
 
 import (
-	"github.com/snyk/policy-engine/pkg/internal/terraform/lang"
+	"github.com/snyk/policy-engine/pkg/internal/tofu/lang"
 	"github.com/spf13/afero"
 	"github.com/zclconf/go-cty/cty/function"
 )

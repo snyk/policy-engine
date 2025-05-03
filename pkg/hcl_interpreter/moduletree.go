@@ -27,7 +27,7 @@ import (
 	"github.com/spf13/afero"
 	"github.com/zclconf/go-cty/cty"
 
-	"github.com/snyk/policy-engine/pkg/internal/terraform/configs"
+	"github.com/snyk/policy-engine/pkg/internal/tofu/configs"
 )
 
 type ModuleMeta struct {

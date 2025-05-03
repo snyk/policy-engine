@@ -18,8 +18,8 @@ package hcl_interpreter
 import (
 	"github.com/zclconf/go-cty/cty"
 
-	"github.com/snyk/policy-engine/pkg/internal/terraform/addrs"
-	"github.com/snyk/policy-engine/pkg/internal/terraform/tfdiags"
+	"github.com/snyk/policy-engine/pkg/internal/tofu/addrs"
+	"github.com/snyk/policy-engine/pkg/internal/tofu/tfdiags"
 )
 
 type Data struct {

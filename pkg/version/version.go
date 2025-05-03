@@ -19,7 +19,7 @@ import (
 	"strings"
 
 	opaversion "github.com/open-policy-agent/opa/version"
-	tfversion "github.com/snyk/policy-engine/pkg/internal/terraform/version"
+	tfversion "github.com/snyk/policy-engine/pkg/internal/tofu/version"
 )
 
 // Default build-time variables.
