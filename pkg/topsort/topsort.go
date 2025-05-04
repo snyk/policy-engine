@@ -50,7 +50,7 @@ func Topsort(original Graph) ([]Key, error) {
 				for k := range visited {
 					cycle = append(cycle, k)
 				}
-				return nil, fmt.Errorf("Variables form a cycle: " + strings.Join(cycle, ", "))
+				return nil, fmt.Errorf("Variables form a cycle: %s", strings.Join(cycle, ", "))
 			} else {
 				visited[*curr] = struct{}{}
 			}

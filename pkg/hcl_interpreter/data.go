@@ -51,7 +51,7 @@ func (d UnsupportedOperationDiag) ExtraInfo() interface{} {
 	return nil
 }
 
-func (c *Data) StaticValidateReferences(refs []*addrs.Reference, self addrs.Referenceable) tfdiags.Diagnostics {
+func (c *Data) StaticValidateReferences(refs []*addrs.Reference, self addrs.Referenceable, source addrs.Referenceable) tfdiags.Diagnostics {
 	return tfdiags.Diagnostics{UnsupportedOperationDiag{}}
 }
 
@@ -84,5 +84,13 @@ func (c *Data) GetTerraformAttr(addrs.TerraformAttr, tfdiags.SourceRange) (cty.V
 }
 
 func (c *Data) GetInputVariable(v addrs.InputVariable, s tfdiags.SourceRange) (cty.Value, tfdiags.Diagnostics) {
+	return cty.UnknownVal(cty.DynamicPseudoType), tfdiags.Diagnostics{UnsupportedOperationDiag{}}
+}
+
+func (c *Data) GetCheckBlock(addr addrs.Check, s tfdiags.SourceRange) (cty.Value, tfdiags.Diagnostics) {
+	return cty.UnknownVal(cty.DynamicPseudoType), tfdiags.Diagnostics{UnsupportedOperationDiag{}}
+}
+
+func (c *Data) GetOutput(v addrs.OutputValue, s tfdiags.SourceRange) (cty.Value, tfdiags.Diagnostics) {
 	return cty.UnknownVal(cty.DynamicPseudoType), tfdiags.Diagnostics{UnsupportedOperationDiag{}}
 }

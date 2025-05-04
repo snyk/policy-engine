@@ -17,7 +17,7 @@
 package hcl_interpreter
 
 import (
-	"fmt"
+	"errors"
 	"path/filepath"
 	"strings"
 
@@ -27,6 +27,7 @@ import (
 	"github.com/spf13/afero"
 	"github.com/zclconf/go-cty/cty"
 
+	"github.com/snyk/policy-engine/pkg/internal/tofu/addrs"
 	"github.com/snyk/policy-engine/pkg/internal/tofu/configs"
 )
 
@@ -119,27 +120,34 @@ func ParseFiles(
 		diags = append(diags, fDiags...)
 		parsedFiles = append(parsedFiles, f)
 	}
-	module, lDiags := configs.NewModule(parsedFiles, overrideFiles)
+
+	smc := configs.NewStaticModuleCall(addrs.RootModule, nil, dir, "")
+	module, lDiags := configs.NewModule(parsedFiles, overrideFiles, smc, dir, configs.SelectiveLoadAll)
 	diags = append(diags, lDiags...)
 
 	// Deal with varfiles
 	variableValues := map[string]cty.Value{}
 	for _, varfile := range varfiles {
-		values, lDiags := parser.LoadValuesFile(varfile)
-		for k, v := range values {
-			variableValues[k] = v
-		}
+		body, lDiags := parser.LoadHCLFile(varfile)
 		diags = append(diags, lDiags...)
+		attrs, lDiags := body.JustAttributes()
+		diags = append(diags, lDiags...)
+
+		for k, v := range attrs {
+			val, lDiags := v.Expr.Value(nil)
+			diags = append(diags, lDiags...)
+			variableValues[k] = val
+		}
 	}
 
-	errors := []error{}
+	errs := []error{}
 	if diags.HasErrors() {
 		return nil, &multierror.Error{Errors: diags.Errs()}
 	}
 	if module == nil {
 		// Only actually throw an error if we don't have a module.  We can
 		// still try and validate what we can.
-		return nil, fmt.Errorf(diags.Error())
+		return nil, errors.New(diags.Error())
 	}
 
 	children := map[string]*ModuleTree{}
@@ -164,12 +172,12 @@ func ParseFiles(
 
 						child, err := ParseDirectory(moduleRegister, parserFs, childDir, childModuleName, []string{})
 						if err == nil {
-							child.meta.Location = &moduleCall.SourceAddrRange
+							child.meta.Location = moduleCall.Source.Range().Ptr()
 							child.config = moduleCall.Config
 							children[key] = child
 						} else {
-							errors = append(
-								errors,
+							errs = append(
+								errs,
 								SubmoduleLoadingError{key, err},
 							)
 						}
@@ -179,7 +187,7 @@ func ParseFiles(
 		}
 	}
 
-	return &ModuleTree{parserFs, meta, nil, module, variableValues, children, errors}, nil
+	return &ModuleTree{parserFs, meta, nil, module, variableValues, children, errs}, nil
 }
 
 func (mtree *ModuleTree) Errors() []error {
