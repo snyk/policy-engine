@@ -80,7 +80,7 @@ func testApplyDiff(t *testing.T,
 	}
 
 	if !cmp.Equal(expectedState, newState, equateEmpty, typeComparer, valueComparer) {
-		t.Fatalf(cmp.Diff(expectedState, newState, equateEmpty, typeComparer, valueComparer))
+		t.Fatal(cmp.Diff(expectedState, newState, equateEmpty, typeComparer, valueComparer))
 	}
 }
 

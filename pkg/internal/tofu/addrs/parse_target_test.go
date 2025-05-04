@@ -6,6 +6,7 @@
 package addrs
 
 import (
+	"errors"
 	"testing"
 
 	"github.com/go-test/deep"
@@ -386,7 +387,7 @@ func TestParseTarget(t *testing.T) {
 			}
 
 			for _, problem := range deep.Equal(got, test.Want) {
-				t.Errorf(problem)
+				t.Error(errors.New(problem))
 			}
 		})
 	}

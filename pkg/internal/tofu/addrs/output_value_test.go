@@ -6,6 +6,7 @@
 package addrs
 
 import (
+	"errors"
 	"fmt"
 	"strings"
 	"testing"
@@ -117,7 +118,7 @@ func TestParseAbsOutputValueStr(t *testing.T) {
 		t.Run(input, func(t *testing.T) {
 			got, diags := ParseAbsOutputValueStr(input)
 			for _, problem := range deep.Equal(got, tc.want) {
-				t.Errorf(problem)
+				t.Error(errors.New(problem))
 			}
 			if len(diags) > 0 {
 				gotErr := diags.Err().Error()

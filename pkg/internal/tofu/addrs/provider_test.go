@@ -6,6 +6,7 @@
 package addrs
 
 import (
+	"errors"
 	"testing"
 
 	"github.com/go-test/deep"
@@ -434,7 +435,7 @@ func TestParseProviderSourceStr(t *testing.T) {
 	for name, test := range tests {
 		got, diags := ParseProviderSourceString(name)
 		for _, problem := range deep.Equal(got, test.Want) {
-			t.Errorf(problem)
+			t.Error(errors.New(problem))
 		}
 		if len(diags) > 0 {
 			if test.Err == false {
