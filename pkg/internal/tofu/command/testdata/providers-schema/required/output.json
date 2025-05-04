@@ -1,0 +1,82 @@
+{
+    "format_version": "1.0",
+    "provider_schemas": {
+        "registry.opentofu.org/hashicorp/test": {
+            "provider": {
+                "version": 0,
+                "block": {
+                    "attributes": {
+                        "region": {
+                            "description_kind": "plain",
+                            "optional": true,
+                            "type": "string"
+                        }
+                    },
+                    "description_kind": "plain"
+                }
+            },
+            "resource_schemas": {
+                "test_instance": {
+                    "version": 0,
+                    "block": {
+                        "attributes": {
+                            "ami": {
+                                "type": "string",
+                                "optional": true,
+                                "description_kind": "plain"
+                            },
+                            "id": {
+                                "type": "string",
+                                "optional": true,
+                                "computed": true,
+                                "description_kind": "plain"
+                            },
+                            "volumes": {
+                                "nested_type": {
+                                    "nesting_mode": "list",
+                                    "attributes": {
+                                        "size": {
+                                            "type": "string",
+                                            "required": true,
+                                            "description_kind": "plain"
+                                        },
+                                        "mount_point": {
+                                            "type": "string",
+                                            "required": true,
+                                            "description_kind": "plain"
+                                        }
+                                    }
+                                },
+                                "description_kind": "plain",
+                                "optional": true
+                            }
+                        },
+                        "description_kind": "plain"
+                    }
+                }
+            },
+            "functions": {
+                "test_func": {
+                    "description": "a basic string function",
+                    "summary": "test",
+                    "return_type": "string",
+                    "parameters": [
+                        {
+                            "name": "input",
+                            "description": "",
+                            "type": "number"
+                        }
+                    ],
+                    "variadic_parameter": {
+                        "name": "variadic_input",
+                        "description": "",
+                        "type": [
+                            "list",
+                            "bool"
+                        ]
+                    }
+                }
+            }
+        }
+    }
+}

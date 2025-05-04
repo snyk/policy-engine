@@ -26,7 +26,7 @@ import (
 	"github.com/snyk/policy-engine/pkg/hcl_interpreter/funcs"
 	"github.com/snyk/policy-engine/pkg/input/schemas"
 	tfschemas "github.com/snyk/policy-engine/pkg/input/schemas/tf"
-	"github.com/snyk/policy-engine/pkg/internal/terraform/lang"
+	"github.com/snyk/policy-engine/pkg/internal/tofu/lang"
 	"github.com/snyk/policy-engine/pkg/models"
 	"github.com/snyk/policy-engine/pkg/topsort"
 )

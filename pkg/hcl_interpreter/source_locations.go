@@ -15,6 +15,7 @@
 package hcl_interpreter
 
 import (
+	"errors"
 	"fmt"
 	"regexp"
 
@@ -92,7 +93,7 @@ func (node *hclSourceNode) getKey(key string) (*hclSourceNode, error) {
 			},
 		})
 		if diags.HasErrors() {
-			return nil, fmt.Errorf(diags.Error())
+			return nil, errors.New(diags.Error())
 		}
 
 		blocks := bodyContent.Blocks.OfType(key)
