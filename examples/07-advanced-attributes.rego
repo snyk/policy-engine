@@ -9,15 +9,13 @@ import data.snyk
 
 pods := snyk.resources("kubernetes_pod")
 
-is_privileged(container) {
+is_privileged(container) if {
 	container.security_context[0].privileged == true
-} else {
+} else if {
 	container.security_context[0].privileged == "true"
-} else = false {
-	true
-}
+} else := false
 
-privileged_paths(pod) = paths {
+privileged_paths(pod) := paths if {
 	paths := [path |
 		is_privileged(pod.spec[0].container[i])
 		path := ["spec", 0, "container", i, "security_context", 0, "privileged"]
@@ -25,7 +23,7 @@ privileged_paths(pod) = paths {
 }
 
 # We can write an issue without worrying about the specific paths.
-deny[info] {
+deny contains info if {
 	pod := pods[_]
 	count(privileged_paths(pod)) > 0
 	info := {
@@ -35,7 +33,7 @@ deny[info] {
 }
 
 # We can include the failing paths in the resource locations.
-resources[info] {
+resources contains info if {
 	pod := pods[_]
 	info := {"resource": pod, "attributes": privileged_paths(pod)}
 }

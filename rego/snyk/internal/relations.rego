@@ -14,27 +14,27 @@
 
 package snyk.internal.relations
 
-make_resource_key(resource) = ret {
+make_resource_key(resource) := ret if {
 	ret := [resource._namespace, resource._type, resource._id]
 }
 
 # Turns a (resource, user_key) into (resource, user_key, user_annotation).
-make_annotated(val) = ret {
+make_annotated(val) := ret if {
 	count(val) == 2
 	ret := [val[0], val[1], null]
 }
 
-make_annotated(val) = ret {
+make_annotated(val) := ret if {
 	count(val) == 3
 	ret := val
 }
 
-merge_annotations(left, right) = null {
+merge_annotations(left, right) := null if {
 	left == null
 	right == null
-} else = left {
+} else := left if {
 	right == null
-} else = right
+} else := right
 
 # NOTE: comprehension idx triggers here, this is important.
 forward_left_foreign_keys := {idx: ret |

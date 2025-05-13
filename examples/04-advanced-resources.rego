@@ -8,19 +8,19 @@ package rules.snyk_004.tf
 
 import data.snyk
 
-buckets = snyk.resources("aws_s3_bucket")
+buckets := snyk.resources("aws_s3_bucket")
 
-has_bucket_name(bucket) {
+has_bucket_name(bucket) if {
 	is_string(bucket.bucket)
 	contains(bucket.bucket, "bucket")
 }
 
-has_bucket_name(bucket) {
+has_bucket_name(bucket) if {
 	is_string(bucket.bucket_prefix)
 	contains(bucket.bucket_prefix, "bucket")
 }
 
-deny[info] {
+deny contains info if {
 	bucket := buckets[_]
 	has_bucket_name(bucket)
 	info := {
@@ -30,7 +30,7 @@ deny[info] {
 }
 
 # If present, `resources` must be a set of info objects.
-resources[info] {
+resources contains info if {
 	bucket := buckets[_]
 	info := {"resource": bucket}
 }

@@ -14,15 +14,15 @@
 
 package snyk
 
-__physical_or_logical_id(resource) = ret {
+__physical_or_logical_id(resource) := ret if {
 	is_string(resource.attributes.id)
 	not resource.attributes.id == ""
 	ret := resource.attributes.id
-} else = ret {
+} else := ret if {
 	ret := resource.id
 }
 
-resources(resource_type) = ret {
+resources(resource_type) := ret if {
 	ret := [obj |
 		resource := input.resources[resource_type][_]
 		obj := object.union(
@@ -48,13 +48,13 @@ input_resource_types := {rt | input.resources[rt]}
 # value.
 # rule_tests.query_returns in https://github.com/snyk/opa-rules configures stub
 # values in the way that this function expects.
-query(q) = ret {
+query(q) := ret if {
 	from_input := resources(q.resource_type)
 	count(from_input) > 0
 	ret := from_input
 }
 
-query(q) = ret {
+query(q) := ret if {
 	from_input := resources(q.resource_type)
 	count(from_input) == 0
 	query_str := json.marshal(q)

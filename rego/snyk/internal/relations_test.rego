@@ -15,9 +15,8 @@
 package snyk_test
 
 import data.snyk
-import future.keywords.every
 
-check_relations {
+check_relations if {
 	bucket_1 := snyk.resources("bucket")[_]
 	bucket_1.id == "bucket_1"
 
@@ -50,7 +49,7 @@ check_relations {
 	count(non_existing_relation) == 0
 }
 
-check_annotated_relations {
+check_annotated_relations if {
 	sg1 := snyk.resources("security_group")[_]
 	out := snyk.relates_with(sg1, "security_group")[_]
 
@@ -75,17 +74,17 @@ check_annotated_relations {
 	app.id == "application_1"
 }
 
-test_relations {
+test_relations if {
 	# See also `rego/snyk/internal/relations_example.rego` for the relations
 	# definition.
 	check_relations with input as mock_input_relations
 }
 
-test_annotated_relations {
+test_annotated_relations if {
 	check_annotated_relations with input as mock_input_annotated_relations
 }
 
-mock_input_relations := ret {
+mock_input_relations := ret if {
 	num_buckets := 1000
 	num_bucket_settings := 1000 # Keyed and fast
 	num_bucket_logging := 10 # Explicit and slow
@@ -150,7 +149,7 @@ mock_input_relations := ret {
 	}
 }
 
-mock_input_annotated_relations := ret {
+mock_input_annotated_relations := ret if {
 	num_security_group := 1000
 
 	security_group := {id: r |
@@ -216,16 +215,16 @@ mock_input_annotated_relations := ret {
 	}
 }
 
-ring_next(x, n) = ret {
+ring_next(x, n) := ret if {
 	x >= n
 	ret := 1
-} else = ret {
+} else := ret if {
 	ret := x + 1
 }
 
-ring_prev(x, n) = ret {
+ring_prev(x, n) := ret if {
 	x <= 1
 	ret := n
-} else = ret {
+} else := ret if {
 	ret := x - 1
 }

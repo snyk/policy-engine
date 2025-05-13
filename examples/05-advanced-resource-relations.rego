@@ -16,11 +16,11 @@ buckets := snyk.resources("aws_s3_bucket")
 # in `resources[info]` rule without affecting the result.
 encryption_configs := snyk.resources("aws_s3_bucket_server_side_encryption_configuration")
 
-is_encrypted(bucket) {
+is_encrypted(bucket) if {
 	_ = bucket.server_side_encryption_configuration[_].rule[_][_][_].sse_algorithm
 }
 
-is_encrypted(bucket) {
+is_encrypted(bucket) if {
 	# `snyk.relates` can be used to query for a list of relating resources
 	# based on a relationship name.  In this case, the relationship name is
 	# the same as the resource type of the related resource, but that's not
@@ -33,7 +33,7 @@ is_encrypted(bucket) {
 	_ := encryption_configs[_]
 }
 
-deny[info] {
+deny contains info if {
 	bucket = buckets[_]
 	not is_encrypted(bucket)
 	info := {
@@ -42,7 +42,7 @@ deny[info] {
 	}
 }
 
-resources[info] {
+resources contains info if {
 	bucket := buckets[_]
 	info := {"resource": bucket}
 }
@@ -52,7 +52,7 @@ resources[info] {
 # you already have the secondary resource defined, and want to retrieve the
 # primary one.  Notes that this also returns a list, as relations are always
 # many-to-many.
-resources[info] {
+resources contains info if {
 	ec := encryption_configs[_]
 	bucket := snyk.back_relates("aws_s3_bucket.server_side_encryption_configuration", ec)[_]
 	info := {

@@ -16,7 +16,7 @@ package snyk_test
 
 import data.snyk
 
-test_resource_id {
+test_resource_id if {
 	# Test that we set id and _id in the same way as the Go code. For id, that's:
 	#		* use the physical ID if one is defined
 	#		* otherwise use the logical ID
