@@ -14,12 +14,12 @@
 
 package lib.utils
 
-bucket_name_contains(bucket, query) {
+bucket_name_contains(bucket, query) if {
 	is_string(bucket.bucket)
 	contains(bucket.bucket, query)
 }
 
-bucket_name_contains(bucket, query) {
+bucket_name_contains(bucket, query) if {
 	is_string(bucket.bucket_prefix)
 	contains(bucket.bucket_prefix, query)
 }

@@ -14,13 +14,13 @@
 
 package snyk.terraform
 
-test_resource_provider_version_constraint {
+test_resource_provider_version_constraint if {
 	resource_provider_version_constraint({}, ">=3")
 	resource_provider_version_constraint({"_meta": {"terraform": {"provider_version_constraint": "~> 3.0"}}}, ">=3")
 	not resource_provider_version_constraint({"_meta": {"terraform": {"provider_version_constraint": "~> 3.0"}}}, ">=4")
 }
 
-test_semver_constraints_intersect {
+test_semver_constraints_intersect if {
 	do_intersect("=2.4", ">= 2.2, <2.5")
 	dont_intersect("=2.5", ">= 2.2, <2.5")
 
@@ -78,13 +78,13 @@ test_semver_constraints_intersect {
 
 # Intersection of constraints commutes, so it's useful to check it in both
 # directions to get better test coverage.  This is a utility for that.
-do_intersect(l, r) {
+do_intersect(l, r) if {
 	semver_constraints_intersect(l, r)
 	semver_constraints_intersect(r, l)
 }
 
 # See `do_intersect`.
-dont_intersect(l, r) {
+dont_intersect(l, r) if {
 	not semver_constraints_intersect(l, r)
 	not semver_constraints_intersect(r, l)
 }

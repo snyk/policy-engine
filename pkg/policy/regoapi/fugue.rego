@@ -24,57 +24,57 @@ resource_types_v0 := input_resource_types
 # Internal
 resource_types := input_resource_types
 
-resources(resource_type) = ret {
-  ret := {r.id: r |
-     r := __query({"resource_type": resource_type, "scope": {}})[_]
-   }
+resources(resource_type) := ret if {
+	ret := {r.id: r |
+		r := __query({"resource_type": resource_type, "scope": {}})[_]
+	}
 }
 
-allow_resource(resource) = ret {
-  ret := allow({"resource": resource})
+allow_resource(resource) := ret if {
+	ret := allow({"resource": resource})
 }
 
-allow(params) = ret {
-  ret := {
-    "valid": true,
-    "id": params.resource.id,
-    "type": params.resource._type,
-    "namespace": params.resource._namespace,
-    "message": object.get(params, "message", ""),
-  }
+allow(params) := ret if {
+	ret := {
+		"valid": true,
+		"id": params.resource.id,
+		"type": params.resource._type,
+		"namespace": params.resource._namespace,
+		"message": object.get(params, "message", ""),
+	}
 }
 
-deny_resource(resource) = ret {
-  ret := deny({"resource": resource})
+deny_resource(resource) := ret if {
+	ret := deny({"resource": resource})
 }
 
-deny_resource_with_message(resource, message) = ret {
-  ret := deny({"resource": resource, "message": message})
+deny_resource_with_message(resource, message) := ret if {
+	ret := deny({"resource": resource, "message": message})
 }
 
-deny(params) = ret {
-  ret := {
-    "valid": false,
-    "id": params.resource.id,
-    "type": params.resource._type,
-    "namespace": params.resource._namespace,
-    "message": object.get(params, "message", ""),
-  }
+deny(params) := ret if {
+	ret := {
+		"valid": false,
+		"id": params.resource.id,
+		"type": params.resource._type,
+		"namespace": params.resource._namespace,
+		"message": object.get(params, "message", ""),
+	}
 }
 
-missing_resource(resource_type) = ret {
-  ret := missing({"resource_type": resource_type})
+missing_resource(resource_type) := ret if {
+	ret := missing({"resource_type": resource_type})
 }
 
-missing_resource_with_message(resource_type, message) = ret {
-  ret := missing({"resource_type": resource_type, "message": message})
+missing_resource_with_message(resource_type, message) := ret if {
+	ret := missing({"resource_type": resource_type, "message": message})
 }
 
-missing(params) = ret {
-  ret := {
-    "valid": false,
-    "id": "",
-    "type": params.resource_type,
-    "message": object.get(params, "message", "invalid"),
-  }
+missing(params) := ret if {
+	ret := {
+		"valid": false,
+		"id": "",
+		"type": params.resource_type,
+		"message": object.get(params, "message", "invalid"),
+	}
 }

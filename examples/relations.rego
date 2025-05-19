@@ -5,7 +5,7 @@ package relations
 import data.snyk
 
 # Relationships can be added by extending the `relations` set with an object.
-relations[info] {
+relations contains info if {
 	buckets := snyk.resources("aws_s3_bucket")
 	encryption_configs := snyk.resources("aws_s3_bucket_server_side_encryption_configuration")
 	info := {
@@ -37,7 +37,7 @@ relations[info] {
 # The snyk library provides a helper function to define the most common type of
 # relation where we're simly checking that a field on one resource is equal to
 # a field on another resource.
-relations[info] {
+relations contains info if {
 	info := snyk.relation_from_fields(
 		# Just like above, this is the name of the relation:
 		"aws_s3_bucket.ownership_controls",
@@ -49,7 +49,7 @@ relations[info] {
 	)
 }
 
-relations[info] {
+relations contains info if {
 	pods := snyk.resources("kubernetes_pod")
 	services := snyk.resources("kubernetes_service_v1")
 	info := {
@@ -64,12 +64,12 @@ relations[info] {
 				s := services[_]
 				v := s.spec[_].selector[k]
 				label := concat("=", [k, v])
-			]
-		}
+			],
+		},
 	}
 }
 
-relations[info] {
+relations contains info if {
 	services := snyk.resources("kubernetes_service_v1")
 	ingresses := snyk.resources("kubernetes_ingress")
 	info := {
@@ -82,7 +82,7 @@ relations[info] {
 			"right": [[i, backend] |
 				i := ingresses[_]
 				backend := i.spec[_].backend[_].service_name
-			]
-		}
+			],
+		},
 	}
 }

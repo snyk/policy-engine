@@ -9,11 +9,11 @@ import data.snyk
 
 buckets := snyk.resources("aws_s3_bucket")
 
-is_encrypted(bucket) {
+is_encrypted(bucket) if {
 	_ = bucket.server_side_encryption_configuration[_].rule[_][_][_].sse_algorithm
 }
 
-is_encrypted(bucket) {
+is_encrypted(bucket) if {
 	encryption_configs := snyk.relates(bucket, "aws_s3_bucket.server_side_encryption_configuration")
 	_ := encryption_configs[_]
 }
@@ -21,7 +21,7 @@ is_encrypted(bucket) {
 # In `deny`, we set `correlation` to a string value.  This can be any string,
 # as long as related resources are able to produce the same string for the same
 # issue.
-deny[info] {
+deny contains info if {
 	bucket = buckets[_]
 	not is_encrypted(bucket)
 	info := {
@@ -34,7 +34,7 @@ deny[info] {
 # We must produce the same `correlation` here.  Rather than just setting
 # `resource`, we may set `primary_resource` so the engine can associate the
 # issue with the right primary resource.
-resources[info] {
+resources contains info if {
 	bucket := buckets[_]
 	info := {
 		"correlation": bucket.id,
@@ -44,7 +44,7 @@ resources[info] {
 
 # Here, we produce a consistent `correlation` so the engine can link the
 # encryption configurations with the corresponding buckets.
-resources[info] {
+resources contains info if {
 	bucket := buckets[_]
 	encryption_configs := snyk.relates(bucket, "aws_s3_bucket.server_side_encryption_configuration")
 	ec = encryption_configs[_]

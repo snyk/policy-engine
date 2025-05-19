@@ -18,14 +18,14 @@ package snyk.terraform
 # constraint.
 #
 # See <https://www.terraform.io/language/expressions/version-constraints>.
-resource_provider_version_constraint(resource, constraints) {
+resource_provider_version_constraint(resource, constraints) if {
 	meta := object.get(resource, "_meta", {})
 	terraform := object.get(meta, "terraform", {})
 	resource_constraints := object.get(terraform, "provider_version_constraint", "")
 	semver_constraints_intersect(resource_constraints, constraints)
 }
 
-semver_constraints_intersect(constraints1, constraints2) {
+semver_constraints_intersect(constraints1, constraints2) if {
 	lhs_constraints := parse_semver_constraints(constraints1)
 	rhs_constraints := parse_semver_constraints(constraints2)
 	count([true |
@@ -35,148 +35,148 @@ semver_constraints_intersect(constraints1, constraints2) {
 	]) == 0
 }
 
-semver_constraints_intersect_4("=", lhs, rop, rhs) {
+semver_constraints_intersect_4("=", lhs, rop, rhs) if {
 	rop == "="
 	lhs == rhs
-} else {
+} else if {
 	rop == "!="
 	lhs != rhs
-} else {
+} else if {
 	rop == ">"
 	lhs > rhs
-} else {
+} else if {
 	rop == ">="
 	lhs >= rhs
-} else {
+} else if {
 	rop == "<"
 	lhs < rhs
-} else {
+} else if {
 	rop == "<="
 	lhs <= rhs
-} else {
+} else if {
 	rop == "~>"
 	[major, minor, _] = rhs
 	lhs >= rhs
 	lhs < [major, minor + 1, 0]
 }
 
-semver_constraints_intersect_4("!=", lhs, rop, rhs) {
+semver_constraints_intersect_4("!=", lhs, rop, rhs) if {
 	rop == "="
 	lhs != rhs
-} else {
+} else if {
 	rop == "!="
-} else {
+} else if {
 	rop == ">"
-} else {
+} else if {
 	rop == ">="
-} else {
+} else if {
 	rop == "<"
-} else {
+} else if {
 	rop == "<="
-} else {
+} else if {
 	rop == "~>"
 }
 
-semver_constraints_intersect_4(">", lhs, rop, rhs) {
+semver_constraints_intersect_4(">", lhs, rop, rhs) if {
 	rop == "="
 	lhs < rhs
-} else {
+} else if {
 	rop == "!="
-} else {
+} else if {
 	rop == ">"
-} else {
+} else if {
 	rop == ">="
-} else {
+} else if {
 	rop == "<"
 	lhs < rhs
-} else {
+} else if {
 	rop == "<="
 	lhs < rhs
-} else {
+} else if {
 	rop == "~>"
 	lhs < rhs
 }
 
-semver_constraints_intersect_4(">=", lhs, rop, rhs) {
+semver_constraints_intersect_4(">=", lhs, rop, rhs) if {
 	rop == "="
 	lhs <= rhs
-} else {
+} else if {
 	rop == "!="
-} else {
+} else if {
 	rop == ">"
-} else {
+} else if {
 	rop == ">="
-} else {
+} else if {
 	rop == "<"
 	lhs < rhs
-} else {
+} else if {
 	rop == "<="
 	lhs <= rhs
-} else {
+} else if {
 	rop == "~>"
 	lhs <= rhs
 }
 
-semver_constraints_intersect_4("<", lhs, rop, rhs) {
+semver_constraints_intersect_4("<", lhs, rop, rhs) if {
 	rop == "="
 	lhs > rhs
-} else {
+} else if {
 	rop == "!="
-} else {
+} else if {
 	rop == ">"
 	lhs > rhs
-} else {
+} else if {
 	rop == ">="
 	lhs > rhs
-} else {
+} else if {
 	rop == "<"
-} else {
+} else if {
 	rop == "<="
-} else {
+} else if {
 	rop == "~>"
 	lhs > rhs
 }
 
-semver_constraints_intersect_4("<=", lhs, rop, rhs) {
+semver_constraints_intersect_4("<=", lhs, rop, rhs) if {
 	rop == "="
 	lhs >= rhs
-} else {
+} else if {
 	rop == "!="
-} else {
+} else if {
 	rop == ">"
 	lhs > rhs
-} else {
+} else if {
 	rop == ">="
 	lhs >= rhs
-} else {
+} else if {
 	rop == "<"
-} else {
+} else if {
 	rop == "<="
-} else {
+} else if {
 	rop == "~>"
 	lhs >= rhs
 }
 
-semver_constraints_intersect_4("~>", lhs, rop, rhs) {
+semver_constraints_intersect_4("~>", lhs, rop, rhs) if {
 	rop == "="
 	[lhs_major, lhs_minor, _] = lhs
 	lhs <= rhs
 	[lhs_major, lhs_minor + 1, 0] > rhs
-} else {
+} else if {
 	rop == "!="
-} else {
+} else if {
 	rop == ">"
 	lhs > rhs
-} else {
+} else if {
 	rop == ">="
 	lhs >= rhs
-} else {
+} else if {
 	rop == "<"
 	lhs < rhs
-} else {
+} else if {
 	rop == "<="
 	lhs <= rhs
-} else {
+} else if {
 	rop == "~>"
 	[lhs_major, lhs_minor, _] = lhs
 	[rhs_major, rhs_minor, _] = rhs
@@ -184,18 +184,18 @@ semver_constraints_intersect_4("~>", lhs, rop, rhs) {
 }
 
 # Parse semver, padding with "0"
-parse_semver(str) = ret {
+parse_semver(str) := ret if {
 	[major, minor, patch] = split(str, ".")
 	ret = [to_number(major), to_number(minor), to_number(patch)]
-} else = ret {
+} else := ret if {
 	[major, minor] = split(str, ".")
 	ret = [to_number(major), to_number(minor), 0]
-} else = ret {
+} else := ret if {
 	[major] = split(str, ".")
 	ret = [to_number(major), 0, 0]
 }
 
-parse_semver_constraints(str) = ret {
+parse_semver_constraints(str) := ret if {
 	tokens := split(str, ",")
 	ret := {[operator, semver] |
 		token := tokens[_]

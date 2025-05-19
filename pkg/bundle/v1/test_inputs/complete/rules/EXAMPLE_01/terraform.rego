@@ -25,13 +25,13 @@ metadata := data.rules.EXAMPLE_01.metadata
 
 buckets := snyk.resources("aws_s3_bucket")
 
-deny[info] {
+deny contains info if {
 	bucket := buckets[_]
 	utils.bucket_name_contains(bucket, "bucket")
 	info := {"resource": bucket}
 }
 
-resources[info] {
+resources contains info if {
 	bucket := buckets[_]
 	info := {"resource": bucket}
 }

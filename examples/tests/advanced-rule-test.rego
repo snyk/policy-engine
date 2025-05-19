@@ -5,7 +5,7 @@ package rules.snyk_003.tf
 # We need to import the fixture we generated.
 import data.examples.main
 
-test_policy {
+test_policy if {
 	# We run the `deny` part of the rule using our fixture.
 	denies := deny with input as main.mock_input
 
