@@ -1,6 +1,11 @@
 # CHANGELOG
 
 
+
+## v0.34.0 - 2025-05-19
+### Changed
+* upgrade to opa v1.4.2 from v0.69.0
+
 ## v0.33.3 - 2025-03-10
 ### Security
 * update golang.org/x/net to v0.37.0
