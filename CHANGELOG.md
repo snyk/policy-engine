@@ -2,6 +2,14 @@
 
 
 
+## v1.1.0 - 2025-08-29
+### Changed
+* Updated codeowners
+### Removed
+* upgrade to opa v1.4.2 (downgrade back to opa v0.69.0))
+### Fixed
+* upgrade go-getter to v1.7.9 from v1.7.5
+
 ## v1.0.0 - 2025-05-29
 ### Changed
 * upgrade to opa v1.4.2 from v0.69.0
