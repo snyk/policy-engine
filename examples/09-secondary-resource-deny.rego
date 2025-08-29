@@ -10,7 +10,7 @@ buckets := snyk.resources("aws_s3_bucket")
 
 # This function returns the paths to any SSE algorithm in this encryptiong
 # configuration that's not KMS.
-bad_attrs(config) := ret if {
+bad_attrs(config) = ret {
 	ret := [["rule", j, "apply_server_side_encryption_by_default", k] |
 		config.rule[j].apply_server_side_encryption_by_default[k].sse_algorithm != "aws:kms"
 	]
@@ -20,7 +20,7 @@ bad_attrs(config) := ret if {
 # rule as saying:
 # "This bucket is invalid because of this config, and these attributes of the
 # config explain why."
-deny contains info if {
+deny[info] {
 	bucket := buckets[_]
 	config := snyk.relates(bucket, "aws_s3_bucket.server_side_encryption_configuration")[_]
 	bad := bad_attrs(config)
@@ -38,7 +38,7 @@ deny contains info if {
 # this policy inspected. The Policy Engine uses these results to know which
 # resources were note failed by this policy, as well as which attributes
 # factored into that decision.
-resources contains info if {
+resources[info] {
 	bucket := buckets[_]
 	config := snyk.relates(bucket, "aws_s3_bucket.server_side_encryption_configuration")[_]
 	info := {

@@ -11,21 +11,21 @@ import data.snyk
 # `snyk.resources(resource_type)`.
 #
 # This function returns an array of resources of the requested type.
-buckets := snyk.resources("aws_s3_bucket")
+buckets = snyk.resources("aws_s3_bucket")
 
-has_bucket_name(bucket) if {
+has_bucket_name(bucket) {
 	is_string(bucket.bucket)
 	contains(bucket.bucket, "bucket")
 }
 
-has_bucket_name(bucket) if {
+has_bucket_name(bucket) {
 	is_string(bucket.bucket_prefix)
 	contains(bucket.bucket_prefix, "bucket")
 }
 
 # Advanced rules must contain a `deny` set.  If the deny is associated with a
 # specific object, they should set the `resource` field in the info object.
-deny contains info if {
+deny[info] {
 	bucket := buckets[_]
 	has_bucket_name(bucket)
 	info := {

@@ -27,18 +27,18 @@ metadata := {
 
 menu_items := snyk.resources("data.dominos_menu_item")
 
-includes_cheeseburger(menu_item) if {
+includes_cheeseburger(menu_item) {
 	term := menu_item.query_string[_]
 	lower(term) == "cheeseburger"
 }
 
-deny contains info if {
+deny[info] {
 	menu_item := menu_items[_]
 	includes_cheeseburger(menu_item)
 	info := {"resource": menu_item}
 }
 
-resources contains info if {
+resources[info] {
 	menu_item := menu_items[_]
 	info := {"resource": menu_item}
 }

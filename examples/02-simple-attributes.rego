@@ -16,20 +16,20 @@
 # Then the `from_port` path would be `["ingress", 0, "from_port"]`.
 package rules.snyk_002.tf
 
-resource_type := "aws_s3_bucket"
+resource_type = "aws_s3_bucket"
 
 # We now populate the attributes so we can use them in `deny`.
-bucket_name_paths contains ["bucket"] if {
+bucket_name_paths[["bucket"]] {
 	is_string(input.bucket)
 	contains(input.bucket, "bucket")
 }
 
-bucket_name_paths contains ["bucket_prefix"] if {
+bucket_name_paths[["bucket_prefix"]] {
 	is_string(input.bucket_prefix)
 	contains(input.bucket_prefix, "bucket")
 }
 
-deny contains info if {
+deny[info] {
 	count(bucket_name_paths) > 0
 	info := {
 		"message": "Bucket names should not contain the word bucket, it's implied",

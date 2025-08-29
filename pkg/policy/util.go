@@ -15,7 +15,7 @@
 package policy
 
 import (
-	"github.com/open-policy-agent/opa/v1/ast"
+	"github.com/open-policy-agent/opa/ast"
 )
 
 func moduleSetsHelper(

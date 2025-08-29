@@ -18,7 +18,7 @@ import (
 	"sort"
 	"testing"
 
-	"github.com/open-policy-agent/opa/v1/ast"
+	"github.com/open-policy-agent/opa/ast"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -27,7 +27,7 @@ import (
 var mod1 = ast.MustParseModule(`
 package foo
 
-deny if {
+deny {
 	true
 }
 `)
@@ -35,7 +35,7 @@ deny if {
 var mod2 = ast.MustParseModule(`
 package bar
 
-deny if {
+deny {
 	true
 }
 `)
@@ -43,7 +43,7 @@ deny if {
 var mod3 = ast.MustParseModule(`
 package baz
 
-deny if {
+deny {
 	true
 }
 `)
@@ -51,7 +51,7 @@ deny if {
 var mod4 = ast.MustParseModule(`
 package qux
 
-deny if {
+deny {
 	true
 }
 `)

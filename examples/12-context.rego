@@ -8,20 +8,24 @@
 # in multi-resource policies as well.
 package rules.snyk_012.tf
 
-resource_type := "aws_s3_bucket"
+resource_type = "aws_s3_bucket"
 
-has_bucket_name if {
+has_bucket_name {
 	is_string(input.bucket)
 	contains(input.bucket, "bucket")
 }
 
-deny contains info if {
+deny[info] {
 	has_bucket_name
 	info := {"message": "Bucket names should not contain the word bucket, it's implied"}
 }
 
 # The `context` field is provided via the `info` object returned by the
 # (optional) `resources` rule.
-resources contains info if {
-	info := {"context": {"bucket_name": input.bucket}}
+resources[info] {
+  info := {
+    "context": {
+      "bucket_name": input.bucket,
+    }
+  }
 }
