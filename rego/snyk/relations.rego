@@ -18,27 +18,27 @@ import data.snyk
 import data.snyk.internal.relations
 import data.snyk.internal.relations.cache
 
-relates(resource, name) := ret if {
+relates(resource, name) = ret {
 	ret := [right_resource |
 		[right_resource, _] := cache.forward[[name, relations.make_resource_key(resource)]][_]
 	]
 }
 
-relates_with(resource, name) := ret if {
+relates_with(resource, name) = ret {
 	ret := cache.forward[[name, relations.make_resource_key(resource)]]
-} else := []
+} else = []
 
-back_relates(name, resource) := ret if {
+back_relates(name, resource) = ret {
 	ret := [left_resource |
 		[left_resource, _] := cache.backward[[name, relations.make_resource_key(resource)]][_]
 	]
 }
 
-back_relates_with(name, resource) := ret if {
+back_relates_with(name, resource) = ret {
 	ret := cache.backward[[name, relations.make_resource_key(resource)]]
-} else := []
+} else = []
 
-relation_from_fields(name, left, right) := info if {
+relation_from_fields(name, left, right) = info {
 	info := {
 		"name": name,
 		"keys": {

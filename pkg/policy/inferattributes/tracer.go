@@ -18,9 +18,9 @@ import (
 	"encoding/json"
 	"strings"
 
-	"github.com/open-policy-agent/opa/v1/ast"
-	"github.com/open-policy-agent/opa/v1/ast/location"
-	"github.com/open-policy-agent/opa/v1/topdown"
+	"github.com/open-policy-agent/opa/ast"
+	"github.com/open-policy-agent/opa/ast/location"
+	"github.com/open-policy-agent/opa/topdown"
 )
 
 type Tracer struct {

@@ -17,7 +17,7 @@ package relations
 import data.snyk
 
 # Relations for unit tests.
-relations contains info if {
+relations[info] {
 	# Only include these relations when this input flag is specified as a safety
 	# measure.
 	input.snyk_relations_test
@@ -31,7 +31,7 @@ relations contains info if {
 }
 
 # Relations for unit tests.
-relations contains info if {
+relations[info] {
 	# Only include these relations when this input flag is specified as a safety
 	# measure.
 	input.snyk_relations_test
@@ -46,7 +46,7 @@ relations contains info if {
 }
 
 # Relations for unit tests.
-relations contains info if {
+relations[info] {
 	# Only include these relations when this input flag is specified as a safety
 	# measure.
 	input.snyk_relations_test
@@ -64,7 +64,7 @@ relations contains info if {
 
 # Relations for unit tests.
 # This relation is annotated on the edges.
-relations contains info if {
+relations[info] {
 	# Only include these relations when this input flag is specified as a safety
 	# measure.
 	input.snyk_relations_test
@@ -90,7 +90,7 @@ relations contains info if {
 
 # Relations for unit tests.
 # This tests annotated explicit relations
-relations contains info if {
+relations[info] {
 	# Only include these relations when this input flag is specified as a safety
 	# measure.
 	input.snyk_relations_test

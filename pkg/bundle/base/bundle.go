@@ -15,7 +15,7 @@
 package base
 
 import (
-	"github.com/open-policy-agent/opa/v1/ast"
+	"github.com/open-policy-agent/opa/ast"
 	"github.com/snyk/policy-engine/pkg/data"
 )
 

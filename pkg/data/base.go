@@ -17,7 +17,7 @@ package data
 import (
 	"context"
 
-	"github.com/open-policy-agent/opa/v1/ast"
+	"github.com/open-policy-agent/opa/ast"
 )
 
 type Consumer interface {

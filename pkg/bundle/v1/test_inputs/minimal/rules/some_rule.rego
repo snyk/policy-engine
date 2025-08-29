@@ -24,18 +24,18 @@ metadata := {"title": "Playlist lacks cowbell"}
 
 playlists := snyk.resources("spotify_playlist")
 
-includes_boc(playlist) if {
+includes_boc(playlist) {
 	track := playlist.tracks[_]
 	track == "5QTxFnGygVM4jFQiBovmRo"
 }
 
-deny contains info if {
+deny[info] {
 	playlist := playlists[_]
 	not includes_boc(playlist)
 	info := {"resource": playlist}
 }
 
-resources contains info if {
+resources[info] {
 	playlist := playlists[_]
 	info := {"resource": playlist}
 }

@@ -1,6 +1,6 @@
 package examples.main
 
-mock_input := {
+mock_input = {
 	"format": "",
 	"format_version": "",
 	"input_type": "tf",

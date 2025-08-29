@@ -1,28 +1,28 @@
 package rules
 
-has_bucket_name(bucket) if {
+has_bucket_name(bucket) {
 	is_string(bucket.bucket)
 	contains(bucket.bucket, "bucket")
 }
 
-has_bucket_name(bucket) if {
+has_bucket_name(bucket) {
 	is_string(bucket.bucket_prefix)
 	contains(bucket.bucket_prefix, "bucket")
 }
 
-deny contains msg if {
+deny[msg] {
 	bucket := input.resource.aws_s3_bucket[name]
 
 	has_bucket_name(bucket)
 
-	msg := {
-		"publicId": "CUSTOM-RULE-1",
-		"title": "Has bucket in bucket name",
-		"severity": "medium",
-		"msg": sprintf("input.resource.aws_s3_bucket[%v]", [name]),
-		"issue": "",
-		"impact": "",
-		"remediation": "",
-		"references": [],
-	}
+    msg := {
+        "publicId": "CUSTOM-RULE-1",
+        "title": "Has bucket in bucket name",
+        "severity": "medium",
+        "msg": sprintf("input.resource.aws_s3_bucket[%v]", [name]),
+        "issue": "",
+        "impact": "",
+        "remediation": "",
+        "references": [],
+    }
 }

@@ -18,7 +18,7 @@ import (
 	"runtime/debug"
 	"strings"
 
-	opaversion "github.com/open-policy-agent/opa/v1/version"
+	opaversion "github.com/open-policy-agent/opa/version"
 	tfversion "github.com/snyk/policy-engine/pkg/internal/terraform/version"
 )
 
