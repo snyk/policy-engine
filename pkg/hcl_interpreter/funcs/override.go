@@ -6,7 +6,7 @@ import (
 	"github.com/zclconf/go-cty/cty/function"
 )
 
-func Override(fsys afero.Fs, scope lang.Scope) map[string]function.Function {
+func Override(fsys afero.Fs, scope *lang.Scope) map[string]function.Function {
 	base := scope.Functions()
 	// filesystem functions
 	base["abspath"] = MakeAbsPathFunc(fsys, scope.BaseDir)
