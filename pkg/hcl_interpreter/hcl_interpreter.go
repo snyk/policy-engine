@@ -295,7 +295,7 @@ func (v *Evaluation) evaluate() error {
 				PureOnly: false,
 			}
 			ctx := hcl.EvalContext{
-				Functions: funcs.Override(v.Analysis.Fs, scope),
+				Functions: funcs.Override(v.Analysis.Fs, &scope),
 				Variables: ValToVariables(MergeVal(vars, extraVars)),
 			}
 			val, diags := expr.Value(&ctx)
