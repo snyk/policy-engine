@@ -1,4 +1,4 @@
-module github.com/snyk/policy-engine
+module github.com/MartinideLimon/policy-engine
 
 go 1.23.0
 
@@ -30,6 +30,7 @@ require (
 	github.com/mitchellh/go-homedir v1.1.0
 	github.com/open-policy-agent/opa v0.69.0
 	github.com/rs/zerolog v1.26.1
+	github.com/snyk/policy-engine v1.1.0
 	github.com/spf13/afero v1.11.0
 	github.com/spf13/cobra v1.8.1
 	github.com/spf13/pflag v1.0.5
@@ -53,7 +54,6 @@ require (
 	cloud.google.com/go/storage v1.35.1 // indirect
 	github.com/OneOfOne/xxhash v1.2.8 // indirect
 	github.com/agnivade/levenshtein v1.2.0 // indirect
-	github.com/apparentlymart/go-dump v0.0.0-20190214190832-042adf3cf4a0 // indirect
 	github.com/apparentlymart/go-textseg/v13 v13.0.0 // indirect
 	github.com/aws/aws-sdk-go v1.44.122 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
