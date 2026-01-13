@@ -139,7 +139,7 @@ func ParseFiles(
 	if module == nil {
 		// Only actually throw an error if we don't have a module.  We can
 		// still try and validate what we can.
-		return nil, fmt.Errorf(diags.Error())
+		return nil, fmt.Errorf("%s", diags.Error())
 	}
 
 	children := map[string]*ModuleTree{}
