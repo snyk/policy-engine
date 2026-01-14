@@ -1,6 +1,10 @@
 # CHANGELOG
 
 
+## v1.1.2 - 2026-01-14
+### Security
+* downgraded version of github.com/hashicorp/go-getter
+
 ## v1.1.1 - 2026-01-13
 ### Fixed
 * add security.md
