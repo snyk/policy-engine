@@ -96,7 +96,7 @@ func newPolicySet(ctx context.Context, options policySetOptions) (*policySet, er
 	s.instrumentation.startInitialization(ctx)
 	defer s.instrumentation.finishInitialization(ctx, s)
 
-	err := withtimeout.Do(ctx, options.timeouts.Init, ErrInitTimedOut, func(ctx context.Context) error {
+	err := withtimeout.Do(ctx, options.timeouts.Init, ErrInitTimedOut{options.timeouts.Init}, func(ctx context.Context) error {
 		if err := s.loadRegoAPI(ctx); err != nil {
 			return fmt.Errorf("%w: %v", FailedToLoadRegoAPI, err)
 		}
@@ -211,7 +211,7 @@ type policyFilter func(ctx context.Context, pol policy.Policy) (bool, error)
 func (s *policySet) selectPolicies(ctx context.Context, filters []policyFilter) ([]policy.Policy, error) {
 	s.instrumentation.startPolicySelection(ctx)
 	var subset []policy.Policy
-	err := withtimeout.Do(ctx, s.timeouts.Query, ErrQueryTimedOut, func(ctx context.Context) error {
+	err := withtimeout.Do(ctx, s.timeouts.Query, ErrQueryTimedOut{s.timeouts.Query}, func(ctx context.Context) error {
 		for _, pol := range s.policies {
 			include := true
 			for _, filter := range filters {
@@ -408,7 +408,7 @@ func (s *policySet) metadata(ctx context.Context) ([]MetadataResult, error) {
 		return policies[i].Package() < policies[j].Package()
 	})
 	metadata := make([]MetadataResult, len(policies))
-	err := withtimeout.Do(ctx, s.timeouts.Query, ErrQueryTimedOut, func(ctx context.Context) error {
+	err := withtimeout.Do(ctx, s.timeouts.Query, ErrQueryTimedOut{s.timeouts.Query}, func(ctx context.Context) error {
 		for idx, p := range policies {
 			m, err := p.Metadata(ctx, s.rego)
 			result := MetadataResult{

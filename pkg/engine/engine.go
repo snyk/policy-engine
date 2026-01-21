@@ -224,7 +224,7 @@ func (e *Engine) Eval(ctx context.Context, options *EvalOptions) *models.Results
 			policy.NewInputResolver(&input).Or(options.ResourcesResolver),
 		)
 		for _, p := range e.policySets {
-			err := withtimeout.Do(ctx, e.timeouts.Eval, ErrEvalTimedOut, func(ctx context.Context) error {
+			err := withtimeout.Do(ctx, e.timeouts.Eval, ErrEvalTimedOut{Timeout: e.timeouts.Eval}, func(ctx context.Context) error {
 				ruleResults, err := p.eval(ctx, &parallelEvalOptions{
 					input:          &input,
 					resourcesQuery: resourcesQuery,
