@@ -1,6 +1,10 @@
 # CHANGELOG
 
 
+## v1.1.3 - 2026-02-05
+### Security
+* upgrade version of go.opentelemetry.io/otel
+
 ## v1.1.2 - 2026-01-14
 ### Security
 * downgraded version of github.com/hashicorp/go-getter
