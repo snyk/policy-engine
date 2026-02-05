@@ -9,7 +9,7 @@ import (
 	"github.com/hashicorp/hcl/v2"
 )
 
-// LoadConfigDir reads the .tf and .tf.json files in the given directory
+// LoadConfigDir reads the .tf, .tf.json, .tofu and .tofu.json files in the given directory
 // as config files (using LoadConfigFile) and then combines these files into
 // a single Module.
 //
@@ -26,8 +26,8 @@ import (
 // will simply return an empty module in that case. Callers should first call
 // Parser.IsConfigDir if they wish to recognize that situation.
 //
-// .tf files are parsed using the HCL native syntax while .tf.json files are
-// parsed using the HCL JSON syntax.
+// .tf and .tofu files are parsed using the HCL native syntax while .tf.json and
+// .tofu.json files are parsed using the HCL JSON syntax.
 func (p *Parser) LoadConfigDir(path string) (*Module, hcl.Diagnostics) {
 	primaryPaths, overridePaths, diags := p.dirFiles(path)
 	if diags.HasErrors() {
@@ -57,8 +57,8 @@ func (p Parser) ConfigDirFiles(dir string) (primary, override []string, diags hc
 }
 
 // IsConfigDir determines whether the given path refers to a directory that
-// exists and contains at least one Terraform config file (with a .tf or
-// .tf.json extension.)
+// exists and contains at least one Terraform/OpenTofu config file (with a .tf,
+// .tf.json, .tofu or .tofu.json extension.)
 func (p *Parser) IsConfigDir(path string) bool {
 	primaryPaths, overridePaths, _ := p.dirFiles(path)
 	return (len(primaryPaths) + len(overridePaths)) > 0
@@ -122,13 +122,17 @@ func (p *Parser) dirFiles(dir string) (primary, override []string, diags hcl.Dia
 	return
 }
 
-// fileExt returns the Terraform configuration extension of the given
+// fileExt returns the Terraform/OpenTofu configuration extension of the given
 // path, or a blank string if it is not a recognized extension.
 func fileExt(path string) string {
 	if strings.HasSuffix(path, ".tf") {
 		return ".tf"
 	} else if strings.HasSuffix(path, ".tf.json") {
 		return ".tf.json"
+	} else if strings.HasSuffix(path, ".tofu") {
+		return ".tofu"
+	} else if strings.HasSuffix(path, ".tofu.json") {
+		return ".tofu.json"
 	} else {
 		return ""
 	}
