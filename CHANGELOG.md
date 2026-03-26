@@ -1,6 +1,10 @@
 # CHANGELOG
 
 
+## 1.1.4 - 2026-03-26
+### Updated
+* update go version, update google.golang.org/grpc version
+
 ## v1.1.3 - 2026-02-05
 ### Security
 * upgrade version of go.opentelemetry.io/otel
