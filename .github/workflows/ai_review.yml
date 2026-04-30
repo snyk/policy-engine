@@ -1,0 +1,20 @@
+name: opencode
+
+on:
+  pull_request:
+    types: [opened, synchronize]
+
+concurrency:
+  group: ci-${{ github.head_ref }}
+  cancel-in-progress: true
+
+jobs:
+  opencode_review:
+    uses: matadorapp/github-action-ai-review/.github/workflows/ai_review.yml@v1.1.0
+    permissions:
+      id-token: write
+      contents: read
+      pull-requests: write
+    with:
+      ai_agent: "architect" # Or lead-engineer
+      docker_image: "323970663242.dkr.ecr.us-east-1.amazonaws.com/opencodereview:0.29.0"
