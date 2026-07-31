@@ -71,6 +71,10 @@ func (t *tokenizer) next() (token, error) {
 		return openParen{}, nil
 	case ')':
 		return closeParen{}, nil
+	case '[':
+		return openBracket{}, nil
+	case ']':
+		return closeBracket{}, nil
 	case ',':
 		return comma{}, nil
 	case '.':
@@ -130,6 +134,8 @@ type token interface {
 
 type openParen struct{}
 type closeParen struct{}
+type openBracket struct{}
+type closeBracket struct{}
 type comma struct{}
 type dot struct{}
 type identifier string

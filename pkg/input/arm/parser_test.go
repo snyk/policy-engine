@@ -85,6 +85,21 @@ func TestParse(t *testing.T) {
 				property: "baz",
 			},
 		},
+		{
+			name:  "supports arrays",
+			input: "[[], ['foo'], [resourceGroup().location, 'bar']]",
+			expected: arrayExpr([]expression{
+				arrayExpr(nil),
+				arrayExpr([]expression{stringLiteralExpr("foo")}),
+				arrayExpr([]expression{
+					propertyExpr{
+						obj:      functionExpr{name: "resourceGroup"},
+						property: "location",
+					},
+					stringLiteralExpr("bar"),
+				}),
+			}),
+		},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
 			tokens, err := tokenize(tc.input)
