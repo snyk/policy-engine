@@ -27,6 +27,7 @@ func detectorByInputType(inputType *Type) (Detector, error) {
 			&TfPlanDetector{},
 			&TfDetector{},
 			&TfStateDetector{},
+			&OpenTofuDetector{},
 			&KubernetesDetector{},
 			&ArmDetector{},
 		), nil
@@ -37,6 +38,14 @@ func detectorByInputType(inputType *Type) (Detector, error) {
 	case TerraformHCL.Name:
 		return &TfDetector{}, nil
 	case TerraformState.Name:
+		return &TfStateDetector{}, nil
+	case OpenTofuHCL.Name:
+		return &OpenTofuDetector{}, nil
+	case OpenTofuPlan.Name:
+		// OpenTofu Plan uses the same detector as Terraform Plan
+		return &TfPlanDetector{}, nil
+	case OpenTofuState.Name:
+		// OpenTofu State uses the same detector as Terraform State
 		return &TfStateDetector{}, nil
 	case Kubernetes.Name:
 		return &KubernetesDetector{}, nil
