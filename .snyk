@@ -71,3 +71,18 @@ ignore:
   "snyk:lic:golang:github.com:hashicorp:go-safetemp:MPL-2.0":
     - "*":
         reason: MPL code and dependencies allowed in this project
+  SNYK-GOLANG-GITHUBCOMOPENPOLICYAGENTOPAAST-11990966:
+    - "*":
+        reason: Blocked on IAC-3311, OPA v1 migration in progress
+        expires: "2027-09-02T00:00:00.000Z"
+        created: "2026-09-02T00:00:00.000Z"
+  SNYK-GOLANG-GOPKGINYAMLV2-12330650:
+    - "*":
+        reason: Transitive dependency of the unfixed OPA version, tracked under IAC-3311
+        expires: "2027-09-02T00:00:00.000Z"
+        created: "2026-09-02T00:00:00.000Z"
+  SNYK-GOLANG-STDARCHIVETAR-23023024:
+    - "*":
+        reason: No fix released for any current Go version as of this writing; govulncheck does not list this as a called vulnerability, tracked under IAC-3537
+        expires: "2027-09-07T00:00:00.000Z"
+        created: "2026-09-07T00:00:00.000Z"
