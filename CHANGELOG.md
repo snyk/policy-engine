@@ -1,6 +1,14 @@
 # CHANGELOG
 
 
+## v1.1.5 - 2026-09-10
+### Changed
+* Codeowners
+* codeowners
+* config.yml
+### Security
+* Ignore opa/ast and yaml.v2 findings pending OPA v1 migration (IAC-3348)
+
 ## v1.1.4 - 2026-03-26
 ### Updated
 * update go version, update google.golang.org/grpc version
