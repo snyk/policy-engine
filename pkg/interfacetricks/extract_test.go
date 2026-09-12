@@ -34,6 +34,23 @@ func TestPrimitives(t *testing.T) {
 	}, &p1, &p2)
 }
 
+func TestPrimitiveErrors(t *testing.T) {
+	p1 := Primitives{}
+	errs := Extract(map[string]interface{}{
+		"int": int(1),
+	}, p1)
+	require.Equal(t, []error{
+		ExtractError{
+			underlying: SetError,
+			SrcPath:    []interface{}{},
+			SrcType:    reflect.TypeOf(map[string]interface{}{}),
+			DstType:    reflect.TypeOf(p1),
+		},
+	}, errs)
+	require.ErrorAs(t, errs[0], &ExtractError{})
+	require.ErrorIs(t, errs[0], SetError)
+}
+
 type Collections struct {
 	Slice []Primitives   `json:"slice"`
 	Map   map[string]int `json:"map"`
@@ -70,16 +87,20 @@ func TestCollectionErrors(t *testing.T) {
 	}, &dst)
 	require.Equal(t, []error{
 		ExtractError{
-			SrcPath: []interface{}{"slice", 0},
-			SrcType: intType,
-			DstType: reflect.TypeOf(Primitives{}),
+			underlying: TypeError,
+			SrcPath:    []interface{}{"slice", 0},
+			SrcType:    intType,
+			DstType:    reflect.TypeOf(Primitives{}),
 		},
 		ExtractError{
-			SrcPath: []interface{}{"slice", 1, "bool"},
-			SrcType: stringType,
-			DstType: boolType,
+			underlying: TypeError,
+			SrcPath:    []interface{}{"slice", 1, "bool"},
+			SrcType:    stringType,
+			DstType:    boolType,
 		},
 	}, errs)
+	require.ErrorAs(t, errs[0], &ExtractError{})
+	require.ErrorIs(t, errs[0], TypeError)
 	require.Equal(t, Collections{
 		Slice: []Primitives{
 			{},
