@@ -153,6 +153,36 @@ var Terraform = &Type{
 	},
 }
 
+// OpenTofuHCL represents OpenTofu HCL source code inputs.
+var OpenTofuHCL = &Type{
+	Name:    "opentofu_hcl",
+	Aliases: []string{"opentofu-hcl", "tofu_hcl", "tofu-hcl"},
+}
+
+// OpenTofuPlan represents OpenTofu Plan JSON inputs.
+var OpenTofuPlan = &Type{
+	Name:    "opentofu_plan",
+	Aliases: []string{"opentofu-plan", "tofu_plan", "tofu-plan"},
+}
+
+// OpenTofuState represents OpenTofu State JSON inputs.
+var OpenTofuState = &Type{
+	Name:    "opentofu_state",
+	Aliases: []string{"opentofu-state", "tofu_state", "tofu-state"},
+}
+
+// OpenTofu is an aggregate input type that encompasses all input types that contain
+// OpenTofu resource types.
+var OpenTofu = &Type{
+	Name:    "opentofu",
+	Aliases: []string{"tofu"},
+	Children: Types{
+		OpenTofuHCL,
+		OpenTofuPlan,
+		OpenTofuState,
+	},
+}
+
 // Auto is an aggregate type that contains all of the IaC input types that this package
 // supports.
 var Auto = &Type{
@@ -164,6 +194,9 @@ var Auto = &Type{
 		TerraformHCL,
 		TerraformPlan,
 		TerraformState,
+		OpenTofuHCL,
+		OpenTofuPlan,
+		OpenTofuState,
 	},
 }
 
@@ -175,6 +208,7 @@ var Any = &Type{
 		CloudFormation,
 		Kubernetes,
 		Terraform,
+		OpenTofu,
 	},
 }
 
@@ -188,4 +222,7 @@ var SupportedInputTypes = Types{
 	TerraformHCL,
 	TerraformPlan,
 	TerraformState,
+	OpenTofuHCL,
+	OpenTofuPlan,
+	OpenTofuState,
 }
