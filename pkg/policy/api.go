@@ -20,13 +20,14 @@ import (
 	"fmt"
 	"sort"
 
-	"github.com/open-policy-agent/opa/ast"
-	"github.com/open-policy-agent/opa/rego"
-	"github.com/open-policy-agent/opa/topdown"
-	"github.com/open-policy-agent/opa/types"
+	"github.com/open-policy-agent/opa/v1/ast"
+	"github.com/open-policy-agent/opa/v1/rego"
+	"github.com/open-policy-agent/opa/v1/topdown"
+	"github.com/open-policy-agent/opa/v1/types"
 	"github.com/snyk/policy-engine/pkg/data"
 	"github.com/snyk/policy-engine/pkg/models"
 	"github.com/snyk/policy-engine/pkg/policy/inferattributes"
+	"github.com/snyk/policy-engine/pkg/regoversion"
 	"github.com/snyk/policy-engine/pkg/snapshot_testing"
 )
 
@@ -159,7 +160,7 @@ func Capabilities() *ast.Capabilities {
 			Decl: decl,
 		})
 	}
-	base := ast.CapabilitiesForThisVersion()
+	base := ast.CapabilitiesForThisVersion(ast.CapabilitiesRegoVersion(regoversion.Default))
 	for _, builtin := range base.Builtins {
 		if _, ok := allowedBuiltins[builtin.Name]; ok {
 			builtins = append(builtins, builtin)
@@ -169,6 +170,7 @@ func Capabilities() *ast.Capabilities {
 		Builtins:       builtins,
 		AllowNet:       []string{},
 		FutureKeywords: base.FutureKeywords,
+		Features:       base.Features,
 	}
 }
 

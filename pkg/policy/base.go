@@ -20,7 +20,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/open-policy-agent/opa/ast"
+	"github.com/open-policy-agent/opa/v1/ast"
 
 	"github.com/snyk/policy-engine/pkg/input"
 	"github.com/snyk/policy-engine/pkg/logging"

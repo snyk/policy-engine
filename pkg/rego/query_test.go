@@ -18,20 +18,21 @@ import (
 	"context"
 	"testing"
 
-	"github.com/open-policy-agent/opa/ast"
+	"github.com/open-policy-agent/opa/v1/ast"
+	"github.com/snyk/policy-engine/pkg/regoversion"
 	"github.com/stretchr/testify/assert"
 )
 
 func TestQuery1(t *testing.T) {
 	ctx := context.Background()
 	modules := map[string]*ast.Module{
-		"example.rego": ast.MustParseModule(`
+		"example.rego": ast.MustParseModuleWithOpts(`
 package example
 
 people = [
 	{"name": "Sam", "age": 30, "aliases": ["Kim", "Tom"], "attributes": {"teeth": 32}, "hungry": true},
 	{"name": "Kim", "age": 40, "aliases": ["Sam", "Tim"], "attributes": {"teeth": 28}, "hungry": false},
-]`),
+]`, regoversion.ParserOptions()),
 	}
 
 	state, err := NewState(Options{
@@ -88,13 +89,13 @@ people = [
 func TestQueryStrict(t *testing.T) {
 	ctx := context.Background()
 	modules := map[string]*ast.Module{
-		"example.rego": ast.MustParseModule(`
+		"example.rego": ast.MustParseModuleWithOpts(`
 package example
 
 people = [
 	{"name": "Sam", "age": 30},
 	{"name": "Kim", "age": 40},
-]`),
+]`, regoversion.ParserOptions()),
 	}
 
 	state, err := NewState(Options{
@@ -121,13 +122,13 @@ people = [
 func TestQueryTimeout(t *testing.T) {
 	ctx := context.Background()
 	modules := map[string]*ast.Module{
-		"example.rego": ast.MustParseModule(`
+		"example.rego": ast.MustParseModuleWithOpts(`
 package example
 
 people = [
 	{"name": "Sam", "age": 30},
 	{"name": "Kim", "age": 40},
-]`),
+]`, regoversion.ParserOptions()),
 	}
 
 	state, err := NewState(Options{

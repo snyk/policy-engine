@@ -19,10 +19,11 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/open-policy-agent/opa/ast"
-	"github.com/open-policy-agent/opa/repl"
-	"github.com/open-policy-agent/opa/storage"
-	"github.com/open-policy-agent/opa/storage/inmem"
+	"github.com/open-policy-agent/opa/v1/ast"
+	"github.com/open-policy-agent/opa/v1/repl"
+	"github.com/open-policy-agent/opa/v1/storage"
+	"github.com/open-policy-agent/opa/v1/storage/inmem"
+	"github.com/snyk/policy-engine/pkg/regoversion"
 
 	"github.com/snyk/policy-engine/pkg/data"
 	"github.com/snyk/policy-engine/pkg/engine"
@@ -85,7 +86,7 @@ func Repl(ctx context.Context, options Options) error {
 		"pretty",
 		ast.CompileErrorLimitDefault,
 		"",
-	).WithCapabilities(policy.Capabilities())
+	).WithCapabilities(policy.Capabilities()).WithRegoVersion(regoversion.Default)
 
 	r.OneShot(ctx, "strict-builtin-errors")
 	for _, command := range options.Init {

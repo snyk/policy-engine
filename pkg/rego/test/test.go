@@ -20,13 +20,14 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/open-policy-agent/opa/ast"
-	"github.com/open-policy-agent/opa/rego"
-	"github.com/open-policy-agent/opa/storage/inmem"
-	"github.com/open-policy-agent/opa/tester"
+	"github.com/open-policy-agent/opa/v1/ast"
+	"github.com/open-policy-agent/opa/v1/rego"
+	"github.com/open-policy-agent/opa/v1/storage/inmem"
+	"github.com/open-policy-agent/opa/v1/tester"
 	"github.com/snyk/policy-engine/pkg/data"
 	"github.com/snyk/policy-engine/pkg/engine"
 	"github.com/snyk/policy-engine/pkg/policy"
+	"github.com/snyk/policy-engine/pkg/regoversion"
 	"github.com/snyk/policy-engine/pkg/snapshot_testing"
 )
 
@@ -68,10 +69,12 @@ func Test(ctx context.Context, options Options) (Result, error) {
 	capabilities.Builtins = append(capabilities.Builtins, snapshot_testing.MatchBuiltin)
 
 	compiler := ast.NewCompiler().
+		WithDefaultRegoVersion(regoversion.Default).
 		WithCapabilities(capabilities).
 		WithEnablePrintStatements(true)
 
 	ch, err := tester.NewRunner().
+		SetDefaultRegoVersion(regoversion.Default).
 		AddCustomBuiltins([]*tester.Builtin{
 			{
 				Decl: snapshot_testing.MatchBuiltin,
