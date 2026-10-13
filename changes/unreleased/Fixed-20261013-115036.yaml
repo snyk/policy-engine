@@ -1,0 +1,3 @@
+kind: Fixed
+body: report the invalid target address instead of a struct in the vendored terraform plan file error (recorded in patches/terraform.patch)
+time: 2026-10-13T11:50:36+03:00

@@ -20,10 +20,11 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/open-policy-agent/opa/ast"
-	"github.com/open-policy-agent/opa/rego"
-	"github.com/open-policy-agent/opa/storage"
-	"github.com/open-policy-agent/opa/storage/inmem"
+	"github.com/open-policy-agent/opa/v1/ast"
+	"github.com/open-policy-agent/opa/v1/rego"
+	"github.com/open-policy-agent/opa/v1/storage"
+	"github.com/open-policy-agent/opa/v1/storage/inmem"
+	"github.com/snyk/policy-engine/pkg/regoversion"
 	"github.com/spf13/cobra"
 
 	"github.com/snyk/policy-engine/pkg/data"
@@ -97,9 +98,9 @@ var evalCmd = &cobra.Command{
 		}
 		regoOptions = append(regoOptions, rego.Store(store))
 
-		compiler := ast.NewCompiler().WithCapabilities(policy.Capabilities())
+		compiler := ast.NewCompiler().WithDefaultRegoVersion(regoversion.Default).WithCapabilities(policy.Capabilities())
 		compiler.Compile(consumer.Modules)
-		regoOptions = append(regoOptions, rego.Compiler(compiler))
+		regoOptions = append(regoOptions, rego.Compiler(compiler), rego.SetRegoVersion(regoversion.Default))
 
 		if len(args) != 1 {
 			return fmt.Errorf("Expected exactly one query argument")

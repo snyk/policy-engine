@@ -18,43 +18,44 @@ import (
 	"sort"
 	"testing"
 
-	"github.com/open-policy-agent/opa/ast"
+	"github.com/open-policy-agent/opa/v1/ast"
+	"github.com/snyk/policy-engine/pkg/regoversion"
 	"github.com/stretchr/testify/assert"
 )
 
 // The package names in these test modules are just to get them to parse.
 
-var mod1 = ast.MustParseModule(`
+var mod1 = ast.MustParseModuleWithOpts(`
 package foo
 
 deny {
 	true
 }
-`)
+`, regoversion.ParserOptions())
 
-var mod2 = ast.MustParseModule(`
+var mod2 = ast.MustParseModuleWithOpts(`
 package bar
 
 deny {
 	true
 }
-`)
+`, regoversion.ParserOptions())
 
-var mod3 = ast.MustParseModule(`
+var mod3 = ast.MustParseModuleWithOpts(`
 package baz
 
 deny {
 	true
 }
-`)
+`, regoversion.ParserOptions())
 
-var mod4 = ast.MustParseModule(`
+var mod4 = ast.MustParseModuleWithOpts(`
 package qux
 
 deny {
 	true
 }
-`)
+`, regoversion.ParserOptions())
 
 func TestModuleSetsWithPrefix(t *testing.T) {
 	foo := ast.StringTerm("foo")

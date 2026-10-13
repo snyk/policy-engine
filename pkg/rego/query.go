@@ -20,11 +20,12 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/open-policy-agent/opa/ast"
-	"github.com/open-policy-agent/opa/storage"
-	"github.com/open-policy-agent/opa/storage/inmem"
-	"github.com/open-policy-agent/opa/topdown"
+	"github.com/open-policy-agent/opa/v1/ast"
+	"github.com/open-policy-agent/opa/v1/storage"
+	"github.com/open-policy-agent/opa/v1/storage/inmem"
+	"github.com/open-policy-agent/opa/v1/topdown"
 	"github.com/snyk/policy-engine/pkg/internal/withtimeout"
+	"github.com/snyk/policy-engine/pkg/regoversion"
 )
 
 var ErrQueryTimedOut = errors.New("query timed out")
@@ -41,7 +42,7 @@ type State struct {
 }
 
 func NewState(options Options) (*State, error) {
-	compiler := ast.NewCompiler()
+	compiler := ast.NewCompiler().WithDefaultRegoVersion(regoversion.Default)
 
 	if options.Capabilities != nil {
 		compiler = compiler.WithCapabilities(options.Capabilities)
@@ -110,7 +111,7 @@ func (s *State) Query(
 	query Query,
 	process func(ast.Value) error,
 ) error {
-	parsed, err := ast.ParseBody(query.Query)
+	parsed, err := ast.ParseBodyWithOpts(query.Query, regoversion.ParserOptions())
 	if err != nil {
 		return err
 	}

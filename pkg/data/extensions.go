@@ -19,7 +19,8 @@ import (
 	"fmt"
 	"io"
 
-	"github.com/open-policy-agent/opa/ast"
+	"github.com/open-policy-agent/opa/v1/ast"
+	"github.com/snyk/policy-engine/pkg/regoversion"
 	"gopkg.in/yaml.v3"
 )
 
@@ -36,7 +37,7 @@ func regoParser(
 	if err != nil {
 		return err
 	}
-	module, err := ast.ParseModule(path, string(bytes))
+	module, err := ast.ParseModuleWithOpts(path, string(bytes), regoversion.ParserOptions())
 	if err != nil {
 		return err
 	}

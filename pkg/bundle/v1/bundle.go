@@ -22,10 +22,11 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/open-policy-agent/opa/ast"
+	"github.com/open-policy-agent/opa/v1/ast"
 	"github.com/snyk/policy-engine/pkg/bundle/base"
 	"github.com/snyk/policy-engine/pkg/data"
 	"github.com/snyk/policy-engine/pkg/interfacetricks"
+	"github.com/snyk/policy-engine/pkg/regoversion"
 	"github.com/snyk/policy-engine/pkg/version"
 	"gopkg.in/yaml.v3"
 )
@@ -96,7 +97,7 @@ func (b *Bundle) addDocument(path string, raw []byte) error {
 }
 
 func (b *Bundle) addModule(path string, raw []byte) error {
-	module, err := ast.ParseModule(path, string(raw))
+	module, err := ast.ParseModuleWithOpts(path, string(raw), regoversion.ParserOptions())
 	if err != nil {
 		return err
 	}
