@@ -2,6 +2,12 @@
 
 
 
+## v1.1.7 - 2026-10-23
+### Fixed
+* Ownerhip change
+### Updated
+* upgrade to opa v1.21.3 from v1.4.2
+
 ## v1.1.6 - 2026-10-13
 ### Changed
 * upgrade to opa v1.4.2 from v0.69.0 to address CVE-2025-46569; policies are still parsed and compiled as Rego v0 (see pkg/regoversion)
