@@ -2,6 +2,10 @@
 
 
 
+## v1.1.8 - 2026-10-27
+### Fixed
+* handle null values when extracting into interface{}; an ARM template with a null property (e.g. "customDomain": null) no longer panics the ARM detector
+
 ## v1.1.7 - 2026-10-23
 ### Fixed
 * Ownerhip change
