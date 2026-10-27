@@ -1,0 +1,31 @@
+{
+  "format": "",
+  "format_version": "",
+  "input_type": "arm",
+  "environment_provider": "iac",
+  "meta": {
+    "filepath": "golden_test/arm/null-property/template.json"
+  },
+  "resources": {
+    "Microsoft.Storage/storageAccounts": {
+      "Microsoft.Storage/storageAccounts/mystorage": {
+        "id": "Microsoft.Storage/storageAccounts/mystorage",
+        "resource_type": "Microsoft.Storage/storageAccounts",
+        "namespace": "golden_test/arm/null-property/template.json",
+        "meta": {},
+        "attributes": {
+          "apiVersion": "2021-09-01",
+          "kind": "StorageV2",
+          "location": "eastus",
+          "properties": {
+            "customDomain": null,
+            "supportsHttpsTrafficOnly": true
+          },
+          "sku": {
+            "name": "Standard_LRS"
+          }
+        }
+      }
+    }
+  }
+}

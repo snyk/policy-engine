@@ -126,7 +126,11 @@ func extract(path []interface{}, src interface{}, dst reflect.Value) (errs []err
 		}
 	case reflect.Interface:
 		if dst.CanSet() {
-			dst.Set(reflect.ValueOf(src))
+			if src == nil {
+				dst.Set(reflect.Zero(ty))
+			} else {
+				dst.Set(reflect.ValueOf(src))
+			}
 			return
 		}
 	case reflect.Bool:

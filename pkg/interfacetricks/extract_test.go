@@ -88,6 +88,24 @@ func TestCollectionErrors(t *testing.T) {
 	}, dst)
 }
 
+type Interfaces struct {
+	Value interface{}            `json:"value"`
+	Map   map[string]interface{} `json:"map"`
+	Slice []interface{}          `json:"slice"`
+}
+
+// A JSON null into an interface{} must yield nil, like encoding/json, rather
+// than panicking in reflect.Value.Set.
+func TestNullInterfaces(t *testing.T) {
+	i1 := Interfaces{}
+	i2 := Interfaces{}
+	PropertyCompareToEncoding(t, Interfaces{
+		Value: nil,
+		Map:   map[string]interface{}{"null": nil, "string": "Hello, world!"},
+		Slice: []interface{}{nil, "Hello, world!"},
+	}, &i1, &i2)
+}
+
 // PropertyCompareToEncoding helps testing the Extract function.  We deserialize
 // a value twice --- once using a JSON round-trip, and once using our own
 // Extract.  We expect the result to be the same.
